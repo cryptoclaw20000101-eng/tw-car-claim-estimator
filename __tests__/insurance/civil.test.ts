@@ -13,7 +13,6 @@ import {
   scoreSeverity,
 } from '@/lib/insurance/civil-damages'
 import { computeThirdParty, computeVehicleDamage, computePropertyDamage } from '@/lib/insurance/third-party'
-import { generateEvidence } from '@/lib/insurance/evidence'
 import { estimateClaim } from '@/lib/insurance'
 import type { ClaimInput, MedicalRecord, PersonalIncome, CompulsoryMedicalInputs, PropertyDamageInputs, AccidentBasics, FaultInfo } from '@/lib/insurance/types'
 
