@@ -42,30 +42,36 @@ const dollar = (n: number) => `NT$ ${(n ?? 0).toLocaleString('zh-TW')}`
 
 export default function ResultForm() {
   const router = useRouter()
-  const [input, setInput] = useState<ClaimInput | null>(null)
-  const [result, setResult] = useState<EstimationResult | null>(null)
-  const [stale, setStale] = useState(false)
-
-  useEffect(() => {
+  // 用 lazy initializer 在第一次 render 時同步讀 sessionStorage，
+  // 避免在 useEffect 內同步 setState 觸發 cascading render
+  // （符合 react-hooks/set-state-in-effect 規則）
+  const [hydrated] = useState(() => {
+    if (typeof window === 'undefined') return { input: null, result: null, stale: false }
     const rawInput = sessionStorage.getItem('claim-input')
     const rawResult = sessionStorage.getItem('claim-result')
-    if (!rawInput || !rawResult) {
-      router.push('/claims/new')
-      return
-    }
-    setInput(JSON.parse(rawInput) as ClaimInput)
-    setResult(JSON.parse(rawResult) as EstimationResult)
+    if (!rawInput || !rawResult) return { input: null, result: null, stale: false }
+    const input = JSON.parse(rawInput) as ClaimInput
+    const result = JSON.parse(rawResult) as EstimationResult
     // 檢查法源時效（isLegalReferenceStale 是同步函數）
-    const check = () => {
-      try {
-        const all = listLegalReferences()
-        setStale(all.some((r) => isLegalReferenceStale(r)))
-      } catch {
-        /* ignore */
-      }
+    let stale = false
+    try {
+      const all = listLegalReferences()
+      stale = all.some((r) => isLegalReferenceStale(r))
+    } catch {
+      /* ignore */
     }
-    check()
-  }, [router])
+    return { input, result, stale }
+  })
+
+  useEffect(() => {
+    if (!hydrated.input || !hydrated.result) {
+      router.push('/claims/new')
+    }
+  }, [hydrated.input, hydrated.result, router])
+
+  const input = hydrated.input
+  const result = hydrated.result
+  const stale = hydrated.stale
 
   if (!input || !result) {
     return <div className="p-12 text-center">載入中…</div>
