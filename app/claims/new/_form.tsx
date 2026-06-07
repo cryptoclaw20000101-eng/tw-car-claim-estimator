@@ -1,0 +1,852 @@
+
+import { useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation';
+import {
+  Button,
+  Card,
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  Space,
+  Steps,
+  Switch,
+  message,
+  Alert,
+  Typography,
+  DatePicker,
+  Row,
+  Col,
+} from 'antd'
+import { LeftOutlined, RightOutlined, CheckCircleOutlined } from '@ant-design/icons'
+import dayjs, { Dayjs } from 'dayjs'
+import type {
+  AccidentBasics,
+  AccidentType,
+  ClaimInput,
+  CompulsoryMedicalInputs,
+  EmploymentType,
+  FaultInfo,
+  FaultSource,
+  InjuredRole,
+  JointName,
+  MedicalRecord,
+  PersonalIncome,
+  PropertyDamageInputs,
+} from '@/lib/insurance/types'
+import { regionCourtMap } from '@/lib/insurance/region-court-map'
+import { estimateClaim } from '@/lib/insurance'
+
+// 表單頁必須在 client runtime render（AntD Form useWatch / validateFields 依賴 client context）
+
+const { Title, Paragraph, Text } = Typography
+
+// ============== 預設值 ==============
+
+const today = () => dayjs().format('YYYY-MM-DD')
+
+const DEFAULT_BASICS: AccidentBasics = {
+  accidentDate: today(),
+  accidentLocation: '',
+  accidentType: 'car_to_car',
+  injuredRole: 'driver_car',
+  isAutomobileAccident: true,
+  hasPolicePreliminaryReport: true,
+  hasAccidentAppraisal: false,
+  isSettled: false,
+  hasCompulsoryInsurance: true,
+  hasThirdPartyInsurance: false,
+  thirdPartyBodilyLimit: 0,
+  thirdPartyPropertyLimit: 0,
+  excessLiabilityLimit: 0,
+  accidentCity: '臺中市',
+  accidentDistrict: '',
+  claimantResidenceCity: '臺中市',
+  claimantResidenceDistrict: '',
+  defendantResidenceCity: '臺中市',
+  defendantResidenceDistrict: '',
+  courtJurisdiction: '臺灣臺中地方法院',
+  insuranceCompanyBranchRegion: '中部',
+}
+
+const DEFAULT_FAULT: FaultInfo = {
+  selfFaultRatio: 0,
+  otherFaultRatio: 100,
+  faultSource: 'police_preliminary',
+  isFaultDisputed: false,
+}
+
+const DEFAULT_PERSON: PersonalIncome = {
+  birthDate: '1990-01-01',
+  age: 36,
+  occupation: '',
+  employmentType: 'full_time_salary',
+  sixMonthAverageSalary: 0,
+  monthlySalary: 0,
+  dailyWage: 0,
+  lastYearTaxableIncome: 0,
+  hasPropertyList: false,
+  hasSalaryTransferRecord: false,
+  hasLeaveCertificate: false,
+  hasSalaryDeductionProof: false,
+  actualLeaveDays: 0,
+  doctorOrderedRestDays: 0,
+}
+
+const DEFAULT_MEDICAL: MedicalRecord = {
+  diagnosisText: '',
+  hospitalName: '',
+  emergencyDate: '',
+  outpatientVisitCount: 0,
+  hospitalizationDays: 0,
+  hasSurgery: false,
+  hasRehabilitation: false,
+  rehabilitationCount: 0,
+  requiresNursingCare: false,
+  nursingDays: 0,
+  isSymptomFixed: false,
+  hasDisabilityCertificate: false,
+  hasClassADiagnosisCertificate: false,
+  hasFracture: false,
+  hasDislocation: false,
+  hasLigamentInjury: false,
+  hasNerveDamage: false,
+  hasAmputation: false,
+  hasOrganDamage: false,
+  hasScar: false,
+  scarLengthCm: 0,
+  scarLocation: '',
+  jointName: null,
+  hasRangeOfMotionLimitation: false,
+  romLossDegree: 0,
+  romNormalDegree: 0,
+  hasMuscleWeakness: false,
+  hasSensoryLoss: false,
+  hasPermanentImpairment: false,
+}
+
+const DEFAULT_RECEIPTS: CompulsoryMedicalInputs = {
+  emergencyFee: 0,
+  ambulanceFee: 0,
+  nhiCopayment: 0,
+  registrationFee: 0,
+  diagnosisCertificateFee: 0,
+  nonNhiNecessaryMedicalFee: 0,
+  wardFeeDifference: 0,
+  wardFeeDays: 0,
+  mealFee: 0,
+  mealDays: 0,
+  prosthesisFee: 0,
+  dentureFee: 0,
+  missingTeethCount: 0,
+  artificialEyeFee: 0,
+  medicalMaterialFee: 0,
+  assistiveDeviceFee: 0,
+  transportationFee: 0,
+  nursingFee: 0,
+  nursingDays: 0,
+  otherNecessaryMedicalFee: 0,
+}
+
+const DEFAULT_PROPERTY: PropertyDamageInputs = {
+  vehicleRepairEstimate: 0,
+  vehicleRepairInvoice: 0,
+  vehicleMarketValueBeforeAccident: 0,
+  salvageValue: 0,
+  towingFee: 0,
+  rentalCarFee: 0,
+  phoneDamage: 0,
+  helmetDamage: 0,
+  clothingDamage: 0,
+  glassesDamage: 0,
+  otherPropertyDamage: 0,
+}
+
+// ============== 選項常數 ==============
+
+const CITY_OPTIONS = [
+  '臺北市', '新北市', '桃園市', '臺中市', '臺南市', '高雄市',
+  '基隆市', '新竹市', '新竹縣', '苗栗縣', '彰化縣', '南投縣',
+  '雲林縣', '嘉義市', '嘉義縣', '屏東縣', '宜蘭縣', '花蓮縣',
+  '臺東縣', '澎湖縣', '金門縣', '連江縣',
+]
+
+const ACCIDENT_TYPE_OPTIONS: { value: AccidentType; label: string }[] = [
+  { value: 'car_to_car', label: '車對車' },
+  { value: 'car_to_motorcycle', label: '車對機車' },
+  { value: 'car_to_pedestrian', label: '車對行人' },
+  { value: 'motorcycle_to_motorcycle', label: '機車對機車' },
+  { value: 'motorcycle_to_pedestrian', label: '機車對行人' },
+  { value: 'single_vehicle', label: '單一車輛自撞' },
+  { value: 'other', label: '其他' },
+]
+
+const INJURED_ROLE_OPTIONS: { value: InjuredRole; label: string }[] = [
+  { value: 'driver_car', label: '汽車駕駛' },
+  { value: 'driver_motorcycle', label: '機車駕駛' },
+  { value: 'passenger_car', label: '汽車乘客' },
+  { value: 'passenger_motorcycle', label: '機車乘客' },
+  { value: 'pedestrian', label: '行人' },
+  { value: 'cyclist', label: '自行車騎士' },
+  { value: 'passenger_bus', label: '大客車乘客' },
+  { value: 'other', label: '其他' },
+]
+
+const FAULT_SOURCE_OPTIONS: { value: FaultSource; label: string }[] = [
+  { value: 'police_preliminary', label: '警方初步研判表' },
+  { value: 'accident_appraisal', label: '車輛行車事故鑑定' },
+  { value: 'court_judgment', label: '法院判決' },
+  { value: 'both_sides_agreed', label: '雙方和解' },
+  { value: 'unclear', label: '不明' },
+]
+
+const EMPLOYMENT_OPTIONS: { value: EmploymentType; label: string }[] = [
+  { value: 'full_time_salary', label: '正職月薪' },
+  { value: 'part_time_salary', label: '兼職月薪' },
+  { value: 'self_employed', label: '自營作業' },
+  { value: 'daily_wage', label: '日領 / 按件計酬' },
+  { value: 'unemployed', label: '待業中' },
+  { value: 'retired', label: '退休' },
+  { value: 'student', label: '學生' },
+  { value: 'homemaker', label: '家管' },
+]
+
+const JOINT_OPTIONS: { value: JointName; label: string }[] = [
+  { value: 'shoulder', label: '肩' },
+  { value: 'elbow', label: '肘' },
+  { value: 'wrist', label: '腕' },
+  { value: 'hip', label: '髖' },
+  { value: 'knee', label: '膝' },
+  { value: 'ankle', label: '踝' },
+  { value: 'finger', label: '指' },
+  { value: 'toe', label: '趾' },
+  { value: 'cervical', label: '頸椎' },
+  { value: 'lumbar', label: '腰椎' },
+]
+
+const ROM_NORMAL: Record<JointName, number> = {
+  shoulder: 180, elbow: 150, wrist: 150, hip: 130,
+  knee: 135, ankle: 70, finger: 90, toe: 50,
+  cervical: 60, lumbar: 60,
+}
+
+// ============== 表單 Schema ==============
+
+interface FormSchema {
+  basics: AccidentBasics
+  fault: FaultInfo
+  person: PersonalIncome
+  medical: MedicalRecord
+  receipts: CompulsoryMedicalInputs
+  property: PropertyDamageInputs
+}
+
+const STEPS = [
+  { title: '事故基本' },
+  { title: '肇責' },
+  { title: '人身 / 工作' },
+  { title: '診斷書' },
+  { title: '醫療收據' },
+  { title: '車損 / 財損' },
+  { title: '地區 / 法院' },
+]
+
+// ============== 主元件 ==============
+
+export default function NewClaimForm() {
+  const router = useRouter()
+  const [current, setCurrent] = useState(0)
+  const [form] = Form.useForm<FormSchema>()
+  const [data, setData] = useState<FormSchema>({
+    basics: DEFAULT_BASICS,
+    fault: DEFAULT_FAULT,
+    person: DEFAULT_PERSON,
+    medical: DEFAULT_MEDICAL,
+    receipts: DEFAULT_RECEIPTS,
+    property: DEFAULT_PROPERTY,
+  })
+
+  // 監聽 basics.accidentCity 自動帶入 courtJurisdiction
+  const accidentCity = Form.useWatch('basics.accidentCity', form)
+  const handleCityChange = (v: string) => {
+    const court = regionCourtMap[v]
+    if (court) {
+      form.setFieldValue(['basics', 'courtJurisdiction'], court)
+      setData((d) => ({ ...d, basics: { ...d.basics, accidentCity: v, courtJurisdiction: court } }))
+    } else {
+      setData((d) => ({ ...d, basics: { ...d.basics, accidentCity: v } }))
+    }
+  }
+
+  const next = async () => {
+    try {
+      const values = await form.validateFields()
+      // 淺合併當下 step 對應區段
+      const merged = mergeStep(data, current, values)
+      setData(merged)
+      setCurrent((c) => c + 1)
+    } catch {
+      message.error('請填寫必填欄位')
+    }
+  }
+
+  const prev = () => setCurrent((c) => c - 1)
+
+  const submit = async () => {
+    try {
+      const values = await form.validateFields()
+      const merged = mergeStep(data, current, values)
+      setData(merged)
+      // 計算結果
+      const input: ClaimInput = {
+        basics: merged.basics,
+        fault: merged.fault,
+        person: merged.person,
+        medical: merged.medical,
+        medicalReceipts: merged.receipts,
+        property: merged.property,
+      }
+      const result = estimateClaim(input)
+      // 存進 sessionStorage 給結果頁讀
+      sessionStorage.setItem('claim-input', JSON.stringify(input))
+      sessionStorage.setItem('claim-result', JSON.stringify(result))
+      router.push('/claims/result')
+    } catch (e) {
+      message.error('請填寫完整資料')
+    }
+  }
+
+  return (
+    <main className="flex flex-1 flex-col items-center px-6 py-8 bg-zinc-50">
+      <div className="w-full max-w-3xl">
+        <Title level={2} className="!mb-2">📝 新增理賠估算</Title>
+        <Paragraph type="secondary" className="!mb-6">
+          請逐步填寫，<Text strong>必填欄位</Text>以 <Text type="danger">*</Text> 標示；
+          資料不足會在結果頁自動列出補件清單。
+        </Paragraph>
+
+        <Steps current={current} items={STEPS} className="!mb-8" responsive={false} />
+
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={data}
+          onValuesChange={(_, all) => setData((d) => ({ ...d, ...all }))}
+        >
+          {/* ====== Step 1：事故基本 ====== */}
+          {current === 0 && <Step1Basics form={form} onCityChange={handleCityChange} />}
+          {/* ====== Step 2：肇責 ====== */}
+          {current === 1 && <Step2Fault form={form} />}
+          {/* ====== Step 3：人身 / 工作 ====== */}
+          {current === 2 && <Step3Person form={form} />}
+          {/* ====== Step 4：診斷書 ====== */}
+          {current === 3 && <Step4Medical form={form} />}
+          {/* ====== Step 5：醫療收據 ====== */}
+          {current === 4 && <Step5Receipts form={form} />}
+          {/* ====== Step 6：車損 / 財損 ====== */}
+          {current === 5 && <Step6Property form={form} />}
+          {/* ====== Step 7：地區 / 法院 ====== */}
+          {current === 6 && <Step7Region form={form} />}
+        </Form>
+
+        <div className="!mt-6 flex justify-between">
+          <Button disabled={current === 0} onClick={prev} icon={<LeftOutlined />}>
+            上一步
+          </Button>
+          {current < STEPS.length - 1 ? (
+            <Button type="primary" onClick={next} icon={<RightOutlined />} iconPosition="end">
+              下一步
+            </Button>
+          ) : (
+            <Button type="primary" onClick={submit} icon={<CheckCircleOutlined />}>
+              送出並估算
+            </Button>
+          )}
+        </div>
+      </div>
+    </main>
+  )
+}
+
+// ============== 淺合併工具 ==============
+function mergeStep(prev: FormSchema, step: number, values: Partial<FormSchema>): FormSchema {
+  const stepKey = (['basics','fault','person','medical','receipts','property'] as const)[step]
+  return { ...prev, [stepKey]: { ...prev[stepKey], ...(values[stepKey] as object) } }
+}
+
+// ============== Step 1：事故基本 ==============
+function Step1Basics({ form, onCityChange }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0]; onCityChange: (v: string) => void }) {
+  return (
+    <Card title="🚗 事故基本資料">
+      <Alert
+        type="info"
+        showIcon
+        className="!mb-4"
+        message="強制險採無過失主義，肇責比例只會影響第三人責任險的估算。"
+      />
+      <Row gutter={16}>
+        <Col xs={24} md={12}>
+          <Form.Item label="事故日期 *" name={['basics', 'accidentDate']} rules={[{ required: true }]}>
+            <DatePicker
+              style={{ width: '100%' }}
+              format="YYYY-MM-DD"
+              defaultValue={dayjs()}
+              onChange={(d: Dayjs | null) => {
+                form.setFieldValue(['basics', 'accidentDate'], d?.format('YYYY-MM-DD') ?? '')
+              }}
+            />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={12}>
+          <Form.Item label="事故地點 *" name={['basics', 'accidentLocation']} rules={[{ required: true }]}>
+            <Input placeholder="例：臺中市西區美村路與五權路口" />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={24} md={12}>
+          <Form.Item label="事故類型 *" name={['basics', 'accidentType']} rules={[{ required: true }]}>
+            <Select options={ACCIDENT_TYPE_OPTIONS} />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={12}>
+          <Form.Item label="受害人身分 *" name={['basics', 'injuredRole']} rules={[{ required: true }]}>
+            <Select options={INJURED_ROLE_OPTIONS} />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={24} md={8}>
+          <Form.Item label="是否為汽車交通事故 *" name={['basics', 'isAutomobileAccident']} valuePropName="checked">
+            <Switch checkedChildren="是" unCheckedChildren="否" />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={8}>
+          <Form.Item label="警方初步研判表" name={['basics', 'hasPolicePreliminaryReport']} valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={8}>
+          <Form.Item label="車輛事故鑑定" name={['basics', 'hasAccidentAppraisal']} valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={24} md={8}>
+          <Form.Item label="有強制險 *" name={['basics', 'hasCompulsoryInsurance']} valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={8}>
+          <Form.Item label="有第三人責任險" name={['basics', 'hasThirdPartyInsurance']} valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={8}>
+          <Form.Item label="已和解" name={['basics', 'isSettled']} valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Col>
+      </Row>
+
+      <Title level={5} className="!mt-4">第三人責任險保額（如有）</Title>
+      <Row gutter={16}>
+        <Col xs={24} md={8}>
+          <Form.Item label="體傷保額（元）" name={['basics', 'thirdPartyBodilyLimit']}>
+            <InputNumber style={{ width: '100%' }} min={0} step={100_000} placeholder="0" formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={8}>
+          <Form.Item label="財損保額（元）" name={['basics', 'thirdPartyPropertyLimit']}>
+            <InputNumber style={{ width: '100%' }} min={0} step={50_000} placeholder="0" formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={8}>
+          <Form.Item label="超額責任險（元）" name={['basics', 'excessLiabilityLimit']}>
+            <InputNumber style={{ width: '100%' }} min={0} step={1_000_000} placeholder="0" formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
+          </Form.Item>
+        </Col>
+      </Row>
+
+      <Title level={5} className="!mt-4">地區（自動帶入法院，可手改）</Title>
+      <Row gutter={16}>
+        <Col xs={24} md={8}>
+          <Form.Item label="事故縣市" name={['basics', 'accidentCity']}>
+            <Select
+              options={CITY_OPTIONS.map((v) => ({ value: v, label: v }))}
+              onChange={onCityChange}
+            />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={8}>
+          <Form.Item label="事故鄉鎮市區" name={['basics', 'accidentDistrict']}>
+            <Input placeholder="例：西區" />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={8}>
+          <Form.Item label="管轄法院" name={['basics', 'courtJurisdiction']}>
+            <Input />
+          </Form.Item>
+        </Col>
+      </Row>
+    </Card>
+  )
+}
+
+// ============== Step 2：肇責 ==============
+function Step2Fault({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
+  const selfRatio = Form.useWatch(['fault', 'selfFaultRatio'], form) as number | undefined
+  return (
+    <Card title="⚖️ 肇責比例">
+      <Alert
+        type="warning"
+        showIcon
+        className="!mb-4"
+        message="強制險不乘肇責；第三人責任險的『有責金額』才會乘此比例。"
+      />
+      <Row gutter={16}>
+        <Col xs={24} md={12}>
+          <Form.Item label="己方肇責 (%) *" name={['fault', 'selfFaultRatio']} rules={[{ required: true }]}>
+            <InputNumber
+              style={{ width: '100%' }}
+              min={0} max={100} step={5}
+              onChange={(v) => {
+                const n = Number(v) || 0
+                form.setFieldValue(['fault', 'otherFaultRatio'], 100 - n)
+              }}
+            />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={12}>
+          <Form.Item label="對方肇責 (%)" name={['fault', 'otherFaultRatio']}>
+            <InputNumber style={{ width: '100%' }} min={0} max={100} disabled />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Form.Item label="肇責來源" name={['fault', 'faultSource']}>
+        <Select options={FAULT_SOURCE_OPTIONS} />
+      </Form.Item>
+      <Form.Item label="肇責仍有爭議" name={['fault', 'isFaultDisputed']} valuePropName="checked">
+        <Switch checkedChildren="是" unCheckedChildren="否" />
+      </Form.Item>
+      <Paragraph type="secondary" className="!text-sm">
+        己方 {selfRatio ?? 0}% / 對方 {100 - (selfRatio ?? 0)}%
+      </Paragraph>
+    </Card>
+  )
+}
+
+// ============== Step 3：人身 / 工作 ==============
+function Step3Person({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
+  return (
+    <Card title="👤 受害人身分與工作">
+      <Row gutter={16}>
+        <Col xs={24} md={8}>
+          <Form.Item label="出生年月日" name={['person', 'birthDate']}>
+            <DatePicker
+              style={{ width: '100%' }}
+              format="YYYY-MM-DD"
+              onChange={(d: Dayjs | null) => {
+                const iso = d?.format('YYYY-MM-DD') ?? ''
+                form.setFieldValue(['person', 'birthDate'], iso)
+                if (d) {
+                  const age = dayjs().diff(d, 'year')
+                  form.setFieldValue(['person', 'age'], age)
+                }
+              }}
+            />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={8}>
+          <Form.Item label="年齡（自動）" name={['person', 'age']}>
+            <InputNumber style={{ width: '100%' }} min={0} max={120} disabled />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={8}>
+          <Form.Item label="職業" name={['person', 'occupation']}>
+            <Input placeholder="例：工程師" />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Form.Item label="受僱類型 *" name={['person', 'employmentType']} rules={[{ required: true }]}>
+        <Select options={EMPLOYMENT_OPTIONS} />
+      </Form.Item>
+      <Row gutter={16}>
+        <Col xs={24} md={12}>
+          <Form.Item label="事故前 6 月平均月薪（元）" name={['person', 'sixMonthAverageSalary']}>
+            <InputNumber style={{ width: '100%' }} min={0} step={1000} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={12}>
+          <Form.Item label="現職月薪（元）" name={['person', 'monthlySalary']}>
+            <InputNumber style={{ width: '100%' }} min={0} step={1000} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={24} md={12}>
+          <Form.Item label="日薪（按件/日領者）" name={['person', 'dailyWage']}>
+            <InputNumber style={{ width: '100%' }} min={0} step={500} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={12}>
+          <Form.Item label="去年報稅所得（元）" name={['person', 'lastYearTaxableIncome']}>
+            <InputNumber style={{ width: '100%' }} min={0} step={10_000} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Title level={5} className="!mt-4">工作損失佐證</Title>
+      <Row gutter={16}>
+        <Col xs={12} md={6}><Form.Item label="財產清單" name={['person', 'hasPropertyList']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={12} md={6}><Form.Item label="薪轉證明" name={['person', 'hasSalaryTransferRecord']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={12} md={6}><Form.Item label="請假證明" name={['person', 'hasLeaveCertificate']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={12} md={6}><Form.Item label="扣薪證明" name={['person', 'hasSalaryDeductionProof']} valuePropName="checked"><Switch /></Form.Item></Col>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={24} md={12}>
+          <Form.Item label="實際請假日數" name={['person', 'actualLeaveDays']}>
+            <InputNumber style={{ width: '100%' }} min={0} />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={12}>
+          <Form.Item label="醫囑休養日數" name={['person', 'doctorOrderedRestDays']}>
+            <InputNumber style={{ width: '100%' }} min={0} />
+          </Form.Item>
+        </Col>
+      </Row>
+    </Card>
+  )
+}
+
+// ============== Step 4：診斷書 ==============
+function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
+  const jointName = Form.useWatch(['medical', 'jointName'], form) as JointName | null
+  return (
+    <Card title="🏥 診斷書 / 傷勢資料">
+      <Row gutter={16}>
+        <Col xs={24}>
+          <Form.Item label="診斷說明（自由填）" name={['medical', 'diagnosisText']}>
+            <Input.TextArea rows={3} placeholder="例：右側脛骨骨折、右膝挫傷" />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={24} md={12}>
+          <Form.Item label="醫院名稱" name={['medical', 'hospitalName']}>
+            <Input placeholder="例：中國醫藥大學附設醫院" />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={12}>
+          <Form.Item label="急診日期" name={['medical', 'emergencyDate']}>
+            <DatePicker
+              style={{ width: '100%' }}
+              format="YYYY-MM-DD"
+              onChange={(d: Dayjs | null) => form.setFieldValue(['medical', 'emergencyDate'], d?.format('YYYY-MM-DD') ?? '')}
+            />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={12} md={6}><Form.Item label="門診次數" name={['medical', 'outpatientVisitCount']}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item></Col>
+        <Col xs={12} md={6}><Form.Item label="住院天數" name={['medical', 'hospitalizationDays']}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item></Col>
+        <Col xs={12} md={6}><Form.Item label="手術" name={['medical', 'hasSurgery']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={12} md={6}><Form.Item label="症狀固定" name={['medical', 'isSymptomFixed']} valuePropName="checked"><Switch /></Form.Item></Col>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={12} md={6}><Form.Item label="復健" name={['medical', 'hasRehabilitation']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={12} md={6}><Form.Item label="復健次數" name={['medical', 'rehabilitationCount']}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item></Col>
+        <Col xs={12} md={6}><Form.Item label="需看護" name={['medical', 'requiresNursingCare']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={12} md={6}><Form.Item label="看護日數" name={['medical', 'nursingDays']}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item></Col>
+      </Row>
+      <Title level={5} className="!mt-2">傷勢細節（失能規則引擎用）</Title>
+      <Row gutter={16}>
+        <Col xs={8} md={4}><Form.Item label="骨折" name={['medical', 'hasFracture']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={8} md={4}><Form.Item label="脫臼" name={['medical', 'hasDislocation']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={8} md={4}><Form.Item label="韌帶傷" name={['medical', 'hasLigamentInjury']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={8} md={4}><Form.Item label="神經傷" name={['medical', 'hasNerveDamage']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={8} md={4}><Form.Item label="截肢" name={['medical', 'hasAmputation']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={8} md={4}><Form.Item label="器官損傷" name={['medical', 'hasOrganDamage']} valuePropName="checked"><Switch /></Form.Item></Col>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={12} md={6}><Form.Item label="失能鑑定" name={['medical', 'hasDisabilityCertificate']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={12} md={6}><Form.Item label="甲種診斷書" name={['medical', 'hasClassADiagnosisCertificate']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={12} md={6}><Form.Item label="永久性障害" name={['medical', 'hasPermanentImpairment']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={12} md={6}><Form.Item label="疤痕" name={['medical', 'hasScar']} valuePropName="checked"><Switch /></Form.Item></Col>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={12} md={8}>
+          <Form.Item label="疤痕長度 (cm)" name={['medical', 'scarLengthCm']}>
+            <InputNumber style={{ width: '100%' }} min={0} step={0.5} />
+          </Form.Item>
+        </Col>
+        <Col xs={12} md={8}>
+          <Form.Item label="疤痕位置" name={['medical', 'scarLocation']}>
+            <Input placeholder="例：右前額" />
+          </Form.Item>
+        </Col>
+      </Row>
+
+      <Title level={5} className="!mt-2">關節活動度（關節角度喪失只進失能初篩，不直判失能）</Title>
+      <Row gutter={16}>
+        <Col xs={24} md={8}>
+          <Form.Item label="受影響關節" name={['medical', 'jointName']}>
+            <Select
+              allowClear
+              placeholder="無 / 未填"
+              options={JOINT_OPTIONS}
+              onChange={(v: JointName | null) => {
+                if (v) {
+                  form.setFieldValue(['medical', 'romNormalDegree'], ROM_NORMAL[v])
+                } else {
+                  form.setFieldValue(['medical', 'romNormalDegree'], 0)
+                }
+              }}
+            />
+          </Form.Item>
+        </Col>
+        <Col xs={12} md={4}><Form.Item label="有受限" name={['medical', 'hasRangeOfMotionLimitation']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={12} md={6}><Form.Item label="角度喪失 (度)" name={['medical', 'romLossDegree']}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item></Col>
+        <Col xs={12} md={6}><Form.Item label="正常活動度 (度)" name={['medical', 'romNormalDegree']}><InputNumber style={{ width: '100%' }} min={0} disabled /></Form.Item></Col>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={12} md={8}><Form.Item label="肌力減退" name={['medical', 'hasMuscleWeakness']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={12} md={8}><Form.Item label="感覺喪失" name={['medical', 'hasSensoryLoss']} valuePropName="checked"><Switch /></Form.Item></Col>
+      </Row>
+      {jointName && (
+        <Alert
+          type="info"
+          showIcon
+          className="!mt-2"
+          message={`已選關節：${JOINT_OPTIONS.find((o) => o.value === jointName)?.label ?? jointName}（正常活動度 ${ROM_NORMAL[jointName]} 度）`}
+        />
+      )}
+    </Card>
+  )
+}
+
+// ============== Step 5：醫療收據 ==============
+function Step5Receipts({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
+  return (
+    <Card title="🧾 醫療收據（強制險 15 細項）">
+      <Alert
+        type="info"
+        showIcon
+        className="!mb-4"
+        message="依強制汽車責任保險給付標準 §2 細項填寫；看護費有 1,200 元/日、30 日硬上限（會自動套用）。"
+      />
+      <Section title="救護與掛號">
+        <R2C name={['receipts', 'emergencyFee']} label="急診費" />
+        <R2C name={['receipts', 'ambulanceFee']} label="救護車費" />
+        <R2C name={['receipts', 'nhiCopayment']} label="健保自付額" />
+        <R2C name={['receipts', 'registrationFee']} label="掛號費" />
+        <R2C name={['receipts', 'diagnosisCertificateFee']} label="診斷書費" />
+        <R2C name={['receipts', 'nonNhiNecessaryMedicalFee']} label="非健保必要醫療" />
+      </Section>
+      <Section title="住院">
+        <R2C name={['receipts', 'wardFeeDifference']} label="病房費差額" />
+        <R2C name={['receipts', 'wardFeeDays']} label="病房費天數" />
+        <R2C name={['receipts', 'mealFee']} label="膳食費" />
+        <R2C name={['receipts', 'mealDays']} label="膳食天數" />
+      </Section>
+      <Section title="義肢 / 齒 / 眼">
+        <R2C name={['receipts', 'prosthesisFee']} label="義肢費" />
+        <R2C name={['receipts', 'dentureFee']} label="義齒費" />
+        <R2C name={['receipts', 'missingTeethCount']} label="缺牙數" />
+        <R2C name={['receipts', 'artificialEyeFee']} label="義眼費" />
+      </Section>
+      <Section title="其他醫材 / 看護 / 接送">
+        <R2C name={['receipts', 'medicalMaterialFee']} label="醫材費" />
+        <R2C name={['receipts', 'assistiveDeviceFee']} label="輔具費" />
+        <R2C name={['receipts', 'transportationFee']} label="接送費" />
+        <R2C name={['receipts', 'nursingFee']} label="看護費" />
+        <R2C name={['receipts', 'nursingDays']} label="看護天數" />
+        <R2C name={['receipts', 'otherNecessaryMedicalFee']} label="其他必要醫療" />
+      </Section>
+    </Card>
+  )
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="!mb-4">
+      <Title level={5} className="!mb-2">{title}</Title>
+      <Row gutter={16}>{children}</Row>
+    </div>
+  )
+}
+
+function R2C({ name, label }: { name: [string, string]; label: string }) {
+  return (
+    <Col xs={12} md={8}>
+      <Form.Item label={label} name={name}>
+        <InputNumber
+          style={{ width: '100%' }}
+          min={0}
+          formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+        />
+      </Form.Item>
+    </Col>
+  )
+}
+
+// ============== Step 6：車損 / 財損 ==============
+function Step6Property({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
+  return (
+    <Card title="🚙 車損 / 財損">
+      <Title level={5}>車輛</Title>
+      <Row gutter={16}>
+        <R2C name={['property', 'vehicleRepairEstimate']} label="估價單金額" />
+        <R2C name={['property', 'vehicleRepairInvoice']} label="發票金額" />
+        <R2C name={['property', 'vehicleMarketValueBeforeAccident']} label="事故前車價" />
+        <R2C name={['property', 'salvageValue']} label="殘值" />
+      </Row>
+      <Row gutter={16}>
+        <R2C name={['property', 'towingFee']} label="拖吊費" />
+        <R2C name={['property', 'rentalCarFee']} label="代步費" />
+      </Row>
+      <Title level={5} className="!mt-4">其他財損</Title>
+      <Row gutter={16}>
+        <R2C name={['property', 'phoneDamage']} label="手機損壞" />
+        <R2C name={['property', 'helmetDamage']} label="安全帽損壞" />
+        <R2C name={['property', 'clothingDamage']} label="衣物損壞" />
+        <R2C name={['property', 'glassesDamage']} label="眼鏡損壞" />
+        <R2C name={['property', 'otherPropertyDamage']} label="其他財損" />
+      </Row>
+    </Card>
+  )
+}
+
+// ============== Step 7：地區 / 法院 ==============
+function Step7Region({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
+  return (
+    <Card title="📍 地區 / 法院 / 保險公司">
+      <Row gutter={16}>
+        <Col xs={24} md={12}><Form.Item label="聲請人居住縣市" name={['basics', 'claimantResidenceCity']}><Select options={CITY_OPTIONS.map((v) => ({ value: v, label: v }))} /></Form.Item></Col>
+        <Col xs={24} md={12}><Form.Item label="聲請人居住鄉鎮" name={['basics', 'claimantResidenceDistrict']}><Input /></Form.Item></Col>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={24} md={12}><Form.Item label="對方居住縣市" name={['basics', 'defendantResidenceCity']}><Select options={CITY_OPTIONS.map((v) => ({ value: v, label: v }))} /></Form.Item></Col>
+        <Col xs={24} md={12}><Form.Item label="對方居住鄉鎮" name={['basics', 'defendantResidenceDistrict']}><Input /></Form.Item></Col>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={24} md={12}>
+          <Form.Item label="管轄法院" name={['basics', 'courtJurisdiction']}>
+            <Input placeholder="自動帶入可手改" />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={12}>
+          <Form.Item label="保險公司分公司區域" name={['basics', 'insuranceCompanyBranchRegion']}>
+            <Input placeholder="例：中部 / 北部" />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Alert
+        type="info"
+        showIcon
+        className="!mt-4"
+        message="地區係數只影響第三人責任險／民事損害賠償估算；強制險本身是全國法定標準，不受地區影響。"
+      />
+    </Card>
+  )
+}
