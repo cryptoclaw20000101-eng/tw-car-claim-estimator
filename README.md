@@ -1,36 +1,201 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 台灣車禍理賠金額估算器（tw-car-claim-estimator）
 
-## Getting Started
+> **iPAS AI 應用規劃師**備考練習作品 — 一個把法律條文 + 醫療規則 + 地區實務**即時運算**成理賠預估金額的小工具。
 
-First, run the development server:
+---
+
+## 這個專案在做什麼
+
+車禍發生後，受害人常見的困擾是：
+
+- **強制險**到底能賠我多少？
+- **失能**是幾級？能拿多少？
+- **民事賠償**（醫療差額、看護、精神慰撫金、工作損失、勞動能力減損）對方要賠多少？
+- **第三人責任險**買夠了沒？**肇責比例**怎麼影響可拿到的錢？
+- 我住在**台中**，法院在這裡會判多少？跟台北差多少？
+- 我還缺哪些**文件**？哪些**風險**要先處理？
+
+這個工具把上述問題用**前端即時計算**的方式一次回答，並附上**法源依據**與**同類法院判決/評議案例**作為佐證。
+
+### 6 大核心引擎
+
+| 引擎 | 用途 | 主要法源 |
+| --- | --- | --- |
+| 強制險醫療 | 20 個醫療項目逐項核對，總額 20 萬 cap | 強制汽車責任保險法 §27、給付標準 §2 |
+| 失能初篩 | 4 級（A/B/C/D）分級 + 14 級失能金額推算 | 強制汽車責任保險給付標準 §4 附表 |
+| 民事損害賠償 | 醫療差額、看護（地區係數）、精神慰撫金、工作損失、勞動能力減損 | 民法 §184-196 |
+| 第三人責任險 | 體傷/財損/超額三層保額配置，肇責比例分攤 | 保險法 §65、保單條款示範 |
+| 補件與風險 | 缺文件警示、訴訟風險提醒、證據強度評等 | 民事訴訟法 §277 |
+| 地區差異 | 6 法院（北/中/南/高/花/宜）精神慰撫金 0.95~1.10 係數 + 看護日額 1,200/1,500/2,000 元 | 實務統計 |
+
+### 3 個資料來源（MVP 全 mock，不接真 API）
+
+| 來源 | 真實位置 | 用途 |
+| --- | --- | --- |
+| 財團法人汽車交通事故特別補償基金 | [foi.org.tw](https://www.foi.org.tw) | 6 大爭議類型（因果關係/必要性醫療/失能/看護/工作損失/強制險競合）評議案例 |
+| 司法院判決書 | [judicial.gov.tw](https://www.judicial.gov.tw) | 6 法院 12 個區間中位數賠償金額 + 6 件代表性判決 |
+| 法務部全國法規資料庫 | [law.moj.gov.tw](https://law.moj.gov.tw) | 6 部核心法源（強保法/民法 184-196/民訴法 277/保險法 65）+ 定期更新偵測 |
+
+> MVP 階段全部使用 mock 資料（已寫入 `lib/data-sources/`），但介面已設計成未來可無痛切換真 API。詳見 [SPEC §十一](https://github.com/)：MVP 不接真 API。
+
+---
+
+## 快速啟動
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# 1. 安裝依賴
+pnpm install
+
+# 2. 跑測試（7 個檔案、79 個測試）
+pnpm test
+
+# 3. 啟動開發伺服器（http://localhost:3000）
 pnpm dev
-# or
-bun dev
+
+# 4. 型別檢查 + 生產建置
+npx tsc --noEmit
+pnpm build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+> 需要 Node.js 20+ 與 pnpm 9+。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 使用流程
 
-## Learn More
+1. 開首頁 → 按「開始估算」
+2. 走 7 步表單（事故基本/肇責比例/人身/診斷/醫療收據/車損財損/地區）
+3. 結果頁用 **Tabs** 切換 7 區：
+   - **強制險**：醫療 20 項細目 + 失能等級 + 死亡（MVP 不處理）
+   - **失能初篩**：A/B/C/D 評等 + 14 級失能金額表
+   - **民事賠償**：5 大項（醫療差額/看護/工作損失/勞動能力/精神慰撫金）
+   - **第三人責任險**：體傷/財損/超額三層試算
+   - **補件與風險**：缺文件清單 + 風險提醒 + 證據強度
+   - **地區實務**：自動帶出對應法院 + 當地實務係數
+   - **法源依據**：每筆金額引用的法條 + URL（標註最後檢視日，> 365 天自動警示）
+4. **列印**或**截圖**保存（暫無匯出 PDF，可在瀏覽器列印 → 存 PDF）
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 估算規則速覽
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| 項目 | 規則 |
+| --- | --- |
+| 強制險醫療 | 20 萬 cap，超過不賠；20 項逐項核對 |
+| 看護費 | 1,200 ~ 2,000 元/日 × 住院天數（30 日硬上限），出院後需另附醫囑 |
+| 精神慰撫金 | 6 法院係數 0.95 ~ 1.10 × 基礎額（依傷殘等級） |
+| 工作損失 | 需附 6 個月薪資證明；無證明者按基本工資 |
+| 勞動能力減損 | 14 級失能等級 × 計算公式（含霍夫曼係數） |
+| 肇責比例 | 雙方各 100% 分擔，例：對方 70% 肇事，民事可求償 70% |
+| 地區自動帶法院 | 依事故地城市自動帶對應地方法院，可手改 |
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 專案結構
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+tw-car-claim-estimator/
+├── app/                          # Next.js 16 App Router
+│   ├── layout.tsx                # AntdRegistry + ConfigProvider
+│   ├── page.tsx                  # 首頁（5 大區塊說明 + CTA）
+│   └── claims/
+│       ├── new/                  # 估算表單（7 步 Steps）
+│       │   ├── page.tsx          # server shell + dynamic({ssr:false})
+│       │   └── _form.tsx         # client 表單本體
+│       └── result/               # 結果頁（7 區 Tabs）
+│           ├── page.tsx
+│           └── _form.tsx
+├── lib/
+│   ├── insurance/                # 計算引擎（MVP 核心）
+│   │   ├── compulsory.ts         # 強制險醫療
+│   │   ├── disability.ts         # 失能初篩
+│   │   ├── civil-damages.ts      # 民事 5 大項
+│   │   ├── third-party.ts        # 第三人責任險
+│   │   ├── evidence.ts           # 補件與風險
+│   │   ├── region-adjustments.ts # 6 法院係數
+│   │   ├── region-court-map.ts   # 城市→法院對照
+│   │   ├── joint-rom.ts          # 關節活動度規則
+│   │   ├── disability-tables.ts  # 14 級失能金額表
+│   │   ├── types.ts              # 全部型別定義
+│   │   └── index.ts              # 統一對外 API: estimateClaim()
+│   └── data-sources/             # 外部資料來源（mock）
+│       ├── types.ts              # 3 組介面
+│       ├── foi.ts                # 補償基金評議案例
+│       ├── judicial.ts           # 司法院判決書
+│       ├── legal-reference.ts    # 法務部法規
+│       └── index.ts              # 統一 export
+├── __tests__/                    # Vitest 4 測試
+│   ├── insurance/                # 4 個檔，50 個測試
+│   └── data-sources/             # 3 個檔，29 個測試
+├── package.json
+├── tsconfig.json
+├── next.config.ts
+└── vitest.config.ts
+```
+
+---
+
+## 技術棧
+
+- **框架**：Next.js 16.2.7（App Router + Turbopack）
+- **UI**：React 19 + Ant Design 6 + @ant-design/nextjs-registry
+- **型別**：TypeScript 5
+- **測試**：Vitest 4
+- **套件管理**：pnpm 9
+- **node 引擎**：>= 20.0.0
+
+> ⚠️ **Next.js 16 + AntD 6 SSR 注意**：所有用到 AntD `Form` / `Table` / `Statistic` 等 client-side hook 的頁面都需拆成 `page.tsx`（server shell）+ `_form.tsx`（client），並用 `dynamic(() => import('./_form'), { ssr: false })` 載入，wrapper 也必須加 `'use client'`。否則會在 prerender 階段炸 `isValid/createContext is not a function`。本專案已套用此 pattern。
+
+---
+
+## 16 條估算鐵律（SPEC §十六）
+
+本工具遵守以下硬規則，違反任何一條都會在測試階段被擋下：
+
+1. 強制險醫療 20 萬硬上限，**不可**超過
+2. 看護費 30 日住院硬上限，**不可**超過
+3. 失能等級 1-15 級，**不可**自創等級
+4. 精神慰撫金必須依**法院實務係數**，**不可**硬編金額
+5. 工作損失需附**6 個月薪資證明**，無證明者必須標示
+6. 肇責比例**雙方總和 100%**，違反必須報錯
+7. 地區自動帶法院，**可手改**但需標示
+8. 法源引用必須附**URL**（mock 階段也要有真實 URL 格式）
+9. 法源**最後檢視日**超過 365 天必須標示「請重新確認」
+10. 評議/判決案例**僅供參考**，不可當成判決依據
+11. MVP 階段**不接真 API**，全 mock
+12. 死亡給付 MVP **不處理**（標 0）
+13. 計算結果**不可**寫死，必須由 input 推導
+14. 金額計算結果**必須**附依據（公式/法條/案例）
+15. 缺文件/風險**必須**明確標示，不可隱藏
+16. **免責聲明**必須在首頁與結果頁都出現
+
+---
+
+## 免責聲明
+
+> ⚠️ **本工具僅供參考，不構成法律、會計、稅務或保險諮詢意見。**
+>
+> - 計算結果依據現行法規與公開案例統計，**實際理賠金額**須以保險公司、調解委員會或法院最終決定為準。
+> - 本工具**未經**金管會、保險公司或律師公會認證。
+> - 使用本工具所生任何爭議，**開發者不負任何責任**。
+> - 涉及**訴訟**請洽執業律師；涉及**保險理賠爭議**可向財團法人金融消費評議中心申訴。
+
+---
+
+## iPAS 練習目的
+
+這個專案是**刺刺**準備 **iPAS AI 應用規劃師**（初級）認證的練習作品，重點在練習：
+
+- **AI 應用規劃**：把法律規則翻成可計算的規則引擎
+- **資料治理**：3 個外部資料來源的介面設計（mock → 真 API 的可替換性）
+- **領域知識整合**：法律 + 醫療 + 保險 + 地區實務
+- **前端即時運算**：不靠後端，前端 React 算完即時呈現
+- **可測試性**：7 個測試檔、79 個測試，規則變更時自動驗證
+
+> 學習筆記同步收錄在 [[Obsidian 個人知識庫]]（本機端，非本專案範圍）。
+
+---
+
+## License
+
+個人練習作品，未授權商業使用。
