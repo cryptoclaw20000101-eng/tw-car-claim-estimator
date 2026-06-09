@@ -9,7 +9,10 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "scrape:build": "tsc -p scripts/tsconfig.json",
+    "scrape:dry": "node scripts/scrape-judgments.js --dry-run",
+    "scrape": "node scripts/scrape-judgments.js"
   },
   "dependencies": {
     "@ant-design/icons": "^6.2.5",

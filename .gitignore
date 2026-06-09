@@ -3,6 +3,10 @@
 # dependencies
 /node_modules
 /.pnp
+
+# scripts build artifacts (tsc → .js in-place)
+/scripts/*.js
+/*.js
 .pnp.*
 .yarn/*
 !.yarn/patches

@@ -25,7 +25,7 @@
  * 不裝 cheerio / axios 等套件（CLAUDE.md 鐵律：pnpm add 需用戶授權）
  */
 
-import { writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { writeFileSync, readFileSync, mkdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 const BASE = "https://judgment.judicial.gov.tw";
@@ -276,7 +276,7 @@ function writePrecedent(p: FinalPrecedent): void {
   let arr: FinalPrecedent[] = [];
   if (existsSync(outFile)) {
     try {
-      arr = JSON.parse(require("node:fs").readFileSync(outFile, "utf-8")) as FinalPrecedent[];
+      arr = JSON.parse(readFileSync(outFile, "utf-8")) as FinalPrecedent[];
     } catch {
       arr = [];
     }
@@ -288,8 +288,14 @@ function writePrecedent(p: FinalPrecedent): void {
 }
 
 async function main() {
+  // CLI: --dry-run = 不寫檔，只跑流程
+  const isDryRun = process.argv.includes("--dry-run");
+  if (isDryRun) console.log("[scrape] 🧪 DRY RUN — 不會寫入 precedents 檔");
   // 每個關鍵字走獨立 session（避免 session 過期）
   const allHits: RawHit[] = [];
+  let totalScraped = 0;
+  let totalSkipped = 0;
+  let totalErrors = 0;
   for (const kw of KEYWORDS) {
     console.log(`[scrape] === 關鍵字 "${kw}" ===`);
     const jar = newJar();
@@ -305,6 +311,7 @@ async function main() {
     const qHash = extractQryHash(resultHtml);
     if (!qHash) {
       console.log(`[scrape]   ⚠ 沒拿到 q hash`);
+      totalSkipped++;
       continue;
     }
     console.log(`[scrape]   Step 2: q=${qHash.slice(0, 8)}...`);
@@ -323,6 +330,7 @@ async function main() {
         const amts = extractAmounts(detail);
         if (!amts) {
           console.log(`[scrape]       ⚠ 沒抓到精神慰撫金金額`);
+          totalSkipped++;
           continue;
         }
         const yearInt = parseInt(hit.caseNo.match(/(\d+)/)?.[1] || "0", 10);
@@ -330,7 +338,7 @@ async function main() {
         allHits.push({
           ...hit,
         });
-        // 直接寫進 precedents
+        // 直接寫進 precedents（dry-run 跳過）
         const precedent: FinalPrecedent = {
           id: `tw-md-${yearInt}-${hit.caseNo.replace(/\D/g, "").slice(-6)}`,
           caseNo: hit.caseNo,
@@ -345,18 +353,37 @@ async function main() {
           source: `${hit.court} ${hit.caseNo}`,
           scrapedAt: new Date().toISOString(),
         };
-        await writePrecedent(precedent);
-        console.log(`[scrape]       ✅ 精神慰撫金 ${amts.mentalDistress.toLocaleString()} 元`);
+        if (isDryRun) {
+          console.log(`[scrape]       🧪 [dry-run] 精神慰撫金 ${amts.mentalDistress.toLocaleString()} 元`);
+        } else {
+          await writePrecedent(precedent);
+          console.log(`[scrape]       ✅ 精神慰撫金 ${amts.mentalDistress.toLocaleString()} 元`);
+          totalScraped++;
+        }
       } catch (e) {
         console.log(`[scrape]       ❌ ${(e as Error).message}`);
+        totalErrors++;
       }
       // 禮貌延遲避免被擋
       await new Promise((r) => setTimeout(r, 200));
     }
   }
+  // Run 結束 summary
+  console.log("");
+  console.log("═══════════════════════════════════════");
+  console.log(`[scrape] 📊 Run summary`);
+  console.log(`[scrape]   抓取成功: ${totalScraped} 件`);
+  console.log(`[scrape]   跳過:     ${totalSkipped} 件`);
+  console.log(`[scrape]   失敗:     ${totalErrors} 件`);
+  console.log(`[scrape]   命中總數: ${allHits.length} 件`);
+  if (isDryRun) console.log(`[scrape] 🧪 DRY RUN — 未寫入任何檔案`);
+  console.log("═══════════════════════════════════════");
 }
 
-main().catch((e) => {
-  console.error("[scrape] ❌", e);
-  process.exit(1);
-});
+// 直接跑 main 才執行（避免 import 時跑）
+if (process.argv[1]?.endsWith("scrape-judgments.js")) {
+  main().catch((e) => {
+    console.error("[scrape] ❌", e);
+    process.exit(1);
+  });
+}
