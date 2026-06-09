@@ -24,8 +24,13 @@ interface ScrapedPrecedent {
   court: string;
   year: number;
   category: "death" | "severe_injury" | "minor_injury" | "disability";
+  /** 4 鏈欄位（v0.2.3+ 新增；舊資料沒有） */
+  chain?: "mental_distress" | "labor_loss" | "car_damage" | "disability_payout";
+  /** 該鏈關鍵金額（v0.2.3+ 用 amount 取代 mentalDistressAmount） */
+  amount?: number;
   facts: string;
-  mentalDistressAmount: number;
+  /** 舊 schema 欄位（向後相容） */
+  mentalDistressAmount?: number;
   totalAward: number;
   ratio: { plaintiff: number; defendant: number };
   gist: string;
@@ -79,17 +84,20 @@ function toCourtCaseReference(
 ): CourtCaseReference {
   // 案號整理成 "111年度訴字第4523號" 格式（UI 既有顯示用）
   const caseId = p.caseNo.replace(/\s+/g, "");
+  // 兼容 2 種 schema：新鏈用 amount，舊鏈用 mentalDistressAmount
+  const amt = p.amount ?? p.mentalDistressAmount ?? 0;
+  const label = p.chain === "mental_distress" || !p.chain ? "精神慰撫金" : "判賠金額";
   return {
     caseId,
     courtName: p.court,
     caseYear: p.year,
     category: "pain_and_suffering",
-    amount: p.mentalDistressAmount,
-    amountLow: Math.round(p.mentalDistressAmount * 0.6),
-    amountHigh: Math.round(p.mentalDistressAmount * 1.5),
+    amount: amt,
+    amountLow: Math.round(amt * 0.6),
+    amountHigh: Math.round(amt * 1.5),
     summary: p.facts,
     keyReasoning: p.gist + `（真實司法院判決 · ${p.scrapedAt.slice(0, 10)} 抓取）`,
-    referenceNote: `依據：${p.court} ${p.caseNo}（精神慰撫金 ${p.mentalDistressAmount.toLocaleString()} 元）`,
+    referenceNote: `依據：${p.court} ${p.caseNo}（${label} ${amt.toLocaleString()} 元）`,
   };
 }
 
@@ -110,8 +118,8 @@ export function findRelatedPrecedents(
   const scored = all.map((p) => {
     const courtMatch =
       courtName && p.court.includes(courtName.slice(0, 2)) ? 0 : 100;
-    const amountDiff =
-      Math.abs(p.mentalDistressAmount - estimatedAmount) / 10_000;
+    const amt = p.amount ?? p.mentalDistressAmount ?? 0;
+    const amountDiff = Math.abs(amt - estimatedAmount) / 10_000;
     return { p, score: courtMatch + amountDiff };
   });
 

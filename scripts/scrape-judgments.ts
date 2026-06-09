@@ -33,11 +33,52 @@ const SEARCH_URL = `${BASE}/FJUD/default.aspx`;
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
 
-const KEYWORDS = [
-  "精神慰撫金 車禍",
-  "精神慰撫金 交通事故 死亡",
-  "慰撫金 過失傷害",
-];
+const KEYWORDS = {
+  mental_distress: [
+    "精神慰撫金 車禍",
+    "精神慰撫金 交通事故 死亡",
+    "慰撫金 過失傷害",
+  ],
+  labor_loss: [
+    "工作損失 車禍",
+    "勞動能力減損 交通事故",
+    "工作收入損失 過失傷害",
+  ],
+  car_damage: [
+    "車輛修復費用 車禍",
+    "財產損害 交通事故",
+    "車損 過失傷害",
+  ],
+  disability: [
+    "失能等級 車禍",
+    "勞減 交通事故",
+    "後遺症 過失傷害",
+  ],
+} as const;
+
+type ChainKey = keyof typeof KEYWORDS;
+
+// 各鏈「金額關鍵字」正則（用在主文段）
+const CHAIN_REGEX: Record<ChainKey, RegExp> = {
+  mental_distress: /(?:精神)?慰撫金[^。]*?([\d,]+)\s*元/,
+  labor_loss: /(?:工作)?(?:收入)?損失[^。]*?([\d,]+)\s*元/,
+  car_damage: /(?:車輛)?(?:修復)?(?:費用|損害)[^。]*?([\d,]+)\s*元/,
+  disability: /失能[^。]*?([\d,]+)\s*元/,
+};
+
+const CHAIN_FILE: Record<ChainKey, string> = {
+  mental_distress: "taipei-mental-distress.json",
+  labor_loss: "labor-loss.json",
+  car_damage: "car-damage.json",
+  disability: "disability-merging.json",
+};
+
+const CHAIN_LABEL: Record<ChainKey, string> = {
+  mental_distress: "精神慰撫金",
+  labor_loss: "工作損失",
+  car_damage: "車損",
+  disability: "失能慰撫金",
+};
 
 const COURT_CODE: Record<string, string> = {
   TPDV: "臺灣臺北地方法院",
@@ -75,8 +116,9 @@ interface FinalPrecedent {
   court: string;
   year: number;
   category: "death" | "severe_injury" | "minor_injury" | "disability";
+  chain: ChainKey; // 標記屬於哪條鏈
   facts: string;
-  mentalDistressAmount: number;
+  amount: number; // 該鏈關鍵金額
   totalAward: number;
   ratio: { plaintiff: number; defendant: number };
   gist: string;
@@ -204,7 +246,8 @@ function parseDataLinks(html: string): RawHit[] {
 
 function extractAmounts(
   html: string,
-): { mentalDistress: number; total: number; gist: string } | null {
+  chain: ChainKey,
+): { amount: number; total: number; gist: string } | null {
   // 把 HTML 壓平成純文字
   const text = html
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
@@ -214,32 +257,30 @@ function extractAmounts(
     .replace(/&amp;/g, "&")
     .replace(/\s+/g, "");
 
-  // 主文段：精神慰撫金金額（最權威）+ 總判賠（最大單筆）
-  // 主文段格式：被告應給付原告新臺幣30,000元（即精神慰撫金）...
+  const regex = CHAIN_REGEX[chain];
+
+  // 主文段：找該鏈關鍵金額
   const mainMatch = text.match(/主文([\s\S]{0,2000}?)(?:理由|事實|壹|貳)/);
-  let mentalDistress = 0;
+  let amount = 0;
 
   if (mainMatch) {
-    // 主文段裡找「精神慰撫金 OO 元」或「慰撫金 OO 元」
-    const mdInMain = mainMatch[1].match(/(?:精神)?慰撫金[^。]*?([\d,]+)\s*元/);
-    if (mdInMain) {
-      mentalDistress = parseInt(mdInMain[1].replace(/,/g, ""), 10);
-    }
+    const m = mainMatch[1].match(regex);
+    if (m) amount = parseInt(m[1].replace(/,/g, ""), 10);
   }
 
-  // 退回全文：找「精神慰撫金...{小範圍}...元」中第一個合理的（1 萬 - 300 萬）
-  if (!mentalDistress) {
+  // 退回全文：找該鏈關鍵字 + 合理金額（1 萬 - 300 萬）
+  if (!amount) {
     const candidates: number[] = [];
-    const re = /(?:精神)?慰撫金[^。]*?([\d,]+)\s*元/g;
+    const re = new RegExp(regex.source, "g");
     let m: RegExpExecArray | null;
     while ((m = re.exec(text)) !== null) {
       const v = parseInt(m[1].replace(/,/g, ""), 10);
       if (v >= 10000 && v <= 3000000) candidates.push(v);
     }
-    if (candidates.length > 0) mentalDistress = candidates[0];
+    if (candidates.length > 0) amount = candidates[0];
   }
 
-  if (!mentalDistress) return null;
+  if (!amount) return null;
 
   // 總判賠：主文段最大單筆金額
   let total = 0;
@@ -250,12 +291,13 @@ function extractAmounts(
     if (amounts.length > 0) total = Math.max(...amounts);
   }
 
-  // 判決要旨：抓主文後 200 字（精神慰撫金相關）
-  let gist = "精神慰撫金 " + mentalDistress.toLocaleString() + " 元";
+  // 判決要旨：抓主文後 200 字
+  const label = CHAIN_LABEL[chain];
+  let gist = `${label} ${amount.toLocaleString()} 元`;
   const mainText = text.match(/主文([\s\S]{0,200})/);
   if (mainText) gist = mainText[1].slice(0, 200).trim() || gist;
 
-  return { mentalDistress, total, gist };
+  return { amount, total, gist };
 }
 
 function categorizeByFacts(gist: string, _amount: number): FinalPrecedent["category"] {
@@ -268,11 +310,12 @@ function categorizeByFacts(gist: string, _amount: number): FinalPrecedent["categ
 /**
  * 即時 append 寫入（避免最後 session 死了丟資料）
  * 第一次寫覆蓋，之後 append
+ * 4 鏈各自寫到對應 JSON
  */
 function writePrecedent(p: FinalPrecedent): void {
   const outDir = join(process.cwd(), "data", "precedents");
   if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
-  const outFile = join(outDir, "taipei-mental-distress.json");
+  const outFile = join(outDir, CHAIN_FILE[p.chain]);
   let arr: FinalPrecedent[] = [];
   if (existsSync(outFile)) {
     try {
@@ -288,16 +331,30 @@ function writePrecedent(p: FinalPrecedent): void {
 }
 
 async function main() {
-  // CLI: --dry-run = 不寫檔，只跑流程
+  // CLI: --dry-run = 不寫檔，只跑流程; --chain <name> = 只跑單鏈; --quiet = 精簡輸出（給 cron 用）
   const isDryRun = process.argv.includes("--dry-run");
-  if (isDryRun) console.log("[scrape] 🧪 DRY RUN — 不會寫入 precedents 檔");
-  // 每個關鍵字走獨立 session（避免 session 過期）
+  const isQuiet = process.argv.includes("--quiet");
+  const chainArgIdx = process.argv.indexOf("--chain");
+  const chainFilter: ChainKey | null = chainArgIdx >= 0
+    ? (process.argv[chainArgIdx + 1] as ChainKey)
+    : null;
+  if (!isQuiet) {
+    if (isDryRun) console.log("[scrape] 🧪 DRY RUN — 不會寫入 precedents 檔");
+    if (chainFilter) console.log(`[scrape] 🔗 只跑 ${chainFilter} 鏈`);
+  }
+
+  // 每個 (chain, keyword) 走獨立 session（避免 session 過期）
+  type Job = { chain: ChainKey; keyword: string };
+  const jobs: Job[] = (Object.keys(KEYWORDS) as ChainKey[])
+    .filter((c) => !chainFilter || c === chainFilter)
+    .flatMap((chain) => KEYWORDS[chain].map((keyword) => ({ chain, keyword })));
+
   const allHits: RawHit[] = [];
   let totalScraped = 0;
   let totalSkipped = 0;
   let totalErrors = 0;
-  for (const kw of KEYWORDS) {
-    console.log(`[scrape] === 關鍵字 "${kw}" ===`);
+  for (const { chain, keyword: kw } of jobs) {
+    console.log(`[scrape] === ${CHAIN_LABEL[chain]} / "${kw}" ===`);
     const jar = newJar();
     // 1. GET 拿 ViewState + cookies
     const homeHtml = await getHtml(jar, SEARCH_URL);
@@ -327,37 +384,38 @@ async function main() {
       console.log(`[scrape]     抓 ${hit.court} ${hit.caseNo} ...`);
       try {
         const detail = await getHtml(jar, hit.href, qryUrl);
-        const amts = extractAmounts(detail);
+        const amts = extractAmounts(detail, chain);
         if (!amts) {
-          console.log(`[scrape]       ⚠ 沒抓到精神慰撫金金額`);
+          console.log(`[scrape]       ⚠ 沒抓到 ${CHAIN_LABEL[chain]}金額`);
           totalSkipped++;
           continue;
         }
         const yearInt = parseInt(hit.caseNo.match(/(\d+)/)?.[1] || "0", 10);
-        const category = categorizeByFacts(amts.gist, amts.mentalDistress);
+        const category = categorizeByFacts(amts.gist, amts.amount);
         allHits.push({
           ...hit,
         });
         // 直接寫進 precedents（dry-run 跳過）
         const precedent: FinalPrecedent = {
-          id: `tw-md-${yearInt}-${hit.caseNo.replace(/\D/g, "").slice(-6)}`,
+          id: `tw-${chain}-${yearInt}-${hit.caseNo.replace(/\D/g, "").slice(-6)}`,
           caseNo: hit.caseNo,
           court: hit.court,
           year: yearInt + 1911,
           category,
+          chain,
           facts: amts.gist.slice(0, 120),
-          mentalDistressAmount: amts.mentalDistress,
+          amount: amts.amount,
           totalAward: amts.total,
           ratio: { plaintiff: 0, defendant: 100 },
-          gist: `精神慰撫金 ${amts.mentalDistress.toLocaleString()} 元`,
+          gist: `${CHAIN_LABEL[chain]} ${amts.amount.toLocaleString()} 元`,
           source: `${hit.court} ${hit.caseNo}`,
           scrapedAt: new Date().toISOString(),
         };
         if (isDryRun) {
-          console.log(`[scrape]       🧪 [dry-run] 精神慰撫金 ${amts.mentalDistress.toLocaleString()} 元`);
+          console.log(`[scrape]       🧪 [dry-run] ${CHAIN_LABEL[chain]} ${amts.amount.toLocaleString()} 元`);
         } else {
           await writePrecedent(precedent);
-          console.log(`[scrape]       ✅ 精神慰撫金 ${amts.mentalDistress.toLocaleString()} 元`);
+          console.log(`[scrape]       ✅ ${CHAIN_LABEL[chain]} ${amts.amount.toLocaleString()} 元`);
           totalScraped++;
         }
       } catch (e) {
@@ -376,6 +434,7 @@ async function main() {
   console.log(`[scrape]   跳過:     ${totalSkipped} 件`);
   console.log(`[scrape]   失敗:     ${totalErrors} 件`);
   console.log(`[scrape]   命中總數: ${allHits.length} 件`);
+  if (chainFilter) console.log(`[scrape] 🔗 限定鏈: ${chainFilter}`);
   if (isDryRun) console.log(`[scrape] 🧪 DRY RUN — 未寫入任何檔案`);
   console.log("═══════════════════════════════════════");
 }

@@ -12,7 +12,9 @@
     "test:ui": "vitest --ui",
     "scrape:build": "tsc -p scripts/tsconfig.json",
     "scrape:dry": "node scripts/scrape-judgments.js --dry-run",
-    "scrape": "node scripts/scrape-judgments.js"
+    "scrape": "node scripts/scrape-judgments.js",
+    "scrape:cron": "node scripts/scrape-judgments.js --quiet",
+    "scrape:cron-dry": "node scripts/scrape-judgments.js --dry-run --quiet"
   },
   "dependencies": {
     "@ant-design/icons": "^6.2.5",
