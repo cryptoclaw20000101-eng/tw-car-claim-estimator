@@ -147,6 +147,10 @@ export interface MedicalRecord {
   isSymptomFixed: boolean
   hasDisabilityCertificate: boolean
   hasClassADiagnosisCertificate: boolean  // 甲種診斷書
+  /** 12 大類失能種類（失能保典 + 強制險失能給付標準附表） */
+  disabilityCategory?: string  // e.g. '01_mental' | '07_thoracic_organ' | '11_upper_limb' ...
+  /** 失能等級 1-15（使用者自選；選大類時自動帶出該類常見等級，可手改） */
+  disabilityLevel?: number     // 1-15
 
   // 傷勢細節（失能規則引擎用）
   hasFracture: boolean
@@ -156,9 +160,16 @@ export interface MedicalRecord {
   hasAmputation: boolean
   hasOrganDamage: boolean
 
-  hasScar: boolean
-  scarLengthCm: number
-  scarLocation: string
+  hasScar?: boolean
+  scarLengthCm?: number
+  scarAreaCm2?: number           // 疤痕面積（雷射除疤用）
+  scarLocation?: string
+  scarSeverity?: 'mild' | 'moderate' | 'severe' | 'keloid'  // 蟹足腫
+  isKeloid?: boolean             // 是否為肥厚性疤痕 / 蟹足腫
+  /** 採用的除疤術式（laser / revision_surgery / facelift / injection）— UI 選擇器 */
+  scarProcedure?: 'laser' | 'revision_surgery' | 'facelift' | 'injection'
+  /** 醫囑建議的療程次數（覆寫預設）— 雷射/注射常用 */
+  prescribedSessions?: number
 
   // 關節（規則引擎用）
   jointName: JointName | null
@@ -322,10 +333,66 @@ export interface EstimationResult {
   civilTransportationFee: number
   workLoss: number
   workLossEvidenceStrength: 'low' | 'medium' | 'high'
+  /**
+   * 工作損失（擴充版）：短期 ≤6 月 vs 長期 >6 月 vs 退休分流。
+   * 提供完整版明細供 UI 展開；前端可用 `type` 判斷走「日薪」/「霍夫曼」/「慰撫金」分支。
+   */
+  workLossExtended: {
+    amount: number
+    calculationType: 'short_term' | 'long_term' | 'none'
+    isRetired: boolean
+    hoffmannYears: number
+    hoffmannFactor: number
+    restMonths: number
+    restYears: number
+    annualIncome: number
+    regionalMultiplier: number
+    breakdown: {
+      dailyIncome: number
+      reasonableRestDays: number
+      coefficient: number
+    }
+    evidenceStrength: 'low' | 'medium' | 'high'
+    notes: string[]
+    hint: string | null
+  }
   laborCapacityLossEstimate: number
   laborCapacityLossHint: string | null
+  /**
+   * 勞動能力減損計算終點年齡（預設 65；農業/自營/專業人士可調到 70-75）。
+   * 雲林地院 110 簡 23 號判例支持。
+   */
+  laborCapacityRetirementAge: number
+  /** 勞動能力減損計算過程的所有提示（年齡/霍夫曼/失能等級/地區） */
+  laborCapacityLossNotes: string[]
 
   painAndSuffering: PainAndSufferingResult
+
+  /**
+   * 除疤 / 修疤費用（4 術式 × 北中南 × 疤痕長度）。
+   * 依據：臺中市美容醫學醫療機構收費標準表 111.03.30 + 中地院 110 簡 202 判決。
+   * 預設 estimate=0（未填疤痕時）；UI 可顯示 notes 提示去補資料。
+   */
+  scarRevision: {
+    amount: number
+    estimate: number
+    estimateLow: number
+    estimateHigh: number
+    range: { low: number; mid: number; high: number }
+    procedure: 'surgical' | 'laser' | 'facelift' | 'dermabrasion' | 'injection' | 'unknown' | 'revision_surgery'
+    primaryProcedure: 'surgical' | 'laser' | 'facelift' | 'dermabrasion' | 'injection' | 'unknown' | 'revision_surgery'
+    totalSessions: number
+    regionalMultiplier: number
+    breakdown: {
+      perUnitCost: number
+      units: number
+      sessions: number
+      baseFee: number
+    }
+    precedents: string[]
+    notes: string[]
+    hint: string | null
+  }
 
   vehicleDamage: number
   propertyDamage: number

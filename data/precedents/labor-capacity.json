@@ -1,0 +1,45 @@
+[
+  {
+    "id": "tw-labor-cap-110-110202",
+    "caseNo": "110 年度 簡字第 202 號",
+    "court": "臺灣臺中地方法院",
+    "year": 2021,
+    "category": "labor_capacity_loss",
+    "details": {
+      "lossPercent": 11,
+      "disabilityLevel": "11",
+      "age": 23,
+      "annualIncome": 285600,
+      "annualIncomeSource": "基本工資 23,800 × 12",
+      "hoffmannCoefficient": 23.0,
+      "hoffmannYears": 42,
+      "rawEstimate": 737267,
+      "actualAwarded": 727332
+    },
+    "gist": "霍夫曼單利 5% × 42 年（至 65 歲退休） × 年薪 28.5 萬 × 11% 勞減 = 737,267 元（原告請求 727,332 全額准許）",
+    "keyHolding": "1) 霍夫曼單利 5% 為常用利率（雙方未約定時） 2) 勞減 11% 採中國醫藥大學附設醫院鑑定報告 3) 與不能工作損失不重複（前者自症狀固定日起算，後者算至固定日前）",
+    "source": "臺灣臺中地方法院 110 年度 簡字第 202 號",
+    "scrapedAt": "2026-06-09T16:50:00.000Z"
+  },
+  {
+    "id": "tw-labor-cap-110-110023",
+    "caseNo": "110 年度 簡字第 23 號",
+    "court": "臺灣雲林地方法院",
+    "year": 2021,
+    "category": "labor_capacity_loss",
+    "details": {
+      "lossPercent": 3,
+      "lossPercentSource": "彰基醫院鑑定",
+      "gender": "女",
+      "occupation": "稻作農務",
+      "calculationTermEnd": "70 歲",
+      "calculationTermBasis": "自傷後半年起至屆滿 70 歲止（17.5 年）",
+      "plaintiffClaim": "79 歲 (17.5 年，農糧署 107 年第 1 期稻穀生產成本調查為據)",
+      "courtHolding": "採 70 歲，駁回 79 歲主張"
+    },
+    "gist": "女性農業工作者勞動能力減損計算至 70 歲（採基本工資/實際收入 × 霍夫曼係數）",
+    "keyHolding": "1) 農業工作可延長至 70 歲（非 79 歲）2) 統計戶數不足 + 女性體力差 + 高雄大學研究 3) 霍夫曼式依年數對應",
+    "source": "臺灣雲林地方法院 110 年度 簡字第 23 號（鄭曉《車禍理賠實務暨精選判例》P.24）",
+    "scrapedAt": "2026-06-09T16:55:00.000Z"
+  }
+]

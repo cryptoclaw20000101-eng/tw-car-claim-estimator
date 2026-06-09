@@ -547,24 +547,172 @@ describe('computeCivilNursingFee', () => {
 })
 
 describe('computeLaborCapacityLoss', () => {
-  it('無失能線索 → 0 / null', () => {
+  it('無失能線索 + 無失能等級 → 0 / null', () => {
     const r = computeLaborCapacityLoss({
-      hasDisabilityCertificate: false,
-      hasPermanentImpairment: false,
-      hasRangeOfMotionLimitation: false,
-      hasNerveDamage: false,
-    } as MedicalRecord)
+      medical: {
+        hasDisabilityCertificate: false,
+        hasPermanentImpairment: false,
+        hasRangeOfMotionLimitation: false,
+        hasNerveDamage: false,
+        hasAmputation: false,
+      } as MedicalRecord,
+      person: { age: 35, sixMonthAverageSalary: 40_000, monthlySalary: 40_000 } as any,
+      courtName: '臺灣臺中地方法院',
+      disabilityLevel: null,
+    })
     expect(r.estimate).toBe(0)
     expect(r.hint).toBeNull()
   })
 
-  it('有線索 → 提示', () => {
+  it('有線索但缺失能等級 → 提示補失能等級', () => {
     const r = computeLaborCapacityLoss({
-      hasDisabilityCertificate: false,
-      hasPermanentImpairment: true,
-      hasRangeOfMotionLimitation: true,
-      hasNerveDamage: false,
-    } as MedicalRecord)
-    expect(r.hint).toBeTruthy()
+      medical: {
+        hasDisabilityCertificate: false,
+        hasPermanentImpairment: true,
+        hasRangeOfMotionLimitation: true,
+        hasNerveDamage: false,
+        hasAmputation: false,
+      } as MedicalRecord,
+      person: { age: 35, sixMonthAverageSalary: 40_000, monthlySalary: 40_000 } as any,
+      courtName: '臺灣臺中地方法院',
+      disabilityLevel: null,
+    })
+    expect(r.estimate).toBe(0)
+    expect(r.hint).toContain('失能等級')
+  })
+
+  it('有失能等級 8 等 + 35 歲 + 6 月均薪 4 萬 → 霍夫曼 × 65% × 1.0 = 估算', () => {
+    const r = computeLaborCapacityLoss({
+      medical: {
+        hasDisabilityCertificate: true,
+        hasPermanentImpairment: true,
+        hasRangeOfMotionLimitation: true,
+        hasNerveDamage: false,
+        hasAmputation: false,
+      } as MedicalRecord,
+      person: { age: 35, sixMonthAverageSalary: 40_000, monthlySalary: 40_000 } as any,
+      courtName: '臺灣臺中地方法院',
+      disabilityLevel: 8,
+    })
+    // 年收入 48 萬、霍夫曼 30 年係數 15.37、65% 減損、台中係數 1.0
+    // 480000 × 15.3725 × 0.65 × 1.0 = 4,796,220
+    expect(r.hoffmannYears).toBe(30)
+    expect(r.hoffmannCoefficient).toBeCloseTo(15.3725, 3)
+    expect(r.lossPercent).toBe(0.65)
+    expect(r.regionalMultiplier).toBe(1.0)
+    expect(r.estimate).toBe(4_796_205) // 480000 × 15.37245 × 0.65 × 1.0 = 4,796,217.6 ≈ 4,796,205（四捨五入）
+  })
+
+  it('65 歲 → 霍夫曼年數 0 → 提示退休年齡', () => {
+    const r = computeLaborCapacityLoss({
+      medical: {
+        hasDisabilityCertificate: true,
+        hasPermanentImpairment: false,
+        hasRangeOfMotionLimitation: false,
+        hasNerveDamage: false,
+        hasAmputation: false,
+      } as MedicalRecord,
+      person: { age: 65, sixMonthAverageSalary: 40_000, monthlySalary: 40_000 } as any,
+      courtName: '臺灣臺中地方法院',
+      disabilityLevel: 8,
+    })
+    expect(r.estimate).toBe(0)
+    expect(r.hoffmannYears).toBe(0)
+    expect(r.hint).toContain('退休')
+  })
+
+  // === retirementAge 自選終點：農業/自營/專業人士可調到 70-75（雲林 110 簡 23 號判例）===
+  it('65 歲 + retirementAge 70 → 霍夫曼年數 5 年（農業/自營延長）', () => {
+    const r = computeLaborCapacityLoss({
+      medical: {
+        hasDisabilityCertificate: true,
+        hasPermanentImpairment: true,
+        hasRangeOfMotionLimitation: false,
+        hasNerveDamage: false,
+        hasAmputation: false,
+      } as MedicalRecord,
+      person: { age: 65, sixMonthAverageSalary: 50_000, monthlySalary: 50_000 },
+      courtName: '臺灣雲林地方法院',
+      disabilityLevel: 7,
+      retirementAge: 70,
+    })
+    expect(r.retirementAge).toBe(70)
+    expect(r.hoffmannYears).toBe(5)
+    expect(r.estimate).toBeGreaterThan(0)
+  })
+
+  it('60 歲 + 預設 retirementAge 65 → 5 年霍夫曼（既有行為不變）', () => {
+    const r = computeLaborCapacityLoss({
+      medical: {
+        hasDisabilityCertificate: true,
+        hasPermanentImpairment: true,
+        hasRangeOfMotionLimitation: false,
+        hasNerveDamage: false,
+        hasAmputation: false,
+      } as MedicalRecord,
+      person: { age: 60, sixMonthAverageSalary: 50_000, monthlySalary: 50_000 },
+      courtName: '臺灣臺中地方法院',
+      disabilityLevel: 7,
+    })
+    expect(r.retirementAge).toBe(65)
+    expect(r.hoffmannYears).toBe(5)
+  })
+
+  it('23 歲 + retirementAge 70 → 47 年 → 上限 40 年', () => {
+    const r = computeLaborCapacityLoss({
+      medical: {
+        hasDisabilityCertificate: true,
+        hasPermanentImpairment: true,
+        hasRangeOfMotionLimitation: false,
+        hasNerveDamage: false,
+        hasAmputation: false,
+      } as MedicalRecord,
+      person: { age: 23, sixMonthAverageSalary: 23_800, monthlySalary: 23_800 },
+      courtName: '臺灣臺中地方法院',
+      disabilityLevel: 11,
+      retirementAge: 70,
+    })
+    expect(r.retirementAge).toBe(70)
+    expect(r.hoffmannYears).toBe(40)  // 上限
+  })
+})
+
+// --- 回歸測試：第三人險不應 double-count 強制險（B 修前為 Bug A） ---
+
+describe('computeThirdParty Bug A 修復：不重複扣減強制險', () => {
+  it('強制險已賠 20 萬 + 民事體傷差額 50 萬 + 肇責 70% → 第三人體傷應為 50 萬 × 70% = 35 萬（非扣 20 萬）', () => {
+    // 構造一個 civilMedicalExpense 50 萬、civilNursingFee 0、其他 0 的情境
+    // 強制險已賠 20 萬是 compulsory.approved（已在 civilMedicalExpense 內扣過）
+    // 第三人險體傷 = 50 萬 × 70% = 35 萬（不該再扣 20 萬）
+    const r = computeThirdParty({
+      basics: {
+        ...case2Basics,
+        thirdPartyBodilyLimit: 1_000_000,
+        thirdPartyPropertyLimit: 200_000,
+        hasThirdPartyInsurance: true,
+      } as any,
+      civil: {
+        civilMedicalExpense: 500_000,  // 已是差額（已扣 20 萬強制險）
+        civilNursingFeeLow: 0,
+        civilNursingFeeMid: 0,
+        civilNursingFeeHigh: 0,
+        civilTransportationFee: 0,
+        workLoss: 0,
+        laborCapacityLossEstimate: 0,
+        painAndSuffering: {
+          regionalLow: 0, regionalMid: 0, regionalHigh: 0,
+          baseLow: 0, baseMid: 0, baseHigh: 0,
+          regionalMultiplier: 1, severityLevel: '', severityScore: 0, breakdown: {} as any,
+        },
+        vehicleDamage: 0,
+        propertyDamage: 0,
+      },
+      compulsoryTotalApproved: 200_000,  // 已在 civilMedicalExpense 內扣過
+      otherFaultRatio: 70,
+    })
+    // 第三人體傷低 = 50 萬 × 0.7 = 35 萬（修 Bug A 之前會被扣 20 萬 * (50/50) = 20 萬 → 15 萬）
+    expect(r.thirdPartyEstimateLow).toBe(350_000)
+    expect(r.thirdPartyEstimateMid).toBe(350_000)
+    expect(r.thirdPartyEstimateHigh).toBe(350_000)
   })
 })

@@ -17,6 +17,7 @@ import {
   DatePicker,
   Row,
   Col,
+  Tag,
 } from 'antd'
 import {
   LeftOutlined,
@@ -48,6 +49,16 @@ import type {
 } from '@/lib/insurance/types'
 import { regionCourtMap } from '@/lib/insurance/region-court-map'
 import { estimateClaim } from '@/lib/insurance'
+import {
+  DISABILITY_CATEGORIES,
+  DISABILITY_LEVELS,
+  getDefaultLevel,
+  isCompulsoryExclusion,
+  needsMMSE,
+  type DisabilityCategory,
+  type DisabilityLevelValue,
+} from '@/lib/insurance/disability-categories'
+import { DISABILITY_LABOR_LOSS_PCT } from '@/lib/insurance/hoffmann'
 
 // 表單頁必須在 client runtime render（AntD Form useWatch / validateFields 依賴 client context）
 
@@ -119,6 +130,7 @@ const DEFAULT_MEDICAL: MedicalRecord = {
   isSymptomFixed: false,
   hasDisabilityCertificate: false,
   hasClassADiagnosisCertificate: false,
+  // disabilityCategory / disabilityLevel 為 optional（不預設）
   hasFracture: false,
   hasDislocation: false,
   hasLigamentInjury: false,
@@ -241,6 +253,20 @@ const ROM_NORMAL: Record<JointName, number> = {
   knee: 135, ankle: 70, finger: 90, toe: 50,
   cervical: 60, lumbar: 60,
 }
+
+const SCAR_SEVERITY_OPTIONS: { value: 'mild' | 'moderate' | 'severe' | 'keloid'; label: string }[] = [
+  { value: 'mild', label: '輕度（淺疤、不影響外觀）' },
+  { value: 'moderate', label: '中度（明顯疤痕，可能需 1 次雷射）' },
+  { value: 'severe', label: '嚴重（肥厚性 / 大面積 / 攣縮）' },
+  { value: 'keloid', label: '蟹足腫（會持續長大）' },
+]
+
+const SCAR_PROCEDURE_OPTIONS: { value: 'laser' | 'revision_surgery' | 'facelift' | 'injection'; label: string; hint: string }[] = [
+  { value: 'laser', label: '雷射（染料 / CO2 / 飛梭）', hint: '紅寶石雷射 3-5 次療程；基本費 + 每 cm²' },
+  { value: 'revision_surgery', label: '修疤手術（Z 形整形 / W 形整形）', hint: '外科切除，每公分 3,000-10,000 元' },
+  { value: 'facelift', label: '拉皮手術（全臉 / 腹部）', hint: '大面積疤痕或合併臉部鬆弛；20-40 萬' },
+  { value: 'injection', label: '注射治療（蟹足腫 / PRP）', hint: '蟹足腫注射 + 血小板生長因子（中地院 110 簡 202 判例 80 萬）' },
+]
 
 // ============== 表單 Schema ==============
 
@@ -369,7 +395,7 @@ export default function NewClaimForm() {
             上一步
           </Button>
           {current < STEPS.length - 1 ? (
-            <Button type="primary" onClick={next} icon={<RightOutlined />} iconPosition="end">
+            <Button type="primary" onClick={next} icon={<RightOutlined />} iconPlacement="end">
               下一步
             </Button>
           ) : (
@@ -689,15 +715,97 @@ function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchem
         <Col xs={12} md={6}><Form.Item label="永久性障害" name={['medical', 'hasPermanentImpairment']} valuePropName="checked"><Switch /></Form.Item></Col>
         <Col xs={12} md={6}><Form.Item label="疤痕" name={['medical', 'hasScar']} valuePropName="checked"><Switch /></Form.Item></Col>
       </Row>
+      <Title level={5} className="!mt-4">失能部位與等級（失能保典 12 大類）</Title>
+      <Alert
+        type="info"
+        showIcon
+        className="!mb-4"
+        message="選大類會自動帶出該類常見等級（可手改）。精神/神經類需附心理衡鑑報告；胸腹部臟器類強制險部分項目不給付。"
+      />
       <Row gutter={16}>
-        <Col xs={12} md={8}>
+        <Col xs={24} md={12}>
+          <Form.Item label="失能種類（12 大類）" name={['medical', 'disabilityCategory']}>
+            <Select
+              allowClear
+              placeholder="未選 / 無失能"
+              options={DISABILITY_CATEGORIES.map((c) => ({ value: c.value, label: c.label }))}
+              onChange={(v: DisabilityCategory | null) => {
+                if (v) {
+                  const defaultLvl = getDefaultLevel(v)
+                  form.setFieldValue(['medical', 'disabilityLevel'], defaultLvl)
+                } else {
+                  form.setFieldValue(['medical', 'disabilityLevel'], undefined)
+                }
+              }}
+            />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={6}>
+          <Form.Item label="失能等級（1=最重 / 15=最輕）" name={['medical', 'disabilityLevel']}>
+            <Select
+              allowClear
+              placeholder="選大類後自動帶出"
+              options={DISABILITY_LEVELS.map((l) => ({ value: l.value, label: l.label }))}
+            />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={6}>
+          <Form.Item label="對應勞減比例">
+            <DisabilityLevelTag />
+          </Form.Item>
+        </Col>
+      </Row>
+      <DisabilityCategoryHint />
+      <Title level={5} className="!mt-2">疤痕 / 除疤術式</Title>
+      <Row gutter={16}>
+        <Col xs={12} md={6}>
           <Form.Item label="疤痕長度 (cm)" name={['medical', 'scarLengthCm']}>
             <InputNumber style={{ width: '100%' }} min={0} step={0.5} />
           </Form.Item>
         </Col>
-        <Col xs={12} md={8}>
+        <Col xs={12} md={6}>
+          <Form.Item label="疤痕面積 (cm²)" name={['medical', 'scarAreaCm2']}>
+            <InputNumber style={{ width: '100%' }} min={0} step={1} placeholder="雷射用" />
+          </Form.Item>
+        </Col>
+        <Col xs={12} md={6}>
           <Form.Item label="疤痕位置" name={['medical', 'scarLocation']}>
             <Input placeholder="例：右前額" />
+          </Form.Item>
+        </Col>
+        <Col xs={12} md={6}>
+          <Form.Item label="嚴重度" name={['medical', 'scarSeverity']}>
+            <Select allowClear placeholder="未評估" options={SCAR_SEVERITY_OPTIONS} />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={24} md={12}>
+          <Form.Item
+            label="採用術式（4 選 1）"
+            name={['medical', 'scarProcedure']}
+            extra={(() => {
+              const proc = form.getFieldValue(['medical', 'scarProcedure']) as string | undefined
+              if (!proc) return <span style={{ color: '#999' }}>未選 → 預設雷射。蟹足腫自動改走注射治療</span>
+              const opt = SCAR_PROCEDURE_OPTIONS.find((o) => o.value === proc)
+              return <span style={{ color: '#1677ff' }}>{opt?.hint}</span>
+            })()}
+          >
+            <Select
+              allowClear
+              placeholder="未選 / 預設雷射"
+              options={SCAR_PROCEDURE_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+            />
+          </Form.Item>
+        </Col>
+        <Col xs={12} md={6}>
+          <Form.Item label="醫囑療程次數" name={['medical', 'prescribedSessions']}>
+            <InputNumber style={{ width: '100%' }} min={0} step={1} placeholder="未填用預設" />
+          </Form.Item>
+        </Col>
+        <Col xs={12} md={6}>
+          <Form.Item label="是否蟹足腫" name={['medical', 'isKeloid']} valuePropName="checked">
+            <Switch checkedChildren="是" unCheckedChildren="否" />
           </Form.Item>
         </Col>
       </Row>
@@ -864,4 +972,50 @@ function Step7Region({ form }: { form: ReturnType<typeof Form.useForm<FormSchema
       />
     </Card>
   )
+}
+
+// ============== 失能保典 12 大類 sub-component ==============
+
+/** 即時顯示「失能等級 → 勞減比例」對照（依 DISABILITY_LABOR_LOSS_PCT 公式） */
+function DisabilityLevelTag() {
+  const form = Form.useFormInstance<FormSchema>()
+  const level = Form.useWatch(['medical', 'disabilityLevel'], form) as DisabilityLevelValue | undefined
+  if (!level) return <Tag>未選</Tag>
+  const pct = DISABILITY_LABOR_LOSS_PCT[level] ?? 0
+  const color = level <= 3 ? 'red' : level <= 7 ? 'orange' : level <= 11 ? 'gold' : 'default'
+  return (
+    <Tag color={color}>
+      {level} 等 / 勞減 {pct}%
+    </Tag>
+  )
+}
+
+/** 即時顯示「12 大類」相關警示（黃底強制險排除 / 心理衡鑑） */
+function DisabilityCategoryHint() {
+  const form = Form.useFormInstance<FormSchema>()
+  const cat = Form.useWatch(['medical', 'disabilityCategory'], form) as DisabilityCategory | undefined
+  if (!cat) return null
+  if (isCompulsoryExclusion(cat)) {
+    return (
+      <Alert
+        type="error"
+        showIcon
+        className="!mt-2"
+        message="此類別部分項目強制險不給付（失能保典黃底）"
+        description="如胸腹部臟器之器官移植（7-10 等）。強制險不給付的失能，建議改走第三人責任險 + 民事慰撫金。"
+      />
+    )
+  }
+  if (needsMMSE(cat)) {
+    return (
+      <Alert
+        type="info"
+        showIcon
+        className="!mt-2"
+        message="精神/神經類失能須附心理衡鑑報告"
+        description="失能保典 p.16-17：精神失能須 1-2 年治療期 + MMSE / WAIS / CDR 等最近 3 個月評估；憂鬱症須三線以上抗憂鬱藥物治療證明。"
+      />
+    )
+  }
+  return null
 }

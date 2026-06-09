@@ -56,17 +56,22 @@
 }
 
 @media (prefers-color-scheme: dark) {
+  /* 使用者明確要求白天模式：忽略系統暗色偏好，強制保持淺色 token */
   :root {
-    --background: #0a0a0a;
-    --foreground: #fafaf9;
-    --muted: #a1a1aa;
-    --surface: #18181b;
-    --surface-subtle: #27272a;
-    --border: #27272a;
-    --border-strong: #3f3f46;
-    --accent: #fb7185;             /* rose-400，dark mode 提亮 */
-    --accent-soft: #4c0519;
-    --data-neutral: #f4f4f5;
+    --background: #fafaf9;          /* stone-50 */
+    --foreground: #18181b;          /* zinc-900 */
+    --muted: #71717a;               /* zinc-500 */
+    --surface: #ffffff;             /* 純白卡片 */
+    --surface-subtle: #f4f4f5;      /* zinc-100 */
+    --border: #e4e4e7;              /* zinc-200 */
+    --border-strong: #d4d4d8;       /* zinc-300 */
+    --accent: #be123c;              /* rose-700 */
+    --accent-soft: #ffe4e6;         /* rose-100 */
+    --accent-foreground: #ffffff;
+    --data-positive: #166534;       /* green-800 */
+    --data-warning: #b45309;        /* amber-700 */
+    --data-negative: #991b1b;       /* red-800 */
+    --data-neutral: #1f2937;        /* gray-800 */
   }
 }
 
@@ -108,4 +113,70 @@ html, body {
 /* 漸層遮罩（hero bottom fade） */
 .hero-fade {
   background: linear-gradient(to bottom, transparent 0%, var(--background) 100%);
+}
+
+/* === Flowbite 風格增強（白天模式 + 軟陰影 + 加大圓角） === */
+
+/* 卡片陰影 — Flowbite 特色：極輕但有層次 */
+.card-shadow {
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.06);
+}
+.card-shadow-md {
+  box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.05), 0 4px 6px -1px rgb(0 0 0 / 0.06);
+}
+
+/* AntD 按鈕 / Input 統一加強 focus ring（Flowbite 風格：玫瑰色 2px） */
+.ant-btn:focus-visible,
+.ant-input:focus-visible,
+.ant-input-affix-wrapper:focus-visible,
+.ant-select-selector:focus-visible,
+.ant-picker:focus-visible {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(190, 18, 60, 0.1) !important;
+}
+
+/* AntD Input 加白底（避免暗色預設） */
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-input-number,
+.ant-input-number-input,
+.ant-select-selector,
+.ant-picker {
+  background-color: #ffffff !important;
+  border-color: var(--border) !important;
+}
+
+.ant-input::placeholder,
+.ant-input-affix-wrapper input::placeholder,
+.ant-input-number-input::placeholder {
+  color: #a1a1aa !important;
+}
+
+/* AntD Card 白底 + Flowbite 軟陰影 */
+.ant-card {
+  background-color: #ffffff !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.06) !important;
+}
+
+.ant-card-head {
+  border-bottom: 1px solid var(--border) !important;
+  background-color: var(--surface-subtle) !important;
+}
+
+/* AntD Alert 白天模式：白底、淡邊框 */
+.ant-alert {
+  background-color: var(--surface-subtle) !important;
+  border: 1px solid var(--border) !important;
+}
+
+/* AntD Skeleton 白天模式：淡灰色 */
+.ant-skeleton-content .ant-skeleton-title,
+.ant-skeleton-content .ant-skeleton-paragraph > li,
+.ant-skeleton-avatar,
+.ant-skeleton-button,
+.ant-skeleton-input {
+  background: linear-gradient(90deg, #f4f4f5 0%, #e4e4e7 50%, #f4f4f5 100%) !important;
+  background-size: 1000px 100% !important;
 }

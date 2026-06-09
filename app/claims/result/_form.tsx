@@ -1,7 +1,6 @@
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import {
   Alert,
   Button,
@@ -38,6 +37,7 @@ import type { ClaimInput, EstimationResult } from '@/lib/insurance/types'
 import { estimateClaim } from '@/lib/insurance'
 import { SAMPLE_INPUT } from '@/lib/insurance/sample'
 import { getMedianCourtCompensation, getCaseReferencesByCategory } from '@/lib/data-sources/judicial'
+import { findRelatedPrecedents, getPrecedentCount, findRelatedPracticeCases } from '@/lib/estimate/precedents'
 import { getAverageFoiCompensation } from '@/lib/data-sources/foi'
 import { listLegalReferences, isLegalReferenceStale } from '@/lib/data-sources/legal-reference'
 import type { LegalReference } from '@/lib/data-sources/types'
@@ -49,7 +49,6 @@ const { Title, Paragraph, Text } = Typography
 const dollar = (n: number) => `NT$ ${(n ?? 0).toLocaleString('zh-TW')}`
 
 export default function ResultForm() {
-  const router = useRouter()
   // 用 lazy initializer 在第一次 render 時同步讀 sessionStorage，
   // 避免在 useEffect 內同步 setState 觸發 cascading render
   // （符合 react-hooks/set-state-in-effect 規則）
@@ -71,12 +70,9 @@ export default function ResultForm() {
     return { input, result, stale }
   })
 
-  useEffect(() => {
-    if (!hydrated.input || !hydrated.result) {
-      router.push('/claims/new')
-    }
-  }, [hydrated.input, hydrated.result, router])
-
+  // 拿掉 useEffect redirect：Empty state + 「看估算範例」按鈕就是設計好的 UX 入口
+  // 若強制 redirect 會在使用者點按鈕前把他送走（race condition）
+  // 不用 useRouter：點按鈕用 window.location.assign 整頁 reload 觸發 useState lazy init
   const input = hydrated.input
   const result = hydrated.result
   const stale = hydrated.stale
@@ -215,6 +211,11 @@ export default function ResultForm() {
               children: <DisabilitySection result={result} />,
             },
             {
+              key: 'practice',
+              label: <span><FileTextOutlined /> ②b 理賠實務案例</span>,
+              children: <PracticeCasesSection result={result} />,
+            },
+            {
               key: 'civil',
               label: <span><DollarOutlined /> ③ 民事損害</span>,
               children: <CivilSection result={result} />,
@@ -335,16 +336,152 @@ function DisabilitySection({ result }: { result: EstimationResult }) {
   )
 }
 
+// ============== ②b 理賠實務案例（鄭曉律師案例集） ==============
+// 給結果頁顯示「同縣市/同年/同失能等級」的理賠實務案例
+// 來源：data/precedents/practice-cases.json（category='practice_case'）
+function PracticeCasesSection({ result }: { result: EstimationResult }) {
+  const refs = findRelatedPracticeCases(
+    result.region.courtName,
+    result.disability.possibleLevel,
+    3,
+  )
+  if (refs.length === 0) return null
+  return (
+    <Card>
+      <Title level={4}>
+        <FileTextOutlined className="mr-2" />
+        理賠實務案例參考（{refs.length} 件）
+      </Title>
+      <Paragraph type="secondary" className="!text-xs !mb-3">
+        以下案例為鄭曉律師承辦之理賠實務（非法院公開判決），依「同縣市 / 同年份 / 同失能等級」配對。
+        點開可看完整和解條件、勞減計算、霍夫曼公式。
+      </Paragraph>
+      <Collapse
+        size="small"
+        items={refs.map((r) => {
+          const ls = r.laborLoss
+          const sm = r.settlement
+          return {
+            key: r.id,
+            label: (
+              <Space>
+                <Text strong>{r.caseNo}</Text>
+                <Tag color="blue">{r.court}</Tag>
+                {sm?.totalInsurerPayout ? (
+                  <Tag color="green">保險給付 {dollar(sm.totalInsurerPayout)}</Tag>
+                ) : null}
+              </Space>
+            ),
+            children: (
+              <Space orientation="vertical" size={6} className="!w-full">
+                <div>
+                  <Text type="secondary" className="!text-xs">事實：</Text>
+                  <Paragraph className="!mt-1 !mb-1 !text-sm">{r.facts}</Paragraph>
+                </div>
+                <div>
+                  <Text type="secondary" className="!text-xs">傷勢：</Text>
+                  <Paragraph className="!mt-1 !mb-1 !text-sm">{r.injuries}</Paragraph>
+                </div>
+                {r.disabilities.length > 0 && (
+                  <div>
+                    <Text type="secondary" className="!text-xs">失能等級：</Text>
+                    {r.disabilities.map((d, i) => (
+                      <Tag key={i} color={parseInt(d.level) <= 5 ? 'red' : parseInt(d.level) <= 10 ? 'orange' : 'default'}>
+                        {d.type} 第{d.level}級（{d.source}）
+                      </Tag>
+                    ))}
+                  </div>
+                )}
+                {ls && (ls.hoffmannCalculation || ls.annualIncome) && (
+                  <div>
+                    <Text type="secondary" className="!text-xs">勞減計算：</Text>
+                    <Paragraph className="!mt-1 !mb-1 !text-sm">
+                      {ls.hoffmannCalculation ?? '—'}
+                      {ls.tool && (
+                        <a href={ls.tool} target="_blank" rel="noreferrer" className="!ml-2">
+                          霍夫曼試算工具 ↗
+                        </a>
+                      )}
+                    </Paragraph>
+                  </div>
+                )}
+                {sm && (sm.civilSettlement || sm.settlementReason) && (
+                  <div>
+                    <Text type="secondary" className="!text-xs">和解：</Text>
+                    <Paragraph className="!mt-1 !mb-1 !text-sm">
+                      {sm.civilSettlement ? `民事和解金 ${dollar(sm.civilSettlement)}。` : ''}
+                      {sm.settlementReason ?? ''}
+                    </Paragraph>
+                  </div>
+                )}
+                {r.keyHoldings.length > 0 && (
+                  <div>
+                    <Text type="secondary" className="!text-xs">勝訴要點：</Text>
+                    <ul className="!mt-1">
+                      {r.keyHoldings.map((h, i) => (
+                        <li key={i} className="!text-sm">{h}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <Text type="secondary" className="!text-xs !mt-2">
+                  來源：{r.source} · 收錄 {r.scrapedAt.split('T')[0]}
+                </Text>
+              </Space>
+            ),
+          }
+        })}
+      />
+    </Card>
+  )
+}
+
 // ============== ③ 民事損害 ==============
+// 排序邏輯（理賠時的閱讀順序）：
+//   ① 醫療延伸（除疤 = 醫療必要費用）→ ② 精神慰撫金 → ③ 工作損失（擴充）→
+//   ④ 勞動能力減損（失能延伸）→ ⑤ 車損 / 財損
+// ※ 基本「工作損失」與「擴充版」合併為一，避免重複顯示。
 function CivilSection({ result }: { result: EstimationResult }) {
   const pas = result.painAndSuffering
   return (
     <Card>
       <Row gutter={16} className="!mb-4">
-        <Col xs={24} md={8}><Statistic title="民事醫療差額" value={result.civilMedicalExpense} formatter={(v) => dollar(Number(v))} /></Col>
-        <Col xs={24} md={8}><Statistic title="民事看護" value={result.civilNursingFeeMid} formatter={(v) => dollar(Number(v))} /></Col>
-        <Col xs={24} md={8}><Statistic title="工作損失" value={result.workLoss} formatter={(v) => dollar(Number(v))} /></Col>
+        <Col xs={12}><Statistic title="民事醫療差額" value={result.civilMedicalExpense} formatter={(v) => dollar(Number(v))} /></Col>
+        <Col xs={12}><Statistic title="民事看護（中標）" value={result.civilNursingFeeMid} formatter={(v) => dollar(Number(v))} /></Col>
       </Row>
+
+      <Divider>除疤 / 修疤費用（4 術式 × 北中南）</Divider>
+      <Row gutter={16}>
+        <Col xs={24} md={8}><Statistic title="估算金額（中）" value={result.scarRevision.estimate} formatter={(v) => dollar(Number(v))} valueStyle={{ color: 'var(--accent)' }} /></Col>
+        <Col xs={8}><Statistic title="低標" value={result.scarRevision.estimateLow} formatter={(v) => dollar(Number(v))} /></Col>
+        <Col xs={8}><Statistic title="高標" value={result.scarRevision.estimateHigh} formatter={(v) => dollar(Number(v))} /></Col>
+      </Row>
+      <Row gutter={16} className="!mt-2">
+        <Col xs={12} md={6}><Statistic title="採用術式" value={
+          result.scarRevision.procedure === 'revision_surgery' ? '修疤手術'
+          : result.scarRevision.procedure === 'laser' ? '雷射'
+          : result.scarRevision.procedure === 'facelift' ? '拉皮'
+          : result.scarRevision.procedure === 'injection' ? '注射（蟹足腫/PRP）'
+          : result.scarRevision.procedure === 'dermabrasion' ? '磨皮'
+          : '未指定'
+        } /></Col>
+        <Col xs={12} md={6}><Statistic title="療程次數" value={result.scarRevision.totalSessions} /></Col>
+        <Col xs={12} md={6}><Statistic title="地區係數" value={result.scarRevision.regionalMultiplier} /></Col>
+        <Col xs={12} md={6}><Statistic title="單價 / 單位" value={`${dollar(result.scarRevision.breakdown.perUnitCost)} × ${result.scarRevision.breakdown.units}`} /></Col>
+      </Row>
+      {result.scarRevision.hint && (
+        <Alert type="warning" showIcon className="!mt-2" message={result.scarRevision.hint} />
+      )}
+      {result.scarRevision.precedents.length > 0 && (
+        <Paragraph type="secondary" className="!mt-2 !text-xs">
+          依據：{result.scarRevision.precedents.join('；')}
+        </Paragraph>
+      )}
+      {result.scarRevision.notes.length > 0 && (
+        <Paragraph type="secondary" className="!mt-1 !text-xs">
+          {result.scarRevision.notes.join(' · ')}
+        </Paragraph>
+      )}
 
       <Divider>精神慰撫金（依 {result.region.courtName} 係數）</Divider>
       <Row gutter={16}>
@@ -357,11 +494,42 @@ function CivilSection({ result }: { result: EstimationResult }) {
         · 嚴重度評分 {pas.severityScore} / 100（{pas.severityLevel}）
       </Paragraph>
 
+      <Divider>工作損失（擴充版：短期/長期/退休分流）</Divider>
+      <Row gutter={16}>
+        <Col xs={24} md={8}><Statistic title="擴充版估算" value={result.workLossExtended.amount} formatter={(v) => dollar(Number(v))} valueStyle={{ color: 'var(--accent)' }} /></Col>
+        <Col xs={12} md={4}><Statistic title="計算類型" value={
+          result.workLossExtended.calculationType === 'short_term' ? '短期（日薪）'
+          : result.workLossExtended.calculationType === 'long_term' ? (result.workLossExtended.isRetired ? '已退休' : '長期（霍夫曼）')
+          : '資料不足'
+        } /></Col>
+        <Col xs={12} md={4}><Statistic title="霍夫曼年數" value={result.workLossExtended.hoffmannYears} /></Col>
+        <Col xs={12} md={4}><Statistic title="休養月數" value={result.workLossExtended.restMonths} /></Col>
+        <Col xs={12} md={4}><Statistic title="證據強度" value={result.workLossExtended.evidenceStrength === 'high' ? '充足' : result.workLossExtended.evidenceStrength === 'medium' ? '中等' : '不足'} /></Col>
+      </Row>
+      {result.workLossExtended.hint && (
+        <Alert type="info" showIcon className="!mt-2" message={result.workLossExtended.hint} />
+      )}
+      {result.workLossExtended.notes.length > 0 && (
+        <Paragraph type="secondary" className="!mt-2 !text-xs">
+          {result.workLossExtended.notes.join(' · ')}
+        </Paragraph>
+      )}
+
       <Divider>勞動能力減損（終身）</Divider>
       <Row gutter={16}>
-        <Col xs={24} md={12}><Statistic title="估算金額" value={result.laborCapacityLossEstimate} formatter={(v) => dollar(Number(v))} /></Col>
-        <Col xs={24} md={12}><Paragraph type="secondary" className="!text-sm">{result.laborCapacityLossHint ?? '—'}</Paragraph></Col>
+        <Col xs={24} md={8}><Statistic title="估算金額" value={result.laborCapacityLossEstimate} formatter={(v) => dollar(Number(v))} /></Col>
+        <Col xs={12} md={4}><Statistic title="計算終點年齡" value={result.laborCapacityRetirementAge} /></Col>
+        <Col xs={12} md={6}><Statistic title="失能等級" value={result.disability.possibleLevel ?? '—'} /></Col>
+        <Col xs={12} md={6}><Statistic title="等級信心" value={`${(result.disability.confidenceScore * 100).toFixed(0)}%`} /></Col>
       </Row>
+      {result.laborCapacityLossHint && (
+        <Paragraph type="secondary" className="!mt-2 !text-sm">{result.laborCapacityLossHint}</Paragraph>
+      )}
+      {result.laborCapacityLossNotes.length > 0 && (
+        <Paragraph type="secondary" className="!mt-1 !text-xs">
+          {result.laborCapacityLossNotes.join(' · ')}
+        </Paragraph>
+      )}
 
       <Divider>車損 / 財損（第三人責任險）</Divider>
       <Row gutter={16}>
@@ -472,13 +640,53 @@ function RegionSection({ result }: { result: EstimationResult }) {
       ) : (
         <Paragraph type="secondary">無資料</Paragraph>
       )}
+
+      {/* 真實判例引註 — 從 scripts/scrape-judgments.ts 抓的司法院真實判決 */}
+      {(() => {
+        const realRefs = findRelatedPrecedents(
+          courtName,
+          result.painAndSuffering.regionalMid,
+          3,
+        );
+        if (realRefs.length === 0) return null;
+        return (
+          <>
+            <Paragraph strong className="!mt-4 !mb-2">
+              <ReadOutlined className="mr-1" />
+              真實判例引註（依據：{getPrecedentCount()} 件司法院真實判決）
+            </Paragraph>
+            <Paragraph type="secondary" className="!text-xs !mb-2">
+              依「精神慰撫金金額」與「法院」挑選最相關的真實判決
+            </Paragraph>
+            <Collapse
+              size="small"
+              items={realRefs.map((r) => ({
+                key: `real-${r.caseId}`,
+                label: `${r.caseId} · ${r.amount !== null ? dollar(r.amount) : '（無具體金額）'}`,
+                children: (
+                  <Space orientation="vertical" size={4}>
+                    <Text className="!text-sm">{r.summary}</Text>
+                    <Text type="secondary" className="!text-xs">
+                      {r.keyReasoning}
+                    </Text>
+                    <Text type="secondary" className="!text-xs">
+                      {r.referenceNote}
+                    </Text>
+                  </Space>
+                ),
+              }))}
+            />
+          </>
+        );
+      })()}
+
       {refs.length > 0 && (
         <Collapse
           items={refs.slice(0, 3).map((r) => ({
             key: r.caseId,
             label: `${r.caseId} · ${r.amount !== null ? dollar(r.amount) : '（無具體金額）'}（區間 ${dollar(r.amountLow)}-${dollar(r.amountHigh)}）`,
             children: (
-              <Space direction="vertical">
+              <Space orientation="vertical">
                 <Text>{r.summary}</Text>
                 <Text type="secondary" className="!text-xs">{r.keyReasoning}</Text>
               </Space>

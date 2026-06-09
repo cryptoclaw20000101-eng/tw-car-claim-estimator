@@ -1,0 +1,61 @@
+[
+  {
+    "id": "tw-scar-110-110202",
+    "caseNo": "110 年度 簡字第 202 號",
+    "court": "臺灣臺中地方法院",
+    "year": 2021,
+    "category": "scar_revision",
+    "facts": "原告受有左側大腿撕裂傷 1 公分、左側小腿撕裂傷 1.5 公分、頭臉頸部多處肥厚性疤痕（蟹足腫），須接受蟹足腫注射、血小板生長因子（PRP）治療及雷射除疤等皮膚治療項目",
+    "scarDetails": {
+      "location": "左大腿、左膝、左小腿、頭臉頸",
+      "severity": "keloid",
+      "isKeloid": true,
+      "scarLengths": [
+        { "location": "左大腿", "lengthCm": 1 },
+        { "location": "左小腿", "lengthCm": 1.5 }
+      ]
+    },
+    "treatments": [
+      "蟹足腫注射 (Triamcinolone)",
+      "血小板生長因子 (PRP) 治療",
+      "雷射除疤"
+    ],
+    "scarRevisionAmount": 800000,
+    "totalAward": 3150725,
+    "ratio": { "plaintiff": 30, "defendant": 70 },
+    "gist": "蟹足腫 + PRP + 雷射複合療程 80 萬元全額准許",
+    "keyHolding": "1) 蟹足腫注射、PRP、雷射除疤為「回復原狀所必要之費用」（民法 §213 III） 2) 醫美診所診斷證明書 + 術前術後照片為關鍵證據 3) 被告抗辯無必要性，法官不採",
+    "precedentCited": "美麗新城診所 109.02.28 診斷證明書",
+    "source": "臺灣臺中地方法院 110 年度 簡字第 202 號",
+    "scrapedAt": "2026-06-09T16:50:00.000Z"
+  },
+  {
+    "id": "tw-scar-108-1082247",
+    "caseNo": "108 年度 訴字第 2247 號",
+    "court": "臺灣桃園地方法院",
+    "year": 2019,
+    "category": "scar_revision",
+    "facts": "原告因被告過失傷害行為，致創傷性右顱頂葉硬腦膜下出血、呼吸衰竭及急性出血性貧血。原告為 27 歲育齡女性，須服用控制癲癇藥物 Phenytoin 治療。",
+    "specialIssue": "服用 Phenytoin 期間不適合懷孕 → 影響生育計畫",
+    "medicalTrack": [
+      { "date": "108.09.21", "result": "腦波檢查正常，目前減量中" },
+      { "date": "109.09", "plan": "原預計停藥" },
+      { "date": "110.01", "result": "仍持續用藥，無法判斷停藥時間" }
+    ],
+    "holding": {
+      "occupationalImpact": "原告為牙醫助理，27 歲育齡",
+      "defendantStatus": "夜市擺攤賣乙節",
+      "propertyRecords": "106-107 年財產所得資料在卷"
+    },
+    "mentalDistress": 600000,
+    "mentalDistressBasis": "生育自主權/生育計畫受影響，屬人格法益情節重大之精神痛苦",
+    "gist": "車禍服用控制癲癇藥物（Phenytoin）期間導致無法懷孕，影響育齡女子生育計畫，雖非傳統可見殘廢傷害，仍肯認屬精神上相當痛苦，判給慰撫金 60 萬元",
+    "keyHolding": "1) Phenytoin 服藥期間不適合懷孕 2) 生育計畫屬『人格法益情節重大』 3) 綜合兩造資力/肇事情節/身分地位/痛苦程度",
+    "legalBasis": [
+      "民法 §184 I 前段（侵權故意過失）",
+      "民法 §195 I（身體健康權受侵害精神慰撫金）"
+    ],
+    "source": "臺灣桃園地方法院 108 年度 訴字第 2247 號民事判決（鄭曉《車禍理賠實務暨精選判例》P.17）",
+    "scrapedAt": "2026-06-09T16:55:00.000Z"
+  }
+]

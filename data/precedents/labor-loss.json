@@ -1,0 +1,108 @@
+[
+  {
+    "id": "tw-labor-110-110202",
+    "caseNo": "110 年度 簡字第 202 號",
+    "court": "臺灣臺中地方法院",
+    "year": 2021,
+    "category": "labor_capacity_loss",
+    "facts": "原告 107.07.22 車禍受有頭部外傷合併右側頭皮下血腫、右側頭顱骨骨折、左側急性硬膜下出血、左側股骨/脛骨/腓骨開放性骨折、左側大腿撕裂傷 1 公分及左小腿撕裂傷 1.5 公分、臉部及肢體多處擦傷、右側第 6 對腦神經受損。原告為私立大學大三學生（年約 23 歲）。",
+    "injuryDetails": {
+      "diagnosis": "頭部外傷、頭顱骨骨折、硬膜下出血、開放性骨折、腦神經受損",
+      "disabilityLevel": "11",
+      "lossPercent": 11,
+      "age": 23
+    },
+    "calculation": {
+      "annualIncome": 285600,
+      "annualIncomeBasis": "109 年基本工資 23,800 × 12",
+      "hoffmannYears": 42,
+      "hoffmannCoefficient": 23.0,
+      "hoffmannNote": "年別單利 5% 第 43-44 年霍夫曼累計係數（依本院 65 歲退休計 42 年）"
+    },
+    "laborLossAmount": 737267,
+    "laborLossActualAwarded": 727332,
+    "totalAward": 3150725,
+    "ratio": { "plaintiff": 30, "defendant": 70 },
+    "gist": "霍夫曼單利 5% × 42 年 × 年薪 28.5 萬 × 勞減 11% × 70% 肇責 = 727,332 元",
+    "keyHolding": "勞動能力減損與不能工作損失非重複：前者自症狀固定日起算，後者算至固定日前",
+    "source": "臺灣臺中地方法院 110 年度 簡字第 202 號民事判決",
+    "scrapedAt": "2026-06-09T16:50:00.000Z"
+  },
+  {
+    "id": "tw-labor-110-23-110",
+    "caseNo": "110 年度 簡字第 23 號",
+    "court": "臺灣雲林地方法院",
+    "year": 2021,
+    "category": "labor_capacity_loss",
+    "facts": "原告因系爭車禍受傷，經彰基醫院鑑定勞動能力減損比例 3%。原告為女性、從事稻作農務工作。原告主張可工作至 79 歲，依農糧署 107 年第 1 期稻穀生產成本調查結果提要分析為據。",
+    "keyIssue": "勞動能力減損之計算終點：法定退休年齡 (65 歲) vs. 實際從事工作之最高年齡 (79 歲)",
+    "courtReasoning": [
+      "農糧署提要分析統計戶數僅 555 戶，女性占 12.1%，統計數據不多",
+      "難認該統計資料可逕行認定女性從事稻作農務之最高年齡",
+      "從事農業人口年齡普遍偏高",
+      "女性體力顯然不如男性，且隨年紀增長體力衰退",
+      "依行政院主計總處委託高雄大學研究：農家成員年齡分布在 20 至 70 歲間呈現高原型態"
+    ],
+    "calculation": {
+      "lossPercent": 3,
+      "lossPercentSource": "彰基醫院鑑定",
+      "calculationTermEnd": "70 歲",
+      "calculationTermYears": 17.5,
+      "calculationTermBasis": "自傷後半年起至屆滿 70 歲止",
+      "annualIncome": null,
+      "annualIncomeNote": "判決未明示具體數額，依基本工資或原告實際收入為基礎",
+      "hoffmannMethod": "依霍夫曼式係數表扣除中間利息（依年數對應）"
+    },
+    "gist": "法院認定勞動能力減損應計算至屆滿 70 歲，駁回原告 79 歲之主張",
+    "keyHoldings": [
+      "農業工作可延長至 70 歲（但非 79 歲）",
+      "女性農業工作者體力較男性差，影響計算終點",
+      "霍夫曼式計算勞減，仍須先確定年數"
+    ],
+    "legalBasis": [
+      "民法 §193 I（勞動能力減損）",
+      "民法 §184 I 前段（侵權故意過失）",
+      "民法 §184 II（違反保護他人法律）",
+      "勞動基準法 §54（65 歲強制退休）",
+      "公務人員退休資遣撫卹法（65 歲屆齡退休）"
+    ],
+    "source": "臺灣雲林地方法院 110 年度 簡字第 23 號民事判決（鄭曉《車禍理賠實務暨精選判例》P.24）",
+    "scrapedAt": "2026-06-09T16:55:00.000Z"
+  },
+  {
+    "id": "tw-labor-110-08-26-001",
+    "caseNo": "鄭曉案例1（110.08.26 新北市板橋區）",
+    "court": "新北地方法院（和解）",
+    "year": 2021,
+    "category": "labor_capacity_loss",
+    "facts": "對造營業計程車於劃有分向限制線（雙黃線）之路段迴車，原告疏於注意車前狀況。後經行車事故鑑定會重新鑑定，原告為無肇事責任。",
+    "injuries": "頭部創傷併創傷性蜘蛛網膜下出血、鼻部鈍傷併流鼻血、右膝十字韌帶及外側副韌帶部分損傷",
+    "laborLoss": {
+      "lossPercent": 14,
+      "鉴定Source": "台大醫院鑑定",
+      "annualIncome": 600000,
+      "annualIncomeBasis": "工程師月薪 5 萬 × 12 = 60 萬",
+      "age": 29,
+      "annualLoss": 84000,
+      "annualLossFormula": "60 萬 × 14% = 8.4 萬",
+      "hoffmannCalculation": "霍夫曼一次給付試算 = 173 萬（扣除先前請求的 3 個月工資起算期）",
+      "tool": "https://gdgt.judicial.gov.tw/judtool/wkc/GDGT03.htm"
+    },
+    "workLoss": {
+      "amount": 150000,
+      "restMonths": 3,
+      "restBasis": "醫囑建議休養半年，但客戶 3 個月後即上班，依實際損失請求"
+    },
+    "settlement": {
+      "totalInsurerPayout": 1900000,
+      "civilSettlement": 1800000
+    },
+    "keyHoldings": [
+      "事故鑑定會重新鑑定可推翻原責任歸屬（本案由有肇責改無肇責）",
+      "醫囑休養期間 vs. 實際上班期間：以實際損失為準",
+      "勞動能力減損可獨立於不能工作損失請求"
+    ],
+    "source": "鄭曉律師案例集 #1（110.08.26 新北市板橋區）",
+    "scrapedAt": "2026-06-09T16:55:00.000Z"
+  }
+]

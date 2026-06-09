@@ -61,7 +61,7 @@ export default function Home() {
             </Paragraph>
             <Space size={12} wrap>
               <Link href="/claims/new">
-                <Button type="primary" size="large" icon={<ArrowRightOutlined />} iconPosition="end">
+                <Button type="primary" size="large" icon={<ArrowRightOutlined />} iconPlacement="end">
                   開始估算（7 步表單）
                 </Button>
               </Link>
@@ -233,7 +233,7 @@ export default function Home() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <Space direction="vertical" size={2}>
+    <Space orientation="vertical" size={2}>
       <span className="tabular-nums text-2xl font-semibold tracking-tight text-foreground">
         {value}
       </span>

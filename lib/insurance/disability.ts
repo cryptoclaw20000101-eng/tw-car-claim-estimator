@@ -121,11 +121,16 @@ function applyAdjustments(
     if (adj.levelOverride !== undefined && !overridden) {
       level = adj.levelOverride
       overridden = true
-    } else if (adj.levelShift !== undefined) {
-      // 等級降低（數字變小 = 更嚴重）
+    }
+    if (adj.levelShift !== undefined) {
+      // 等級降低（數字變小 = 更嚴重）；override 與 shift 皆可累加
       const shifted = (level + adj.levelShift) as DisabilityLevel
       if (shifted >= 1 && shifted <= 15) {
         level = shifted
+      } else if (shifted < 1) {
+        level = 1  // clamp 1（最重）
+      } else {
+        level = 15  // clamp 15（最輕）
       }
     }
   }

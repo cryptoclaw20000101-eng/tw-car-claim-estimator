@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<title>車禍理賠估算器 — 桌面捷徑</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #18181b;
+    --foreground: #fafaf9;
+    --muted: #a1a1aa;
+    --border: #27272a;
+    --accent: #b83255;
+    --accent-hover: #d94872;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    background: var(--bg);
+    color: var(--foreground);
+    margin: 0;
+    padding: 32px 24px;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container {
+    max-width: 560px;
+    margin: 0 auto;
+  }
+  header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 20px;
+    margin-bottom: 28px;
+  }
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 6px 0;
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 0;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--border);
+  }
+  .row:last-child { border-bottom: none; }
+  .label {
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .value {
+    font-variant-numeric: tabular-nums;
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .value.accent { color: var(--accent); font-size: 22px; font-weight: 600; }
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 14px 20px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.15s ease;
+    margin-top: 12px;
+  }
+  .btn:hover { background: var(--accent-hover); }
+  .btn.secondary {
+    background: transparent;
+    color: var(--foreground);
+    border: 1px solid var(--border);
+  }
+  .btn.secondary:hover {
+    background: var(--surface);
+    border-color: var(--accent);
+  }
+  .note {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 24px;
+    text-align: center;
+    line-height: 1.6;
+  }
+  .status {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+  }
+  .status.online { background: #22c55e; }
+  .status.offline { background: #ef4444; }
+  code {
+    background: var(--surface);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--foreground);
+  }
+  .severity {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    background: rgba(184, 50, 85, 0.15);
+    color: var(--accent);
+    margin-left: 6px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>車禍理賠估算器</h1>
+    <p class="subtitle">桌面捷徑 — 點按鈕開瀏覽器進入估算流程</p>
+  </header>
+
+  <div class="card">
+    <div class="row">
+      <span class="label">專案位置</span>
+      <span class="value"><code>~/projects/tw-car-claim-estimator</code></span>
+    </div>
+    <div class="row">
+      <span class="label">啟動 dev server</span>
+      <span class="value"><code>pnpm dev</code></span>
+    </div>
+    <div class="row">
+      <span class="label">GitHub</span>
+      <span class="value">
+        <a href="https://github.com/cryptoclaw20000101-eng/tw-car-claim-estimator" style="color: var(--accent); text-decoration: none;">
+          cryptoclaw20000101-eng / tw-car-claim-estimator
+        </a>
+      </span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <span class="label">dev server 狀態</span>
+      <span class="value">
+        <span class="status" id="status-dot"></span>
+        <span id="status-text">檢查中…</span>
+      </span>
+    </div>
+  </div>
+
+  <a class="btn" href="http://localhost:3457/claims/new" id="btn-new">
+    開始估算（7 步表單）
+  </a>
+  <a class="btn secondary" href="http://localhost:3457/claims/result" id="btn-result">
+    看估算範例（Demo 結果）
+  </a>
+  <a class="btn secondary" href="http://localhost:3457/" id="btn-home">
+    回到首頁
+  </a>
+
+  <p class="note">
+    本捷徑需要本機 dev server 執行（<code>pnpm dev</code> 在 3457 port）。<br />
+    若按鈕失效，請到 <code>~/projects/tw-car-claim-estimator</code> 開 terminal 跑 <code>pnpm dev</code>。
+  </p>
+</div>
+
+<script>
+  // 健康檢查：嘗試 fetch 首頁看 dev server 是否在跑
+  (async function checkDev() {
+    const dot = document.getElementById('status-dot');
+    const text = document.getElementById('status-text');
+    const btnNew = document.getElementById('btn-new');
+    const btnResult = document.getElementById('btn-result');
+    const btnHome = document.getElementById('btn-home');
+    try {
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 1500);
+      const res = await fetch('http://localhost:3457/', { mode: 'no-cors', signal: ctrl.signal });
+      clearTimeout(tid);
+      dot.className = 'status online';
+      text.textContent = 'dev server 運作中（:3457）';
+    } catch (e) {
+      dot.className = 'status offline';
+      text.textContent = 'dev server 未啟動（請跑 pnpm dev）';
+      btnNew.style.opacity = '0.5';
+      btnResult.style.opacity = '0.5';
+      btnHome.style.opacity = '0.5';
+      btnNew.addEventListener('click', e => {
+        e.preventDefault();
+        alert('dev server 未啟動。\n請在 terminal 跑：\ncd ~/projects/tw-car-claim-estimator\npnpm dev\n\n然後重新整理這個頁面。');
+      });
+    }
+  })();
+</script>
+</body>
+</html>

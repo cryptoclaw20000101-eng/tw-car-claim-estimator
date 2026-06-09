@@ -22,14 +22,14 @@ export default function ResultLoading() {
       <div className="w-full max-w-4xl">
         {/* 操作列骨架（兩個按鈕 — 用純 div 模擬） */}
         <div className="!mb-6 flex items-center justify-between">
-          <div className="!h-7 !w-24 rounded-md bg-gray-200/60 dark:bg-zinc-800/60" />
-          <div className="!h-7 !w-32 rounded-md bg-gray-200/60 dark:bg-zinc-800/60" />
+          <div className="!h-7 !w-24 rounded-md bg-gray-200/60" />
+          <div className="!h-7 !w-32 rounded-md bg-gray-200/60" />
         </div>
 
         {/* 標題骨架 */}
         <div className="!mb-4">
-          <div className="!mb-2 !h-7 !w-48 rounded-md bg-gray-200/60 dark:bg-zinc-800/60" />
-          <div className="!h-3 !w-96 rounded-md bg-gray-200/60 dark:bg-zinc-800/60" />
+          <div className="!mb-2 !h-7 !w-48 rounded-md bg-gray-200/60" />
+          <div className="!h-3 !w-96 rounded-md bg-gray-200/60" />
         </div>
 
         {/* 免責 Alert 骨架（不顯示 icon） */}
@@ -41,19 +41,19 @@ export default function ResultLoading() {
         <div className="!mb-6 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-4">
           {/* 主格 2fr */}
           <div className="bg-surface p-5 md:col-span-2">
-            <div className="!mb-2 !h-3 !w-32 rounded-md bg-gray-200/60 dark:bg-zinc-800/60" />
-            <div className="!mb-2 !h-9 !w-56 rounded-md bg-gray-200/60 dark:bg-zinc-800/60" />
-            <div className="!h-3 !w-72 rounded-md bg-gray-200/60 dark:bg-zinc-800/60" />
+            <div className="!mb-2 !h-3 !w-32 rounded-md bg-gray-200/60" />
+            <div className="!mb-2 !h-9 !w-56 rounded-md bg-gray-200/60" />
+            <div className="!h-3 !w-72 rounded-md bg-gray-200/60" />
           </div>
           <div className="bg-surface p-5">
-            <div className="!mb-2 !h-3 !w-24 rounded-md bg-gray-200/60 dark:bg-zinc-800/60" />
-            <div className="!mb-2 !h-7 !w-40 rounded-md bg-gray-200/60 dark:bg-zinc-800/60" />
-            <div className="!h-3 !w-48 rounded-md bg-gray-200/60 dark:bg-zinc-800/60" />
+            <div className="!mb-2 !h-3 !w-24 rounded-md bg-gray-200/60" />
+            <div className="!mb-2 !h-7 !w-40 rounded-md bg-gray-200/60" />
+            <div className="!h-3 !w-48 rounded-md bg-gray-200/60" />
           </div>
           <div className="bg-surface p-5">
-            <div className="!mb-2 !h-3 !w-20 rounded-md bg-gray-200/60 dark:bg-zinc-800/60" />
-            <div className="!mb-2 !h-7 !w-24 rounded-md bg-gray-200/60 dark:bg-zinc-800/60" />
-            <div className="!h-3 !w-40 rounded-md bg-gray-200/60 dark:bg-zinc-800/60" />
+            <div className="!mb-2 !h-3 !w-20 rounded-md bg-gray-200/60" />
+            <div className="!mb-2 !h-7 !w-24 rounded-md bg-gray-200/60" />
+            <div className="!h-3 !w-40 rounded-md bg-gray-200/60" />
           </div>
         </div>
 
@@ -63,7 +63,7 @@ export default function ResultLoading() {
             <div
               key={i}
               className={[
-                '!h-8 rounded-md bg-gray-200/60 dark:bg-zinc-800/60',
+                '!h-8 rounded-md bg-gray-200/60',
                 i === 0 ? '!w-32' : '!w-24',
               ].join(' ')}
             />
@@ -78,8 +78,8 @@ export default function ResultLoading() {
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {[0, 1, 2, 3].map((i) => (
               <div key={i}>
-                <div className="!mb-2 !h-3 !w-20 rounded-md bg-gray-200/60 dark:bg-zinc-800/60" />
-                <div className="!h-7 !w-24 rounded-md bg-gray-200/60 dark:bg-zinc-800/60" />
+                <div className="!mb-2 !h-3 !w-20 rounded-md bg-gray-200/60" />
+                <div className="!h-7 !w-24 rounded-md bg-gray-200/60" />
               </div>
             ))}
           </div>

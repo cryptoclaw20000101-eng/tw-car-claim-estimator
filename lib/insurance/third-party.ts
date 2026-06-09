@@ -102,14 +102,16 @@ export function computeThirdParty(input: ThirdPartyInput): ThirdPartyEstimate {
   const propertyCapLimit = basics.thirdPartyPropertyLimit
 
   // 體傷被保額限制後
+  // 注意：CivilDamageInput 已是「民事差額」（已扣過強制險核准），
+  // 所以 bodilyPay = min(bodilyLiable, bodilyCapLimit) 不再二次扣 compulsory
   const bodilyLiableLow = Math.round(bodilyTotalLow * ratio)
   const bodilyLiableMid = Math.round(bodilyTotalMid * ratio)
   const bodilyLiableHigh = Math.round(bodilyTotalHigh * ratio)
   const propertyLiable = Math.round(propertyTotal * ratio)
 
-  const bodilyPayLow = Math.max(Math.min(bodilyLiableLow, bodilyCapLimit) - Math.round(compulsoryTotalApproved * (bodilyTotalLow / Math.max(civilDamageTotalLow, 1))), 0)
-  const bodilyPayMid = Math.max(Math.min(bodilyLiableMid, bodilyCapLimit) - Math.round(compulsoryTotalApproved * (bodilyTotalMid / Math.max(civilDamageTotalMid, 1))), 0)
-  const bodilyPayHigh = Math.max(Math.min(bodilyLiableHigh, bodilyCapLimit) - Math.round(compulsoryTotalApproved * (bodilyTotalHigh / Math.max(civilDamageTotalHigh, 1))), 0)
+  const bodilyPayLow = Math.max(Math.min(bodilyLiableLow, bodilyCapLimit), 0)
+  const bodilyPayMid = Math.max(Math.min(bodilyLiableMid, bodilyCapLimit), 0)
+  const bodilyPayHigh = Math.max(Math.min(bodilyLiableHigh, bodilyCapLimit), 0)
 
   const propertyPay = Math.max(Math.min(propertyLiable, propertyCapLimit), 0)
 

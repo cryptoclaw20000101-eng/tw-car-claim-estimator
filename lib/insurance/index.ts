@@ -13,6 +13,8 @@ import {
   computeWorkLoss,
   computeLaborCapacityLoss,
 } from './civil-damages'
+import { computeWorkLossExtended } from './work-loss-extended'
+import { computeScarRevisionCost, type ScarProcedure } from './scar-revision'
 import {
   computeThirdParty,
   computeVehicleDamage,
@@ -65,8 +67,41 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
   // 7) 工作損失
   const workLoss = computeWorkLoss(person, courtName)
 
+  // 7b) 工作損失（擴充版：短期 / 長期 / 退休分流）
+  // 與 7) 並行：使用者看完整版明細，短期版作主估算
+  const workLossExtended = computeWorkLossExtended({
+    person,
+    courtName,
+  })
+
   // 8) 勞動能力減損
-  const labor = computeLaborCapacityLoss(medical)
+  // 失能等級優先順序：手填 disabilityLevel > 自動推算 possibleLevel > null
+  // （失能保典 12 大類下拉選單會自動帶出常見等級 → 表單可直接覆蓋）
+  // 型別收斂：number → 1-15 literal union（執行期已在 form 驗證）
+  const rawLevel: number | null =
+    medical.disabilityLevel ?? disability.possibleLevel ?? null
+  const finalDisabilityLevel: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | null =
+    rawLevel !== null && rawLevel >= 1 && rawLevel <= 15
+      ? (rawLevel as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15)
+      : null
+  const labor = computeLaborCapacityLoss({
+    medical,
+    person,
+    courtName,
+    disabilityLevel: finalDisabilityLevel,
+  })
+
+  // 8b) 除疤 / 修疤費用（4 術式 × 北中南 × 疤痕長度）
+  // 僅當 medical.hasScar 為真才計算，否則回 0
+  // procedure 從表單 scarProcedure 帶入（預設 laser 最常見）
+  // 蟹足腫/嚴重疤痕自動由 severity 觸發走注射治療（引擎內處理）
+  const scarRevision = computeScarRevisionCost({
+    medical,
+    courtName,
+    procedure: (medical.scarProcedure as ScarProcedure) ?? 'laser',
+    prescribedSessions: medical.prescribedSessions,
+    isKeloid: medical.isKeloid ?? medical.scarSeverity === 'keloid',
+  })
 
   // 9) 車損財損
   const vehicleDamage = computeVehicleDamage(property)
@@ -114,10 +149,43 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
     civilTransportationFee: medicalReceipts.transportationFee,
     workLoss: workLoss.amount,
     workLossEvidenceStrength: workLoss.evidenceStrength,
+    workLossExtended: {
+      amount: workLossExtended.amount,
+      calculationType: workLossExtended.calculationType,
+      isRetired: workLossExtended.calculationType === 'long_term' && workLossExtended.hoffmannYears === 0,
+      hoffmannYears: workLossExtended.hoffmannYears,
+      hoffmannFactor: workLossExtended.hoffmannFactor,
+      restMonths: workLossExtended.restMonths,
+      restYears: workLossExtended.restYears,
+      annualIncome: workLossExtended.annualIncome,
+      regionalMultiplier: workLossExtended.regionalMultiplier,
+      breakdown: workLossExtended.breakdown,
+      evidenceStrength: workLossExtended.evidenceStrength,
+      notes: workLossExtended.notes,
+      hint: workLossExtended.hint,
+    },
     laborCapacityLossEstimate: labor.estimate,
     laborCapacityLossHint: labor.hint,
+    laborCapacityRetirementAge: labor.retirementAge,
+    laborCapacityLossNotes: labor.notes,
 
     painAndSuffering: pas,
+
+    scarRevision: {
+      amount: scarRevision.amount,
+      estimateLow: scarRevision.range.low,
+      estimate: scarRevision.amount,
+      estimateHigh: scarRevision.range.high,
+      range: scarRevision.range,
+      procedure: scarRevision.procedure,
+      totalSessions: scarRevision.breakdown.sessions,
+      primaryProcedure: scarRevision.procedure,
+      regionalMultiplier: scarRevision.regionalMultiplier,
+      breakdown: scarRevision.breakdown,
+      precedents: scarRevision.precedents,
+      notes: scarRevision.notes,
+      hint: scarRevision.hint,
+    },
 
     vehicleDamage,
     propertyDamage,
@@ -147,5 +215,7 @@ export * from './types'
 export * from './compulsory'
 export * from './disability'
 export * from './civil-damages'
+export * from './work-loss-extended'
+export * from './scar-revision'
 export * from './third-party'
 export * from './evidence'
