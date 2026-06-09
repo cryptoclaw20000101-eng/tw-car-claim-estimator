@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { Button, Typography, Space, Alert } from "antd"
+import { InfoAlert } from '@/components/InfoAlert'
 import { motion } from "framer-motion"
 import {
   CalculatorOutlined,
@@ -208,12 +209,12 @@ export default function Home() {
       {/* ============ Footer / 免責 ============ */}
       <footer className="mt-auto border-t border-border bg-background">
         <div className="mx-auto w-full max-w-6xl px-6 py-10">
-          <Alert
+          <InfoAlert
             type="warning"
             showIcon
             className="!mb-6"
-            message="免責聲明"
-            description="本系統依使用者輸入資料、強制汽車責任保險給付標準、常見民事損害賠償項目、金融評議公開案例及法院實務區間進行初步估算。實際理賠金額仍須依保險公司審核、醫療資料、肇事責任、保單條款、金融評議結果、法院認定及雙方和解結果為準。本系統不保證理賠金額，亦不構成法律意見。"
+            title="免責聲明"
+            body="本系統依使用者輸入資料、強制汽車責任保險給付標準、常見民事損害賠償項目、金融評議公開案例及法院實務區間進行初步估算。實際理賠金額仍須依保險公司審核、醫療資料、肇事責任、保單條款、金融評議結果、法院認定及雙方和解結果為準。本系統不保證理賠金額，亦不構成法律意見。"
           />
           <div className="flex flex-col items-start justify-between gap-2 text-xs text-muted md:flex-row md:items-center">
             <Text className="!text-xs text-muted">

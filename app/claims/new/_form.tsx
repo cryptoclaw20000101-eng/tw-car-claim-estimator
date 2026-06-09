@@ -19,6 +19,7 @@ import {
   Col,
   Tag,
 } from 'antd'
+import { InfoAlert } from '@/components/InfoAlert'
 import {
   LeftOutlined,
   RightOutlined,
@@ -419,11 +420,11 @@ function mergeStep(prev: FormSchema, step: number, values: Partial<FormSchema>):
 function Step1Basics({ form, onCityChange }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0]; onCityChange: (v: string) => void }) {
   return (
     <Card title={<><CarOutlined className="mr-2" />事故基本資料</>}>
-      <Alert
+      <InfoAlert
         type="info"
         showIcon
         className="!mb-4"
-        message="強制險採無過失主義，肇責比例只會影響第三人責任險的估算。"
+        title="強制險採無過失主義，肇責比例只會影響第三人責任險的估算。"
       />
       <Row gutter={16}>
         <Col xs={24} md={12}>
@@ -540,11 +541,11 @@ function Step2Fault({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>
   const selfRatio = Form.useWatch(['fault', 'selfFaultRatio'], form) as number | undefined
   return (
     <Card title={<><AuditOutlined className="mr-2" />肇責比例</>}>
-      <Alert
+      <InfoAlert
         type="warning"
         showIcon
         className="!mb-4"
-        message="強制險不乘肇責；第三人責任險的『有責金額』才會乘此比例。"
+        title="強制險不乘肇責；第三人責任險的『有責金額』才會乘此比例。"
       />
       <Row gutter={16}>
         <Col xs={24} md={12}>
@@ -716,11 +717,11 @@ function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchem
         <Col xs={12} md={6}><Form.Item label="疤痕" name={['medical', 'hasScar']} valuePropName="checked"><Switch /></Form.Item></Col>
       </Row>
       <Title level={5} className="!mt-4">失能部位與等級（失能保典 12 大類）</Title>
-      <Alert
+      <InfoAlert
         type="info"
         showIcon
         className="!mb-4"
-        message="選大類會自動帶出該類常見等級（可手改）。精神/神經類需附心理衡鑑報告；胸腹部臟器類強制險部分項目不給付。"
+        title="選大類會自動帶出該類常見等級（可手改）。精神/神經類需附心理衡鑑報告；胸腹部臟器類強制險部分項目不給付。"
       />
       <Row gutter={16}>
         <Col xs={24} md={12}>
@@ -837,11 +838,11 @@ function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchem
         <Col xs={12} md={8}><Form.Item label="感覺喪失" name={['medical', 'hasSensoryLoss']} valuePropName="checked"><Switch /></Form.Item></Col>
       </Row>
       {jointName && (
-        <Alert
+        <InfoAlert
           type="info"
           showIcon
           className="!mt-2"
-          message={`已選關節：${JOINT_OPTIONS.find((o) => o.value === jointName)?.label ?? jointName}（正常活動度 ${ROM_NORMAL[jointName]} 度）`}
+          title={`已選關節：${JOINT_OPTIONS.find((o) => o.value === jointName)?.label ?? jointName}（正常活動度 ${ROM_NORMAL[jointName]} 度）`}
         />
       )}
     </Card>
@@ -852,11 +853,11 @@ function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchem
 function Step5Receipts({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
   return (
     <Card title={<><FileTextOutlined className="mr-2" />醫療收據（強制險 15 細項）</>}>
-      <Alert
+      <InfoAlert
         type="info"
         showIcon
         className="!mb-4"
-        message="依強制汽車責任保險給付標準 §2 細項填寫；看護費有 1,200 元/日、30 日硬上限（會自動套用）。"
+        title="依強制汽車責任保險給付標準 §2 細項填寫；看護費有 1,200 元/日、30 日硬上限（會自動套用）。"
       />
       <Section title="救護與掛號">
         <R2C name={['receipts', 'emergencyFee']} label="急診費" />
@@ -964,11 +965,11 @@ function Step7Region({ form }: { form: ReturnType<typeof Form.useForm<FormSchema
           </Form.Item>
         </Col>
       </Row>
-      <Alert
+      <InfoAlert
         type="info"
         showIcon
         className="!mt-4"
-        message="地區係數只影響第三人責任險／民事損害賠償估算；強制險本身是全國法定標準，不受地區影響。"
+        title="地區係數只影響第三人責任險／民事損害賠償估算；強制險本身是全國法定標準，不受地區影響。"
       />
     </Card>
   )
@@ -997,23 +998,23 @@ function DisabilityCategoryHint() {
   if (!cat) return null
   if (isCompulsoryExclusion(cat)) {
     return (
-      <Alert
+      <InfoAlert
         type="error"
         showIcon
         className="!mt-2"
-        message="此類別部分項目強制險不給付（失能保典黃底）"
-        description="如胸腹部臟器之器官移植（7-10 等）。強制險不給付的失能，建議改走第三人責任險 + 民事慰撫金。"
+        title="此類別部分項目強制險不給付（失能保典黃底）"
+        body="如胸腹部臟器之器官移植（7-10 等）。強制險不給付的失能，建議改走第三人責任險 + 民事慰撫金。"
       />
     )
   }
   if (needsMMSE(cat)) {
     return (
-      <Alert
+      <InfoAlert
         type="info"
         showIcon
         className="!mt-2"
-        message="精神/神經類失能須附心理衡鑑報告"
-        description="失能保典 p.16-17：精神失能須 1-2 年治療期 + MMSE / WAIS / CDR 等最近 3 個月評估；憂鬱症須三線以上抗憂鬱藥物治療證明。"
+        title="精神/神經類失能須附心理衡鑑報告"
+        body="失能保典 p.16-17：精神失能須 1-2 年治療期 + MMSE / WAIS / CDR 等最近 3 個月評估；憂鬱症須三線以上抗憂鬱藥物治療證明。"
       />
     )
   }

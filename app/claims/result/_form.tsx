@@ -17,6 +17,7 @@ import {
   Typography,
   Collapse,
 } from 'antd'
+import { InfoAlert } from '@/components/InfoAlert'
 import {
   ArrowLeftOutlined,
   FileTextOutlined,
@@ -138,21 +139,21 @@ export default function ResultForm() {
         </Paragraph>
 
         {stale && (
-          <Alert
+          <InfoAlert
             type="warning"
             showIcon
             className="!mb-4"
-            message="法源資料已超過 6 個月未更新"
-            description="本結果所引用的法規/判例資料可能已過期，建議洽詢保險公司或律師確認最新規定。"
+            title="法源資料已超過 6 個月未更新"
+            body="本結果所引用的法規/判例資料可能已過期，建議洽詢保險公司或律師確認最新規定。"
           />
         )}
 
-        <Alert
+        <InfoAlert
           type="error"
           showIcon
           className="!mb-6"
-          message="免責聲明"
-          description="本結果為依使用者輸入及公開法源/案例之初步估算，非最終理賠金額。實際理賠須依保險公司審核、醫療資料、肇事責任、保單條款、評議/判決結果及雙方和解結果為準。"
+          title="免責聲明"
+          body="本結果為依使用者輸入及公開法源/案例之初步估算，非最終理賠金額。實際理賠須依保險公司審核、醫療資料、肇事責任、保單條款、評議/判決結果及雙方和解結果為準。"
         />
 
         {/* ============ Hero Stat — 4 大關鍵數字 (variance 8 不對稱 / 2fr+1fr+1fr) ============ */}
@@ -260,12 +261,12 @@ function CompulsorySection({ result }: { result: EstimationResult }) {
         <Col xs={12} md={6}><motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.16, ease: 'easeOut' }}><Statistic title="失能給付" value={result.compulsoryDisabilityAmount} formatter={(v) => dollar(Number(v))} /></motion.div></Col>
         <Col xs={12} md={6}><motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.24, ease: 'easeOut' }}><Statistic title="死亡給付" value={result.compulsoryDeathAmount} formatter={(v) => dollar(Number(v))} /></motion.div></Col>
       </Row>
-      <Alert
+      <InfoAlert
         type="info"
         showIcon
         className="!mb-3"
-        message={`強制險總估算：${dollar(result.compulsoryTotalEstimated)}`}
-        description="含醫療、失能、死亡。精神慰撫金、工作損失、車損不計入強制險（法律強制）。"
+        title={`強制險總估算：${dollar(result.compulsoryTotalEstimated)}`}
+        body="含醫療、失能、死亡。精神慰撫金、工作損失、車損不計入強制險（法律強制）。"
       />
       <Table
         size="small"
@@ -326,11 +327,11 @@ function DisabilitySection({ result }: { result: EstimationResult }) {
         </>
       )}
 
-      <Alert
+      <InfoAlert
         type="warning"
         showIcon
         className="!mt-4"
-        message="失能等級須由醫院開立失能診斷書並經保險公司/評議/法院認定，本系統僅為初篩。"
+        title="失能等級須由醫院開立失能診斷書並經保險公司/評議/法院認定，本系統僅為初篩。"
       />
     </Card>
   )
@@ -470,7 +471,7 @@ function CivilSection({ result }: { result: EstimationResult }) {
         <Col xs={12} md={6}><Statistic title="單價 / 單位" value={`${dollar(result.scarRevision.breakdown.perUnitCost)} × ${result.scarRevision.breakdown.units}`} /></Col>
       </Row>
       {result.scarRevision.hint && (
-        <Alert type="warning" showIcon className="!mt-2" message={result.scarRevision.hint} />
+        <InfoAlert type="warning" showIcon className="!mt-2" title={result.scarRevision.hint} />
       )}
       {result.scarRevision.precedents.length > 0 && (
         <Paragraph type="secondary" className="!mt-2 !text-xs">
@@ -507,7 +508,7 @@ function CivilSection({ result }: { result: EstimationResult }) {
         <Col xs={12} md={4}><Statistic title="證據強度" value={result.workLossExtended.evidenceStrength === 'high' ? '充足' : result.workLossExtended.evidenceStrength === 'medium' ? '中等' : '不足'} /></Col>
       </Row>
       {result.workLossExtended.hint && (
-        <Alert type="info" showIcon className="!mt-2" message={result.workLossExtended.hint} />
+        <InfoAlert type="info" showIcon className="!mt-2" title={result.workLossExtended.hint} />
       )}
       {result.workLossExtended.notes.length > 0 && (
         <Paragraph type="secondary" className="!mt-2 !text-xs">
@@ -624,12 +625,12 @@ function RegionSection({ result }: { result: EstimationResult }) {
         <Col xs={12} md={6}><Statistic title="工作損失嚴格度" value={result.region.workLossEvidenceStrictness} /></Col>
         <Col xs={12} md={6}><Statistic title="車損折舊嚴格度" value={result.region.vehicleDepreciationStrictness} /></Col>
       </Row>
-      <Alert
+      <InfoAlert
         type="info"
         showIcon
         className="!mb-4"
-        message={result.region.regionNotes}
-        description={`資料信心：${result.region.confidenceLevel}`}
+        title={result.region.regionNotes}
+        body={`資料信心：${result.region.confidenceLevel}`}
       />
 
       <Divider>司法院同類判決中位數（精神慰撫金）</Divider>
@@ -726,11 +727,11 @@ function LegalSection() {
           { title: 'URL', dataIndex: 'sourceUrl', width: 160, render: (v: string) => <a href={v} target="_blank" rel="noreferrer">查閱</a> },
         ]}
       />
-      <Alert
+      <InfoAlert
         type="info"
         showIcon
         className="!mt-4"
-        message="以上法源僅作估算依據；個案適用仍以最新法規及主管機關解釋為準。"
+        title="以上法源僅作估算依據；個案適用仍以最新法規及主管機關解釋為準。"
       />
     </Card>
   )

@@ -12,6 +12,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Button, Typography, Alert, message as antdMessage } from 'antd'
+import { InfoAlert } from '@/components/InfoAlert'
 import { ReloadOutlined, HomeOutlined, BugOutlined, AlertOutlined, CopyOutlined, CheckOutlined } from '@ant-design/icons'
 import { motion } from 'framer-motion'
 
@@ -148,12 +149,12 @@ export default function ErrorPage({
 
         {/* dev 模式額外提示（prod 不會渲染這塊） */}
         {process.env.NODE_ENV !== 'production' && (
-          <Alert
+          <InfoAlert
             type="info"
             showIcon
             className="!mt-6"
-            message="開發模式提示"
-            description={
+            title="開發模式提示"
+            body={
               <>
                 正式部署後此 Alert 與「Diagnostic」診斷卡都不會顯示，
                 只剩 <Text strong>重試 / 回到首頁</Text> 兩個按鈕。
