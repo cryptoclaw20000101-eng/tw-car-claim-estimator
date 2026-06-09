@@ -122,7 +122,7 @@ export default function ResultForm() {
   }
 
   return (
-    <main className="flex flex-1 flex-col items-center px-6 py-8 bg-zinc-50">
+    <main className="flex flex-1 flex-col items-center px-6 py-8 bg-surface-subtle">
       <div className="w-full max-w-5xl">
         <Space className="!mb-4">
           <Link href="/claims/new"><Button icon={<ArrowLeftOutlined />}>重新估算</Button></Link>
@@ -157,7 +157,7 @@ export default function ResultForm() {
         />
 
         {/* ============ Hero Stat — 4 大關鍵數字 (variance 8 不對稱 / 2fr+1fr+1fr) ============ */}
-        <div className="!mb-6 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-4">
+        <div className="!mb-6 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-border bg-border transition-all duration-200 hover:shadow-md md:grid-cols-4">
           <div className="bg-surface p-5 md:col-span-2">
             <div className="mb-2 text-xs uppercase tracking-[0.18em] text-muted">
               強制險總估算
@@ -197,6 +197,7 @@ export default function ResultForm() {
           </div>
         </div>
 
+        <div className="sticky top-0 z-10 -mx-6 mb-6 bg-surface-subtle/95 px-6 py-3 backdrop-blur supports-[backdrop-filter]:bg-surface-subtle/80">
         <Tabs
           type="card"
           defaultActiveKey="compulsory"
@@ -243,6 +244,7 @@ export default function ResultForm() {
             },
           ]}
         />
+        </div>
       </div>
     </main>
   )
@@ -337,7 +339,7 @@ function DisabilitySection({ result }: { result: EstimationResult }) {
   )
 }
 
-// ============== ②b 理賠實務案例（鄭曉律師案例集） ==============
+// ============== ②b 理賠實務案例（律師律師案例集） ==============
 // 給結果頁顯示「同縣市/同年/同失能等級」的理賠實務案例
 // 來源：data/precedents/practice-cases.json（category='practice_case'）
 function PracticeCasesSection({ result }: { result: EstimationResult }) {
@@ -354,7 +356,7 @@ function PracticeCasesSection({ result }: { result: EstimationResult }) {
         理賠實務案例參考（{refs.length} 件）
       </Title>
       <Paragraph type="secondary" className="!text-xs !mb-3">
-        以下案例為鄭曉律師承辦之理賠實務（非法院公開判決），依「同縣市 / 同年份 / 同失能等級」配對。
+        以下案例為律師實務案例彙編（非法院公開判決），依「同縣市 / 同年份 / 同失能等級」配對。
         點開可看完整和解條件、勞減計算、霍夫曼公式。
       </Paragraph>
       <Collapse

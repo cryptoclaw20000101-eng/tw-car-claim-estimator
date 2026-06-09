@@ -256,7 +256,7 @@ export function getGeneralPrecedentCount(): number {
 }
 
 /**
- * 找「相關理賠實務案例」（鄭曉律師案例集）
+ * 找「相關理賠實務案例」（律師律師案例集）
  * category='practice_case'，給「結果頁」用。
  *
  * 配對邏輯（簡化版）：
