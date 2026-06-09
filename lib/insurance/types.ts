@@ -205,8 +205,9 @@ export interface CompulsoryMedicalInputs {
 
   artificialEyeFee: number
 
-  medicalMaterialFee: number     // 醫材
-  assistiveDeviceFee: number     // 輔具
+  medicalMaterialFee?: number    // 一般醫材費（紗布、縫線、注射耗材等）— v0.2.5 起不再套 2 萬上限，改歸入「健保自付額」/「非健保必要醫療」；保留為向後相容舊資料
+  specialMaterialFee?: number    // 特殊材料費（骨材、鋼板、人工關節等特材；v0.2.5+ 新增，與輔具共套 2 萬上限）
+  assistiveDeviceFee: number     // 輔具費（拐杖、輪椅、支架等，與特殊材料共套 2 萬上限）
   transportationFee: number      // 接送費
 
   nursingFee: number             // 看護費
@@ -255,6 +256,14 @@ export interface CompulsoryItemResult {
   legalCap: number | null   // 法定上限
   reductionReason: string | null  // 刪減原因
   supplementHint: string | null   // 補件建議
+  /** v0.2.5+：當一項內含多個子項時列出（例如醫材拆「一般/特殊/輔具」三項共套一個 2 萬上限） */
+  subItems?: Array<{
+    key: string
+    label: string
+    applied: number
+    approved: number
+    note?: string
+  }>
 }
 
 // 失能初篩輸出

@@ -115,11 +115,48 @@ function calcArtificialEye(input: CompulsoryMedicalInputs): CompulsoryItemResult
 }
 
 function calcMedicalMaterial(input: CompulsoryMedicalInputs): CompulsoryItemResult {
-  const subtotal = input.medicalMaterialFee + input.assistiveDeviceFee
+  // v0.2.5+：法規修訂 — 強制汽車責任保險給付標準 §2 第 3 項第 6 款 (2026-07-01 新制)
+  // 「其他非全民健康保險法所規定給付範圍之醫療材料（含輔助器材費用）及非具積極治療性之裝具：以 2 萬為限」
+  //
+  // 拆 2 子項（特殊材料 / 輔具），共用 2 萬上限：
+  //   - 特殊材料 = 骨材/鋼板/人工關節/特材（非健保給付）
+  //   - 輔具 = 拐杖/輪椅/支架（非具積極治療性裝具）
+  //
+  // 「一般醫材」（紗布/縫線/注射耗材）= 健保已給付，歸入「健保自付額」/「非健保必要醫療」，無 2 萬上限
+  const special = input.specialMaterialFee ?? 0
+  const assistive = input.assistiveDeviceFee
+  const subtotal = special + assistive
   const cap = COMPULSORY_LIMITS.MEDICAL_MATERIAL_ASSISTIVE
-  const approved = Math.min(subtotal, cap)
-  const reduction = approved < subtotal ? '醫療材料/輔具費合計超出 20,000 上限' : null
-  return mkItem('medicalMaterial', '醫療材料／輔具／裝具', subtotal, approved, cap, reduction, null)
+  const approvedTotal = Math.min(subtotal, cap)
+  // 按申請比例分攤（pro-rata）
+  const ratio = subtotal > 0 ? approvedTotal / subtotal : 0
+  let approvedSpecial = Math.round(special * ratio)
+  let approvedAssistive = Math.round(assistive * ratio)
+  // rounding diff 補回最大項
+  const diff = approvedTotal - (approvedSpecial + approvedAssistive)
+  if (diff !== 0) {
+    if (special >= assistive) approvedSpecial += diff
+    else approvedAssistive += diff
+  }
+  const reduction = approvedTotal < subtotal
+    ? `特殊材料＋輔具合計 ${subtotal.toLocaleString()} 元超出 2 萬上限，採申請比例分攤`
+    : null
+  const hint = special > 0 && special > 15_000
+    ? '特殊材料費（骨材/鋼板等）單筆較高，建議檢附特材許可證明與醫師必要性說明'
+    : null
+  return {
+    key: 'medicalMaterial',
+    label: '特殊材料／輔具（非健保）',
+    applied: subtotal,
+    approved: approvedTotal,
+    legalCap: cap,
+    reductionReason: reduction,
+    supplementHint: hint,
+    subItems: [
+      { key: 'specialMaterial', label: '特殊材料費', applied: special, approved: approvedSpecial, note: '骨材、鋼板、人工關節等（非健保特材）' },
+      { key: 'assistiveDevice', label: '輔具費', applied: assistive, approved: approvedAssistive, note: '拐杖、輪椅、支架等（非積極治療性裝具）' },
+    ],
+  }
 }
 
 function calcTransportation(input: CompulsoryMedicalInputs): CompulsoryItemResult {

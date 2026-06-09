@@ -165,7 +165,8 @@ const DEFAULT_RECEIPTS: CompulsoryMedicalInputs = {
   dentureFee: 0,
   missingTeethCount: 0,
   artificialEyeFee: 0,
-  medicalMaterialFee: 0,
+  specialMaterialFee: 0,        // v0.2.5+：特殊材料費（骨材/鋼板/特材），與輔具共套 2 萬上限
+  medicalMaterialFee: 0,        // v0.2.5+：一般醫材（紗布/縫線），不再套 2 萬上限（向後相容）
   assistiveDeviceFee: 0,
   transportationFee: 0,
   nursingFee: 0,
@@ -879,9 +880,10 @@ function Step5Receipts({ form }: { form: ReturnType<typeof Form.useForm<FormSche
         <R2C name={['receipts', 'missingTeethCount']} label="缺牙數" />
         <R2C name={['receipts', 'artificialEyeFee']} label="義眼費" />
       </Section>
-      <Section title="其他醫材 / 看護 / 接送">
-        <R2C name={['receipts', 'medicalMaterialFee']} label="醫材費" />
-        <R2C name={['receipts', 'assistiveDeviceFee']} label="輔具費" />
+      <Section title="特殊材料 / 輔具 / 其他必要醫療">
+        {/* v0.2.5+：拆「醫材費」為「特殊材料費」+「一般醫材歸健保自付額」；2 萬上限只限特殊材料 + 輔具 */}
+        <R2C name={['receipts', 'specialMaterialFee']} label="特殊材料費（骨材/鋼板/特材）" />
+        <R2C name={['receipts', 'assistiveDeviceFee']} label="輔具費（拐杖/輪椅/支架）" />
         <R2C name={['receipts', 'transportationFee']} label="接送費" />
         <R2C name={['receipts', 'nursingFee']} label="看護費" />
         <R2C name={['receipts', 'nursingDays']} label="看護天數" />

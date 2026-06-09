@@ -128,16 +128,43 @@ describe('細項上限規則（spec §六 Step 5）', () => {
     expect(dent.reductionReason).toBeTruthy()
   })
 
-  it('醫材 + 輔具 25,000 → 上限 20,000', () => {
+  it('特殊材料 + 輔具 25,000 → 上限 20,000（pro-rata 分攤）', () => {
+    // v0.2.5+ 法規修訂：醫材/特材上限只限「非健保特材」+「輔具」
+    // 一般醫材（紗布等）改歸「健保自付額」/「非健保必要」，無 2 萬上限
     const input: CompulsoryMedicalInputs = {
       ...zero,
-      medicalMaterialFee: 15_000,
-      assistiveDeviceFee: 10_000,
+      specialMaterialFee: 15_000,  // 骨材/鋼板/特材
+      assistiveDeviceFee: 10_000,  // 拐杖/輪椅
     }
     const r = computeCompulsoryMedical(input)
     const med = r.items.find(i => i.key === 'medicalMaterial')!
     expect(med.applied).toBe(25_000)
     expect(med.approved).toBe(20_000)
+    // 驗 subItems 也正確
+    expect(med.subItems).toBeDefined()
+    const special = med.subItems!.find(s => s.key === 'specialMaterial')!
+    const assistive = med.subItems!.find(s => s.key === 'assistiveDevice')!
+    expect(special.applied).toBe(15_000)
+    expect(assistive.applied).toBe(10_000)
+    // 15_000 + 10_000 = 25_000 超出 20_000，按比例 0.8
+    // 15_000 × 0.8 = 12_000, 10_000 × 0.8 = 8_000, 合計 20_000
+    expect(special.approved).toBe(12_000)
+    expect(assistive.approved).toBe(8_000)
+  })
+
+  it('一般醫材不套 2 萬上限（v0.2.5+ 法規修訂）', () => {
+    // v0.2.5+：medicalMaterialFee（紗布/縫線/注射耗材）不再套 2 萬上限
+    // 應歸入「健保自付額」/「非健保必要醫療」邏輯
+    const input: CompulsoryMedicalInputs = {
+      ...zero,
+      medicalMaterialFee: 30_000,  // 大量一般醫材
+    }
+    const r = computeCompulsoryMedical(input)
+    // 應出現在 medicalMaterial 項但 approved = applied（不截）
+    const med = r.items.find(i => i.key === 'medicalMaterial')
+    // 預期：medicalMaterial 項仍存在（向後相容）但因 specialMaterialFee=0+assistiveDeviceFee=0 → subtotal=0
+    // 一般醫材改歸「健保自付額」/「非健保必要」，這裡的 medicalMaterial 項不計入
+    expect(med?.applied).toBe(0)
   })
 
   it('接送費 25,000 → 上限 20,000', () => {

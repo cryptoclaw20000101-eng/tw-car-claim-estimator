@@ -50,7 +50,8 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
     + medicalReceipts.prosthesisFee
     + medicalReceipts.dentureFee
     + medicalReceipts.artificialEyeFee
-    + medicalReceipts.medicalMaterialFee
+    + (medicalReceipts.medicalMaterialFee ?? 0)
+    + (medicalReceipts.specialMaterialFee ?? 0)  // v0.2.5+：特殊材料費也算醫療單據總額
     + medicalReceipts.assistiveDeviceFee
     + medicalReceipts.transportationFee
     + medicalReceipts.nursingFee
