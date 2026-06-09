@@ -38,32 +38,51 @@ const KEYWORDS = {
     "精神慰撫金 車禍",
     "精神慰撫金 交通事故 死亡",
     "慰撫金 過失傷害",
+    "非財產上損害 交通事故",  // 擴：法律用語版
   ],
   labor_loss: [
     "工作損失 車禍",
     "勞動能力減損 交通事故",
     "工作收入損失 過失傷害",
+    "減少勞動能力 車禍",  // 擴：法條用語
   ],
   car_damage: [
     "車輛修復費用 車禍",
     "財產損害 交通事故",
     "車損 過失傷害",
+    "車輛全損 交通事故",  // 擴：全損情境
   ],
   disability: [
     "失能等級 車禍",
     "勞減 交通事故",
     "後遺症 過失傷害",
+    "殘廢 車禍 給付",  // 擴：舊法用語
+  ],
+  // v0.2.6+ 新鏈：車禍調解流程（從律師/調解委員視角）
+  mediation: [
+    "調解委員會 車禍 和解",
+    "鄉鎮市調解 交通事故",
+    "法院調解 車禍 成立",  // 擴
+  ],
+  // v0.2.6+ 新鏈：律師實務案例（車禍處理經驗）
+  practice: [
+    "律師實務 車禍 和解",
+    "訴訟實務 交通事故 處理",
+    "強制險 車禍 理賠 案例",  // 擴
   ],
 } as const;
 
 type ChainKey = keyof typeof KEYWORDS;
 
 // 各鏈「金額關鍵字」正則（用在主文段）
+// v0.2.6+ 新鏈 mediation/practice 改抓「和解/撤回」金額或無金額純抓主文
 const CHAIN_REGEX: Record<ChainKey, RegExp> = {
   mental_distress: /(?:精神)?慰撫金[^。]*?([\d,]+)\s*元/,
   labor_loss: /(?:工作)?(?:收入)?損失[^。]*?([\d,]+)\s*元/,
   car_damage: /(?:車輛)?(?:修復)?(?:費用|損害)[^。]*?([\d,]+)\s*元/,
   disability: /失能[^。]*?([\d,]+)\s*元/,
+  mediation: /(?:調解|和解|撤回起訴|訴訟外和解)[^。]*?([\d,]+)\s*元/,  // 放寬：含訴訟外和解
+  practice: /(?:理賠|和解|撤回|調解成立)[^。]*?([\d,]+)\s*元/,  // 放寬
 };
 
 const CHAIN_FILE: Record<ChainKey, string> = {
@@ -71,6 +90,8 @@ const CHAIN_FILE: Record<ChainKey, string> = {
   labor_loss: "labor-loss.json",
   car_damage: "car-damage.json",
   disability: "disability-merging.json",
+  mediation: "mediation-procedures.json",  // 新檔
+  practice: "practice-cases.json",  // 擴充既有檔
 };
 
 const CHAIN_LABEL: Record<ChainKey, string> = {
@@ -78,6 +99,8 @@ const CHAIN_LABEL: Record<ChainKey, string> = {
   labor_loss: "工作損失",
   car_damage: "車損",
   disability: "失能慰撫金",
+  mediation: "車禍調解",
+  practice: "律師實務",
 };
 
 const COURT_CODE: Record<string, string> = {
