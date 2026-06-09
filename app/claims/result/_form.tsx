@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation'
 import {
   Alert,
   Button,
@@ -27,8 +27,16 @@ import {
   EnvironmentOutlined,
   BankOutlined,
   ReadOutlined,
+  BarChartOutlined,
+  CheckCircleOutlined,
+  WarningOutlined,
+  EditOutlined,
+  EyeOutlined,
 } from '@ant-design/icons'
+import { motion } from 'framer-motion'
 import type { ClaimInput, EstimationResult } from '@/lib/insurance/types'
+import { estimateClaim } from '@/lib/insurance'
+import { SAMPLE_INPUT } from '@/lib/insurance/sample'
 import { getMedianCourtCompensation, getCaseReferencesByCategory } from '@/lib/data-sources/judicial'
 import { getAverageFoiCompensation } from '@/lib/data-sources/foi'
 import { listLegalReferences, isLegalReferenceStale } from '@/lib/data-sources/legal-reference'
@@ -74,7 +82,46 @@ export default function ResultForm() {
   const stale = hydrated.stale
 
   if (!input || !result) {
-    return <div className="p-12 text-center">載入中…</div>
+    return (
+      <main className="flex flex-1 flex-col items-center justify-center bg-surface-subtle px-6 py-16">
+        <div className="w-full max-w-md text-center">
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={
+              <div className="!mt-2">
+                <Text className="!block !text-base !text-foreground">
+                  尚無估算資料
+                </Text>
+                <Text type="secondary" className="!mt-1 !block !text-sm">
+                  請先填寫 7 步表單以產生估算結果。
+                </Text>
+              </div>
+            }
+          />
+          <div className="!mt-2 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <Link href="/claims/new">
+              <Button type="primary" size="large" icon={<EditOutlined />}>
+                開始估算（7 步表單）
+              </Button>
+            </Link>
+            <Button
+              size="large"
+              icon={<EyeOutlined />}
+              onClick={() => {
+                // 跑示範估算 → 寫 sessionStorage → 整頁 reload 觸發 useState lazy init
+                // （最 surgical 方案；不用破壞既有 useState/hydrated 結構）
+                const result = estimateClaim(SAMPLE_INPUT)
+                sessionStorage.setItem('claim-input', JSON.stringify(SAMPLE_INPUT))
+                sessionStorage.setItem('claim-result', JSON.stringify(result))
+                window.location.assign('/claims/result')
+              }}
+            >
+              看估算範例
+            </Button>
+          </div>
+        </div>
+      </main>
+    )
   }
 
   return (
@@ -85,7 +132,10 @@ export default function ResultForm() {
           <Link href="/"><Button>回首頁</Button></Link>
         </Space>
 
-        <Title level={2} className="!mb-2">📊 估算結果</Title>
+        <Title level={2} className="!mb-2">
+          <BarChartOutlined className="mr-2 text-accent" />
+          估算結果
+        </Title>
         <Paragraph type="secondary" className="!mb-4">
           事故地點：{input.basics.accidentLocation || '（未填）'} ·{' '}
           {input.basics.accidentDate} · 管轄法院：{result.region.courtName}
@@ -109,7 +159,49 @@ export default function ResultForm() {
           description="本結果為依使用者輸入及公開法源/案例之初步估算，非最終理賠金額。實際理賠須依保險公司審核、醫療資料、肇事責任、保單條款、評議/判決結果及雙方和解結果為準。"
         />
 
+        {/* ============ Hero Stat — 4 大關鍵數字 (variance 8 不對稱 / 2fr+1fr+1fr) ============ */}
+        <div className="!mb-6 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-4">
+          <div className="bg-surface p-5 md:col-span-2">
+            <div className="mb-2 text-xs uppercase tracking-[0.18em] text-muted">
+              強制險總估算
+            </div>
+            <div className="tabular-nums text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+              {dollar(result.compulsoryTotalEstimated)}
+            </div>
+            <div className="mt-1 text-xs text-muted">
+              含醫療 {dollar(result.compulsoryItems.reduce((s, r) => s + r.approved, 0))} / 失能 {dollar(result.compulsoryDisabilityAmount)} / 死亡 {dollar(result.compulsoryDeathAmount)}
+            </div>
+          </div>
+          <div className="bg-surface p-5">
+            <div className="mb-2 text-xs uppercase tracking-[0.18em] text-muted">
+              民事中標
+            </div>
+            <div className="tabular-nums text-2xl font-semibold tracking-tight text-foreground">
+              {dollar(result.painAndSuffering.regionalMid)}
+            </div>
+            <div className="mt-1 text-xs text-muted">
+              精神慰撫金 × {result.region.courtName} 係數
+            </div>
+          </div>
+          <div className="bg-surface p-5">
+            <div className="mb-2 text-xs uppercase tracking-[0.18em] text-muted">
+              失能初篩
+            </div>
+            <div className="text-2xl font-semibold tracking-tight">
+              <span style={{ color: { A: 'var(--data-positive)', B: 'var(--accent)', C: 'var(--data-warning)', D: 'var(--data-negative)' }[result.disability.screening] }}>
+                分級 {result.disability.screening}
+              </span>
+            </div>
+            <div className="mt-1 text-xs text-muted">
+              {result.disability.possibleLevel
+                ? `可能等級：第 ${result.disability.possibleLevel} 級`
+                : '資料不足以判定'}
+            </div>
+          </div>
+        </div>
+
         <Tabs
+          type="card"
           defaultActiveKey="compulsory"
           items={[
             {
@@ -162,10 +254,10 @@ function CompulsorySection({ result }: { result: EstimationResult }) {
   return (
     <Card>
       <Row gutter={16} className="!mb-4">
-        <Col xs={12} md={6}><Statistic title="申請小計" value={totalApplied} formatter={(v) => dollar(Number(v))} /></Col>
-        <Col xs={12} md={6}><Statistic title="預估可認列" value={totalApproved} formatter={(v) => dollar(Number(v))} valueStyle={{ color: '#1677ff' }} /></Col>
-        <Col xs={12} md={6}><Statistic title="失能給付" value={result.compulsoryDisabilityAmount} formatter={(v) => dollar(Number(v))} /></Col>
-        <Col xs={12} md={6}><Statistic title="死亡給付" value={result.compulsoryDeathAmount} formatter={(v) => dollar(Number(v))} /></Col>
+        <Col xs={12} md={6}><motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0, ease: 'easeOut' }}><Statistic title="申請小計" value={totalApplied} formatter={(v) => dollar(Number(v))} /></motion.div></Col>
+        <Col xs={12} md={6}><motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.08, ease: 'easeOut' }}><Statistic title="預估可認列" value={totalApproved} formatter={(v) => dollar(Number(v))} valueStyle={{ color: 'var(--accent)' }} /></motion.div></Col>
+        <Col xs={12} md={6}><motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.16, ease: 'easeOut' }}><Statistic title="失能給付" value={result.compulsoryDisabilityAmount} formatter={(v) => dollar(Number(v))} /></motion.div></Col>
+        <Col xs={12} md={6}><motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.24, ease: 'easeOut' }}><Statistic title="死亡給付" value={result.compulsoryDeathAmount} formatter={(v) => dollar(Number(v))} /></motion.div></Col>
       </Row>
       <Alert
         type="info"
@@ -257,7 +349,7 @@ function CivilSection({ result }: { result: EstimationResult }) {
       <Divider>精神慰撫金（依 {result.region.courtName} 係數）</Divider>
       <Row gutter={16}>
         <Col xs={8}><Statistic title="低標" value={pas.regionalLow} formatter={(v) => dollar(Number(v))} /></Col>
-        <Col xs={8}><Statistic title="中標" value={pas.regionalMid} formatter={(v) => dollar(Number(v))} valueStyle={{ color: '#1677ff' }} /></Col>
+        <Col xs={8}><Statistic title="中標" value={pas.regionalMid} formatter={(v) => dollar(Number(v))} valueStyle={{ color: 'var(--accent)' }} /></Col>
         <Col xs={8}><Statistic title="高標" value={pas.regionalHigh} formatter={(v) => dollar(Number(v))} /></Col>
       </Row>
       <Paragraph type="secondary" className="!mt-2 text-sm">
@@ -298,13 +390,13 @@ function ThirdPartySection({ result, input }: { result: EstimationResult; input:
       <Row gutter={16} className="!mb-4">
         <Col xs={12} md={6}><Statistic title="體傷保額" value={t.bodilyCap} formatter={(v) => dollar(Number(v))} /></Col>
         <Col xs={12} md={6}><Statistic title="財損保額" value={t.propertyCap} formatter={(v) => dollar(Number(v))} /></Col>
-        <Col xs={12} md={6}><Statistic title="用盡體傷額度" value={t.usedBodilyCap ? '是' : '否'} valueStyle={{ color: t.usedBodilyCap ? '#cf1322' : '#3f8600' }} /></Col>
-        <Col xs={12} md={6}><Statistic title="用盡財損額度" value={t.usedPropertyCap ? '是' : '否'} valueStyle={{ color: t.usedPropertyCap ? '#cf1322' : '#3f8600' }} /></Col>
+        <Col xs={12} md={6}><Statistic title="用盡體傷額度" value={t.usedBodilyCap ? '是' : '否'} valueStyle={{ color: t.usedBodilyCap ? 'var(--data-negative)' : 'var(--data-positive)' }} /></Col>
+        <Col xs={12} md={6}><Statistic title="用盡財損額度" value={t.usedPropertyCap ? '是' : '否'} valueStyle={{ color: t.usedPropertyCap ? 'var(--data-negative)' : 'var(--data-positive)' }} /></Col>
       </Row>
       <Divider>第三人責任險估算（不含強制險）</Divider>
       <Row gutter={16}>
         <Col xs={8}><Statistic title="低標" value={t.thirdPartyEstimateLow} formatter={(v) => dollar(Number(v))} /></Col>
-        <Col xs={8}><Statistic title="中標" value={t.thirdPartyEstimateMid} formatter={(v) => dollar(Number(v))} valueStyle={{ color: '#1677ff' }} /></Col>
+        <Col xs={8}><Statistic title="中標" value={t.thirdPartyEstimateMid} formatter={(v) => dollar(Number(v))} valueStyle={{ color: 'var(--accent)' }} /></Col>
         <Col xs={8}><Statistic title="高標" value={t.thirdPartyEstimateHigh} formatter={(v) => dollar(Number(v))} /></Col>
       </Row>
       <Paragraph type="secondary" className="!mt-2 text-sm">
@@ -330,13 +422,16 @@ function SupplementSection({ result }: { result: EstimationResult }) {
       {result.missingDocuments.length > 0 ? (
         <ul>{result.missingDocuments.map((m, i) => <li key={i}><AlertOutlined /> {m}</li>)}</ul>
       ) : (
-        <Paragraph type="success">✅ 目前資料充足，無需補件。</Paragraph>
+        <Paragraph type="success">
+          <CheckCircleOutlined className="mr-2" />
+          目前資料充足，無需補件。
+        </Paragraph>
       )}
 
       <Divider />
       <Title level={5}>風險提示</Title>
       {result.riskNotes.length > 0 ? (
-        <ul>{result.riskNotes.map((n, i) => <li key={i}>⚠ {n}</li>)}</ul>
+        <ul>{result.riskNotes.map((n, i) => <li key={i}><WarningOutlined className="mr-1 text-data-warning" /> {n}</li>)}</ul>
       ) : (
         <Paragraph type="secondary">無</Paragraph>
       )}

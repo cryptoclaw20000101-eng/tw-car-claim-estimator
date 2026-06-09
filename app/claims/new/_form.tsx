@@ -18,7 +18,19 @@ import {
   Row,
   Col,
 } from 'antd'
-import { LeftOutlined, RightOutlined, CheckCircleOutlined } from '@ant-design/icons'
+import {
+  LeftOutlined,
+  RightOutlined,
+  CheckCircleOutlined,
+  CarOutlined,
+  UserOutlined,
+  MedicineBoxOutlined,
+  ToolOutlined,
+  EnvironmentOutlined,
+  FileAddOutlined,
+  AuditOutlined,
+  FileTextOutlined,
+} from '@ant-design/icons'
 import dayjs, { Dayjs } from 'dayjs'
 import type {
   AccidentBasics,
@@ -319,7 +331,10 @@ export default function NewClaimForm() {
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-8 bg-zinc-50">
       <div className="w-full max-w-3xl">
-        <Title level={2} className="!mb-2">📝 新增理賠估算</Title>
+        <Title level={2} className="!mb-2">
+          <FileAddOutlined className="mr-2" />
+          新增理賠估算
+        </Title>
         <Paragraph type="secondary" className="!mb-6">
           請逐步填寫，<Text strong>必填欄位</Text>以 <Text type="danger">*</Text> 標示；
           資料不足會在結果頁自動列出補件清單。
@@ -377,7 +392,7 @@ function mergeStep(prev: FormSchema, step: number, values: Partial<FormSchema>):
 // ============== Step 1：事故基本 ==============
 function Step1Basics({ form, onCityChange }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0]; onCityChange: (v: string) => void }) {
   return (
-    <Card title="🚗 事故基本資料">
+    <Card title={<><CarOutlined className="mr-2" />事故基本資料</>}>
       <Alert
         type="info"
         showIcon
@@ -498,7 +513,7 @@ function Step1Basics({ form, onCityChange }: { form: ReturnType<typeof Form.useF
 function Step2Fault({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
   const selfRatio = Form.useWatch(['fault', 'selfFaultRatio'], form) as number | undefined
   return (
-    <Card title="⚖️ 肇責比例">
+    <Card title={<><AuditOutlined className="mr-2" />肇責比例</>}>
       <Alert
         type="warning"
         showIcon
@@ -540,7 +555,7 @@ function Step2Fault({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>
 // ============== Step 3：人身 / 工作 ==============
 function Step3Person({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
   return (
-    <Card title="👤 受害人身分與工作">
+    <Card title={<><UserOutlined className="mr-2" />受害人身分與工作</>}>
       <Row gutter={16}>
         <Col xs={24} md={8}>
           <Form.Item label="出生年月日" name={['person', 'birthDate']}>
@@ -623,7 +638,7 @@ function Step3Person({ form }: { form: ReturnType<typeof Form.useForm<FormSchema
 function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
   const jointName = Form.useWatch(['medical', 'jointName'], form) as JointName | null
   return (
-    <Card title="🏥 診斷書 / 傷勢資料">
+    <Card title={<><MedicineBoxOutlined className="mr-2" />診斷書 / 傷勢資料</>}>
       <Row gutter={16}>
         <Col xs={24}>
           <Form.Item label="診斷說明（自由填）" name={['medical', 'diagnosisText']}>
@@ -728,7 +743,7 @@ function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchem
 // ============== Step 5：醫療收據 ==============
 function Step5Receipts({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
   return (
-    <Card title="🧾 醫療收據（強制險 15 細項）">
+    <Card title={<><FileTextOutlined className="mr-2" />醫療收據（強制險 15 細項）</>}>
       <Alert
         type="info"
         showIcon
@@ -793,7 +808,7 @@ function R2C({ name, label }: { name: [string, string]; label: string }) {
 // ============== Step 6：車損 / 財損 ==============
 function Step6Property({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
   return (
-    <Card title="🚙 車損 / 財損">
+    <Card title={<><ToolOutlined className="mr-2" />車損 / 財損</>}>
       <Title level={5}>車輛</Title>
       <Row gutter={16}>
         <R2C name={['property', 'vehicleRepairEstimate']} label="估價單金額" />
@@ -820,7 +835,7 @@ function Step6Property({ form }: { form: ReturnType<typeof Form.useForm<FormSche
 // ============== Step 7：地區 / 法院 ==============
 function Step7Region({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
   return (
-    <Card title="📍 地區 / 法院 / 保險公司">
+    <Card title={<><EnvironmentOutlined className="mr-2" />地區 / 法院 / 保險公司</>}>
       <Row gutter={16}>
         <Col xs={24} md={12}><Form.Item label="聲請人居住縣市" name={['basics', 'claimantResidenceCity']}><Select options={CITY_OPTIONS.map((v) => ({ value: v, label: v }))} /></Form.Item></Col>
         <Col xs={24} md={12}><Form.Item label="聲請人居住鄉鎮" name={['basics', 'claimantResidenceDistrict']}><Input /></Form.Item></Col>
