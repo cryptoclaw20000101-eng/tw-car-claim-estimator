@@ -256,13 +256,17 @@ export function getGeneralPrecedentCount(): number {
 }
 
 /**
- * 找「相關理賠實務案例」（律師律師案例集）
+ * 找「相關理賠實務案例」（律師案例集）
  * category='practice_case'，給「結果頁」用。
  *
- * 配對邏輯（簡化版）：
- *   1. 同縣市 / 同 year ±2
- *   2. 失能等級相近（possibleLevel 差 ≤ 2）
- *   3. 最終 fallback = 全部前 N 筆
+ * v0.2.7 配權調整（依 12 件實際分布）：
+ *   - 同縣市 +10（保留，珍貴信號；12 件多數 source 是「律師實務案例彙編」無縣市，但有法院時對齊）
+ *   - 失能等級差 ≤2 +8（強化 — 8/12 件在 ±2 內為關鍵信號）
+ *   - 失能等級差 ≤1 +4（額外精準 — 比 ≤2 細）
+ *   - 該案例有失能紀錄 +1（弱信號，鼓勵有完整失能資料的入選）
+ *   - year ±2 +2（弱化，原 +5 過重；多數案例年分都符合 → 區別力低）
+ *   - year ±1 +1（極接近加成）
+ *   - fallback：總分 = 0 → 回最近 3 筆（scrapedAt desc），不再永遠 0 案件
  */
 export interface PracticeCase {
   id: string
@@ -314,27 +318,48 @@ export function findRelatedPracticeCases(
     const caseCity = cityOf(p.court)
     if (courtCity && caseCity && courtCity === caseCity) s += 10
 
-    // year 接近（±2 年 +5）
-    const thisYear = new Date().getFullYear()
-    if (Math.abs(p.year - thisYear) <= 2) s += 5
-
-    // 失能等級相近（差 ≤ 2 +3）
+    // 失能等級相近（差 ≤2 +8，差 ≤1 額外 +4）
+    let bestLevelDiff = Infinity
+    let hasDisabilityRecord = false
     if (possibleLevel !== null) {
       const dis = p.disabilities ?? []
+      hasDisabilityRecord = dis.length > 0
       for (const d of dis) {
         const lv = parseInt(d.level, 10)
-        if (!isNaN(lv) && Math.abs(lv - possibleLevel) <= 2) {
-          s += 3
-          break
+        if (!isNaN(lv)) {
+          const diff = Math.abs(lv - possibleLevel)
+          if (diff < bestLevelDiff) bestLevelDiff = diff
         }
       }
+      if (bestLevelDiff <= 2) s += 8
+      if (bestLevelDiff <= 1) s += 4
     }
+
+    // 該案例有失能紀錄 +1（弱信號鼓勵入選 — 獨立於查詢方失能等級）
+    if (hasDisabilityRecord || (p.disabilities ?? []).length > 0) s += 1
+
+    // year 接近（弱化：±2 +2，±1 額外 +1）
+    const thisYear = new Date().getFullYear()
+    const yearDiff = Math.abs(p.year - thisYear)
+    if (yearDiff <= 2) s += 2
+    if (yearDiff <= 1) s += 1
+
     return s
   }
 
-  return practiceCases
-    .map((p) => ({ p, s: score(p) }))
-    .sort((a, b) => b.s - a.s)
-    .slice(0, limit)
-    .map(({ p }) => p)
+  const scored = practiceCases
+    .map((p) => ({ p, s: score(p), scrapedAt: p.scrapedAt }))
+    .sort((a, b) => {
+      // 同分以 scrapedAt 較新優先
+      if (b.s !== a.s) return b.s - a.s
+      return b.scrapedAt > a.scrapedAt ? 1 : -1
+    })
+
+  // fallback：若全 0 分 → 取最近 3 筆（依 scrapedAt desc）
+  const hasAnyMatch = scored.some((x) => x.s > 0)
+  const top = hasAnyMatch
+    ? scored.filter((x) => x.s > 0).slice(0, limit)
+    : scored.slice(0, limit)
+
+  return top.map((x) => x.p)
 }

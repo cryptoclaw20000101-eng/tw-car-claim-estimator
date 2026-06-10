@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import {
   Button,
   Card,
+  Divider,
   Form,
   Input,
   InputNumber,
@@ -32,6 +33,7 @@ import {
   FileAddOutlined,
   AuditOutlined,
   FileTextOutlined,
+  ReadOutlined,
 } from '@ant-design/icons'
 import dayjs, { Dayjs } from 'dayjs'
 import type {
@@ -852,6 +854,9 @@ function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchem
 
 // ============== Step 5：醫療收據 ==============
 function Step5Receipts({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
+  // v0.2.5+：22 欄位塞一張 Card 但分 4 Section — 救人/住院/義肢/特殊材料
+  // 對應強制汽車責任保險給付標準 §2 第 1-3 項（醫療給付 15 細項）
+  // 不在強制險範圍：精神慰撫金 / 工作損失 / 車損（這 3 項走第三人責任險）
   return (
     <Card title={<><FileTextOutlined className="mr-2" />醫療收據（強制險 15 細項）</>}>
       <InfoAlert
@@ -859,8 +864,9 @@ function Step5Receipts({ form }: { form: ReturnType<typeof Form.useForm<FormSche
         showIcon
         className="!mb-4"
         title="依強制汽車責任保險給付標準 §2 細項填寫；看護費有 1,200 元/日、30 日硬上限（會自動套用）。"
+        body="本表單只收醫療相關；精神慰撫金 / 工作損失 / 車損請勿填入此處（法律強制不併入強制險，會在 Step 3 工作、Step 6 車損分開算）。"
       />
-      <Section title="救護與掛號">
+      <Section title="救護與掛號（急診/救護/掛號/診斷書）">
         <R2C name={['receipts', 'emergencyFee']} label="急診費" />
         <R2C name={['receipts', 'ambulanceFee']} label="救護車費" />
         <R2C name={['receipts', 'nhiCopayment']} label="健保自付額" />
@@ -868,19 +874,19 @@ function Step5Receipts({ form }: { form: ReturnType<typeof Form.useForm<FormSche
         <R2C name={['receipts', 'diagnosisCertificateFee']} label="診斷書費" />
         <R2C name={['receipts', 'nonNhiNecessaryMedicalFee']} label="非健保必要醫療" />
       </Section>
-      <Section title="住院">
+      <Section title="住院（病房/膳食）">
         <R2C name={['receipts', 'wardFeeDifference']} label="病房費差額" />
         <R2C name={['receipts', 'wardFeeDays']} label="病房費天數" />
         <R2C name={['receipts', 'mealFee']} label="膳食費" />
         <R2C name={['receipts', 'mealDays']} label="膳食天數" />
       </Section>
-      <Section title="義肢 / 齒 / 眼">
+      <Section title="義肢 / 齒 / 眼（按缺損部位）">
         <R2C name={['receipts', 'prosthesisFee']} label="義肢費" />
         <R2C name={['receipts', 'dentureFee']} label="義齒費" />
         <R2C name={['receipts', 'missingTeethCount']} label="缺牙數" />
         <R2C name={['receipts', 'artificialEyeFee']} label="義眼費" />
       </Section>
-      <Section title="特殊材料 / 輔具 / 其他必要醫療">
+      <Section title="特殊材料 / 輔具 / 其他（v0.2.5+ 2 萬上限只限「特殊材料+輔具」）">
         {/* v0.2.5+：拆「醫材費」為「特殊材料費」+「一般醫材歸健保自付額」；2 萬上限只限特殊材料 + 輔具 */}
         <R2C name={['receipts', 'specialMaterialFee']} label="特殊材料費（骨材/鋼板/特材）" />
         <R2C name={['receipts', 'assistiveDeviceFee']} label="輔具費（拐杖/輪椅/支架）" />
@@ -945,8 +951,21 @@ function Step6Property({ form }: { form: ReturnType<typeof Form.useForm<FormSche
 
 // ============== Step 7：地區 / 法院 ==============
 function Step7Region({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
+  // Step 1 已填過「事故縣市 → 自動帶入管轄法院」三件組
+  // Step 7 只留「聲請人/對方居住地」（必要 → 影響法院管轄 + 強制險理賠窗口）
+  // 並提供查看「管轄法院最終結果」唯讀確認區塊
+  const courtJurisdiction = Form.useWatch(['basics', 'courtJurisdiction'], form) as string | undefined
   return (
-    <Card title={<><EnvironmentOutlined className="mr-2" />地區 / 法院 / 保險公司</>}>
+    <Card title={<><EnvironmentOutlined className="mr-2" />居住地與管轄法院確認</>}>
+      <InfoAlert
+        type="info"
+        showIcon
+        className="!mb-4"
+        title="Step 1 已帶入「事故地 → 管轄法院」，本步只補當事人居住地。"
+        body="聲請人 / 對方居住地會送進第三人責任險估算（保險公司窗口歸屬）以及民事訴訟管轄參考。"
+      />
+
+      <Title level={5} className="!mt-2">當事人居住地（強制險/第三人責任險理賠窗口）</Title>
       <Row gutter={16}>
         <Col xs={24} md={12}><Form.Item label="聲請人居住縣市" name={['basics', 'claimantResidenceCity']}><Select options={CITY_OPTIONS.map((v) => ({ value: v, label: v }))} /></Form.Item></Col>
         <Col xs={24} md={12}><Form.Item label="聲請人居住鄉鎮" name={['basics', 'claimantResidenceDistrict']}><Input /></Form.Item></Col>
@@ -955,10 +974,13 @@ function Step7Region({ form }: { form: ReturnType<typeof Form.useForm<FormSchema
         <Col xs={24} md={12}><Form.Item label="對方居住縣市" name={['basics', 'defendantResidenceCity']}><Select options={CITY_OPTIONS.map((v) => ({ value: v, label: v }))} /></Form.Item></Col>
         <Col xs={24} md={12}><Form.Item label="對方居住鄉鎮" name={['basics', 'defendantResidenceDistrict']}><Input /></Form.Item></Col>
       </Row>
+
+      <Divider className="!my-3" />
+      <Title level={5}>管轄法院（依 Step 1 自動帶入，唯讀確認）</Title>
       <Row gutter={16}>
         <Col xs={24} md={12}>
-          <Form.Item label="管轄法院" name={['basics', 'courtJurisdiction']}>
-            <Input placeholder="自動帶入可手改" />
+          <Form.Item label="管轄法院">
+            <Input value={courtJurisdiction ?? ''} disabled prefix={<ReadOutlined />} />
           </Form.Item>
         </Col>
         <Col xs={24} md={12}>
@@ -972,6 +994,7 @@ function Step7Region({ form }: { form: ReturnType<typeof Form.useForm<FormSchema
         showIcon
         className="!mt-4"
         title="地區係數只影響第三人責任險／民事損害賠償估算；強制險本身是全國法定標準，不受地區影響。"
+        body="若想更換管轄法院，請回 Step 1 改「事故縣市」自動重帶，或在「管轄法院」欄位上方取消唯讀（Step 1 路徑）。"
       />
     </Card>
   )

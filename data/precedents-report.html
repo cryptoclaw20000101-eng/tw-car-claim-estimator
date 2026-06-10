@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tw-car-claim-estimator · precedents 報表</title>
+<style>
+  :root { --fg:#1f2937; --muted:#6b7280; --bg:#f9fafb; --card:#fff; --border:#e5e7eb; --accent:#3b82f6; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; margin: 0; padding: 1rem; color: var(--fg); background: var(--bg); line-height: 1.5; }
+  header { background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1rem; }
+  h1 { margin: 0 0 0.25rem; font-size: 1.4rem; }
+  h2 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; border-bottom: 2px solid var(--accent); padding-bottom: 0.25rem; }
+  h3 { font-size: 0.95rem; margin: 1rem 0 0.5rem; color: #374151; }
+  .muted { color: var(--muted); font-size: 0.85rem; }
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin: 0.5rem 0; }
+  .kpi { background: var(--card); padding: 0.6rem; border-radius: 0.375rem; border: 1px solid var(--border); text-align: center; }
+  .kpi-n { font-size: 1.2rem; font-weight: 700; color: var(--accent); }
+  .kpi-l { font-size: 0.75rem; color: var(--muted); }
+  .chain, .legacy { background: var(--card); padding: 1rem; border-radius: 0.5rem; margin: 0.75rem 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .bars { display: flex; flex-direction: column; gap: 0.25rem; margin: 0.5rem 0; }
+  .bar { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+  .bar-label { min-width: 8rem; max-width: 12rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar-fill { height: 1rem; border-radius: 0.125rem; min-width: 2px; }
+  .bar-n { font-variant-numeric: tabular-nums; color: var(--muted); }
+  .table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .table th, .table td { padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border); text-align: left; }
+  .table th { background: #f3f4f6; font-weight: 600; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  @media (max-width: 640px) {
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .bar-label { min-width: 5rem; max-width: 7rem; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>📊 precedents 監控報表</h1>
+  <p class="muted" style="color:#dbeafe;margin:0">產生時間：2026-06-10T00:55:30.454Z · 6 鏈合計 139 件 · 總計 147 件（6 鏈 + legacy）</p>
+</header>
+<main>
+  
+      <section class="chain">
+        <h2>🔗 精神慰撫金 <span class="muted">(taipei-mental-distress.json)</span></h2>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-n">33</div><div class="kpi-l">件數</div></div>
+          <div class="kpi"><div class="kpi-n">300,000</div><div class="kpi-l">中位數</div></div>
+          <div class="kpi"><div class="kpi-n">2,006,326</div><div class="kpi-l">最高</div></div>
+          <div class="kpi"><div class="kpi-n">22,412</div><div class="kpi-l">最低</div></div>
+        </div>
+        <h3>金額分佈 (33 筆有金額)</h3>
+        <p class="muted">P25 200,000 · 中位 300,000 · P75 804,000</p>
+        <h3>法院分布 (Top 5)</h3>
+        <div class="bars">
+          <div class="bar"><span class="bar-label">臺灣新北地方法院</span><div class="bar-fill" style="width:18.2%;background:#3b82f6"></div><span class="bar-n">6</span></div><div class="bar"><span class="bar-label">臺灣桃園地方法院</span><div class="bar-fill" style="width:18.2%;background:#3b82f6"></div><span class="bar-n">6</span></div><div class="bar"><span class="bar-label">臺灣臺南地方法院</span><div class="bar-fill" style="width:12.1%;background:#3b82f6"></div><span class="bar-n">4</span></div><div class="bar"><span class="bar-label">CTDV</span><div class="bar-fill" style="width:12.1%;background:#3b82f6"></div><span class="bar-n">4</span></div><div class="bar"><span class="bar-label">ILDV</span><div class="bar-fill" style="width:12.1%;background:#3b82f6"></div><span class="bar-n">4</span></div>
+        </div>
+        <h3>類別分布</h3>
+        <div class="bars">
+          <div class="bar"><span class="bar-label">minor_injury</span><div class="bar-fill" style="width:100.0%;background:#10b981"></div><span class="bar-n">33</span></div>
+        </div>
+      </section>
+    
+      <section class="chain">
+        <h2>🔗 工作損失 <span class="muted">(labor-loss.json)</span></h2>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-n">38</div><div class="kpi-l">件數</div></div>
+          <div class="kpi"><div class="kpi-n">152,334</div><div class="kpi-l">中位數</div></div>
+          <div class="kpi"><div class="kpi-n">1,523,397</div><div class="kpi-l">最高</div></div>
+          <div class="kpi"><div class="kpi-n">12,740</div><div class="kpi-l">最低</div></div>
+        </div>
+        <h3>金額分佈 (35 筆有金額)</h3>
+        <p class="muted">P25 50,657 · 中位 152,334 · P75 325,536</p>
+        <h3>法院分布 (Top 5)</h3>
+        <div class="bars">
+          <div class="bar"><span class="bar-label">臺灣新北地方法院</span><div class="bar-fill" style="width:15.8%;background:#3b82f6"></div><span class="bar-n">6</span></div><div class="bar"><span class="bar-label">ULDV</span><div class="bar-fill" style="width:15.8%;background:#3b82f6"></div><span class="bar-n">6</span></div><div class="bar"><span class="bar-label">臺灣苗栗地方法院</span><div class="bar-fill" style="width:15.8%;background:#3b82f6"></div><span class="bar-n">6</span></div><div class="bar"><span class="bar-label">臺灣臺南地方法院</span><div class="bar-fill" style="width:7.9%;background:#3b82f6"></div><span class="bar-n">3</span></div><div class="bar"><span class="bar-label">CTDV</span><div class="bar-fill" style="width:7.9%;background:#3b82f6"></div><span class="bar-n">3</span></div>
+        </div>
+        <h3>類別分布</h3>
+        <div class="bars">
+          <div class="bar"><span class="bar-label">minor_injury</span><div class="bar-fill" style="width:89.5%;background:#10b981"></div><span class="bar-n">34</span></div><div class="bar"><span class="bar-label">labor_capacity_loss</span><div class="bar-fill" style="width:7.9%;background:#10b981"></div><span class="bar-n">3</span></div><div class="bar"><span class="bar-label">death</span><div class="bar-fill" style="width:2.6%;background:#10b981"></div><span class="bar-n">1</span></div>
+        </div>
+      </section>
+    
+      <section class="chain">
+        <h2>🔗 車損 <span class="muted">(car-damage.json)</span></h2>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-n">37</div><div class="kpi-l">件數</div></div>
+          <div class="kpi"><div class="kpi-n">125,283</div><div class="kpi-l">中位數</div></div>
+          <div class="kpi"><div class="kpi-n">1,183,797</div><div class="kpi-l">最高</div></div>
+          <div class="kpi"><div class="kpi-n">300</div><div class="kpi-l">最低</div></div>
+        </div>
+        <h3>金額分佈 (33 筆有金額)</h3>
+        <p class="muted">P25 32,966 · 中位 125,283 · P75 210,000</p>
+        <h3>法院分布 (Top 5)</h3>
+        <div class="bars">
+          <div class="bar"><span class="bar-label">臺灣苗栗地方法院</span><div class="bar-fill" style="width:40.5%;background:#3b82f6"></div><span class="bar-n">15</span></div><div class="bar"><span class="bar-label">KSDM</span><div class="bar-fill" style="width:13.5%;background:#3b82f6"></div><span class="bar-n">5</span></div><div class="bar"><span class="bar-label">ULDV</span><div class="bar-fill" style="width:8.1%;background:#3b82f6"></div><span class="bar-n">3</span></div><div class="bar"><span class="bar-label">臺灣高雄地方法院</span><div class="bar-fill" style="width:5.4%;background:#3b82f6"></div><span class="bar-n">2</span></div><div class="bar"><span class="bar-label">SCDV</span><div class="bar-fill" style="width:5.4%;background:#3b82f6"></div><span class="bar-n">2</span></div>
+        </div>
+        <h3>類別分布</h3>
+        <div class="bars">
+          <div class="bar"><span class="bar-label">minor_injury</span><div class="bar-fill" style="width:89.2%;background:#10b981"></div><span class="bar-n">33</span></div><div class="bar"><span class="bar-label">car_damage</span><div class="bar-fill" style="width:8.1%;background:#10b981"></div><span class="bar-n">3</span></div><div class="bar"><span class="bar-label">car_damage_exception</span><div class="bar-fill" style="width:2.7%;background:#10b981"></div><span class="bar-n">1</span></div>
+        </div>
+      </section>
+    
+      <section class="chain">
+        <h2>🔗 失能慰撫金 <span class="muted">(disability-merging.json)</span></h2>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-n">10</div><div class="kpi-l">件數</div></div>
+          <div class="kpi"><div class="kpi-n">1,585,000</div><div class="kpi-l">中位數</div></div>
+          <div class="kpi"><div class="kpi-n">2,647,002</div><div class="kpi-l">最高</div></div>
+          <div class="kpi"><div class="kpi-n">120,000</div><div class="kpi-l">最低</div></div>
+        </div>
+        <h3>金額分佈 (6 筆有金額)</h3>
+        <p class="muted">P25 1,310,418 · 中位 1,585,000 · P75 2,559,674</p>
+        <h3>法院分布 (Top 5)</h3>
+        <div class="bars">
+          <div class="bar"><span class="bar-label">保險實務</span><div class="bar-fill" style="width:30.0%;background:#3b82f6"></div><span class="bar-n">3</span></div><div class="bar"><span class="bar-label">保險實務（勞保失能給付標準附表）</span><div class="bar-fill" style="width:10.0%;background:#3b82f6"></div><span class="bar-n">1</span></div><div class="bar"><span class="bar-label">臺灣臺北地方法院</span><div class="bar-fill" style="width:10.0%;background:#3b82f6"></div><span class="bar-n">1</span></div><div class="bar"><span class="bar-label">TPDM</span><div class="bar-fill" style="width:10.0%;background:#3b82f6"></div><span class="bar-n">1</span></div><div class="bar"><span class="bar-label">臺灣臺中地方法院</span><div class="bar-fill" style="width:10.0%;background:#3b82f6"></div><span class="bar-n">1</span></div>
+        </div>
+        <h3>類別分布</h3>
+        <div class="bars">
+          <div class="bar"><span class="bar-label">minor_injury</span><div class="bar-fill" style="width:50.0%;background:#10b981"></div><span class="bar-n">5</span></div><div class="bar"><span class="bar-label">disability_merging_rule</span><div class="bar-fill" style="width:10.0%;background:#10b981"></div><span class="bar-n">1</span></div><div class="bar"><span class="bar-label">disability_treatment_period</span><div class="bar-fill" style="width:10.0%;background:#10b981"></div><span class="bar-n">1</span></div><div class="bar"><span class="bar-label">compulsory_exclusion</span><div class="bar-fill" style="width:10.0%;background:#10b981"></div><span class="bar-n">1</span></div><div class="bar"><span class="bar-label">disability_taxonomy</span><div class="bar-fill" style="width:10.0%;background:#10b981"></div><span class="bar-n">1</span></div><div class="bar"><span class="bar-label">death</span><div class="bar-fill" style="width:10.0%;background:#10b981"></div><span class="bar-n">1</span></div>
+        </div>
+      </section>
+    
+      <section class="chain">
+        <h2>🔗 車禍調解 <span class="muted">(mediation-procedures.json)</span></h2>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-n">9</div><div class="kpi-l">件數</div></div>
+          <div class="kpi"><div class="kpi-n">25,000</div><div class="kpi-l">中位數</div></div>
+          <div class="kpi"><div class="kpi-n">1,550,008</div><div class="kpi-l">最高</div></div>
+          <div class="kpi"><div class="kpi-n">12,884</div><div class="kpi-l">最低</div></div>
+        </div>
+        <h3>金額分佈 (9 筆有金額)</h3>
+        <p class="muted">P25 18,000 · 中位 25,000 · P75 28,000</p>
+        <h3>法院分布 (Top 5)</h3>
+        <div class="bars">
+          <div class="bar"><span class="bar-label">TCDM</span><div class="bar-fill" style="width:33.3%;background:#3b82f6"></div><span class="bar-n">3</span></div><div class="bar"><span class="bar-label">臺灣士林地方法院</span><div class="bar-fill" style="width:22.2%;background:#3b82f6"></div><span class="bar-n">2</span></div><div class="bar"><span class="bar-label">KSHM</span><div class="bar-fill" style="width:11.1%;background:#3b82f6"></div><span class="bar-n">1</span></div><div class="bar"><span class="bar-label">TNHV</span><div class="bar-fill" style="width:11.1%;background:#3b82f6"></div><span class="bar-n">1</span></div><div class="bar"><span class="bar-label">臺灣彰化地方法院</span><div class="bar-fill" style="width:11.1%;background:#3b82f6"></div><span class="bar-n">1</span></div>
+        </div>
+        <h3>類別分布</h3>
+        <div class="bars">
+          <div class="bar"><span class="bar-label">minor_injury</span><div class="bar-fill" style="width:100.0%;background:#10b981"></div><span class="bar-n">9</span></div>
+        </div>
+      </section>
+    
+      <section class="chain">
+        <h2>🔗 律師實務 <span class="muted">(practice-cases.json)</span></h2>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-n">12</div><div class="kpi-l">件數</div></div>
+          <div class="kpi"><div class="kpi-n">510,763</div><div class="kpi-l">中位數</div></div>
+          <div class="kpi"><div class="kpi-n">2,072,800</div><div class="kpi-l">最高</div></div>
+          <div class="kpi"><div class="kpi-n">25,858</div><div class="kpi-l">最低</div></div>
+        </div>
+        <h3>金額分佈 (8 筆有金額)</h3>
+        <p class="muted">P25 47,179 · 中位 510,763 · P75 2,000,000</p>
+        <h3>法院分布 (Top 5)</h3>
+        <div class="bars">
+          <div class="bar"><span class="bar-label">和解</span><div class="bar-fill" style="width:16.7%;background:#3b82f6"></div><span class="bar-n">2</span></div><div class="bar"><span class="bar-label">ULDV</span><div class="bar-fill" style="width:16.7%;background:#3b82f6"></div><span class="bar-n">2</span></div><div class="bar"><span class="bar-label">新北地方法院（和解）</span><div class="bar-fill" style="width:8.3%;background:#3b82f6"></div><span class="bar-n">1</span></div><div class="bar"><span class="bar-label">和解（客戶我方全責）</span><div class="bar-fill" style="width:8.3%;background:#3b82f6"></div><span class="bar-n">1</span></div><div class="bar"><span class="bar-label">CHDM</span><div class="bar-fill" style="width:8.3%;background:#3b82f6"></div><span class="bar-n">1</span></div>
+        </div>
+        <h3>類別分布</h3>
+        <div class="bars">
+          <div class="bar"><span class="bar-label">minor_injury</span><div class="bar-fill" style="width:66.7%;background:#10b981"></div><span class="bar-n">8</span></div><div class="bar"><span class="bar-label">practice_case</span><div class="bar-fill" style="width:33.3%;background:#10b981"></div><span class="bar-n">4</span></div>
+        </div>
+      </section>
+    
+  
+    <section class="legacy">
+      <h2>📚 Legacy / 補充檔 <span class="muted">(8 件)</span></h2>
+      <ul class="muted">
+        <li>labor-capacity.json：歸在 legacy 區段</li><li>other-precedents.json：歸在 legacy 區段</li><li>scar-revision.json：歸在 legacy 區段</li>
+      </ul>
+    </section>
+  
+  <section class="chain">
+    <h2>🕐 最近 30 筆抓取</h2>
+    <table class="table">
+        <thead><tr><th>抓取時間</th><th>鏈</th><th>法院</th><th>案號</th><th>金額</th></tr></thead>
+        <tbody>
+          <tr>
+                <td>2026-06-09 20:00</td>
+                <td>disability_taxonomy</td>
+                <td>保險實務</td>
+                <td>失能保典 十二大失能種類</td>
+                <td class="num">0</td>
+              </tr><tr>
+                <td>2026-06-09 20:00</td>
+                <td>compulsory_exclusion</td>
+                <td>保險實務</td>
+                <td>失能保典 p.30 註記</td>
+                <td class="num">0</td>
+              </tr><tr>
+                <td>2026-06-09 20:00</td>
+                <td>disability_treatment_period</td>
+                <td>保險實務</td>
+                <td>失能保典 p.16 + 強制汽車責任保險失能給付標準 §2</td>
+                <td class="num">0</td>
+              </tr><tr>
+                <td>2026-06-09 20:00</td>
+                <td>disability_merging_rule</td>
+                <td>保險實務（勞保失能給付標準附表）</td>
+                <td>失能保典附表 11-9 + 11-48 + 11-54</td>
+                <td class="num">0</td>
+              </tr><tr>
+                <td>2026-06-09 16:55</td>
+                <td>practice_case</td>
+                <td>和解（客戶我方全責）</td>
+                <td>律師實務案例 4（113.11.19 彰化縣員林市）</td>
+                <td class="num">0</td>
+              </tr><tr>
+                <td>2026-06-09 16:55</td>
+                <td>practice_case</td>
+                <td>和解</td>
+                <td>律師實務案例 3（113.05.20 台中市南區）</td>
+                <td class="num">0</td>
+              </tr><tr>
+                <td>2026-06-09 16:55</td>
+                <td>practice_case</td>
+                <td>和解</td>
+                <td>律師實務案例 2（112.12.01 台中市大里區）</td>
+                <td class="num">0</td>
+              </tr><tr>
+                <td>2026-06-09 16:55</td>
+                <td>practice_case</td>
+                <td>新北地方法院（和解）</td>
+                <td>律師實務案例 1（110.08.26 新北市板橋區）</td>
+                <td class="num">0</td>
+              </tr><tr>
+                <td>2026-06-09 16:55</td>
+                <td>labor_capacity_loss</td>
+                <td>新北地方法院（和解）</td>
+                <td>律師案例1（110.08.26 新北市板橋區）</td>
+                <td class="num">0</td>
+              </tr><tr>
+                <td>2026-06-09 16:55</td>
+                <td>labor_capacity_loss</td>
+                <td>臺灣雲林地方法院</td>
+                <td>110 年度 簡字第 23 號</td>
+                <td class="num">0</td>
+              </tr><tr>
+                <td>2026-06-09 16:55</td>
+                <td>car_damage_exception</td>
+                <td>臺灣基隆地方法院</td>
+                <td>113 年度 基小字第 1465 號</td>
+                <td class="num">0</td>
+              </tr><tr>
+                <td>2026-06-09 16:50</td>
+                <td>labor_capacity_loss</td>
+                <td>臺灣臺中地方法院</td>
+                <td>110 年度 簡字第 202 號</td>
+                <td class="num">0</td>
+              </tr><tr>
+                <td>2026-06-09 16:50</td>
+                <td>car_damage</td>
+                <td>臺灣高雄地方法院</td>
+                <td>104 年度 訴字第 355 號</td>
+                <td class="num">0</td>
+              </tr><tr>
+                <td>2026-06-09 16:50</td>
+                <td>car_damage</td>
+                <td>臺灣臺中地方法院</td>
+                <td>113 年度 簡上附民移簡字第 30 號</td>
+                <td class="num">0</td>
+              </tr><tr>
+                <td>2026-06-09 16:50</td>
+                <td>car_damage</td>
+                <td>臺灣臺中地方法院（基地院）</td>
+                <td>113 年度 簡上字第 74 號</td>
+                <td class="num">0</td>
+              </tr><tr>
+                <td>2026-06-09 15:15</td>
+                <td>practice</td>
+                <td>臺灣苗栗地方法院</td>
+                <td>111 年度 他調訴 字第 1 號</td>
+                <td class="num">2,072,800</td>
+              </tr><tr>
+                <td>2026-06-09 15:15</td>
+                <td>practice</td>
+                <td>ULDV</td>
+                <td>110 年度 簡 字第 81 號</td>
+                <td class="num">40,551</td>
+              </tr><tr>
+                <td>2026-06-09 15:15</td>
+                <td>practice</td>
+                <td>臺灣花蓮地方法院</td>
+                <td>110 年度 原簡上附民移簡 字第 1 號</td>
+                <td class="num">47,179</td>
+              </tr><tr>
+                <td>2026-06-09 15:14</td>
+                <td>practice</td>
+                <td>臺灣臺中地方法院</td>
+                <td>111 年度 簡上 字第 183 號</td>
+                <td class="num">455,170</td>
+              </tr><tr>
+                <td>2026-06-09 15:14</td>
+                <td>practice</td>
+                <td>TCHM</td>
+                <td>110 年度 上易 字第 907 號</td>
+                <td class="num">825,008</td>
+              </tr><tr>
+                <td>2026-06-09 15:14</td>
+                <td>practice</td>
+                <td>CTDV</td>
+                <td>113 年度 保險 字第 10 號</td>
+                <td class="num">2,000,000</td>
+              </tr><tr>
+                <td>2026-06-09 15:14</td>
+                <td>practice</td>
+                <td>ULDV</td>
+                <td>113 年度 簡 字第 99 號</td>
+                <td class="num">25,858</td>
+              </tr><tr>
+                <td>2026-06-09 15:14</td>
+                <td>practice</td>
+                <td>CHDM</td>
+                <td>113 年度 易緝 字第 18 號</td>
+                <td class="num">566,356</td>
+              </tr><tr>
+                <td>2026-06-09 15:14</td>
+                <td>mediation</td>
+                <td>TCDM</td>
+                <td>115 年度 審交簡 字第 100 號</td>
+                <td class="num">25,000</td>
+              </tr><tr>
+                <td>2026-06-09 15:14</td>
+                <td>mediation</td>
+                <td>臺灣嘉義地方法院</td>
+                <td>113 年度 家聲抗 字第 22 號</td>
+                <td class="num">12,884</td>
+              </tr><tr>
+                <td>2026-06-09 15:13</td>
+                <td>mediation</td>
+                <td>TCDM</td>
+                <td>115 年度 審交簡 字第 26 號</td>
+                <td class="num">32,000</td>
+              </tr><tr>
+                <td>2026-06-09 15:13</td>
+                <td>mediation</td>
+                <td>臺灣士林地方法院</td>
+                <td>114 年度 家親聲 字第 271 號</td>
+                <td class="num">18,000</td>
+              </tr><tr>
+                <td>2026-06-09 15:13</td>
+                <td>mediation</td>
+                <td>臺灣士林地方法院</td>
+                <td>114 年度 家親聲 字第 342 號</td>
+                <td class="num">18,000</td>
+              </tr><tr>
+                <td>2026-06-09 15:13</td>
+                <td>mediation</td>
+                <td>TCDM</td>
+                <td>114 年度 交簡上 字第 122 號</td>
+                <td class="num">28,000</td>
+              </tr><tr>
+                <td>2026-06-09 15:13</td>
+                <td>mediation</td>
+                <td>臺灣彰化地方法院</td>
+                <td>114 年度 訴 字第 1011 號</td>
+                <td class="num">1,550,008</td>
+              </tr>
+        </tbody>
+      </table>
+  </section>
+</main>
+<footer style="text-align:center;margin:1.5rem 0;color:var(--muted);font-size:0.75rem">
+  純 Node 內建 · 零 deps · 給 cron / 手機看
+</footer>
+</body>
+</html>

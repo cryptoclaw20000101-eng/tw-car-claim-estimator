@@ -14,7 +14,10 @@
     "scrape:dry": "node scripts/scrape-judgments.js --dry-run",
     "scrape": "node scripts/scrape-judgments.js",
     "scrape:cron": "node scripts/scrape-judgments.js --quiet",
-    "scrape:cron-dry": "node scripts/scrape-judgments.js --dry-run --quiet"
+    "scrape:cron-dry": "node scripts/scrape-judgments.js --dry-run --quiet",
+    "report:build": "tsc -p scripts/tsconfig.json",
+    "report:precedents": "node scripts/report-precedents.js",
+    "report:all": "node scripts/scrape-judgments.js --quiet && node scripts/report-precedents.js"
   },
   "dependencies": {
     "@ant-design/icons": "^6.2.5",
