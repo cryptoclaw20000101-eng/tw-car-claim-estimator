@@ -1,0 +1,85 @@
+{
+  "generatedAt": "2026-06-11",
+  "generatedBy": "scripts/list-pending-courts.ts（手動跑）",
+  "totalPracticeCases": 12,
+  "solvableByCurrentLogic": 7,
+  "stillPending": 5,
+  "note": "v0.2.9 擴充 cityOf() 涵蓋 18 縣市後，7/12 件 practice_case 能觸發「同縣市 +10」配對（原 2/12）。剩下 5 件 court 欄位無法 cityOf 解析，分成 2 類問題。",
+  "groups": [
+    {
+      "category": "A. 律師案例（脫敏後缺法院）— 需律師口述補",
+      "items": [
+        {
+          "id": "tw-practice-112-12-01-002",
+          "caseNo": "律師實務案例 2（112.12.01 台中市大里區）",
+          "source": "律師實務案例彙編 #2",
+          "currentCourt": "和解",
+          "hintFromCaseNo": "台中市大里區 → 推測：臺灣臺中地方法院",
+          "needsFromLawyer": "確認是哪個法院（臺中地院/南投地院...）"
+        },
+        {
+          "id": "tw-practice-113-05-20-003",
+          "caseNo": "律師實務案例 3（113.05.20 台中市南區）",
+          "source": "律師實務案例彙編 #3",
+          "currentCourt": "和解",
+          "hintFromCaseNo": "台中市南區 → 推測：臺灣臺中地方法院",
+          "needsFromLawyer": "確認"
+        },
+        {
+          "id": "tw-practice-113-11-19-004",
+          "caseNo": "律師實務案例 4（113.11.19 彰化縣員林市）",
+          "source": "律師實務案例彙編 #4",
+          "currentCourt": "和解（客戶我方全責）",
+          "hintFromCaseNo": "彰化縣員林市 → 推測：臺灣彰化地方法院",
+          "needsFromLawyer": "確認"
+        }
+      ]
+    },
+    {
+      "category": "B. 法院代碼（scrape 沒對照到中文）— 需 scrape 那邊補 COURT_CODE",
+      "items": [
+        {
+          "id": "tw-practice-113-11318",
+          "caseNo": "113 年度 易緝 字第 18 號",
+          "source": "CHDM 113 年度 易緝 字第 18 號",
+          "currentCourt": "CHDM",
+          "hint": "需查 CHDM 對應哪個法院（推測：彰化地方法院某庭？）",
+          "needsFromDev": "scrape-judgments.ts COURT_CODE 加 CHDM 對照"
+        },
+        {
+          "id": "tw-practice-113-11399",
+          "caseNo": "113 年度 簡 字第 99 號",
+          "source": "ULDV 113 年度 簡 字第 99 號",
+          "currentCourt": "ULDV",
+          "hint": "需查 ULDV 對照",
+          "needsFromDev": "scrape-judgments.ts COURT_CODE 加 ULDV 對照"
+        },
+        {
+          "id": "tw-practice-113-11310",
+          "caseNo": "113 年度 保險 字第 10 號",
+          "source": "CTDV 113 年度 保險 字第 10 號",
+          "currentCourt": "CTDV",
+          "hint": "需查 CTDV 對照（CTDV 不在現有 COURT_CODE 表）",
+          "needsFromDev": "scrape-judgments.ts COURT_CODE 加 CTDV 對照"
+        },
+        {
+          "id": "tw-practice-110-110907",
+          "caseNo": "110 年度 上易 字第 907 號",
+          "source": "TCHM 110 年度 上易 字第 907 號",
+          "currentCourt": "TCHM",
+          "hint": "需查 TCHM 對照（可能是臺中分院？）",
+          "needsFromDev": "scrape-judgments.ts COURT_CODE 加 TCHM 對照"
+        },
+        {
+          "id": "tw-practice-110-11081",
+          "caseNo": "110 年度 簡 字第 81 號",
+          "source": "ULDV 110 年度 簡 字第 81 號",
+          "currentCourt": "ULDV",
+          "hint": "同 ULDV 第一筆",
+          "needsFromDev": "scrape-judgments.ts COURT_CODE 加 ULDV 對照"
+        }
+      ]
+    }
+  ],
+  "impact": "若 A 群（律師 3 件）補齊 → 觸發率 7/12 → 10/12（83%）\n若 B 群（scrape 5 件）也補齊 → 觸發率 10/12 → 12/12（100%）"
+}

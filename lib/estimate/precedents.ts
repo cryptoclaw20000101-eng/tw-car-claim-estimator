@@ -17,6 +17,7 @@
  */
 
 import type { CourtCaseReference } from "@/lib/data-sources/types";
+import { courtToCity } from "@/lib/insurance/region-court-map";
 
 interface ScrapedPrecedent {
   id: string;
@@ -307,15 +308,12 @@ export function findRelatedPracticeCases(
   // 算 city match 分
   const score = (p: PracticeCase): number => {
     let s = 0
-    // 縣市 match：抓 "臺中" / "新北" / "台北" / "高雄" 開頭
-    const cityOf = (c: string): string | null => {
-      for (const k of ['臺中', '新北', '台北', '高雄', '桃園', '臺南', '新竹']) {
-        if (c.includes(k)) return k
-      }
-      return null
-    }
-    const courtCity = cityOf(courtName)
-    const caseCity = cityOf(p.court)
+    // 縣市 match：v0.2.9+ 改用 region-court-map 完整對照表(18 縣市)
+    // 取代舊 hardcoded 7 縣市陣列 — 修掉 v0.2.8 之前花蓮/苗栗/彰化等 8 件案例
+    // court 欄位無法觸發「同縣市 +10」配權的 bug。
+    // 法院代碼(TCDV/CHDM 等)仍不支援 — 那是資料問題,需 scrape 那邊補 COURT_CODE。
+    const courtCity = courtToCity(courtName)
+    const caseCity = courtToCity(p.court)
     if (courtCity && caseCity && courtCity === caseCity) s += 10
 
     // 失能等級相近（差 ≤2 +8，差 ≤1 額外 +4）

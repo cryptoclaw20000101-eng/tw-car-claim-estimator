@@ -45,3 +45,35 @@ export function lookupCourt(city: string): string {
   const normalized = city.trim()
   return regionCourtMap[normalized] ?? regionCourtMap[normalized.replace(/台/g, '臺')] ?? 'default'
 }
+
+/**
+ * v0.2.9+ — 反向：給定法院名（"臺灣臺中地方法院"）→ 推回縣市（"臺中市"）
+ * 用於 findRelatedPracticeCases 的「同縣市」配對
+ *
+ * 為什麼要這個？因為 precedents.json 的 court 欄位是「臺灣XX地方法院」，
+ * 而使用者表單的 courtName 也是這個格式，cityOf 兩邊都要能解析。
+ *
+ * 涵蓋：
+ *   - 全名：「臺灣臺中地方法院」→「臺中市」
+ *   - 簡名：「新北地方法院（和解）」→ 也涵蓋（用 value 部分字串比對）
+ *   - 法院代碼：「TCDV」/「CHDM」→ 不支援（資料問題，需 scrape 那邊補 COURT_CODE）
+ *
+ * 異體字過濾：regionCourtMap 同個法院有 2 個 key（「台北市」+「臺北市」），
+ * 統一回傳「臺」字開頭的標準版本。
+ */
+export function courtToCity(courtName: string): string | null {
+  if (!courtName) return null
+  const normalized = courtName.trim()
+  if (!normalized) return null
+  // 收集所有匹配 key，去重後回標準「臺」字版
+  const matches: string[] = []
+  for (const [city, court] of Object.entries(regionCourtMap)) {
+    // 1) exact match 法院名
+    if (court === normalized) matches.push(city)
+    // 2) includes 比對（court 去掉「臺灣」前綴後是 normalized 的子字串）
+    else if (normalized.includes(court.replace('臺灣', ''))) matches.push(city)
+  }
+  if (matches.length === 0) return null
+  // 優先回「臺」字版（標準化），沒有就回第一個
+  return matches.find((c) => c.startsWith('臺')) ?? matches[0]
+}
