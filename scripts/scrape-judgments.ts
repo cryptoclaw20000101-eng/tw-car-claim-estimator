@@ -453,6 +453,34 @@ function writePrecedent(p: FinalPrecedent): void {
   writeFileSync(outFile, JSON.stringify(arr, null, 2), "utf-8");
 }
 
+/**
+ * isCivilCase — 案號是否為民事案件
+ * 排除：刑事庭(易/交易/附民/刑附民/重訴附民)、家事法庭(家親/家聲)
+ * 保留：純民事(訴/簡/上/重訴/簡上)、民事附帶民事(已含附民=刑庭附帶民事故排除)
+ *
+ * 司法院案號結構：
+ *   訴/簡/上/重訴/簡上/原簡/智/重/小 → 民事
+ *   附民/交附民/原附民/簡附民/刑附民 → 刑事庭附帶民事（排除）
+ *   易/交易/自 → 刑事（排除）
+ *   家親/家聲/家訴/家事 → 家事法庭（非車禍案件）（排除）
+ */
+function isCivilCase(caseNo: string): boolean {
+  if (!caseNo) return true; // 沒案號=保留
+  // 排除清單
+  const penalPatterns = [
+    "附民", "交附民", "原附民", "簡附民", "刑附民", // 刑事附帶民事
+    "易字", "易", "交易", "自訴", "自",          // 刑事
+  ];
+  for (const pat of penalPatterns) {
+    if (caseNo.includes(pat)) return false;
+  }
+  const familyPatterns = ["家親", "家聲", "家事"]; // 家事法庭（非車禍民事）
+  for (const pat of familyPatterns) {
+    if (caseNo.includes(pat)) return false;
+  }
+  return true;
+}
+
 async function main() {
   // CLI: --dry-run = 不寫檔，只跑流程; --chain <name> = 只跑單鏈; --quiet = 精簡輸出（給 cron 用）
   //       --retry <N> = fetch 重試次數（預設 3，設 0 關閉）; --retry-delay <ms> = 起始退避毫秒（預設 500，指數倍增）
@@ -571,6 +599,12 @@ async function main() {
         if (isDryRun) {
           console.log(`[scrape]       🧪 [dry-run] ${CHAIN_LABEL[chain]} ${amts.amount.toLocaleString()} 元`);
         } else {
+          // 過濾刑事/家事案件（純民事車禍估算器用不到）
+          if (!isCivilCase(hit.caseNo)) {
+            console.log(`[scrape]       ⏭️  [刑庭/家事] 排除 ${hit.caseNo}`);
+            totalSkipped++;
+            continue;
+          }
           await writePrecedent(precedent);
           console.log(`[scrape]       ✅ ${CHAIN_LABEL[chain]} ${amts.amount.toLocaleString()} 元`);
           totalScraped++;
