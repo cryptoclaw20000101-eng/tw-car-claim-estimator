@@ -301,7 +301,12 @@ function parseDataLinks(html: string): RawHit[] {
     const parts = id.split(",");
     if (parts.length < 5) continue;
     const [code, year, caseType, caseNum, date] = parts;
-    const court = COURT_CODE[code] || code;
+    // 找不到 COURT_CODE 對照時，加 "(未知代碼)" 標記
+    // 原因：v0.2.9+ cityOf() 邏輯靠「臺灣XX地方法院」字串配對，
+    //       裸代碼 ('CHDM' / 'ULDV') 會被當成不可解析，cityOf = null，無法觸發同縣市配對
+    // 改為加標記後，未來律師/工程師看 precedents.json 一眼就知道這幾筆需要補 COURT_CODE
+    // 同步：在 data/precedents/_pending-courts-to-fill.json 追蹤
+    const court = COURT_CODE[code] || `${code}（未知代碼）`;
     const yearInt = parseInt(year, 10);
     if (!Number.isFinite(yearInt)) continue;
     // 案號：{year} 年度 {caseType} 字第 {caseNum} 號

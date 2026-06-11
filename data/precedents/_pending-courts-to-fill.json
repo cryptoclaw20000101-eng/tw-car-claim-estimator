@@ -1,13 +1,13 @@
 {
   "generatedAt": "2026-06-11",
-  "generatedBy": "scripts/list-pending-courts.ts（手動跑）",
+  "generatedBy": "v0.2.11 — courtToCity 修補 + 未知代碼標記",
   "totalPracticeCases": 12,
-  "solvableByCurrentLogic": 7,
-  "stillPending": 5,
-  "note": "v0.2.9 擴充 cityOf() 涵蓋 18 縣市後，7/12 件 practice_case 能觸發「同縣市 +10」配對（原 2/12）。剩下 5 件 court 欄位無法 cityOf 解析，分成 2 類問題。",
+  "solvableByCurrentLogic": 4,
+  "stillPending": 8,
+  "note": "v0.2.11 改進：所有 4 字大寫法院代碼（CHDM/ULDV/CTDV/TCHM/ILDV/KLDV 等）已加 (未知代碼) 標記。cityOf() 邏輯同縣市觸發率 4/12。律師 3 件 + 未知代碼 5 件 = 8 件仍待人工補完。",
   "groups": [
     {
-      "category": "A. 律師案例（脫敏後缺法院）— 需律師口述補",
+      "category": "A. 律師案例（court='和解' 系列）— 需律師口述補",
       "items": [
         {
           "id": "tw-practice-112-12-01-002",
@@ -36,50 +36,27 @@
       ]
     },
     {
-      "category": "B. 法院代碼（scrape 沒對照到中文）— 需 scrape 那邊補 COURT_CODE",
-      "items": [
-        {
-          "id": "tw-practice-113-11318",
-          "caseNo": "113 年度 易緝 字第 18 號",
-          "source": "CHDM 113 年度 易緝 字第 18 號",
-          "currentCourt": "CHDM",
-          "hint": "需查 CHDM 對應哪個法院（推測：彰化地方法院某庭？）",
-          "needsFromDev": "scrape-judgments.ts COURT_CODE 加 CHDM 對照"
-        },
-        {
-          "id": "tw-practice-113-11399",
-          "caseNo": "113 年度 簡 字第 99 號",
-          "source": "ULDV 113 年度 簡 字第 99 號",
-          "currentCourt": "ULDV",
-          "hint": "需查 ULDV 對照",
-          "needsFromDev": "scrape-judgments.ts COURT_CODE 加 ULDV 對照"
-        },
-        {
-          "id": "tw-practice-113-11310",
-          "caseNo": "113 年度 保險 字第 10 號",
-          "source": "CTDV 113 年度 保險 字第 10 號",
-          "currentCourt": "CTDV",
-          "hint": "需查 CTDV 對照（CTDV 不在現有 COURT_CODE 表）",
-          "needsFromDev": "scrape-judgments.ts COURT_CODE 加 CTDV 對照"
-        },
-        {
-          "id": "tw-practice-110-110907",
-          "caseNo": "110 年度 上易 字第 907 號",
-          "source": "TCHM 110 年度 上易 字第 907 號",
-          "currentCourt": "TCHM",
-          "hint": "需查 TCHM 對照（可能是臺中分院？）",
-          "needsFromDev": "scrape-judgments.ts COURT_CODE 加 TCHM 對照"
-        },
-        {
-          "id": "tw-practice-110-11081",
-          "caseNo": "110 年度 簡 字第 81 號",
-          "source": "ULDV 110 年度 簡 字第 81 號",
-          "currentCourt": "ULDV",
-          "hint": "同 ULDV 第一筆",
-          "needsFromDev": "scrape-judgments.ts COURT_CODE 加 ULDV 對照"
-        }
-      ]
+      "category": "B. 法院代碼未知（v0.2.11 已加 (未知代碼) 標記）— 需查司法院表",
+      "codeAppearances": {
+        "ULDV": "5 件 (labor-loss 2 + practice 2 + taipei-mental-distress 1) — 推測宜蘭地方法院（待證）",
+        "CTDV": "3 件 (labor-loss 1 + practice 1 + taipei-mental-distress 1) — 推測嘉義地方法院（待證）",
+        "CHDM": "2 件 (practice 1 + labor-loss 1) — 推測彰化地方法院（待證）",
+        "TCHM": "1 件 (practice) — 可能是臺中分院（待證）",
+        "KSDM": "1 件 (car-damage) — 高雄分院民事庭（待證）",
+        "KSHM": "1 件 (mediation) — 高雄分院民事庭（待證）",
+        "ILDV": "2 件 (car-damage 1 + taipei-mental-distress 1) — 宜蘭地方法院另一寫法（待證）",
+        "KLDV": "2 件 (car-damage 1 + labor-loss 1) — 高雄地方法院另一寫法（待證）",
+        "PTDV": "1 件 (labor-loss) — 屏東地方法院（待證）",
+        "SCDV": "3 件 (car-damage 1 + labor-loss 1 + taipei-mental-distress 1) — 新竹地方法院另一寫法（待證）",
+        "TNHV": "2 件 (labor-loss 1 + mediation 1) — 臺南地方法院另一寫法（待證）",
+        "TCDM": "1 件 (mediation) — 臺中分院民事庭（待證）",
+        "TPDM": "2 件 (labor-loss 1 + disability-merging 1) — 臺北分院民事庭（待證）",
+        "TNHM": "1 件 (mediation) — 臺南分院民事庭（待證）",
+        "TCHV": "1 件 (mediation) — 臺中分院另一庭（待證）",
+        "TPTA": "1 件 (car-damage) — 罕見，可能是臺北高等行政法院或某庭（待證）"
+      },
+      "needsFromDev": "查司法院『法院代碼對照表』後填進 scripts/scrape-judgments.ts 的 COURT_CODE 物件。一旦填對，所有 v0.2.11+ 新抓的案件 court 欄位會自動變成中文全名，cityOf 觸發率會從 4/12 升到 4+/12。"
     }
   ],
-  "impact": "若 A 群（律師 3 件）補齊 → 觸發率 7/12 → 10/12（83%）\n若 B 群（scrape 5 件）也補齊 → 觸發率 10/12 → 12/12（100%）"
+  "impact": "若 A 群（律師 3 件）補齊 → 觸發率 4/12 → 7/12 (58%)\n若 B 群（scrape 16 個代碼）也補齊 → 觸發率 7/12 → 12/12 (100%)\n預期可達 100% 觸發 = 12/12 件 practice_case 都能用『同縣市 +10』配權"
 }
