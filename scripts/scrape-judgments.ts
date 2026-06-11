@@ -70,6 +70,34 @@ const KEYWORDS = {
     "訴訟實務 交通事故 處理",
     "強制險 車禍 理賠 案例",  // 擴
   ],
+  // v0.2.14+ 新增 keyword：3 年擴增專用（每鏈加 2-3 個新角度）
+  // 設計原則：繞過飽和既有前 4 個 keyword，從死亡/肇責/醫療/和解 等新視角切入
+  mental_distress_v2: [  // v0.2.14+ 額外 keyword（精神慰撫金新角度）
+    "精神慰撫金 車禍 死亡",
+    "精神慰撫金 過失致死",
+    "慰撫金 車禍 重傷",
+  ],
+  labor_loss_v2: [
+    "勞動能力 喪失 車禍",
+    "工作收入 減少 車禍",
+    "勞減率 車禍 鑑定",
+  ],
+  car_damage_v2: [
+    "車輛修理費 交通事故",
+    "車禍 全損 折舊",
+    "車輛 殘值 車禍",
+  ],
+  disability_v2: [
+    "勞減 車禍 後遺症",
+    "失能 給付 交通事故",
+    "後遺症 車禍 等級",
+  ],
+  // v0.2.14+ 額外關鍵字（跨鏈，從「肇責比例」/「和解金」切入）
+  settlement_v2: [
+    "車禍 和解金 計算",
+    "過失比例 車禍 民事",
+    "肇責 車禍 比例",
+  ],
 } as const;
 
 type ChainKey = keyof typeof KEYWORDS;
@@ -85,29 +113,44 @@ const retryConfig: { maxRetries: number; baseDelayMs: number; quiet: boolean } =
 // v0.2.6+ 新鏈 mediation/practice 改抓「和解/撤回」金額或無金額純抓主文
 const CHAIN_REGEX: Record<ChainKey, RegExp> = {
   mental_distress: /(?:精神)?慰撫金[^。]*?([\d,]+)\s*元/,
+  mental_distress_v2: /(?:精神)?慰撫金[^。]*?([\d,]+)\s*元/,  // v0.2.14 借用 mental_distress regex
   labor_loss: /(?:工作)?(?:收入)?損失[^。]*?([\d,]+)\s*元/,
+  labor_loss_v2: /(?:工作)?(?:收入)?損失[^。]*?([\d,]+)\s*元/,
   car_damage: /(?:車輛)?(?:修復)?(?:費用|損害)[^。]*?([\d,]+)\s*元/,
+  car_damage_v2: /(?:車輛)?(?:修復)?(?:費用|損害)[^。]*?([\d,]+)\s*元/,
   disability: /失能[^。]*?([\d,]+)\s*元/,
+  disability_v2: /失能[^。]*?([\d,]+)\s*元/,
   mediation: /(?:調解|和解|撤回起訴|訴訟外和解)[^。]*?([\d,]+)\s*元/,  // 放寬：含訴訟外和解
   practice: /(?:理賠|和解|撤回|調解成立)[^。]*?([\d,]+)\s*元/,  // 放寬
+  settlement_v2: /(?:調解|和解|撤回)[^。]*?([\d,]+)\s*元/,  // 跨鏈「肇責/和解」金額
 };
 
 const CHAIN_FILE: Record<ChainKey, string> = {
   mental_distress: "taipei-mental-distress.json",
+  mental_distress_v2: "taipei-mental-distress.json",  // v0.2.14 寫入同檔
   labor_loss: "labor-loss.json",
+  labor_loss_v2: "labor-loss.json",
   car_damage: "car-damage.json",
+  car_damage_v2: "car-damage.json",
   disability: "disability-merging.json",
+  disability_v2: "disability-merging.json",
   mediation: "mediation-procedures.json",  // 新檔
   practice: "practice-cases.json",  // 擴充既有檔
+  settlement_v2: "practice-cases.json",  // v0.2.14 跨鏈寫入 practice
 };
 
 const CHAIN_LABEL: Record<ChainKey, string> = {
   mental_distress: "精神慰撫金",
+  mental_distress_v2: "精神慰撫金(死亡)",
   labor_loss: "工作損失",
+  labor_loss_v2: "工作損失(勞減)",
   car_damage: "車損",
+  car_damage_v2: "車損(全損)",
   disability: "失能慰撫金",
+  disability_v2: "失能(後遺症)",
   mediation: "車禍調解",
   practice: "律師實務",
+  settlement_v2: "和解金(肇責)",
 };
 
 const COURT_CODE: Record<string, string> = {
@@ -468,17 +511,36 @@ async function main() {
     }
     console.log(`[scrape]   Step 2: q=${qHash.slice(0, 8)}...`);
 
-    // 3. GET qryresultlst 拿 data.aspx 連結
-    const qryUrl = `${BASE}/FJUD/qryresultlst.aspx?ty=JUDBOOK&q=${qHash}`;
-    const qryHtml = await getHtml(jar, qryUrl, SEARCH_URL);
-    const hits = parseDataLinks(qryHtml);
-    console.log(`[scrape]   Step 3: 命中 ${hits.length} 件 data.aspx 連結`);
+    // 3. GET qryresultlst 拿 data.aspx 連結（v0.2.14+ 支援分頁: a=1..maxPages）
+    const maxPages = Math.max(1, parseInt(process.env.SCRAPE_MAX_PAGES || "1", 10));
+    const allHitsMap = new Map<string, RawHit>();  // v0.2.14 用 href 去重(避免 page 1+2+3 重複抓同一件)
+    let actualPages = 0;
+    const qryReferer = `${BASE}/FJUD/qryresultlst.aspx?ty=JUDBOOK&q=${qHash}`;  // 給 detail 抓取當 referer
+    for (let page = 1; page <= maxPages; page++) {
+      const qryUrl = page === 1
+        ? `${BASE}/FJUD/qryresultlst.aspx?ty=JUDBOOK&q=${qHash}`
+        : `${BASE}/FJUD/qryresultlst.aspx?ty=JUDBOOK&q=${qHash}&a=${page}`;
+      let qryHtml: string;
+      try {
+        qryHtml = await getHtml(jar, qryUrl, SEARCH_URL);
+      } catch (e) {
+        console.log(`[scrape]   ⚠ page ${page} 抓取失敗: ${(e as Error).message}`);
+        break;
+      }
+      const pageHits = parseDataLinks(qryHtml);
+      console.log(`[scrape]   Step 3.${page}: page ${page} 命中 ${pageHits.length} 件`);
+      if (pageHits.length === 0) break;  // 沒結果就停(避免無窮)
+      for (const h of pageHits) allHitsMap.set(h.href, h);
+      actualPages = page;
+    }
+    const hits = Array.from(allHitsMap.values());
+    console.log(`[scrape]   Step 3 總計: ${hits.length} 件 (跨 ${actualPages} pages, 去重後)`);
 
     // 4. 立即在 session 活著時抓每個 detail
     for (const hit of hits) {
       console.log(`[scrape]     抓 ${hit.court} ${hit.caseNo} ...`);
       try {
-        const detail = await getHtml(jar, hit.href, qryUrl);
+        const detail = await getHtml(jar, hit.href, qryReferer);
         const amts = extractAmounts(detail, chain);
         if (!amts) {
           console.log(`[scrape]       ⚠ 沒抓到 ${CHAIN_LABEL[chain]}金額`);
