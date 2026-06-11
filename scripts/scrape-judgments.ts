@@ -74,6 +74,13 @@ const KEYWORDS = {
 
 type ChainKey = keyof typeof KEYWORDS;
 
+// v0.2.8+ — retry config（全域，main() 解析 --retry 旗標後填入）
+const retryConfig: { maxRetries: number; baseDelayMs: number; quiet: boolean } = {
+  maxRetries: 3,
+  baseDelayMs: 500,
+  quiet: false,
+};
+
 // 各鏈「金額關鍵字」正則（用在主文段）
 // v0.2.6+ 新鏈 mediation/practice 改抓「和解/撤回」金額或無金額純抓主文
 const CHAIN_REGEX: Record<ChainKey, RegExp> = {
@@ -177,18 +184,63 @@ function absorbCookies(jar: CookieJar, res: Response): void {
 }
 
 async function getHtml(jar: CookieJar, url: string, referer?: string): Promise<string> {
-  const res = await fetch(url, {
-    headers: {
-      "User-Agent": UA,
-      Accept: "text/html,application/xhtml+xml",
-      "Accept-Language": "zh-TW,zh;q=0.9",
-      Cookie: cookieHeader(jar),
-      ...(referer ? { Referer: referer } : {}),
-    },
-  });
-  if (!res.ok) throw new Error(`GET ${url} → ${res.status}`);
-  absorbCookies(jar, res);
-  return res.text();
+  return getHtmlWithRetry(jar, url, referer, retryConfig);
+}
+
+/**
+ * getHtml with retry — 包 fetch 失敗 + 5xx 自動重試
+ * 4xx 不重試(代表 query 邏輯錯,retry 也沒用)
+ * TypeError(fetch DNS/連線失敗) → 重試
+ */
+async function getHtmlWithRetry(
+  jar: CookieJar,
+  url: string,
+  referer: string | undefined,
+  config: { maxRetries: number; baseDelayMs: number; quiet: boolean },
+): Promise<string> {
+  const { maxRetries, baseDelayMs, quiet } = config;
+  let lastErr: Error | null = null;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const res = await fetch(url, {
+        headers: {
+          "User-Agent": UA,
+          Accept: "text/html,application/xhtml+xml",
+          "Accept-Language": "zh-TW,zh;q=0.9",
+          Cookie: cookieHeader(jar),
+          ...(referer ? { Referer: referer } : {}),
+        },
+      });
+      if (res.status >= 500) {
+        // 5xx → 可重試
+        const err = new Error(`GET ${url} → ${res.status}`);
+        lastErr = err;
+        if (attempt < maxRetries) {
+          if (!quiet) console.log(`[scrape]   ⚠ ${res.status} 第 ${attempt + 1}/${maxRetries} 次重試...`);
+          await new Promise((r) => setTimeout(r, baseDelayMs * 2 ** attempt));
+          continue;
+        }
+        throw err;
+      }
+      if (!res.ok) {
+        // 4xx → 不可重試(邏輯錯),直接丟
+        throw new Error(`GET ${url} → ${res.status}`);
+      }
+      absorbCookies(jar, res);
+      return res.text();
+    } catch (e) {
+      // TypeError (fetch 失敗/DNS/timeout) → 可重試
+      const err = e as Error;
+      const isTypeError = err instanceof TypeError;
+      if (!isTypeError && attempt >= maxRetries) throw err;
+      lastErr = err;
+      if (attempt < maxRetries) {
+        if (!quiet) console.log(`[scrape]   ⚠ ${err.message.slice(0, 60)} 第 ${attempt + 1}/${maxRetries} 次重試...`);
+        await new Promise((r) => setTimeout(r, baseDelayMs * 2 ** attempt));
+      }
+    }
+  }
+  throw lastErr ?? new Error(`GET ${url} failed after ${maxRetries} retries`);
 }
 
 async function postSearch(
@@ -355,15 +407,30 @@ function writePrecedent(p: FinalPrecedent): void {
 
 async function main() {
   // CLI: --dry-run = 不寫檔，只跑流程; --chain <name> = 只跑單鏈; --quiet = 精簡輸出（給 cron 用）
+  //       --retry <N> = fetch 重試次數（預設 3，設 0 關閉）; --retry-delay <ms> = 起始退避毫秒（預設 500，指數倍增）
   const isDryRun = process.argv.includes("--dry-run");
   const isQuiet = process.argv.includes("--quiet");
+  retryConfig.quiet = isQuiet;
   const chainArgIdx = process.argv.indexOf("--chain");
   const chainFilter: ChainKey | null = chainArgIdx >= 0
     ? (process.argv[chainArgIdx + 1] as ChainKey)
     : null;
+  const retryArgIdx = process.argv.indexOf("--retry");
+  if (retryArgIdx >= 0) {
+    const n = parseInt(process.argv[retryArgIdx + 1] ?? "3", 10);
+    retryConfig.maxRetries = isNaN(n) ? 3 : Math.max(0, n);
+  }
+  const retryDelayArgIdx = process.argv.indexOf("--retry-delay");
+  if (retryDelayArgIdx >= 0) {
+    const ms = parseInt(process.argv[retryDelayArgIdx + 1] ?? "500", 10);
+    retryConfig.baseDelayMs = isNaN(ms) ? 500 : Math.max(100, ms);
+  }
   if (!isQuiet) {
     if (isDryRun) console.log("[scrape] 🧪 DRY RUN — 不會寫入 precedents 檔");
     if (chainFilter) console.log(`[scrape] 🔗 只跑 ${chainFilter} 鏈`);
+    console.log(
+      `[scrape] 🔁 retry 設定：maxRetries=${retryConfig.maxRetries}, baseDelayMs=${retryConfig.baseDelayMs}`,
+    );
   }
 
   // 每個 (chain, keyword) 走獨立 session（避免 session 過期）
