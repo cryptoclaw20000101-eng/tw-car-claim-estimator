@@ -98,6 +98,19 @@ const KEYWORDS = {
     "過失比例 車禍 民事",
     "肇責 車禍 比例",
   ],
+  // v0.2.19+ 新鏈：看護費（民法 §193 + 強保險 §11，最大宗理賠項目之一）
+  // 對齊 6 鏈都沒抓的「最大缺口」之一，6 鏈全集中在精神慰撫金/工作損失/車損/失能
+  nursing_care: [
+    "看護費 車禍",
+    "看護費用 交通事故",
+    "看護 車禍 日額",
+  ],
+  // v0.2.19+ 新鏈：醫療費用（含醫藥費/住院費/自費醫材）
+  medical_expense: [
+    "醫療費用 車禍",
+    "醫藥費 交通事故",
+    "住院費 車禍 賠償",
+  ],
 } as const;
 
 type ChainKey = keyof typeof KEYWORDS;
@@ -123,6 +136,10 @@ const CHAIN_REGEX: Record<ChainKey, RegExp> = {
   mediation: /(?:調解|和解|撤回起訴|訴訟外和解)[^。]*?([\d,]+)\s*元/,  // 放寬：含訴訟外和解
   practice: /(?:理賠|和解|撤回|調解成立)[^。]*?([\d,]+)\s*元/,  // 放寬
   settlement_v2: /(?:調解|和解|撤回)[^。]*?([\d,]+)\s*元/,  // 跨鏈「肇責/和解」金額
+  // v0.2.19+ 看護費：抓「看護費 1,000,000 元」之類的金額
+  nursing_care: /看護(?:費|費用|日額)[^。]*?([\d,]+)\s*元/,
+  // v0.2.19+ 醫療費用：抓「醫療費/醫藥費/住院費/自費 X 元」
+  medical_expense: /(?:醫療|醫藥|住院|自費)(?:費用|費|支出|損害)[^。]*?([\d,]+)\s*元/,
 };
 
 const CHAIN_FILE: Record<ChainKey, string> = {
@@ -137,6 +154,9 @@ const CHAIN_FILE: Record<ChainKey, string> = {
   mediation: "mediation-procedures.json",  // 新檔
   practice: "practice-cases.json",  // 擴充既有檔
   settlement_v2: "practice-cases.json",  // v0.2.14 跨鏈寫入 practice
+  // v0.2.19+ 新檔：看護費 + 醫療費用
+  nursing_care: "nursing-care.json",
+  medical_expense: "medical-expense.json",
 };
 
 const CHAIN_LABEL: Record<ChainKey, string> = {
@@ -151,6 +171,9 @@ const CHAIN_LABEL: Record<ChainKey, string> = {
   mediation: "車禍調解",
   practice: "律師實務",
   settlement_v2: "和解金(肇責)",
+  // v0.2.19+
+  nursing_care: "看護費",
+  medical_expense: "醫療費用",
 };
 
 const COURT_CODE: Record<string, string> = {

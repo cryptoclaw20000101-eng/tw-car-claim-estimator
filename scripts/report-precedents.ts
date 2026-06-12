@@ -28,6 +28,9 @@ const CHAIN_FILE_TO_LABEL: Record<string, string> = {
   "disability-merging.json": "失能慰撫金",
   "mediation-procedures.json": "車禍調解",
   "practice-cases.json": "律師實務",
+  // v0.2.19+ 新鏈
+  "nursing-care.json": "看護費",
+  "medical-expense.json": "醫療費用",
 };
 
 /** Legacy / 補充檔（給整體健康度看） */

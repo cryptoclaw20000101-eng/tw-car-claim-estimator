@@ -1,0 +1,290 @@
+[
+  {
+    "id": "tw-medical_expense-114-11474",
+    "caseNo": "114 年度 簡上 字第 74 號",
+    "court": "臺灣臺南地方法院",
+    "year": 2025,
+    "category": "minor_injury",
+    "chain": "medical_expense",
+    "facts": "一、原判決關於駁回上訴人後開第二項之訴部分，及該部分假執行之聲請，暨訴訟費用(除確定部分外)之裁判均廢棄。二、上開廢棄部分，被上訴人應給付上訴人新臺幣446,229元，及自民國112年9月29日起至清償日止，按年息百分之5計算之利息。三、第",
+    "amount": 118328,
+    "totalAward": 446229,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "醫療費用 118,328 元",
+    "source": "臺灣臺南地方法院 114 年度 簡上 字第 74 號",
+    "scrapedAt": "2026-06-12T05:59:49.836Z"
+  },
+  {
+    "id": "tw-medical_expense-114-1143",
+    "caseNo": "114 年度 國 字第 3 號",
+    "court": "臺灣桃園地方法院",
+    "year": 2025,
+    "category": "minor_injury",
+    "chain": "medical_expense",
+    "facts": "原告之訴駁回。訴訟費用由原告負擔。事實及理由壹、程序部分一、按依國家賠償法請求損害賠償時，應先以書面向賠償義務機關請求之；賠償義務機關拒絕賠償時，請求權人得提起損害賠償之訴，國家賠償法第10條第1項、第11條第1項前段分別定有明文。經查，本",
+    "amount": 213178,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "醫療費用 213,178 元",
+    "source": "臺灣桃園地方法院 114 年度 國 字第 3 號",
+    "scrapedAt": "2026-06-12T05:59:50.850Z"
+  },
+  {
+    "id": "tw-medical_expense-113-113117",
+    "caseNo": "113 年度 勞訴 字第 117 號",
+    "court": "臺灣臺南地方法院",
+    "year": 2024,
+    "category": "minor_injury",
+    "chain": "medical_expense",
+    "facts": "被告應給付原告新臺幣363,841元及自民國114年1月3日起至清償止，按週年利率百分之5計算之利息。原告其餘之訴駁回。訴訟費用由被告負擔5分之1，餘由原告負擔。本判決第1項得假執行。但被告如以新臺幣363,841元為原告預供擔保，得免為假",
+    "amount": 95991,
+    "totalAward": 363841,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "醫療費用 95,991 元",
+    "source": "臺灣臺南地方法院 113 年度 勞訴 字第 117 號",
+    "scrapedAt": "2026-06-12T05:59:52.134Z"
+  },
+  {
+    "id": "tw-medical_expense-115-152696",
+    "caseNo": "115 年度 司促 字第 2696 號",
+    "court": "PTDV（未知代碼）",
+    "year": 2026,
+    "category": "minor_injury",
+    "chain": "medical_expense",
+    "facts": "聲請駁回。聲請程序費用由聲請人負擔。理由一、按支付命令之聲請，債權人之請求，必須以給付金錢或其他代替物或有價證券之一定數量為標的，民事訴訟法第508條定有明文。次按債權人之請求，應釋明之。民事訴訟法第511條第2項亦有明定。因支付命令之聲請",
+    "amount": 69112,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "醫療費用 69,112 元",
+    "source": "PTDV（未知代碼） 115 年度 司促 字第 2696 號",
+    "scrapedAt": "2026-06-12T05:59:59.135Z"
+  },
+  {
+    "id": "tw-medical_expense-115-11529",
+    "caseNo": "115 年度 簡 字第 29 號",
+    "court": "ULDV（未知代碼）",
+    "year": 2026,
+    "category": "minor_injury",
+    "chain": "medical_expense",
+    "facts": "原告之訴及假執行之聲請均駁回。訴訟費用由原告負擔。事實及理由一、原告主張：㈠被告於民國113年9月14日17時5分許，駕駛車牌號碼000-0000號自用小貨車，沿雲林縣北港鎮好收路由南往北方向行駛，行經該路與口庄路之交岔路口時，因欲右轉彎，",
+    "amount": 108153,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "醫療費用 108,153 元",
+    "source": "ULDV（未知代碼） 115 年度 簡 字第 29 號",
+    "scrapedAt": "2026-06-12T06:00:00.441Z"
+  },
+  {
+    "id": "tw-medical_expense-113-113410",
+    "caseNo": "113 年度 簡上 字第 410 號",
+    "court": "臺灣新北地方法院",
+    "year": 2024,
+    "category": "minor_injury",
+    "chain": "medical_expense",
+    "facts": "原判決關於駁回上訴人周淑華後開第二項之訴部分，暨訴訟費用（除確定部分外）之裁判均廢棄。上開廢棄部分，被上訴人王雅欣應再給付上訴人周淑華新臺幣126,760元，及自民國112年8月8日起至清償日止，按年息百分之5計算之利息。上訴人周淑華其餘上",
+    "amount": 29090,
+    "totalAward": 126760,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "醫療費用 29,090 元",
+    "source": "臺灣新北地方法院 113 年度 簡上 字第 410 號",
+    "scrapedAt": "2026-06-12T06:00:07.508Z"
+  },
+  {
+    "id": "tw-medical_expense-113-113148",
+    "caseNo": "113 年度 簡上 字第 148 號",
+    "court": "臺灣彰化地方法院",
+    "year": 2024,
+    "category": "minor_injury",
+    "chain": "medical_expense",
+    "facts": "一、原判決關於命上訴人給付超過新臺幣參萬肆仟陸佰陸拾玖元本息部分，及該部分假執行之宣告，暨訴訟費用之裁判，均廢棄。二、上開廢棄部分，被上訴人在第一審之訴及其假執行之聲請均駁回。三、其餘上訴駁回。四、第一、二審訴訟費用（確定部分除外），由上訴",
+    "amount": 37409,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "醫療費用 37,409 元",
+    "source": "臺灣彰化地方法院 113 年度 簡上 字第 148 號",
+    "scrapedAt": "2026-06-12T06:00:08.356Z"
+  },
+  {
+    "id": "tw-medical_expense-114-114316",
+    "caseNo": "114 年度 簡上 字第 316 號",
+    "court": "臺灣新北地方法院",
+    "year": 2025,
+    "category": "minor_injury",
+    "chain": "medical_expense",
+    "facts": "上訴駁回。第二審訴訟費用由上訴人負擔。事實及理由一、被上訴人起訴主張：上訴人於民國112年5月30日上午9時16分許，於新北市板橋區縣民大道2段與漢生東路口駕駛TDS-8311號營業小客車（下稱系爭計程車），因未注意車前狀況，致撞擊騎乘車號",
+    "amount": 95172,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "醫療費用 95,172 元",
+    "source": "臺灣新北地方法院 114 年度 簡上 字第 316 號",
+    "scrapedAt": "2026-06-12T06:00:09.655Z"
+  },
+  {
+    "id": "tw-medical_expense-111-11124",
+    "caseNo": "111 年度 保險 字第 24 號",
+    "court": "臺灣臺北地方法院",
+    "year": 2022,
+    "category": "minor_injury",
+    "chain": "medical_expense",
+    "facts": "原告之訴及假執行聲請均駁回。訴訟費用由原告負擔。事實及理由甲、程序部分：被告明台產物保險股份有限公司於起訴時之法定代理人原為長瀨耕一，嗣變更為松延洋介、矢持健一郎，並由其具狀依民事訴訟法第170、176條規定聲明承受訴訟(卷7第117-12",
+    "amount": 100000,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "醫療費用 100,000 元",
+    "source": "臺灣臺北地方法院 111 年度 保險 字第 24 號",
+    "scrapedAt": "2026-06-12T06:00:13.776Z"
+  },
+  {
+    "id": "tw-medical_expense-113-11342",
+    "caseNo": "113 年度 簡上 字第 42 號",
+    "court": "臺灣花蓮地方法院",
+    "year": 2024,
+    "category": "minor_injury",
+    "chain": "medical_expense",
+    "facts": "原判決關於駁回上訴人後開第二項之訴部分，及該部分假執行之聲請暨訴訟費用之裁判，均廢棄。上開廢棄部分，被上訴人應再給付上訴人新臺幣1,406,373元，及自民國112年4月12日起至清償日止，按年息5%計算之利息。其餘上訴駁回。第一、二審訴訟",
+    "amount": 100609,
+    "totalAward": 1406373,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "醫療費用 100,609 元",
+    "source": "臺灣花蓮地方法院 113 年度 簡上 字第 42 號",
+    "scrapedAt": "2026-06-12T06:00:14.667Z"
+  },
+  {
+    "id": "tw-medical_expense-112-11263",
+    "caseNo": "112 年度 重上 字第 63 號",
+    "court": "TPHV（未知代碼）",
+    "year": 2023,
+    "category": "minor_injury",
+    "chain": "medical_expense",
+    "facts": "原判決關於駁回上訴人後開第二項之訴部分，及訴訟費用之裁判（除確定部分外），均廢棄。上開廢棄部分，被上訴人應再連帶給付上訴人新臺幣肆拾壹萬壹仟陸佰玖拾肆元及自民國一０六年十一月三日起至清償日止，按週年利率百分之五計算之利息。上訴人其餘上訴駁回",
+    "amount": 71221,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "醫療費用 71,221 元",
+    "source": "TPHV（未知代碼） 112 年度 重上 字第 63 號",
+    "scrapedAt": "2026-06-12T06:00:19.220Z"
+  },
+  {
+    "id": "tw-medical_expense-114-11456",
+    "caseNo": "114 年度 勞簡 字第 56 號",
+    "court": "臺灣高雄地方法院",
+    "year": 2025,
+    "category": "minor_injury",
+    "chain": "medical_expense",
+    "facts": "被告應給付原告新臺幣壹萬壹仟元，及自民國一百一十四年八月十六日起至清償日止，按週年利率百分之五計算之利息。被告應提繳新臺幣伍仟捌佰陸拾伍元至原告設於勞動部勞工保險局之勞工退休金專戶。原告其餘之訴駁回。訴訟費用(除減縮部分外)由被告負擔百分之",
+    "amount": 97116,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "醫療費用 97,116 元",
+    "source": "臺灣高雄地方法院 114 年度 勞簡 字第 56 號",
+    "scrapedAt": "2026-06-12T06:00:21.126Z"
+  },
+  {
+    "id": "tw-medical_expense-113-113569",
+    "caseNo": "113 年度 簡上 字第 569 號",
+    "court": "臺灣臺中地方法院",
+    "year": 2024,
+    "category": "minor_injury",
+    "chain": "medical_expense",
+    "facts": "原判決關於命上訴人給付被上訴人吳OO逾新臺幣19,545,666元本息及被上訴人蔡OO逾新臺幣60萬元本息部分，及該部分之假執行宣告暨訴訟費用之裁判均廢棄。上開廢棄部分，被上訴人吳OO、蔡OO在第一審之訴駁回。上訴人其餘上訴駁回。第一、二審",
+    "amount": 491738,
+    "totalAward": 19545666,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "醫療費用 491,738 元",
+    "source": "臺灣臺中地方法院 113 年度 簡上 字第 569 號",
+    "scrapedAt": "2026-06-12T06:00:22.670Z"
+  },
+  {
+    "id": "tw-medical_expense-114-146003",
+    "caseNo": "114 年度 上訴 字第 6003 號",
+    "court": "TPHM（未知代碼）",
+    "year": 2025,
+    "category": "minor_injury",
+    "chain": "medical_expense",
+    "facts": "原判決撤銷。張育賢無罪。理由一、起訴及追加起訴意旨略以：被告張育賢可預見一般人取得他人金融帳戶之行為，常與財產犯罪之需要密切相關，且取得他人帳戶之目的，在於取得贓款及掩飾犯行不易遭人追查，但仍基於詐欺取財及洗錢之不確定故意，於民國112年2",
+    "amount": 25000,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "醫療費用 25,000 元",
+    "source": "TPHM（未知代碼） 114 年度 上訴 字第 6003 號",
+    "scrapedAt": "2026-06-12T06:00:31.904Z"
+  },
+  {
+    "id": "tw-medical_expense-113-113116",
+    "caseNo": "113 年度 簡 字第 116 號",
+    "court": "ULDV（未知代碼）",
+    "year": 2024,
+    "category": "minor_injury",
+    "chain": "medical_expense",
+    "facts": "被告應給付原告Ａ０２新臺幣1,091,061元，及自民國113年11月20日起至清償日止，按週年利率百分之5計算之利息。被告應給付原告Ａ０１新臺幣20,610元，及自民國113年11月20日起至清償日止，按週年利率百分之5計算之利息。原告其",
+    "amount": 340235,
+    "totalAward": 1091061,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "醫療費用 340,235 元",
+    "source": "ULDV（未知代碼） 113 年度 簡 字第 116 號",
+    "scrapedAt": "2026-06-12T06:00:33.026Z"
+  },
+  {
+    "id": "tw-medical_expense-114-114206",
+    "caseNo": "114 年度 竹簡 字第 206 號",
+    "court": "SCDV（未知代碼）",
+    "year": 2025,
+    "category": "minor_injury",
+    "chain": "medical_expense",
+    "facts": "被告應給付原告新臺幣420,150元，及自民國113年8月3日起至清償日止，按週年利率百分之5計算之利息。原告其餘之訴駁回。本判決第一項得假執行。但被告如以420,150元為原告預供擔保後，得免為假執行。原告其餘假執行之聲請駁回。事實及理由",
+    "amount": 379138,
+    "totalAward": 420150,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "醫療費用 379,138 元",
+    "source": "SCDV（未知代碼） 114 年度 竹簡 字第 206 號",
+    "scrapedAt": "2026-06-12T06:00:35.256Z"
+  }
+]
