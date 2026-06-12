@@ -81,11 +81,35 @@ describe('S8 v0.2.19 新鏈', () => {
     expect(scrapeSource).toContain('medical_expense: "醫療費用"')
   })
 
-  it('report-precedents 報表有看護費 + 醫療費用', () => {
+  it('v0.2.20 死亡案件 + 交通 + 撫養 + 加班 4 條衝量新鏈都存在', () => {
+    const newChains = [
+      { key: 'death_case', file: 'death-case.json', label: '死亡案件' },
+      { key: 'transport_fee', file: 'transport-fee.json', label: '交通費用' },
+      { key: 'support_payment', file: 'support-payment.json', label: '撫養費' },
+      { key: 'overtime_loss', file: 'overtime-loss.json', label: '加班損失' },
+    ]
+    for (const { key, file, label } of newChains) {
+      // KEYWORDS
+      expect(scrapeSource, `缺 KEYWORDS.${key}`).toMatch(
+        new RegExp(`^\\s{2}${key}(?=\\s*[:\\[])`, 'm'),
+      )
+      // CHAIN_FILE
+      expect(scrapeSource, `缺 CHAIN_FILE.${key}`).toContain(`${key}: "${file}"`)
+      // CHAIN_LABEL
+      expect(scrapeSource, `缺 CHAIN_LABEL.${key}`).toContain(`${key}: "${label}"`)
+    }
+  })
+
+  it('report-precedents 報表有看護費 + 醫療費用 + 4 條衝量新鏈', () => {
     expect(reportSource).toContain('"nursing-care.json"')
     expect(reportSource).toContain('"medical-expense.json"')
     expect(reportSource).toContain('"看護費"')
     expect(reportSource).toContain('"醫療費用"')
+    // v0.2.20+
+    expect(reportSource).toContain('"death-case.json"')
+    expect(reportSource).toContain('"transport-fee.json"')
+    expect(reportSource).toContain('"support-payment.json"')
+    expect(reportSource).toContain('"overtime-loss.json"')
   })
 })
 

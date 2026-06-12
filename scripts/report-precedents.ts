@@ -31,6 +31,11 @@ const CHAIN_FILE_TO_LABEL: Record<string, string> = {
   // v0.2.19+ 新鏈
   "nursing-care.json": "看護費",
   "medical-expense.json": "醫療費用",
+  // v0.2.20+ 衝量 4 條
+  "death-case.json": "死亡案件",
+  "transport-fee.json": "交通費用",
+  "support-payment.json": "撫養費",
+  "overtime-loss.json": "加班損失",
 };
 
 /** Legacy / 補充檔（給整體健康度看） */

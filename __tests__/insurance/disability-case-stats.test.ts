@@ -75,10 +75,13 @@ describe("disability-case-stats — 統計計算", () => {
     expect(stats.mean).toBe(0)
   })
 
-  it("lookupByDisabilityLevel: 1-15 等級都接受（目前回全 10 件,等律師補失能等級標籤）", () => {
+  it("lookupByDisabilityLevel: 1-15 等級都接受（無等級標籤時回全部 30+ 件）", () => {
+    // 對齊 v0.2.16 設計：所有真實案件還沒失能等級標籤（要律師手動補），
+    // 所以任意 level 都會回「全部載入的案件」。v0.2.20 衝量後 disability-merging
+    // 從 10 → 34 件，預期這個值會持續變動，驗證 count >= 10 即可
     for (let level = 1; level <= 15; level++) {
       const stats = lookupByDisabilityLevel(level)
-      expect(stats.count).toBe(10)  // 真實 disability-merging.json 載到 10 件
+      expect(stats.count).toBeGreaterThanOrEqual(10)
     }
   })
 
