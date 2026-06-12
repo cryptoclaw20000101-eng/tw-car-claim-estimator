@@ -1,62 +1,222 @@
 {
-  "generatedAt": "2026-06-11",
-  "generatedBy": "v0.2.11 — courtToCity 修補 + 未知代碼標記",
-  "totalPracticeCases": 12,
-  "solvableByCurrentLogic": 4,
-  "stillPending": 8,
-  "note": "v0.2.11 改進：所有 4 字大寫法院代碼（CHDM/ULDV/CTDV/TCHM/ILDV/KLDV 等）已加 (未知代碼) 標記。cityOf() 邏輯同縣市觸發率 4/12。律師 3 件 + 未知代碼 5 件 = 8 件仍待人工補完。",
+  "generatedAt": "2026-06-12",
+  "generatedBy": "v0.2.18 重盤點（v0.2.11 8 件是 stale；真實待補 89 件）",
+  "totalPrecedents": 200,
+  "totalPending": 89,
+  "pendingPercent": 44.5,
+  "previous_stale_note": "v0.2.11 generatedAt=2026-06-11 寫「8 件待補」是當時觀察，之後 v0.2.13-15 多次 scrape 累計到 89 件",
+  "summary": {
+    "A_unknown_court_codes": "80 件（14 個代碼）",
+    "B_lawyer_court_和解": "4 件",
+    "C_variants": "1 件",
+    "D_insurance_practice": "4 件（保留，無需修）"
+  },
+  "priority": "先補最大宗 ULDV(17) + KLDV(15) + SCDV(10) + ILDV(9) = 51 件，補一個代碼可能解 1-17 件",
+  "note": "v0.2.11 立的「不擅自填法院代碼」鐵律要維持 — 等律師/查證後才填；最快路徑是批次查司法院「法院代碼對照表」",
   "groups": [
     {
-      "category": "A. 律師案例（court='和解' 系列）— 需律師口述補",
-      "items": [
+      "category": "A. 未知法院代碼（14 個）— 待補 COURT_CODE 對照表",
+      "description": "scrape 抓下來的案件 court 欄位是 4 字大寫代碼（不是法院全名），scripts/scrape-judgments.ts 內 COURT_CODE 對照表只有 19 個 DV 結尾代碼，缺這 14 個。補進去後所有 (未知代碼) 標記就會被自動替換成正確法院全名，cityOf 觸發率提升。",
+      "fix": "在 scripts/scrape-judgments.ts 的 COURT_CODE 物件加進去（14 行），重跑 pnpm scrape:cron 就會批次改寫 precedents",
+      "codes": [
         {
-          "id": "tw-practice-112-12-01-002",
-          "caseNo": "律師實務案例 2（112.12.01 台中市大里區）",
-          "source": "律師實務案例彙編 #2",
-          "currentCourt": "和解",
-          "hintFromCaseNo": "台中市大里區 → 推測：臺灣臺中地方法院",
-          "needsFromLawyer": "確認是哪個法院（臺中地院/南投地院...）"
+          "code": "CTDV",
+          "count": 5,
+          "chain_breakdown": {
+            "taipei-mental-distress": 2,
+            "practice-cases": 1,
+            "labor-loss": 2
+          },
+          "prefix3": "CTD",
+          "needsFromLawyer": "查司法院表，確認 CTDV 是哪個法院；或口述正確全名"
         },
         {
-          "id": "tw-practice-113-05-20-003",
-          "caseNo": "律師實務案例 3（113.05.20 台中市南區）",
-          "source": "律師實務案例彙編 #3",
-          "currentCourt": "和解",
-          "hintFromCaseNo": "台中市南區 → 推測：臺灣臺中地方法院",
-          "needsFromLawyer": "確認"
+          "code": "ILDV",
+          "count": 9,
+          "chain_breakdown": {
+            "taipei-mental-distress": 6,
+            "car-damage": 3
+          },
+          "prefix3": "ILD",
+          "needsFromLawyer": "查司法院表，確認 ILDV 是哪個法院；或口述正確全名"
         },
         {
-          "id": "tw-practice-113-11-19-004",
-          "caseNo": "律師實務案例 4（113.11.19 彰化縣員林市）",
-          "source": "律師實務案例彙編 #4",
-          "currentCourt": "和解（客戶我方全責）",
-          "hintFromCaseNo": "彰化縣員林市 → 推測：臺灣彰化地方法院",
-          "needsFromLawyer": "確認"
+          "code": "KLDV",
+          "count": 15,
+          "chain_breakdown": {
+            "car-damage": 13,
+            "labor-loss": 2
+          },
+          "prefix3": "KLD",
+          "needsFromLawyer": "查司法院表，確認 KLDV 是哪個法院；或口述正確全名"
+        },
+        {
+          "code": "KSDM",
+          "count": 5,
+          "chain_breakdown": {
+            "car-damage": 5
+          },
+          "prefix3": "KSD",
+          "needsFromLawyer": "查司法院表，確認 KSDM 是哪個法院；或口述正確全名"
+        },
+        {
+          "code": "KSHM",
+          "count": 1,
+          "chain_breakdown": {
+            "mediation-procedures": 1
+          },
+          "prefix3": "KSH",
+          "needsFromLawyer": "查司法院表，確認 KSHM 是哪個法院；或口述正確全名"
+        },
+        {
+          "code": "PTDV",
+          "count": 2,
+          "chain_breakdown": {
+            "labor-loss": 2
+          },
+          "prefix3": "PTD",
+          "needsFromLawyer": "查司法院表，確認 PTDV 是哪個法院；或口述正確全名"
+        },
+        {
+          "code": "SCDV",
+          "count": 10,
+          "chain_breakdown": {
+            "taipei-mental-distress": 2,
+            "car-damage": 6,
+            "labor-loss": 2
+          },
+          "prefix3": "SCD",
+          "needsFromLawyer": "查司法院表，確認 SCDV 是哪個法院；或口述正確全名"
+        },
+        {
+          "code": "TCDM",
+          "count": 6,
+          "chain_breakdown": {
+            "mediation-procedures": 3,
+            "practice-cases": 3
+          },
+          "prefix3": "TCD",
+          "needsFromLawyer": "查司法院表，確認 TCDM 是哪個法院；或口述正確全名"
+        },
+        {
+          "code": "TCHM",
+          "count": 1,
+          "chain_breakdown": {
+            "practice-cases": 1
+          },
+          "prefix3": "TCH",
+          "needsFromLawyer": "查司法院表，確認 TCHM 是哪個法院；或口述正確全名"
+        },
+        {
+          "code": "TNHV",
+          "count": 4,
+          "chain_breakdown": {
+            "taipei-mental-distress": 1,
+            "mediation-procedures": 1,
+            "labor-loss": 2
+          },
+          "prefix3": "TNH",
+          "needsFromLawyer": "查司法院表，確認 TNHV 是哪個法院；或口述正確全名"
+        },
+        {
+          "code": "TPDM",
+          "count": 2,
+          "chain_breakdown": {
+            "car-damage": 1,
+            "labor-loss": 1
+          },
+          "prefix3": "TPD",
+          "needsFromLawyer": "查司法院表，確認 TPDM 是哪個法院；或口述正確全名"
+        },
+        {
+          "code": "TPHM",
+          "count": 2,
+          "chain_breakdown": {
+            "practice-cases": 2
+          },
+          "prefix3": "TPH",
+          "needsFromLawyer": "查司法院表，確認 TPHM 是哪個法院；或口述正確全名"
+        },
+        {
+          "code": "TPTA",
+          "count": 1,
+          "chain_breakdown": {
+            "car-damage": 1
+          },
+          "prefix3": "TPT",
+          "needsFromLawyer": "查司法院表，確認 TPTA 是哪個法院；或口述正確全名"
+        },
+        {
+          "code": "ULDV",
+          "count": 17,
+          "chain_breakdown": {
+            "taipei-mental-distress": 3,
+            "car-damage": 6,
+            "practice-cases": 2,
+            "labor-loss": 6
+          },
+          "prefix3": "ULD",
+          "needsFromLawyer": "查司法院表，確認 ULDV 是哪個法院；或口述正確全名"
         }
       ]
     },
     {
-      "category": "B. 法院代碼未知（v0.2.11 已加 (未知代碼) 標記）— 需查司法院表",
-      "codeAppearances": {
-        "ULDV": "5 件 (labor-loss 2 + practice 2 + taipei-mental-distress 1) — 推測宜蘭地方法院（待證）",
-        "CTDV": "3 件 (labor-loss 1 + practice 1 + taipei-mental-distress 1) — 推測嘉義地方法院（待證）",
-        "CHDM": "2 件 (practice 1 + labor-loss 1) — 推測彰化地方法院（待證）",
-        "TCHM": "1 件 (practice) — 可能是臺中分院（待證）",
-        "KSDM": "1 件 (car-damage) — 高雄分院民事庭（待證）",
-        "KSHM": "1 件 (mediation) — 高雄分院民事庭（待證）",
-        "ILDV": "2 件 (car-damage 1 + taipei-mental-distress 1) — 宜蘭地方法院另一寫法（待證）",
-        "KLDV": "2 件 (car-damage 1 + labor-loss 1) — 高雄地方法院另一寫法（待證）",
-        "PTDV": "1 件 (labor-loss) — 屏東地方法院（待證）",
-        "SCDV": "3 件 (car-damage 1 + labor-loss 1 + taipei-mental-distress 1) — 新竹地方法院另一寫法（待證）",
-        "TNHV": "2 件 (labor-loss 1 + mediation 1) — 臺南地方法院另一寫法（待證）",
-        "TCDM": "1 件 (mediation) — 臺中分院民事庭（待證）",
-        "TPDM": "2 件 (labor-loss 1 + disability-merging 1) — 臺北分院民事庭（待證）",
-        "TNHM": "1 件 (mediation) — 臺南分院民事庭（待證）",
-        "TCHV": "1 件 (mediation) — 臺中分院另一庭（待證）",
-        "TPTA": "1 件 (car-damage) — 罕見，可能是臺北高等行政法院或某庭（待證）"
-      },
-      "needsFromDev": "查司法院『法院代碼對照表』後填進 scripts/scrape-judgments.ts 的 COURT_CODE 物件。一旦填對，所有 v0.2.11+ 新抓的案件 court 欄位會自動變成中文全名，cityOf 觸發率會從 4/12 升到 4+/12。"
+      "category": "B. 律師實務案例 court=和解（4 件）— 待律師口述",
+      "description": "這幾件是從律師案例彙編手動建檔的，沒原始法院名（只有和解/和解地點）。caseNo 內有「（台中市大里區）」之類城市提示",
+      "fix": "律師直接口述正確法院全名，寫進 practice-cases.json 的 court 欄位",
+      "items": [
+        {
+          "id": "tw-practice-110-08-26-001",
+          "caseNo": "律師實務案例 1（110.08.26 新北市板橋區）",
+          "court": "新北地方法院（和解）",
+          "city_hint": "110.08.26 新北市板橋區"
+        },
+        {
+          "id": "tw-practice-112-12-01-002",
+          "caseNo": "律師實務案例 2（112.12.01 台中市大里區）",
+          "court": "和解",
+          "city_hint": "112.12.01 台中市大里區"
+        },
+        {
+          "id": "tw-practice-113-05-20-003",
+          "caseNo": "律師實務案例 3（113.05.20 台中市南區）",
+          "court": "和解",
+          "city_hint": "113.05.20 台中市南區"
+        },
+        {
+          "id": "tw-practice-113-11-19-004",
+          "caseNo": "律師實務案例 4（113.11.19 彰化縣員林市）",
+          "court": "和解（客戶我方全責）",
+          "city_hint": "113.11.19 彰化縣員林市"
+        }
+      ]
+    },
+    {
+      "category": "C. 變體（罕見格式，1 件）— 待人工判讀",
+      "description": "「臺灣臺中地方法院（基地院）」這類罕見變體，「基地院」可能是筆誤或罕見分院別名",
+      "fix": "case-by-case 判讀，多半是「（基地院）」去掉就好",
+      "items": [
+        {
+          "court": "臺灣臺中地方法院（基地院）",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "category": "D. 保險實務類（4 件）— 非地方法院，保留",
+      "description": "「保險實務」、「保險實務（勞保失能給付標準附表）」是金管會/勞動部文件，不是司法院判決",
+      "fix": "保留現狀（cityOf 永遠 null，無法觸發同縣市配權；本來就不該觸發）。不需修。",
+      "items": [
+        {
+          "court": "保險實務（勞保失能給付標準附表）",
+          "count": 1
+        },
+        {
+          "court": "保險實務",
+          "count": 3
+        }
+      ]
     }
   ],
-  "impact": "若 A 群（律師 3 件）補齊 → 觸發率 4/12 → 7/12 (58%)\n若 B 群（scrape 16 個代碼）也補齊 → 觸發率 7/12 → 12/12 (100%)\n預期可達 100% 觸發 = 12/12 件 practice_case 都能用『同縣市 +10』配權"
+  "howToRespond": "律師回覆 1 行/件即可，格式：\n  ULDV = 臺灣宜蘭地方法院\n  KLDV = 臺灣高雄地方法院\n  ...\n  tw-practice-112-12-01-002 = 臺灣臺中地方法院\n  ...\n我會批次寫進 precedents + scrape-judgments.ts 對照表。"
 }
