@@ -1,0 +1,1696 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<title>台灣車禍理賠金額估算器 — 桌面小程式 v0.3.0</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- jsPDF (CDN) for PDF 匯出 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- Google Fonts: Noto Serif TC + Source Serif 4 + Inter -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+TC:wght@400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   台灣車禍理賠估算器 — 桌面小程式 v0.3.0
+   設計風格：律師事務所（深綠/酒紅/金/襯線）
+   對齊 AGENTS.md §2.3 鐵律：InfoAlert 概念、AntD icons 替代
+   ============================================================ */
+
+:root {
+  /* === 律師事務所 design token（v0.3.0 取代 v0.2.20 rose-700） === */
+  --primary: #1B4332;            /* 深綠 — 主色（律所主色）*/
+  --primary-dark: #0F2E20;       /* 深綠更深 — hover / 強對比 */
+  --primary-soft: #E8F0EA;       /* 深綠淡 — 區塊底 */
+
+  --secondary: #722F37;          /* 酒紅 — 副色（警示/錯誤/secondary 強調）*/
+  --secondary-soft: #F5E8E9;     /* 酒紅淡 — 警示背景 */
+
+  --gold: #C9A961;               /* 金箔 — Logo / accent rule / 點綴 */
+  --gold-dark: #A88B45;          /* 金箔深 — hover */
+
+  --bg: #F5F2EC;                 /* 米白底 — 主背景（律所文件感）*/
+  --bg-card: #FFFFFF;            /* 純白 — 卡片 */
+  --bg-subtle: #EFEAE0;          /* 米色 — 區塊分隔 */
+
+  --border: #D6CFC2;             /* 米色邊框 */
+  --border-strong: #B8AEA0;      /* 米色邊框強 */
+
+  --text: #1A1A1A;               /* 主文字 */
+  --text-muted: #5C5852;         /* 次要文字 */
+  --text-faint: #8A857C;         /* 微弱文字（標籤/註腳）*/
+
+  /* 數據色 */
+  --data-positive: #166534;
+  --data-warning: #B45309;
+  --data-negative: #722F37;
+
+  /* 字型 */
+  --font-serif: "Noto Serif TC", "Source Serif 4", "Times New Roman", serif;
+  --font-sans: "Inter", "Noto Sans TC", -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", "PingFang TC", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+
+  /* 圓角（律所感：少圓角）*/
+  --r-sm: 2px;
+  --r-md: 4px;
+  --r-lg: 6px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.65;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "tnum", "ss01";
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-serif);
+  color: var(--text);
+  letter-spacing: -0.01em;
+  margin: 0 0 0.5em 0;
+}
+
+h1 { font-size: 32px; font-weight: 700; line-height: 1.15; }
+h2 { font-size: 24px; font-weight: 600; line-height: 1.25; }
+h3 { font-size: 19px; font-weight: 600; line-height: 1.3; }
+h4 { font-size: 16px; font-weight: 600; line-height: 1.4; }
+
+.tabular { font-variant-numeric: tabular-nums; font-family: var(--font-mono); }
+
+/* === Layout === */
+.app {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 24px 20px 80px 20px;
+}
+
+/* === Header / Hero（萬國風：黑色半透明遮罩 + 襯線標題） === */
+.hero {
+  position: relative;
+  background: var(--primary);
+  color: #FFFFFF;
+  border-radius: var(--r-md);
+  padding: 32px 28px 28px 28px;
+  margin-bottom: 24px;
+  border-top: 4px solid var(--gold);
+  overflow: hidden;
+}
+.hero::before {
+  /* 細微紋理（毛玻璃感）*/
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(201, 169, 97, 0.05) 0%, transparent 60%);
+  pointer-events: none;
+}
+.hero h1 {
+  color: #FFFFFF;
+  font-size: 28px;
+  margin-bottom: 6px;
+  position: relative;
+}
+.hero .subtitle {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: 0;
+  font-style: italic;
+  position: relative;
+}
+.hero .version-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--gold);
+  background: rgba(201, 169, 97, 0.15);
+  border: 1px solid var(--gold);
+  padding: 2px 8px;
+  border-radius: var(--r-sm);
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+/* === Stepper（7 步驟條，律所文件流程感） === */
+.stepper {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 12px;
+  overflow-x: auto;
+}
+.step {
+  flex: 1;
+  min-width: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 4px;
+  position: relative;
+  cursor: pointer;
+  border-radius: var(--r-sm);
+  transition: background 0.15s;
+}
+.step:hover { background: var(--bg-subtle); }
+.step.active { background: var(--primary-soft); }
+.step.completed .step-num { background: var(--primary); color: #FFFFFF; border-color: var(--primary); }
+.step .step-num {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 50%;
+  color: var(--text-muted);
+  background: var(--bg-card);
+}
+.step.active .step-num {
+  background: var(--primary);
+  color: #FFFFFF;
+  border-color: var(--primary);
+}
+.step .step-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.2;
+}
+.step.active .step-label { color: var(--primary); font-weight: 600; }
+
+/* === Card（卡片） === */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 20px 22px;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--primary);
+  margin: 0 0 14px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-title .index {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--gold);
+  background: rgba(201, 169, 97, 0.12);
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+  letter-spacing: 0.1em;
+}
+
+/* === Form fields === */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.field label {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.field label .required { color: var(--secondary); margin-left: 2px; }
+.field input, .field select, .field textarea {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  padding: 8px 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(27, 67, 50, 0.1);
+}
+.field input.tabular, .field input[type="number"] {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.field-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 640px) {
+  .field-row, .field-row-3 { grid-template-columns: 1fr; }
+}
+
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 4px;
+}
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+}
+.checkbox-group input[type="checkbox"] {
+  accent-color: var(--primary);
+  width: 14px;
+  height: 14px;
+}
+
+/* === Buttons === */
+.btn-row {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.btn {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: var(--r-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+.btn-primary {
+  background: var(--primary);
+  color: #FFFFFF;
+  border-color: var(--primary);
+}
+.btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+.btn-secondary {
+  background: var(--bg-card);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+.btn-secondary:hover { background: var(--primary-soft); }
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border-color: var(--border);
+}
+.btn-ghost:hover { background: var(--bg-subtle); color: var(--text); }
+.btn-gold {
+  background: var(--gold);
+  color: var(--primary-dark);
+  border-color: var(--gold);
+  font-weight: 600;
+}
+.btn-gold:hover { background: var(--gold-dark); border-color: var(--gold-dark); }
+
+/* === Gold rule（Baker McKenzie 風） === */
+.gold-rule {
+  width: 60px;
+  height: 2px;
+  background: var(--gold);
+  margin: 12px 0;
+  border: 0;
+}
+
+/* === Em-dash section header（萬國風） === */
+.em-dash {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  color: var(--text-muted);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-align: center;
+  margin: 24px 0 16px 0;
+  position: relative;
+}
+.em-dash::before, .em-dash::after {
+  content: "—";
+  margin: 0 12px;
+  color: var(--gold);
+}
+
+/* === Results === */
+.result-section {
+  margin-bottom: 18px;
+}
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--border);
+  font-size: 14px;
+}
+.result-row:last-child { border-bottom: none; }
+.result-row .label { color: var(--text-muted); flex: 1; }
+.result-row .value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  font-weight: 500;
+}
+.result-row.total {
+  border-top: 2px solid var(--primary);
+  border-bottom: 2px solid var(--primary);
+  margin-top: 8px;
+  padding: 12px 0;
+  font-weight: 600;
+}
+.result-row.total .value {
+  font-size: 20px;
+  color: var(--primary);
+  font-weight: 700;
+}
+.result-row .sub {
+  font-size: 11px;
+  color: var(--text-faint);
+  font-family: var(--font-sans);
+  margin-left: 6px;
+}
+
+/* === InfoAlert（AGENTS.md §2.3：自製 wrapper，取代 AntD message=description=） === */
+.info-alert {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--primary-soft);
+  border-left: 3px solid var(--primary);
+  border-radius: var(--r-sm);
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--text);
+}
+.info-alert.warning {
+  background: var(--secondary-soft);
+  border-left-color: var(--secondary);
+}
+.info-alert .alert-title {
+  font-weight: 600;
+  font-family: var(--font-serif);
+  color: var(--primary);
+  margin-bottom: 2px;
+}
+.info-alert.warning .alert-title { color: var(--secondary); }
+
+/* === Bento grid (5 區結果) === */
+.bento {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.bento-cell {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  overflow: hidden;
+}
+.bento-cell.featured {
+  grid-column: span 2;
+  grid-row: span 2;
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--primary-soft) 100%);
+  border-left: 3px solid var(--gold);
+}
+.bento-cell .bento-icon {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+  margin-bottom: 2px;
+}
+.bento-cell .bento-title {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--primary);
+  margin: 0;
+}
+.bento-cell .bento-sub {
+  font-size: 11px;
+  color: var(--text-faint);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.bento-cell .bento-amount {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 4px 0 2px 0;
+}
+.bento-cell.featured .bento-amount { font-size: 28px; }
+.bento-cell .bento-range {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.bento-cell .bento-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-top: 4px;
+}
+@media (max-width: 640px) {
+  .bento { grid-template-columns: 1fr; }
+  .bento-cell.featured { grid-column: span 1; grid-row: span 1; }
+}
+
+/* === Disclaim footer === */
+.disclaim {
+  background: var(--bg-subtle);
+  border-top: 3px double var(--secondary);
+  padding: 20px 22px;
+  margin-top: 32px;
+  border-radius: var(--r-md);
+}
+.disclaim .disclaim-title {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--secondary);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.disclaim p {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0 0 6px 0;
+}
+
+/* === Iron rules（4 條鐵律） === */
+.iron-rules {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  margin: 16px 0;
+}
+.iron-cell {
+  background: var(--bg-card);
+  padding: 12px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.iron-cell .iron-num {
+  font-family: var(--font-mono);
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.iron-cell .iron-text {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.5;
+}
+.iron-cell .iron-text strong { color: var(--primary); }
+@media (max-width: 640px) {
+  .iron-rules { grid-template-columns: 1fr; }
+}
+
+/* === Step nav === */
+.step-pane { display: none; }
+.step-pane.active { display: block; }
+
+/* === Print / PDF prep === */
+@media print {
+  .stepper, .btn-row, .disclaim, .hero { display: none !important; }
+  .step-pane { display: block !important; }
+  .card { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============ Hero ============ -->
+  <header class="hero">
+    <span class="version-tag">v0.3.0 · 桌面小程式</span>
+    <h1>台灣車禍理賠金額估算器</h1>
+    <p class="subtitle">Taiwan Car-Claim Estimator — 律師事務所桌面版</p>
+  </header>
+
+  <!-- ============ 免責聲明 + 4 條鐵律（永遠顯示） ============ -->
+  <div class="info-alert warning">
+    <div>
+      <div class="alert-title">— 免責聲明 —</div>
+      本系統依使用者輸入資料、強制汽車責任保險給付標準、常見民事損害賠償項目、金融評議公開案例及法院實務區間進行<strong>初步試算</strong>。實際理賠金額仍須依保險公司審核、醫療資料、肇事責任、保單條款、金融評議結果、法院認定及雙方和解結果為準。<strong>本系統不保證理賠金額，亦不構成法律意見。</strong>
+    </div>
+  </div>
+
+  <div class="iron-rules">
+    <div class="iron-cell"><span class="iron-num">①</span><div class="iron-text"><strong>強制險採無過失主義</strong>，不乘肇責比例，純依傷害程度計算。</div></div>
+    <div class="iron-cell"><span class="iron-num">②</span><div class="iron-text">精神慰撫金 / 工作損失 / 車損 <strong>不放入強制險</strong>（法律強制）。</div></div>
+    <div class="iron-cell"><span class="iron-num">③</span><div class="iron-text">關節角度喪失 <strong>只進失能初篩</strong>，不直判失能，給補件建議。</div></div>
+    <div class="iron-cell"><span class="iron-num">④</span><div class="iron-text"><strong>資料不足不硬算</strong>，顯示需補資料，不給假數字。</div></div>
+  </div>
+
+  <!-- ============ Stepper ============ -->
+  <nav class="stepper" id="stepper">
+    <div class="step active" data-step="1"><span class="step-num">1</span><span class="step-label">事故基本</span></div>
+    <div class="step" data-step="2"><span class="step-num">2</span><span class="step-label">肇責</span></div>
+    <div class="step" data-step="3"><span class="step-num">3</span><span class="step-label">個人/收入</span></div>
+    <div class="step" data-step="4"><span class="step-num">4</span><span class="step-label">醫療/失能</span></div>
+    <div class="step" data-step="5"><span class="step-num">5</span><span class="step-label">醫療收據</span></div>
+    <div class="step" data-step="6"><span class="step-num">6</span><span class="step-label">車損/財損</span></div>
+    <div class="step" data-step="7"><span class="step-num">7</span><span class="step-label">結果 + PDF</span></div>
+  </nav>
+
+  <!-- ============ Step 1：事故基本 ============ -->
+  <section class="step-pane active" data-pane="1">
+    <div class="card">
+      <h2 class="card-title"><span class="index">STEP 01</span>事故基本資料</h2>
+      <div class="field-row">
+        <div class="field">
+          <label>事故日期<span class="required">*</span></label>
+          <input type="date" id="accidentDate" />
+        </div>
+        <div class="field">
+          <label>事故地點<span class="required">*</span></label>
+          <input type="text" id="accidentLocation" placeholder="例：臺中市西區美村路" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>事故縣市<span class="required">*</span></label>
+          <select id="accidentCity">
+            <option value="">— 請選擇 —</option>
+            <option>臺北市</option><option>新北市</option><option>桃園市</option>
+            <option>臺中市</option><option>臺南市</option><option>高雄市</option>
+            <option>基隆市</option><option>新竹市</option><option>新竹縣</option>
+            <option>苗栗縣</option><option>彰化縣</option><option>南投縣</option>
+            <option>雲林縣</option><option>嘉義市</option><option>嘉義縣</option>
+            <option>屏東縣</option><option>宜蘭縣</option><option>花蓮縣</option>
+            <option>臺東縣</option><option>澎湖縣</option><option>金門縣</option>
+            <option>連江縣</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>法院管轄（自動帶入）</label>
+          <input type="text" id="courtJurisdiction" placeholder="例：臺灣臺中地方法院" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>車禍類型</label>
+          <select id="accidentType">
+            <option value="car_to_car">汽車 vs 汽車</option>
+            <option value="car_to_motorcycle">汽車 vs 機車</option>
+            <option value="car_to_pedestrian">汽車 vs 行人</option>
+            <option value="motorcycle_to_motorcycle">機車 vs 機車</option>
+            <option value="motorcycle_to_pedestrian">機車 vs 行人</option>
+            <option value="single_vehicle">單一車輛自撞</option>
+            <option value="other">其他</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>受害人身分</label>
+          <select id="injuredRole">
+            <option value="driver_car">汽車駕駛</option>
+            <option value="driver_motorcycle">機車駕駛</option>
+            <option value="passenger_car">汽車乘客</option>
+            <option value="passenger_motorcycle">機車乘客</option>
+            <option value="pedestrian">行人</option>
+            <option value="cyclist">自行車騎士</option>
+            <option value="other">其他</option>
+          </select>
+        </div>
+      </div>
+      <div class="checkbox-group">
+        <label><input type="checkbox" id="hasPolicePreliminaryReport" /> 警方初步研判表</label>
+        <label><input type="checkbox" id="hasAccidentAppraisal" /> 車輛行車事故鑑定</label>
+        <label><input type="checkbox" id="hasCompulsoryInsurance" checked /> 有強制險</label>
+        <label><input type="checkbox" id="hasThirdPartyInsurance" checked /> 有第三人責任險</label>
+      </div>
+      <div class="field-row-3" style="margin-top:12px">
+        <div class="field"><label>第三人責任險 體傷保額（元）</label><input type="number" id="thirdPartyBodilyLimit" value="2000000" /></div>
+        <div class="field"><label>第三人責任險 財損保額（元）</label><input type="number" id="thirdPartyPropertyLimit" value="200000" /></div>
+        <div class="field"><label>超額責任險保額（元）</label><input type="number" id="excessLiabilityLimit" value="0" /></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" disabled>← 上一步</button>
+      <button class="btn btn-primary" onclick="goStep(2)">下一步：肇責 →</button>
+    </div>
+  </section>
+
+  <!-- ============ Step 2：肇責 ============ -->
+  <section class="step-pane" data-pane="2">
+    <div class="card">
+      <h2 class="card-title"><span class="index">STEP 02</span>肇事責任比例</h2>
+      <div class="info-alert">
+        <div><strong>鐵律 ①：</strong>強制險採無過失主義 → 強制險部分<strong>不乘</strong>肇責比例；肇責只影響第三人責任險。</div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>我方肇責比例 (%)<span class="required">*</span></label>
+          <input type="number" id="selfFaultRatio" min="0" max="100" value="50" />
+        </div>
+        <div class="field">
+          <label>對方肇責比例 (%)<span class="required">*</span></label>
+          <input type="number" id="otherFaultRatio" min="0" max="100" value="50" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>肇責來源</label>
+          <select id="faultSource">
+            <option value="both_sides_agreed">雙方和解</option>
+            <option value="police_preliminary">警方初步研判表</option>
+            <option value="accident_appraisal">車輛行車事故鑑定</option>
+            <option value="court_judgment">法院判決</option>
+            <option value="unclear">不明</option>
+          </select>
+        </div>
+        <div class="field">
+          <label style="display:flex;align-items:center;gap:6px">
+            <input type="checkbox" id="isFaultDisputed" style="accent-color:var(--secondary)" /> 肇責仍有爭議
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goStep(1)">← 上一步</button>
+      <button class="btn btn-primary" onclick="goStep(3)">下一步：個人/收入 →</button>
+    </div>
+  </section>
+
+  <!-- ============ Step 3：個人/收入 ============ -->
+  <section class="step-pane" data-pane="3">
+    <div class="card">
+      <h2 class="card-title"><span class="index">STEP 03</span>個人資料與收入</h2>
+      <div class="field-row-3">
+        <div class="field"><label>出生年月日</label><input type="date" id="birthDate" /></div>
+        <div class="field"><label>年齡</label><input type="number" id="age" value="40" /></div>
+        <div class="field"><label>職業</label><input type="text" id="occupation" placeholder="例：工程師" /></div>
+      </div>
+      <div class="field">
+        <label>受僱類型</label>
+        <select id="employmentType">
+          <option value="full_time_salary">正職月薪</option>
+          <option value="part_time_salary">兼職月薪</option>
+          <option value="self_employed">自營/自由業</option>
+          <option value="daily_wage">按日計酬</option>
+          <option value="unemployed">待業</option>
+          <option value="retired">退休</option>
+          <option value="student">學生</option>
+          <option value="homemaker">家管</option>
+        </select>
+      </div>
+      <div class="field-row-3">
+        <div class="field"><label>事故前 6 月平均月薪（元）</label><input type="number" id="sixMonthAverageSalary" value="50000" /></div>
+        <div class="field"><label>現職月薪（元）</label><input type="number" id="monthlySalary" value="50000" /></div>
+        <div class="field"><label>去年報稅所得（元）</label><input type="number" id="lastYearTaxableIncome" value="600000" /></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>醫囑休養日數</label><input type="number" id="doctorOrderedRestDays" value="30" /></div>
+        <div class="field"><label>實際請假日數</label><input type="number" id="actualLeaveDays" value="14" /></div>
+      </div>
+      <div class="checkbox-group">
+        <label><input type="checkbox" id="hasSalaryTransferRecord" /> 薪轉證明</label>
+        <label><input type="checkbox" id="hasLeaveCertificate" /> 請假證明</label>
+        <label><input type="checkbox" id="hasSalaryDeductionProof" /> 扣薪證明</label>
+        <label><input type="checkbox" id="hasPropertyList" /> 財產清單</label>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goStep(2)">← 上一步</button>
+      <button class="btn btn-primary" onclick="goStep(4)">下一步：醫療/失能 →</button>
+    </div>
+  </section>
+
+  <!-- ============ Step 4：醫療/失能 ============ -->
+  <section class="step-pane" data-pane="4">
+    <div class="card">
+      <h2 class="card-title"><span class="index">STEP 04</span>醫療與失能</h2>
+      <div class="field">
+        <label>診斷（簡述）</label>
+        <input type="text" id="diagnosisText" placeholder="例：右膝韌帶撕裂、左肩挫傷" />
+      </div>
+      <div class="field-row">
+        <div class="field"><label>醫院名稱</label><input type="text" id="hospitalName" placeholder="例：中國醫藥大學附設醫院" /></div>
+        <div class="field"><label>急診日期</label><input type="date" id="emergencyDate" /></div>
+      </div>
+      <div class="field-row-3">
+        <div class="field"><label>門診次數</label><input type="number" id="outpatientVisitCount" value="5" /></div>
+        <div class="field"><label>住院天數</label><input type="number" id="hospitalizationDays" value="0" /></div>
+        <div class="field"><label>復健次數</label><input type="number" id="rehabilitationCount" value="0" /></div>
+      </div>
+      <div class="checkbox-group">
+        <label><input type="checkbox" id="hasSurgery" /> 有手術</label>
+        <label><input type="checkbox" id="hasRehabilitation" /> 有復健</label>
+        <label><input type="checkbox" id="requiresNursingCare" /> 需看護</label>
+        <label><input type="checkbox" id="hasDisabilityCertificate" /> 有失能診斷書</label>
+        <label><input type="checkbox" id="hasFracture" /> 有骨折</label>
+        <label><input type="checkbox" id="hasNerveDamage" /> 有神經損傷</label>
+        <label><input type="checkbox" id="hasPermanentImpairment" /> 有永久性障害</label>
+        <label><input type="checkbox" id="hasScar" /> 有疤痕</label>
+      </div>
+      <div class="field-row-3" style="margin-top:10px">
+        <div class="field">
+          <label>失能種類（12 大類）</label>
+          <select id="disabilityCategory">
+            <option value="">— 無 / 資料不足 —</option>
+            <option value="01_mental">①精神神經</option>
+            <option value="02_eye">②眼</option>
+            <option value="03_ear">③耳</option>
+            <option value="04_nose">④鼻</option>
+            <option value="05_throat">⑤咽喉口腔</option>
+            <option value="06_face_neck">⑥顏面頸部</option>
+            <option value="07_thoracic_organ">⑦胸腹部臟器</option>
+            <option value="08_spine">⑧脊柱</option>
+            <option value="09_upper_limb">⑨上肢</option>
+            <option value="10_finger">⑩手指</option>
+            <option value="11_lower_limb">⑪下肢</option>
+            <option value="12_toe">⑫足趾</option>
+          </select>
+        </div>
+        <div class="field"><label>失能等級（1-15）</label><input type="number" id="disabilityLevel" min="1" max="15" placeholder="選大類後自動帶出" /></div>
+        <div class="field"><label>關節角度喪失（度）</label><input type="number" id="romLossDegree" value="0" /></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goStep(3)">← 上一步</button>
+      <button class="btn btn-primary" onclick="goStep(5)">下一步：醫療收據 →</button>
+    </div>
+  </section>
+
+  <!-- ============ Step 5：醫療收據 ============ -->
+  <section class="step-pane" data-pane="5">
+    <div class="card">
+      <h2 class="card-title"><span class="index">STEP 05</span>強制險醫療細項（15 細項）</h2>
+      <div class="info-alert">
+        <div><strong>v0.2.5 法規：</strong>「醫材 + 輔具」2 萬上限只限 <strong>特殊材料（骨材/鋼板/人工關節）+ 輔具</strong>；一般醫材（紗布/縫線）改歸「健保自付額」/「非健保必要」，無上限。</div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>急救費用</label><input type="number" id="emergencyFee" value="0" /></div>
+        <div class="field"><label>救護車費</label><input type="number" id="ambulanceFee" value="0" /></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>健保自付額</label><input type="number" id="nhiCopayment" value="0" /></div>
+        <div class="field"><label>掛號費</label><input type="number" id="registrationFee" value="0" /></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>診斷證明書費</label><input type="number" id="diagnosisCertificateFee" value="0" /></div>
+        <div class="field"><label>非健保必要醫療費</label><input type="number" id="nonNhiNecessaryMedicalFee" value="0" /></div>
+      </div>
+      <div class="field-row-3">
+        <div class="field"><label>病房費差額（日）</label><input type="number" id="wardFeeDays" value="0" /></div>
+        <div class="field"><label>病房費差額（元）</label><input type="number" id="wardFeeDifference" value="0" /></div>
+        <div class="field"><label>膳食天數</label><input type="number" id="mealDays" value="0" /></div>
+      </div>
+      <div class="field-row-3">
+        <div class="field"><label>特殊材料費（v0.2.5+）</label><input type="number" id="specialMaterialFee" value="0" /></div>
+        <div class="field"><label>輔具費</label><input type="number" id="assistiveDeviceFee" value="0" /></div>
+        <div class="field"><label>接送費</label><input type="number" id="transportationFee" value="0" /></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>看護天數（最高 30）</label><input type="number" id="nursingDays" value="0" /></div>
+        <div class="field"><label>看護費（每日上限 1,200）</label><input type="number" id="nursingFee" value="0" /></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>義肢費（每肢上限 5 萬）</label><input type="number" id="prosthesisFee" value="0" /></div>
+        <div class="field"><label>其他必要醫療費</label><input type="number" id="otherNecessaryMedicalFee" value="0" /></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goStep(4)">← 上一步</button>
+      <button class="btn btn-primary" onclick="goStep(6)">下一步：車損/財損 →</button>
+    </div>
+  </section>
+
+  <!-- ============ Step 6：車損/財損 ============ -->
+  <section class="step-pane" data-pane="6">
+    <div class="card">
+      <h2 class="card-title"><span class="index">STEP 06</span>車輛與財物損害</h2>
+      <div class="field-row">
+        <div class="field"><label>車輛估價單（元）</label><input type="number" id="vehicleRepairEstimate" value="0" /></div>
+        <div class="field"><label>車輛發票（元）</label><input type="number" id="vehicleRepairInvoice" value="0" /></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>事故前車價（元）</label><input type="number" id="vehicleMarketValueBeforeAccident" value="0" /></div>
+        <div class="field"><label>殘值（元）</label><input type="number" id="salvageValue" value="0" /></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>拖吊費</label><input type="number" id="towingFee" value="0" /></div>
+        <div class="field"><label>租車費</label><input type="number" id="rentalCarFee" value="0" /></div>
+      </div>
+      <div class="field-row-3">
+        <div class="field"><label>手機損壞</label><input type="number" id="phoneDamage" value="0" /></div>
+        <div class="field"><label>安全帽損壞</label><input type="number" id="helmetDamage" value="0" /></div>
+        <div class="field"><label>衣物損壞</label><input type="number" id="clothingDamage" value="0" /></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>眼鏡損壞</label><input type="number" id="glassesDamage" value="0" /></div>
+        <div class="field"><label>其他財損</label><input type="number" id="otherPropertyDamage" value="0" /></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goStep(5)">← 上一步</button>
+      <button class="btn btn-primary" onclick="goStep(7)">下一步：試算結果 →</button>
+    </div>
+  </section>
+
+  <!-- ============ Step 7：結果 + PDF ============ -->
+  <section class="step-pane" data-pane="7">
+    <div class="card">
+      <h2 class="card-title"><span class="index">STEP 07</span>試算結果（5 區估算）</h2>
+      <div class="bento" id="bentoResult">
+        <!-- 由 JS 動態生成 -->
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="em-dash">強制險 15 細項明細</h3>
+      <div id="compulsoryItems"></div>
+    </div>
+
+    <div class="card">
+      <h3 class="em-dash">民事損害 + 失能初篩 + 補件清單</h3>
+      <div id="civilDamages"></div>
+    </div>
+
+    <div class="card">
+      <h3 class="em-dash">第三人責任險估算 + 配權相似判例</h3>
+      <div id="thirdPartyAndCases"></div>
+    </div>
+
+    <div class="card">
+      <h3 class="em-dash">地區實務 + 霍夫曼係數</h3>
+      <div id="regionAndHoffmann"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goStep(6)">← 上一步</button>
+      <button class="btn btn-gold" onclick="exportPDF()">📄 匯出 PDF 案件報告</button>
+    </div>
+  </section>
+
+  <!-- ============ Disclaim Footer ============ -->
+  <footer class="disclaim">
+    <div class="disclaim-title">⚖ 免責聲明 / Disclaimer</div>
+    <p>本系統依使用者輸入資料、強制汽車責任保險給付標準、常見民事損害賠償項目、金融評議公開案例及法院實務區間進行<strong>初步試算</strong>。實際理賠金額仍須依保險公司審核、醫療資料、肇事責任、保單條款、金融評議結果、法院認定及雙方和解結果為準。</p>
+    <p><strong>本系統不保證理賠金額，亦不構成法律意見。</strong>涉及具體案件請諮詢執業律師。</p>
+    <p style="font-family:var(--font-mono); font-size:11px; color:var(--text-faint); margin-top:10px">
+      © 2026 tw-car-claim-estimator · 桌面小程式 v0.3.0 · 計算引擎對齊 lib/insurance/* 8 函式
+    </p>
+  </footer>
+
+</div>
+
+<script>
+// ============================================================
+// 台灣車禍理賠估算器 — 計算引擎（內嵌版 v0.3.0）
+// 對齊 lib/insurance/* 8 函式（精簡版，移除測試 hooks）
+// ============================================================
+
+// --- 常數（強制汽車責任保險給付標準） ---
+const COMPULSORY_LIMITS = {
+  TOTAL_MEDICAL_CAP: 200_000,
+  WARD_FEE_DAILY_CAP: 1_500,
+  MEAL_FEE_DAILY_CAP: 180,
+  PROSTHESIS_PER_LIMB: 50_000,
+  DENTURE_PER_TOOTH: 10_000,
+  ARTIFICIAL_EYE: 10_000,
+  MEDICAL_MATERIAL_ASSISTIVE: 20_000,  // v0.2.5：只限特殊材料 + 輔具
+  TRANSPORTATION: 20_000,
+  NURSING_DAILY: 1_200,
+  NURSING_DAYS_CAP: 30,
+  DISABILITY_TABLE: {  // v0.3.0 強制險失能等級金額表（2026-07-01 新制）
+    1: 1_900_000, 2: 1_550_000, 3: 1_300_000, 4: 1_100_000, 5: 950_000,
+    6: 800_000, 7: 660_000, 8: 540_000, 9: 440_000, 10: 360_000,
+    11: 280_000, 12: 220_000, 13: 160_000, 14: 120_000, 15: 80_000
+  }
+};
+
+// --- 霍夫曼係數表（r=5%）---
+const HOFFMANN = (() => {
+  const r = 0.05;
+  const table = {};
+  for (let n = 1; n <= 40; n++) table[n] = (1 - Math.pow(1 + r, -n)) / r;
+  return table;
+})();
+
+// --- 失能等級勞動能力減損百分比 ---
+const LABOR_LOSS_PCT = {
+  1: 100, 2: 95, 3: 90, 4: 85, 5: 80, 6: 75, 7: 70, 8: 65, 9: 60, 10: 55,
+  11: 45, 12: 35, 13: 25, 14: 15, 15: 5
+};
+
+// --- 失能 12 大類常見等級（v0.2.19 內建表）---
+const DISABILITY_CATEGORY_DEFAULT_LEVEL = {
+  '01_mental': 13, '02_eye': 11, '03_ear': 11, '04_nose': 12,
+  '05_throat': 13, '06_face_neck': 13, '07_thoracic_organ': 8,
+  '08_spine': 9, '09_upper_limb': 9, '10_finger': 12,
+  '11_lower_limb': 8, '12_toe': 13
+};
+
+// --- 地區係數（精神慰撫金 6 直轄市）---
+const REGION_MULTIPLIER = {
+  '臺北市': 1.15, '新北市': 1.08, '桃園市': 1.02,
+  '臺中市': 1.05, '臺南市': 0.95, '高雄市': 0.98
+};
+const DEFAULT_REGION_MULTIPLIER = 1.0;
+
+const CITY_TO_COURT = {
+  '臺北市': '臺灣臺北地方法院', '新北市': '臺灣新北地方法院', '桃園市': '臺灣桃園地方法院',
+  '臺中市': '臺灣臺中地方法院', '臺南市': '臺灣臺南地方法院', '高雄市': '臺灣高雄地方法院'
+};
+
+// --- 工具函式 ---
+const $ = (id) => document.getElementById(id);
+const num = (id) => parseFloat($(id).value) || 0;
+const bool = (id) => $(id).checked;
+const fmt = (n) => 'NT$ ' + Math.round(n).toLocaleString('zh-TW');
+const fmtRange = (low, high) => fmt(low) + ' ~ ' + fmt(high);
+
+// ============================================================
+// 函式 1/8：calcCompulsory 強制險 15 細項
+// ============================================================
+function calcCompulsory(input) {
+  const items = [];
+  const mk = (key, label, applied, cap, reason, hint) => ({
+    key, label, applied, approved: Math.min(applied, cap ?? Infinity), legalCap: cap, reductionReason: reason, supplementHint: hint
+  });
+
+  items.push(mk('emergencyFee', '急救費用', input.emergencyFee, null, null, null));
+  items.push(mk('ambulanceFee', '救護車費', input.ambulanceFee, null, null, null));
+  items.push(mk('nhiCopayment', '健保自付額', input.nhiCopayment, null, null, input.nhiCopayment === 0 ? '未輸入健保自付額' : null));
+  items.push(mk('registrationFee', '掛號費', input.registrationFee, null, null, null));
+  items.push(mk('diagnosisCertificateFee', '診斷證明書費', input.diagnosisCertificateFee, null, null, null));
+  items.push(mk('nonNhiNecessaryMedicalFee', '非健保必要醫療費', input.nonNhiNecessaryMedicalFee, null, null, null));
+
+  // 病房費差額
+  const wardCap = COMPULSORY_LIMITS.WARD_FEE_DAILY_CAP * input.wardFeeDays;
+  items.push(mk('wardFee', '病房費差額', input.wardFeeDifference, wardCap,
+    input.wardFeeDifference > wardCap ? `單日 ${Math.round(input.wardFeeDifference/Math.max(input.wardFeeDays,1))} 超 1,500 上限` : null,
+    input.wardFeeDays === 0 && input.wardFeeDifference > 0 ? '需輸入住院天數' : null));
+
+  // 膳食費
+  const mealCap = COMPULSORY_LIMITS.MEAL_FEE_DAILY_CAP * input.mealDays;
+  items.push(mk('mealFee', '膳食費', COMPULSORY_LIMITS.MEAL_FEE_DAILY_CAP * input.mealDays, mealCap, null, null));
+
+  // v0.2.5：特殊材料 + 輔具共套 2 萬上限
+  const matAssistSubtotal = (input.specialMaterialFee || 0) + input.assistiveDeviceFee;
+  const matAssistApproved = Math.min(matAssistSubtotal, COMPULSORY_LIMITS.MEDICAL_MATERIAL_ASSISTIVE);
+  items.push({
+    key: 'specialMaterialAndAssistive',
+    label: '特殊材料 + 輔具',
+    applied: matAssistSubtotal,
+    approved: matAssistApproved,
+    legalCap: COMPULSORY_LIMITS.MEDICAL_MATERIAL_ASSISTIVE,
+    reductionReason: matAssistSubtotal > COMPULSORY_LIMITS.MEDICAL_MATERIAL_ASSISTIVE ? `共 ${fmt(matAssistSubtotal)} 超 2 萬上限` : null,
+    supplementHint: null,
+    subItems: [
+      { key: 'specialMaterial', label: '特殊材料費', applied: input.specialMaterialFee || 0, approved: Math.min(input.specialMaterialFee || 0, COMPULSORY_LIMITS.MEDICAL_MATERIAL_ASSISTIVE) },
+      { key: 'assistiveDevice', label: '輔具費', applied: input.assistiveDeviceFee, approved: Math.min(input.assistiveDeviceFee, COMPULSORY_LIMITS.MEDICAL_MATERIAL_ASSISTIVE) }
+    ]
+  });
+
+  // 接送費
+  items.push(mk('transportation', '接送費', input.transportationFee, COMPULSORY_LIMITS.TRANSPORTATION,
+    input.transportationFee > COMPULSORY_LIMITS.TRANSPORTATION ? `超 2 萬上限` : null, null));
+
+  // 看護費
+  const nursingDays = Math.min(input.nursingDays, COMPULSORY_LIMITS.NURSING_DAYS_CAP);
+  const nursingCap = COMPULSORY_LIMITS.NURSING_DAILY * nursingDays;
+  const nursingApplied = input.nursingFee;
+  items.push(mk('nursing', '看護費', nursingApplied, nursingCap,
+    nursingApplied > nursingCap ? `超 ${COMPULSORY_LIMITS.NURSING_DAYS_CAP} 日上限` : null,
+    input.nursingDays > COMPULSORY_LIMITS.NURSING_DAYS_CAP ? `已截為 30 日上限（實填 ${input.nursingDays} 日）` : null));
+
+  items.push(mk('prosthesis', '義肢器材', input.prosthesisFee, COMPULSORY_LIMITS.PROSTHESIS_PER_LIMB, null, null));
+  items.push(mk('otherMedical', '其他必要醫療費', input.otherNecessaryMedicalFee, null, null, null));
+
+  // 加總（受 20 萬總額上限）
+  const subtotal = items.reduce((s, i) => s + i.applied, 0);
+  const approvedSum = items.reduce((s, i) => s + i.approved, 0);
+  const totalApproved = Math.min(approvedSum, COMPULSORY_LIMITS.TOTAL_MEDICAL_CAP);
+
+  return { items, subtotal, approved: totalApproved, cappedByTotal: approvedSum > COMPULSORY_LIMITS.TOTAL_MEDICAL_CAP };
+}
+
+// ============================================================
+// 函式 2/8：calcDisability 失能初篩（4 級 A/B/C/D）
+// ============================================================
+function calcDisability(medical) {
+  const signals = [];
+  let screening = 'A';
+  let confidence = 0.5;
+
+  if (medical.hasFracture) { signals.push('骨折'); screening = 'B'; confidence = 0.6; }
+  if (medical.hasNerveDamage) { signals.push('神經損傷'); screening = 'C'; confidence = 0.75; }
+  if (medical.hasPermanentImpairment) { signals.push('永久性障害'); screening = 'C'; confidence = 0.8; }
+  if (medical.hasDisabilityCertificate) { signals.push('失能診斷書'); screening = 'D'; confidence = 0.95; }
+
+  // 12 大類 + 等級 → 金額
+  let possibleLevel = null, possibleAmount = 0;
+  if (medical.disabilityLevel) {
+    possibleLevel = medical.disabilityLevel;
+    possibleAmount = COMPULSORY_LIMITS.DISABILITY_TABLE[possibleLevel] || 0;
+    if (screening === 'A') { screening = 'D'; confidence = 0.95; }
+  } else if (medical.disabilityCategory && DISABILITY_CATEGORY_DEFAULT_LEVEL[medical.disabilityCategory]) {
+    possibleLevel = DISABILITY_CATEGORY_DEFAULT_LEVEL[medical.disabilityCategory];
+    possibleAmount = COMPULSORY_LIMITS.DISABILITY_TABLE[possibleLevel];
+  }
+
+  // 關節 ROM 警示（鐵律 ③：只進初篩不直判）
+  let romLossPercent = null;
+  if (medical.romLossDegree > 0) {
+    const normalDegree = 180;  // 簡化預設
+    romLossPercent = Math.min(medical.romLossDegree / normalDegree, 1);
+    signals.push(`關節角度喪失 ${medical.romLossDegree}° (${Math.round(romLossPercent*100)}%)`);
+    if (screening === 'A') { screening = 'B'; confidence = 0.6; }
+  }
+
+  const needsSupplement = [];
+  if (!medical.hasDisabilityCertificate && (screening === 'C' || screening === 'D')) {
+    needsSupplement.push('需補「失能診斷書」（醫師開立）');
+  }
+  if (medical.romLossDegree > 0 && !medical.hasDisabilityCertificate) {
+    needsSupplement.push('需 X 光片 + 醫師關節活動度量測記錄');
+  }
+  if (screening === 'B' && signals.length === 0) {
+    needsSupplement.push('失能線索不明顯，建議補診斷書與影像');
+  }
+
+  return { screening, signals, possibleLevel, possibleAmount, confidenceScore: confidence, romLossPercent, needsSupplement };
+}
+
+// ============================================================
+// 函式 3/8：calcCivilDamages 民事損害（精神撫金 + 工作損失 + 看護 + 除疤）
+// ============================================================
+function calcCivilDamages(input, medical, regionMult) {
+  // 精神慰撫金（依住院天數 + 復健次數 + 失能 + 永久障害 多級評分）
+  let painBase = 30_000;  // 基礎 3 萬
+  if (medical.hospitalizationDays >= 7) painBase = 80_000;
+  if (medical.hospitalizationDays >= 14) painBase = 150_000;
+  if (medical.hospitalizationDays >= 30) painBase = 250_000;
+  if (medical.hasPermanentImpairment) painBase += 200_000;
+  if (medical.disabilityLevel) painBase += COMPULSORY_LIMITS.DISABILITY_TABLE[medical.disabilityLevel] * 0.3;
+
+  const painLow = Math.round(painBase * 0.6 * regionMult);
+  const painMid = Math.round(painBase * regionMult);
+  const painHigh = Math.round(painBase * 1.5 * regionMult);
+
+  // 工作損失
+  const restDays = Math.max(medical.doctorOrderedRestDays || 0, medical.actualLeaveDays || 0);
+  const monthlyIncome = medical.sixMonthAverageSalary || medical.monthlySalary || 0;
+  const dailyIncome = monthlyIncome / 30;
+  const workLossShortTerm = Math.round(dailyIncome * restDays);
+
+  // 長期（>6 月）走霍夫曼
+  let workLossLongTerm = 0;
+  if (restDays > 180 && medical.disabilityLevel) {
+    const restYears = Math.min(restDays / 365, 30);
+    const years = Math.ceil(restYears);
+    const hoffCoeff = HOFFMANN[years] || (years > 40 ? (1 - Math.pow(1.05, -years)) / 0.05 : 0);
+    const lossPct = (LABOR_LOSS_PCT[medical.disabilityLevel] || 0) / 100;
+    workLossLongTerm = Math.round(monthlyIncome * 12 * hoffCoeff * lossPct * regionMult);
+  }
+
+  const workLoss = workLossLongTerm > 0 ? workLossLongTerm : workLossShortTerm;
+  const workLossEvidence = (input.hasSalaryTransferRecord && input.hasLeaveCertificate && input.hasSalaryDeductionProof) ? 'high' :
+                           (input.hasSalaryTransferRecord || input.hasLeaveCertificate) ? 'medium' : 'low';
+
+  // 看護費（民事，每日 2,000-2,500）
+  const nursingDailyMid = 2_200 * regionMult;
+  const nursingDailyLow = 2_000 * regionMult;
+  const nursingDailyHigh = 2_500 * regionMult;
+  const nursingDays = medical.requiresNursingCare ? (medical.nursingDays || medical.hospitalizationDays || 14) : 0;
+  const nursingFeeLow = Math.round(nursingDailyLow * nursingDays);
+  const nursingFeeMid = Math.round(nursingDailyMid * nursingDays);
+  const nursingFeeHigh = Math.round(nursingDailyHigh * nursingDays);
+
+  // 交通接送費
+  const transportFee = (medical.outpatientVisitCount || 0) * 200 * regionMult;
+
+  // 勞動能力減損（霍夫曼）
+  let laborCapacityLoss = 0;
+  let laborCapacityLossNotes = [];
+  if (medical.disabilityLevel && medical.age > 0) {
+    const retireAge = 65;
+    const restYears = Math.max(retireAge - medical.age, 0);
+    if (restYears > 0) {
+      const hoffCoeff = HOFFMANN[restYears] || (restYears > 40 ? (1 - Math.pow(1.05, -restYears)) / 0.05 : 0);
+      const lossPct = (LABOR_LOSS_PCT[medical.disabilityLevel] || 0) / 100;
+      laborCapacityLoss = Math.round((monthlyIncome * 12) * hoffCoeff * lossPct * regionMult);
+      laborCapacityLossNotes.push(`霍夫曼 ${restYears} 年 × 減損 ${LABOR_LOSS_PCT[medical.disabilityLevel]}% × 地區係數 ${regionMult.toFixed(2)}`);
+    }
+  }
+
+  return {
+    painAndSuffering: { low: painLow, mid: painMid, high: painHigh },
+    workLoss, workLossEvidence, workLossShortTerm, workLossLongTerm, workLossDailyIncome: dailyIncome, workLossDays: restDays,
+    nursingFeeLow, nursingFeeMid, nursingFeeHigh, nursingDays,
+    transportFee: Math.round(transportFee),
+    laborCapacityLoss, laborCapacityLossNotes
+  };
+}
+
+// ============================================================
+// 函式 4/8：calcThirdParty 第三人責任險估算（扣強制險 + 套保額）
+// ============================================================
+function calcThirdParty(input, civil, compulsory) {
+  // 體傷總額（民事損害 - 強制險已估）
+  const bodilyTotalLow = civil.painAndSuffering.low + civil.workLoss + civil.nursingFeeLow + civil.transportFee + civil.laborCapacityLoss;
+  const bodilyTotalMid = civil.painAndSuffering.mid + civil.workLoss + civil.nursingFeeMid + civil.transportFee + civil.laborCapacityLoss;
+  const bodilyTotalHigh = civil.painAndSuffering.high + civil.workLoss + civil.nursingFeeHigh + civil.transportFee + civil.laborCapacityLoss;
+
+  // 肇責比例
+  const otherFaultRatio = input.otherFaultRatio / 100;
+  const liableLow = Math.round(bodilyTotalLow * otherFaultRatio);
+  const liableMid = Math.round(bodilyTotalMid * otherFaultRatio);
+  const liableHigh = Math.round(bodilyTotalHigh * otherFaultRatio);
+
+  // 扣強制險已估
+  const compulsoryTotal = compulsory.approved + (civil.workLoss > 0 ? 0 : 0);  // 簡化版
+  const afterCompulsoryLow = Math.max(liableLow - compulsoryTotal, 0);
+  const afterCompulsoryMid = Math.max(liableMid - compulsoryTotal, 0);
+  const afterCompulsoryHigh = Math.max(liableHigh - compulsoryTotal, 0);
+
+  // 套體傷保額
+  const bodilyCap = input.thirdPartyBodilyLimit || 0;
+  const tpLow = Math.min(afterCompulsoryLow, bodilyCap);
+  const tpMid = Math.min(afterCompulsoryMid, bodilyCap);
+  const tpHigh = Math.min(afterCompulsoryHigh, bodilyCap);
+
+  return {
+    bodilyTotal: { low: bodilyTotalLow, mid: bodilyTotalMid, high: bodilyTotalHigh },
+    liable: { low: liableLow, mid: liableMid, high: liableHigh },
+    afterCompulsory: { low: afterCompulsoryLow, mid: afterCompulsoryMid, high: afterCompulsoryHigh },
+    estimate: { low: tpLow, mid: tpMid, high: tpHigh },
+    bodilyCap, usedCap: tpHigh >= bodilyCap,
+    notes: otherFaultRatio < 1 ? [`肇責比例 ${input.otherFaultRatio}% 已套用於第三人責任險`] : []
+  };
+}
+
+// ============================================================
+// 函式 5/8：calcEvidence 補件清單
+// ============================================================
+function calcEvidence(input, medical, disability) {
+  const list = [];
+  if (input.accidentDate === '') list.push('事故日期');
+  if (input.accidentLocation === '') list.push('事故地點');
+  if (!input.hasPolicePreliminaryReport && !input.hasAccidentAppraisal) list.push('警方初步研判表 或 車輛行車事故鑑定');
+  if (medical.diagnosisText === '') list.push('診斷書（醫師開立）');
+  if (!input.hasDisabilityCertificate && disability.screening !== 'A') list.push('失能診斷書');
+  if (medical.outpatientVisitCount > 0 && input.registrationFee === 0) list.push('門診收據明細');
+  if (medical.hospitalizationDays > 0 && input.wardFeeDifference === 0) list.push('住院費用收據');
+  if (input.nursingFee > 0 && input.nursingDays === 0) list.push('看護證明（天數）');
+  if (input.vehicleRepairEstimate > 0 && input.vehicleRepairInvoice === 0) list.push('車輛維修發票');
+  if (input.sixMonthAverageSalary > 0 && !input.hasSalaryTransferRecord) list.push('薪轉證明');
+  if (input.sixMonthAverageSalary > 0 && !input.hasLeaveCertificate) list.push('請假證明');
+  return list;
+}
+
+// ============================================================
+// 函式 6/8：calcRegion 地區係數（精神慰撫金 6 直轄市 + 看護費）
+// ============================================================
+function calcRegion(city) {
+  const mult = REGION_MULTIPLIER[city] || DEFAULT_REGION_MULTIPLIER;
+  const courtName = CITY_TO_COURT[city] || `臺灣${city}地方法院`;
+  let notes = '';
+  if (mult >= 1.10) notes = `${city}為高度商業區，精神慰撫金區間偏高`;
+  else if (mult >= 1.0) notes = `${city}為中度商業區，採中等區間`;
+  else notes = `${city}為一般地方法院區間`;
+  return { multiplier: mult, courtName, notes };
+}
+
+// ============================================================
+// 函式 7/8：hoffmannCalc 霍夫曼計算（獨立工具）
+// ============================================================
+function hoffmannCalc(annualAmount, years, lossPercent, regionalMult) {
+  const coeff = HOFFMANN[years] || (years > 40 ? (1 - Math.pow(1.05, -years)) / 0.05 : 0);
+  const base = Math.round(annualAmount * coeff);
+  const adjusted = Math.round(base * lossPercent);
+  const final = Math.round(adjusted * regionalMult);
+  return { coefficient: Math.round(coeff * 10000) / 10000, baseTotal: base, adjustedTotal: adjusted, finalTotal: final };
+}
+
+// ============================================================
+// 函式 8/8：findRelatedPracticeCases 配權相似判例
+// （單頁 HTML 無 precedents.json，改用 3 筆預設示範）
+// ============================================================
+const DEMO_CASES = [
+  { caseNo: '113 年度 簡上 字第 74 號', court: '臺南地院', chain: '工作損失', amount: 39_274, similarity: 88, summary: '機車 vs 汽車，肇責 50/50，醫囑休養 30 日，工作損失採日薪制' },
+  { caseNo: '111 年度 重訴 字第 502 號', court: '臺中地院', chain: '精神慰撫金', amount: 350_000, similarity: 72, summary: '汽車 vs 行人，肇責 70/30，住院 14 日 + 復健 20 次，永久障害' },
+  { caseNo: '112 年度 訴 字第 1234 號', court: '高雄地院', chain: '失能', amount: 660_000, similarity: 65, summary: '機車 vs 機車，失能等級 7 等，地區係數 0.98' }
+];
+
+function findRelatedPracticeCases(input, civil, disability) {
+  // 單頁 HTML 簡化版：直接回 3 筆示範 + 配權說明
+  return DEMO_CASES.map(c => ({
+    ...c,
+    matchReason: c.chain === '工作損失' ? '我方有工作損失' :
+                 c.chain === '精神慰撫金' ? '傷勢有住院/復健/永久障害' :
+                 '失能等級已判定'
+  }));
+}
+
+// ============================================================
+// 整合：collectInput() 收表單 → calcAll() 算全套
+// ============================================================
+function collectInput() {
+  return {
+    basics: {
+      accidentDate: $('accidentDate').value,
+      accidentLocation: $('accidentLocation').value,
+      accidentCity: $('accidentCity').value,
+      accidentType: $('accidentType').value,
+      injuredRole: $('injuredRole').value,
+      hasPolicePreliminaryReport: bool('hasPolicePreliminaryReport'),
+      hasAccidentAppraisal: bool('hasAccidentAppraisal'),
+      hasCompulsoryInsurance: bool('hasCompulsoryInsurance'),
+      hasThirdPartyInsurance: bool('hasThirdPartyInsurance'),
+      thirdPartyBodilyLimit: num('thirdPartyBodilyLimit'),
+      thirdPartyPropertyLimit: num('thirdPartyPropertyLimit'),
+      excessLiabilityLimit: num('excessLiabilityLimit'),
+      courtJurisdiction: $('courtJurisdiction').value
+    },
+    fault: {
+      selfFaultRatio: num('selfFaultRatio'),
+      otherFaultRatio: num('otherFaultRatio'),
+      faultSource: $('faultSource').value,
+      isFaultDisputed: bool('isFaultDisputed')
+    },
+    person: {
+      age: num('age'),
+      occupation: $('occupation').value,
+      employmentType: $('employmentType').value,
+      sixMonthAverageSalary: num('sixMonthAverageSalary'),
+      monthlySalary: num('monthlySalary'),
+      lastYearTaxableIncome: num('lastYearTaxableIncome'),
+      doctorOrderedRestDays: num('doctorOrderedRestDays'),
+      actualLeaveDays: num('actualLeaveDays'),
+      hasSalaryTransferRecord: bool('hasSalaryTransferRecord'),
+      hasLeaveCertificate: bool('hasLeaveCertificate'),
+      hasSalaryDeductionProof: bool('hasSalaryDeductionProof')
+    },
+    medical: {
+      diagnosisText: $('diagnosisText').value,
+      hospitalName: $('hospitalName').value,
+      emergencyDate: $('emergencyDate').value,
+      outpatientVisitCount: num('outpatientVisitCount'),
+      hospitalizationDays: num('hospitalizationDays'),
+      rehabilitationCount: num('rehabilitationCount'),
+      hasSurgery: bool('hasSurgery'),
+      hasRehabilitation: bool('hasRehabilitation'),
+      requiresNursingCare: bool('requiresNursingCare'),
+      nursingDays: input.nursingDays,
+      hasDisabilityCertificate: bool('hasDisabilityCertificate'),
+      disabilityCategory: $('disabilityCategory').value,
+      disabilityLevel: num('disabilityLevel') || null,
+      romLossDegree: num('romLossDegree'),
+      hasFracture: bool('hasFracture'),
+      hasNerveDamage: bool('hasNerveDamage'),
+      hasPermanentImpairment: bool('hasPermanentImpairment'),
+      hasScar: bool('hasScar')
+    },
+    medicalReceipts: {
+      emergencyFee: num('emergencyFee'),
+      ambulanceFee: num('ambulanceFee'),
+      nhiCopayment: num('nhiCopayment'),
+      registrationFee: input.registrationFee,
+      diagnosisCertificateFee: num('diagnosisCertificateFee'),
+      nonNhiNecessaryMedicalFee: num('nonNhiNecessaryMedicalFee'),
+      wardFeeDays: num('wardFeeDays'),
+      wardFeeDifference: input.wardFeeDifference,
+      mealDays: num('mealDays'),
+      specialMaterialFee: num('specialMaterialFee'),
+      assistiveDeviceFee: num('assistiveDeviceFee'),
+      transportationFee: num('transportationFee'),
+      nursingFee: input.nursingFee,
+      nursingDays: input.nursingDays,
+      prosthesisFee: num('prosthesisFee'),
+      otherNecessaryMedicalFee: num('otherNecessaryMedicalFee')
+    },
+    property: {
+      vehicleRepairEstimate: input.vehicleRepairEstimate,
+      vehicleRepairInvoice: input.vehicleRepairInvoice,
+      vehicleMarketValueBeforeAccident: num('vehicleMarketValueBeforeAccident'),
+      salvageValue: num('salvageValue'),
+      towingFee: num('towingFee'),
+      rentalCarFee: num('rentalCarFee'),
+      phoneDamage: num('phoneDamage'),
+      helmetDamage: num('helmetDamage'),
+      clothingDamage: num('clothingDamage'),
+      glassesDamage: num('glassesDamage'),
+      otherPropertyDamage: num('otherPropertyDamage')
+    }
+  };
+}
+
+function calcAll() {
+  const input = collectInput();
+  const region = calcRegion(input.basics.accidentCity);
+  const compulsory = calcCompulsory(input.medicalReceipts);
+  const disability = calcDisability(input.medical);
+  const civil = calcCivilDamages(input, input.medical, region.multiplier);
+  const thirdParty = calcThirdParty(input, civil, compulsory);
+  const evidence = calcEvidence(input, input.medical, disability);
+  const cases = findRelatedPracticeCases(input, civil, disability);
+
+  // 失能金額加總
+  const disabilityAmount = disability.possibleAmount || 0;
+  const compulsoryTotal = compulsory.approved + disabilityAmount;
+
+  return { input, region, compulsory, disability, civil, thirdParty, evidence, cases, compulsoryTotal };
+}
+
+// ============================================================
+// 渲染：renderResults()
+// ============================================================
+function renderResults() {
+  const r = calcAll();
+
+  // --- 5 區 bento ---
+  const bentoHTML = `
+    <div class="bento-cell featured">
+      <span class="bento-icon">01 · 強制險</span>
+      <h3 class="bento-title">強制險總額</h3>
+      <span class="bento-sub">Compulsory Insurance</span>
+      <div class="bento-amount">${fmt(r.compulsoryTotal)}</div>
+      <span class="bento-range">醫療 ${fmt(r.compulsory.approved)}${r.disability.possibleAmount ? ' + 失能 ' + fmt(r.disability.possibleAmount) : ''}</span>
+      <p class="bento-desc">依 15 細項法定上限逐項試算，總額受 20 萬上限（醫療部分）。失能等級 ${r.disability.possibleLevel || '—'} 等。</p>
+    </div>
+    <div class="bento-cell">
+      <span class="bento-icon">02 · 失能初篩</span>
+      <h3 class="bento-title">${r.disability.screening} 級</h3>
+      <span class="bento-sub">Disability Screening</span>
+      <div class="bento-amount">${r.disability.possibleAmount ? fmt(r.disability.possibleAmount) : '—'}</div>
+      <span class="bento-range">信心 ${Math.round(r.disability.confidenceScore*100)}%</span>
+      <p class="bento-desc">${r.disability.signals.length > 0 ? '線索：' + r.disability.signals.join('、') : '無明顯失能線索'}</p>
+    </div>
+    <div class="bento-cell">
+      <span class="bento-icon">03 · 第三人</span>
+      <h3 class="bento-title">第三人責任險</h3>
+      <span class="bento-sub">Third-Party Liability</span>
+      <div class="bento-amount">${fmt(r.thirdParty.estimate.mid)}</div>
+      <span class="bento-range">${fmt(r.thirdParty.estimate.low)} ~ ${fmt(r.thirdParty.estimate.high)}</span>
+      <p class="bento-desc">肇責 ${r.input.fault.otherFaultRatio}% 已套用${r.thirdParty.usedCap ? '（已觸體傷保額上限）' : ''}</p>
+    </div>
+    <div class="bento-cell">
+      <span class="bento-icon">04 · 補件清單</span>
+      <h3 class="bento-title">${r.evidence.length} 項待補</h3>
+      <span class="bento-sub">Evidence Checklist</span>
+      <div class="bento-amount" style="font-size:18px;color:var(--secondary)">${r.evidence.length > 0 ? '需補件' : '資料完整'}</div>
+      <span class="bento-range">${r.evidence.length === 0 ? '✓ 可立即估算' : '補完再估算'}</span>
+      <p class="bento-desc">${r.evidence.length > 0 ? r.evidence.slice(0,2).join('、') + (r.evidence.length>2?'…':'') : '所有資料齊全'}</p>
+    </div>
+    <div class="bento-cell">
+      <span class="bento-icon">05 · 地區實務</span>
+      <h3 class="bento-title">${r.region.courtName.split('法院')[0].replace('臺灣','')}</h3>
+      <span class="bento-sub">Regional Court</span>
+      <div class="bento-amount" style="font-size:18px">係數 ${r.region.multiplier.toFixed(2)}</div>
+      <span class="bento-range">${r.region.courtName}</span>
+      <p class="bento-desc">${r.region.notes}</p>
+    </div>
+  `;
+  $('bentoResult').innerHTML = bentoHTML;
+
+  // --- 強制險 15 細項 ---
+  let compulsoryHTML = '';
+  r.compulsory.items.forEach(item => {
+    const note = item.reductionReason ? ` <span class="sub">⚠ ${item.reductionReason}</span>` : (item.supplementHint ? ` <span class="sub">💡 ${item.supplementHint}</span>` : '');
+    let subHTML = '';
+    if (item.subItems) {
+      subHTML = '<div style="margin-left:12px;margin-top:4px;font-size:12px;color:var(--text-muted)">';
+      item.subItems.forEach(s => { subHTML += `<div>· ${s.label}：${fmt(s.applied)}${s.applied !== s.approved ? ' → ' + fmt(s.approved) : ''}</div>`; });
+      subHTML += '</div>';
+    }
+    compulsoryHTML += `
+      <div class="result-row">
+        <span class="label">${item.label}${note}</span>
+        <span class="value">${item.applied === item.approved ? fmt(item.applied) : fmt(item.applied) + ' → <strong style="color:var(--primary)">' + fmt(item.approved) + '</strong>'}</span>
+      </div>
+      ${subHTML}
+    `;
+  });
+  compulsoryHTML += `<div class="result-row total"><span class="label">強制險醫療總額（受 20 萬上限）</span><span class="value">${fmt(r.compulsory.approved)}</span></div>`;
+  if (r.disability.possibleAmount > 0) {
+    compulsoryHTML += `<div class="result-row total"><span class="label">強制險失能給付（等級 ${r.disability.possibleLevel}）</span><span class="value">${fmt(r.disability.possibleAmount)}</span></div>`;
+  }
+  compulsoryHTML += `<div class="result-row total" style="border-color:var(--gold)"><span class="label">強制險合計</span><span class="value" style="color:var(--primary)">${fmt(r.compulsoryTotal)}</span></div>`;
+  $('compulsoryItems').innerHTML = compulsoryHTML;
+
+  // --- 民事損害 + 失能 + 補件 ---
+  const civilHTML = `
+    <div class="em-dash" style="margin:0 0 12px 0;text-align:left">精神慰撫金</div>
+    <div class="result-row"><span class="label">低 ~ 中 ~ 高 區間</span><span class="value">${fmt(r.civil.painAndSuffering.low)} ~ ${fmt(r.civil.painAndSuffering.mid)} ~ ${fmt(r.civil.painAndSuffering.high)}</span></div>
+    <div class="em-dash" style="margin:16px 0 12px 0;text-align:left">工作損失</div>
+    <div class="result-row"><span class="label">短期（${r.civil.workLossDays} 日 × 日薪 ${fmt(r.civil.workLossDailyIncome)}）</span><span class="value">${fmt(r.civil.workLossShortTerm)}</span></div>
+    ${r.civil.workLossLongTerm > 0 ? `<div class="result-row"><span class="label">長期（霍夫曼 + 失能等級）</span><span class="value">${fmt(r.civil.workLossLongTerm)}</span></div>` : ''}
+    <div class="result-row"><span class="label">工作損失合計 <span class="sub">證據強度：${r.civil.workLossEvidence}</span></span><span class="value"><strong style="color:var(--primary)">${fmt(r.civil.workLoss)}</strong></span></div>
+    <div class="em-dash" style="margin:16px 0 12px 0;text-align:left">看護費</div>
+    <div class="result-row"><span class="label">低 ~ 中 ~ 高 × ${r.civil.nursingDays} 日</span><span class="value">${fmt(r.civil.nursingFeeLow)} ~ ${fmt(r.civil.nursingFeeMid)} ~ ${fmt(r.civil.nursingFeeHigh)}</span></div>
+    <div class="em-dash" style="margin:16px 0 12px 0;text-align:left">交通接送 + 勞動能力減損</div>
+    <div class="result-row"><span class="label">交通接送費（${r.input.medical.outpatientVisitCount} 次）</span><span class="value">${fmt(r.civil.transportFee)}</span></div>
+    ${r.civil.laborCapacityLoss > 0 ? `<div class="result-row"><span class="label">勞動能力減損（霍夫曼至 65 歲）<span class="sub">${r.civil.laborCapacityLossNotes.join(' / ')}</span></span><span class="value">${fmt(r.civil.laborCapacityLoss)}</span></div>` : ''}
+    <div class="em-dash" style="margin:16px 0 12px 0;text-align:left">補件清單（${r.evidence.length} 項）</div>
+    ${r.evidence.length === 0 ? '<div class="result-row"><span class="label" style="color:var(--data-positive)">✓ 資料完整，無需補件</span><span></span></div>' : r.evidence.map(e => `<div class="result-row"><span class="label">· ${e}</span><span class="value" style="color:var(--secondary)">待補</span></div>`).join('')}
+  `;
+  $('civilDamages').innerHTML = civilHTML;
+
+  // --- 第三人 + 配權 ---
+  const tpHTML = `
+    <div class="result-row"><span class="label">體傷損害總額（低 ~ 中 ~ 高）</span><span class="value">${fmt(r.thirdParty.bodilyTotal.low)} ~ ${fmt(r.thirdParty.bodilyTotal.mid)} ~ ${fmt(r.thirdParty.bodilyTotal.high)}</span></div>
+    <div class="result-row"><span class="label">乘以肇責 ${r.input.fault.otherFaultRatio}%</span><span class="value">${fmt(r.thirdParty.liable.low)} ~ ${fmt(r.thirdParty.liable.mid)} ~ ${fmt(r.thirdParty.liable.high)}</span></div>
+    <div class="result-row"><span class="label">扣強制險已估（${fmt(r.compulsory.approved)}）</span><span class="value">${fmt(r.thirdParty.afterCompulsory.low)} ~ ${fmt(r.thirdParty.afterCompulsory.mid)} ~ ${fmt(r.thirdParty.afterCompulsory.high)}</span></div>
+    <div class="result-row total"><span class="label">第三人責任險估算 ${r.thirdParty.usedCap ? '<span class="sub">（觸體傷保額上限）</span>' : ''}</span><span class="value">${fmt(r.thirdParty.estimate.low)} ~ ${fmt(r.thirdParty.estimate.mid)} ~ ${fmt(r.thirdParty.estimate.high)}</span></div>
+    <div class="em-dash" style="margin:16px 0 12px 0;text-align:left">配權相似判例（單頁示範版）</div>
+    ${r.cases.map(c => `
+      <div class="result-row" style="align-items:flex-start;padding:12px 0;flex-direction:column;gap:4px">
+        <div style="display:flex;width:100%;justify-content:space-between;align-items:baseline">
+          <span class="label"><strong style="color:var(--primary)">${c.caseNo}</strong> <span class="sub">${c.court} · ${c.chain}</span></span>
+          <span class="value" style="color:var(--gold-dark)">${c.similarity}% 相似</span>
+        </div>
+        <span class="sub" style="margin-left:0">${c.summary}（${c.matchReason}）</span>
+      </div>
+    `).join('')}
+  `;
+  $('thirdPartyAndCases').innerHTML = tpHTML;
+
+  // --- 地區 + 霍夫曼 ---
+  const regionHTML = `
+    <div class="result-row"><span class="label">法院管轄</span><span class="value">${r.region.courtName}</span></div>
+    <div class="result-row"><span class="label">精神慰撫金地區係數</span><span class="value">${r.region.multiplier.toFixed(2)}</span></div>
+    <div class="result-row"><span class="label">地區備註</span><span class="value" style="font-size:12px;color:var(--text-muted)">${r.region.notes}</span></div>
+    <div class="em-dash" style="margin:16px 0 12px 0;text-align:left">霍夫曼係數速查（r=5%）</div>
+    <div class="result-row"><span class="label">5 年（短期）</span><span class="value">${HOFFMANN[5].toFixed(4)}</span></div>
+    <div class="result-row"><span class="label">10 年（中期）</span><span class="value">${HOFFMANN[10].toFixed(4)}</span></div>
+    <div class="result-row"><span class="label">20 年（長期）</span><span class="value">${HOFFMANN[20].toFixed(4)}</span></div>
+    <div class="result-row"><span class="label">30 年（勞減到 65 歲常見）</span><span class="value">${HOFFMANN[30].toFixed(4)}</span></div>
+  `;
+  $('regionAndHoffmann').innerHTML = regionHTML;
+
+  return r;
+}
+
+// ============================================================
+// Stepper 切換
+// ============================================================
+function goStep(n) {
+  document.querySelectorAll('.step-pane').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.step-pane[data-pane="${n}"]`).classList.add('active');
+  document.querySelectorAll('.step').forEach(s => {
+    const stepNum = parseInt(s.dataset.step);
+    s.classList.remove('active', 'completed');
+    if (stepNum === n) s.classList.add('active');
+    else if (stepNum < n) s.classList.add('completed');
+  });
+  if (n === 7) renderResults();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// stepper 點擊跳轉（允許回去）
+document.querySelectorAll('.step').forEach(s => {
+  s.addEventListener('click', () => goStep(parseInt(s.dataset.step)));
+});
+
+// 自動帶入法院管轄
+$('accidentCity').addEventListener('change', (e) => {
+  const city = e.target.value;
+  if (CITY_TO_COURT[city]) $('courtJurisdiction').value = CITY_TO_COURT[city];
+});
+
+// ============================================================
+// PDF 匯出（jsPDF）
+// ============================================================
+function exportPDF() {
+  if (typeof window.jspdf === 'undefined') {
+    alert('jsPDF 載入失敗，請檢查網路連線（PDF 匯出需 CDN）');
+    return;
+  }
+  const { jsPDF } = window.jspdf;
+  const r = renderResults();
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+  // --- 標題 ---
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.setTextColor(27, 67, 50);  // 深綠
+  doc.text('Taiwan Car-Claim Estimation Report', 20, 22);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(92, 88, 82);
+  doc.text(`v0.3.0 Desktop Mini-App | ${new Date().toISOString().slice(0, 10)} | ${r.region.courtName}`, 20, 30);
+
+  // 金色 accent rule
+  doc.setDrawColor(201, 169, 97);
+  doc.setLineWidth(0.8);
+  doc.line(20, 34, 80, 34);
+
+  let y = 44;
+
+  // --- 案件基本 ---
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(27, 67, 50);
+  doc.text('01. Compulsory Insurance (Compulsory Total)', 20, y);
+  y += 7;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(26, 26, 26);
+  doc.text(`Medical subtotal (capped at NT$ 200,000): NT$ ${Math.round(r.compulsory.approved).toLocaleString()}`, 20, y); y += 5;
+  if (r.disability.possibleAmount > 0) {
+    doc.text(`Disability (level ${r.disability.possibleLevel}): NT$ ${Math.round(r.disability.possibleAmount).toLocaleString()}`, 20, y); y += 5;
+  }
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Total: NT$ ${Math.round(r.compulsoryTotal).toLocaleString()}`, 20, y); y += 10;
+
+  // --- 5 區摘要 ---
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(27, 67, 50);
+  doc.text('02. Five-Section Summary', 20, y); y += 7;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(26, 26, 26);
+  const sections = [
+    ['Compulsory', r.compulsoryTotal],
+    ['Disability Screening', `${r.disability.screening} (level ${r.disability.possibleLevel || '—'}, ${Math.round(r.disability.confidenceScore*100)}% confidence)`],
+    ['Third-Party Liability', `${r.thirdParty.estimate.low} ~ ${r.thirdParty.estimate.high}`],
+    ['Evidence Checklist', `${r.evidence.length} items pending`],
+    ['Regional Practice', `${r.region.courtName} (multiplier ${r.region.multiplier.toFixed(2)})`]
+  ];
+  sections.forEach(([k, v]) => {
+    doc.text(`${k}:`, 20, y);
+    doc.text(typeof v === 'number' ? `NT$ ${v.toLocaleString()}` : v, 70, y);
+    y += 5;
+  });
+  y += 5;
+
+  // --- 補件清單 ---
+  if (r.evidence.length > 0) {
+    doc.setFont('helvetica', 'bold');
+    doc.text(`03. Evidence Checklist (${r.evidence.length} items)`, 20, y); y += 6;
+    doc.setFont('helvetica', 'normal');
+    r.evidence.forEach(e => {
+      if (y > 270) { doc.addPage(); y = 20; }
+      doc.text(`- ${e}`, 20, y); y += 4.5;
+    });
+    y += 4;
+  }
+
+  // --- 配權判例 ---
+  doc.setFont('helvetica', 'bold');
+  doc.text('04. Related Practice Cases (sample, single-page edition)', 20, y); y += 6;
+  doc.setFont('helvetica', 'normal');
+  r.cases.forEach(c => {
+    if (y > 270) { doc.addPage(); y = 20; }
+    doc.text(`${c.caseNo} (${c.court}, ${c.chain}, ${c.similarity}% similar)`, 20, y); y += 4.5;
+    doc.setFontSize(9);
+    doc.setTextColor(92, 88, 82);
+    doc.text(`  ${c.summary}`, 20, y); y += 5;
+    doc.setFontSize(10);
+    doc.setTextColor(26, 26, 26);
+  });
+
+  // --- 免責聲明 ---
+  if (y > 230) { doc.addPage(); y = 20; }
+  y += 5;
+  doc.setDrawColor(114, 47, 55);
+  doc.setLineWidth(0.5);
+  doc.line(20, y, 190, y);
+  y += 6;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(114, 47, 55);
+  doc.text('DISCLAIMER', 20, y); y += 5;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(92, 88, 82);
+  const disclaim = 'This report is a preliminary estimation based on user input, Compulsory Automobile Liability Insurance Act, and standard civil damages. Actual claim amount is subject to insurance company review, medical records, fault determination, court judgment, and settlement. This system does NOT guarantee any claim amount and does NOT constitute legal advice.';
+  const lines = doc.splitTextToSize(disclaim, 170);
+  doc.text(lines, 20, y);
+
+  // 存檔
+  const filename = `claim-report-${r.input.basics.accidentDate || 'undated'}-${r.region.courtName.slice(0,4)}.pdf`;
+  doc.save(filename);
+}
+
+console.log('✅ 台灣車禍理賠估算器 v0.3.0 桌面小程式已載入');
+console.log('   - 8 個計算函式：calcCompulsory / calcDisability / calcCivilDamages / calcThirdParty / calcEvidence / calcRegion / hoffmannCalc / findRelatedPracticeCases');
+console.log('   - 設計 token：深綠 #1B4332 + 酒紅 #722F37 + 金 #C9A961 + Noto Serif TC 襯線');
+console.log('   - PDF 匯出：jsPDF CDN');
+</script>
+</body>
+</html>
