@@ -1,0 +1,50 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "台灣車禍理賠估算器",
+  "version": "0.4.0",
+  "identifier": "com.flowtracelabs.tw-car-claim-estimator",
+  "build": {
+    "frontendDist": "../public"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "台灣車禍理賠估算器 v0.4.0",
+        "width": 1100,
+        "height": 820,
+        "minWidth": 900,
+        "minHeight": 700,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true,
+        "decorations": true,
+        "transparent": false,
+        "titleBarStyle": "Visible"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data:; connect-src 'self'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["dmg", "app"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "category": "Productivity",
+    "shortDescription": "台灣車禍理賠金額估算器",
+    "longDescription": "依強制汽車責任保險法、民法 §184-196、以及 6 個直轄市地方法院實務區間，自動產出 5 區估算結果。律師事務所風格桌面版。",
+    "macOS": {
+      "minimumSystemVersion": "11.0",
+      "frameworks": [],
+      "providerShortName": null,
+      "signingIdentity": null,
+      "entitlements": null
+    }
+  }
+}
