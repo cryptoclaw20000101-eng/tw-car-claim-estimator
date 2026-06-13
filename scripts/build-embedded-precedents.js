@@ -1,0 +1,67 @@
+// ============================================================
+// scripts/build-embedded-precedents.js
+// 把 data/precedents/*.json 精簡成配權用 8 欄位，輸出 JSON
+// v0.3.1：給 claim-calculator.html 內嵌用
+// ============================================================
+const fs = require('fs');
+const path = require('path');
+
+const SRC_DIR = path.join(__dirname, '..', 'data', 'precedents');
+const OUT_FILE = path.join(__dirname, '..', 'public', 'embedded-precedents.json');
+
+// 配權用的 8 欄位（其他 44 欄位省去，HTML 端不需要）
+const KEEP_FIELDS = ['id', 'caseNo', 'court', 'year', 'chain', 'category', 'amount', 'totalAward', 'gist', 'facts', 'ratio', 'scrapedAt'];
+
+function trimPrecedent(p) {
+  const out = {};
+  KEEP_FIELDS.forEach(k => {
+    if (p[k] !== undefined) out[k] = p[k];
+  });
+  // 配權衍生欄位（給 findRelatedPracticeCases 直接用，省計算）
+  out._chain = p.chain || p.category || 'unknown';
+  out._amount = p.amount || p.mentalDistressAmount || p.totalAward || 0;
+  out._ratioSelf = p.ratio?.plaintiff ?? null;
+  out._ratioOther = p.ratio?.defendant ?? null;
+  return out;
+}
+
+const files = fs.readdirSync(SRC_DIR).filter(f => f.endsWith('.json') && !f.startsWith('_'));
+const all = [];
+const byChain = {};
+for (const f of files) {
+  const arr = JSON.parse(fs.readFileSync(path.join(SRC_DIR, f), 'utf8'));
+  if (!Array.isArray(arr)) continue;
+  const chainName = f.replace('.json', '');
+  byChain[chainName] = [];
+  for (const p of arr) {
+    const trimmed = trimPrecedent(p);
+    all.push(trimmed);
+    byChain[chainName].push(trimmed);
+  }
+}
+
+// 排序：chain → year desc → amount desc
+all.sort((a, b) => {
+  if (a._chain !== b._chain) return a._chain.localeCompare(b._chain);
+  if (a.year !== b.year) return (b.year || 0) - (a.year || 0);
+  return (b._amount || 0) - (a._amount || 0);
+});
+
+const output = {
+  generatedAt: new Date().toISOString(),
+  totalCount: all.length,
+  chainCounts: Object.fromEntries(Object.entries(byChain).map(([k, v]) => [k, v.length])),
+  precedents: all
+};
+
+fs.writeFileSync(OUT_FILE, JSON.stringify(output));
+const size = fs.statSync(OUT_FILE).size;
+console.log(`✅ v0.3.1 embedded-precedents.json 已產出`);
+console.log(`   總案件數：${all.length}`);
+console.log(`   各鏈分佈：`);
+Object.entries(output.chainCounts).sort((a, b) => b[1] - a[1]).forEach(([k, v]) => {
+  console.log(`     ${k.padEnd(30)} ${String(v).padStart(4)} 件`);
+});
+console.log(`   檔案大小：${(size / 1024).toFixed(1)} KB`);
+console.log(`   精簡比：原 ${(420).toFixed(0)}KB → ${(size / 1024).toFixed(1)}KB (${((size / 1024 / 420) * 100).toFixed(0)}%)`);
+console.log(`   路徑：${OUT_FILE}`);

@@ -5,8 +5,13 @@
 /.pnp
 
 # scripts build artifacts (tsc → .js in-place)
-/scripts/*.js
-/*.js
+# tsc 編出檔（scripts/tsconfig.json 編 .ts → .js，固定這幾個）
+/scripts/scrape-judgments.js
+/scripts/scrape-judgments.d.ts
+/scripts/report-precedents.js
+/scripts/report-precedents.d.ts
+# build-insurance-constants.js 是失敗的 regex 工具，不 commit
+/scripts/build-insurance-constants.js
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -43,3 +48,4 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+public/embedded-precedents.json  # v0.3.1 build script 中繼產物（HTML 內嵌精簡版 52KB）
