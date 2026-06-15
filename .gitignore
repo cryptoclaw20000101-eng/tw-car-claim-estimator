@@ -48,7 +48,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-public/embedded-precedents.json  # v0.3.1 build script 中繼產物（HTML 內嵌精簡版 52KB）
+/public/embedded-precedents.json
+/public/embedded-precedents.js
 
 # Tauri v0.4.0 build artifacts
 /src-tauri/target/
