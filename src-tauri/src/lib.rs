@@ -22,7 +22,7 @@ fn get_app_metadata() -> serde_json::Value {
     serde_json::json!({
         "name": "台灣車禍理賠估算器",
         "version": env!("CARGO_PKG_VERSION"),
-        "description": "律師事務所桌面版 - 強制汽車責任保險法 + 民法侵權行為 + 6 直轄市地方法院實務區間",
+        "description": "理賠顧問桌面版 - 強制汽車責任保險法 + 民法侵權行為 + 6 直轄市地方法院實務區間",
         "precedentCount": 441,
         "functionCount": 8,
         "locale": "zh-TW",
@@ -122,7 +122,7 @@ fn handle_menu_event(app: &AppHandle, event: MenuEvent) {
         "open_history" => Some("document.getElementById('historySelect')?.focus()"),
         "save_to_history" => Some("if (typeof saveToHistory === 'function') saveToHistory();"),
         "export_pdf" => Some("if (typeof exportPDF === 'function') exportPDF();"),
-        "show_about" => Some("alert('台灣車禍理賠估算器 v0.4.3\\n律師事務所桌面版\\n\\n依強制汽車責任保險法、民法 §184-196 估算\\n8 個計算函式 / 441 件真實判例\\n設計：深綠/酒紅/金/襯線\\n\\n© 2026 FlowTrace Labs');"),
+        "show_about" => Some("alert('台灣車禍理賠估算器 v0.4.5\\n理賠顧問桌面版\\n\\n依強制汽車責任保險法、民法 §184-196 估算\\n8 個計算函式 / 441 件真實判例\\n設計：信任藍 #003D7A + 橘紅 #F26522 + 思源黑體\\n\\n© 2026 FlowTrace Labs');"),
         _ => None,
     };
 
@@ -157,7 +157,7 @@ pub fn run() {
                 version: Some(env!("CARGO_PKG_VERSION").to_string()),
                 short_version: None,
                 authors: Some(vec!["FlowTrace Labs".to_string()]),
-                comments: Some("律師事務所桌面版".to_string()),
+                comments: Some("理賠顧問桌面版".to_string()),
                 copyright: Some("© 2026 FlowTrace Labs".to_string()),
                 license: Some("MIT".to_string()),
                 website: None,

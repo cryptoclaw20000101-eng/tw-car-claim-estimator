@@ -38,7 +38,7 @@
     ],
     "category": "Productivity",
     "shortDescription": "台灣車禍理賠金額估算器",
-    "longDescription": "依強制汽車責任保險法、民法 §184-196、以及 6 個直轄市地方法院實務區間，自動產出 5 區估算結果。律師事務所風格桌面版。",
+    "longDescription": "依強制汽車責任保險法、民法 §184-196、以及 6 個直轄市地方法院實務區間，自動產出 5 區估算結果。理賠顧問風格桌面版。",
     "macOS": {
       "minimumSystemVersion": "11.0",
       "frameworks": [],

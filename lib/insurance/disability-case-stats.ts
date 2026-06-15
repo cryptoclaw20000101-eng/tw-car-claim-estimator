@@ -162,14 +162,14 @@ export function getAllDisabilityCaseStats(): DisabilityCaseStats {
  * lookupByDisabilityLevel — 依失能等級 (1-15) 過濾案例
  * 注意: 現有 8 件案例的 category 只有 minor_injury / death,**沒有失能等級標籤**
  *       所以此函式目前會回全部 8 件 + 在 cases 旁標 disabilityLevel: null
- *       未來律師補失能等級資料後,即可依等級過濾
+ *       未來理賠顧問補失能等級資料後,即可依等級過濾
  */
 export function lookupByDisabilityLevel(level: number): DisabilityCaseStats {
   if (level < 1 || level > 15) {
     throw new Error(`lookupByDisabilityLevel: 等級必須 1-15,收到 ${level}`)
   }
   // 目前所有案例都沒標失能等級 → 回全部
-  // 未來律師補資料時,在 case 上加 disabilityLevel 欄位即可分組
+  // 未來理賠顧問補資料時,在 case 上加 disabilityLevel 欄位即可分組
   const cases = loadCases()
   return computeStats(cases)
 }

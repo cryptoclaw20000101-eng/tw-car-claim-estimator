@@ -144,7 +144,7 @@ export default function ResultForm() {
             showIcon
             className="!mb-4"
             title="法源資料已超過 6 個月未更新"
-            body="本結果所引用的法規/判例資料可能已過期，建議洽詢保險公司或律師確認最新規定。"
+            body="本結果所引用的法規/判例資料可能已過期，建議洽詢保險公司或理賠顧問確認最新規定。"
           />
         )}
 
@@ -339,7 +339,7 @@ function DisabilitySection({ result }: { result: EstimationResult }) {
   )
 }
 
-// ============== ②b 理賠實務案例（律師律師案例集） ==============
+// ============== ②b 理賠實務案例（理賠案例集） ==============
 // 給結果頁顯示「同縣市/同年/同失能等級」的理賠實務案例
 // 來源：data/precedents/practice-cases.json（category='practice_case'）
 function PracticeCasesSection({ result }: { result: EstimationResult }) {
@@ -356,7 +356,7 @@ function PracticeCasesSection({ result }: { result: EstimationResult }) {
         理賠實務案例參考（{refs.length} 件）
       </Title>
       <Paragraph type="secondary" className="!text-xs !mb-3">
-        以下案例為律師實務案例彙編（非法院公開判決），依「同縣市 / 同年份 / 同失能等級」配對。
+        以下案例為理賠實務案例彙編（非法院公開判決），依「同縣市 / 同年份 / 同失能等級」配對。
         點開可看完整和解條件、勞減計算、霍夫曼公式。
       </Paragraph>
       <Collapse

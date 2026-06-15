@@ -19,7 +19,7 @@
 | **桌面 app** | 仍只有 `public/widget.html`（HTML 捷徑，無原生 .app） | ❌ 未做 |
 | **手機 app** | 無 | ❌ 未做 |
 | **PWA** | 無 manifest.json / service worker | ❌ 未做 |
-| **失能 ML 整合** | `disabilityByHoffmann()` + `compareEstimateWithCases()` 已實作（v0.2.16） | 🟡 半成品，等律師補失能等級標籤 |
+| **失能 ML 整合** | `disabilityByHoffmann()` + `compareEstimateWithCases()` 已實作（v0.2.16） | 🟡 半成品，等經紀人補失能等級標籤 |
 | **iPAS Ensemble 概念** | 6 引擎 + 規則引擎 + 霍夫曼係數 = 雛形 ensemble | 🟡 雛形 |
 
 ### 測試覆蓋（v0.2.16 期待值）
@@ -89,7 +89,7 @@ pnpm build                → 3 routes 靜態 build 全綠
   ↓ (未知代碼) 標記（不擅自填）
   ↓ courtToCity 對齊縣市
   │
-  ├──→ 報表 HTML（律師友善檢視）
+  ├──→ 報表 HTML（經紀人友善檢視）
   ├──→ 給估算器用（findRelatedPracticeCases 配權）
   └──→ 給未來 ML 模型用
 ```
@@ -103,9 +103,9 @@ pnpm build                → 3 routes 靜態 build 全綠
 - ✅ 報表 cron 化（v0.2.9，scrape 後自動重生 HTML）
 
 **剩餘缺口**（**S5-S7 補完**）：
-- 🟡 8 件律師實務案例 court 標記待補（v0.2.11 _pending-courts-to-fill）
-- 🟡 14 個法院代碼待律師/查證（CHDM 已驗證=彰化地院，其他待補）
-- 🟡 3 個小鏈（scar-revision/labor-capacity/other-precedents）需律師手動建檔
+- 🟡 8 件經紀人實務案例 court 標記待補（v0.2.11 _pending-courts-to-fill）
+- 🟡 14 個法院代碼待經紀人/查證（CHDM 已驗證=彰化地院，其他待補）
+- 🟡 3 個小鏈（scar-revision/labor-capacity/other-precedents）需經紀人手動建檔
 
 ### 工作流 3：ML 預測模型（**雛形階段**）
 
@@ -127,7 +127,7 @@ pnpm build                → 3 routes 靜態 build 全綠
 - ✅ `compareEstimateWithCases()` 試算 vs 真實案件中位數比對（withinRange 判斷）
 
 **S9 待做**（**過度工程，先不做**）：
-- 等律師補完失能等級標籤後，重新分組統計
+- 等經紀人補完失能等級標籤後，重新分組統計
 - 等資料量 > 1,000 件才考慮 XGBoost / LightGBM
 - iPAS Ensemble 雛形：6 引擎（規則）+ 失能統計（貝葉斯）+ 霍夫曼（精算）= 三票 ensemble
 
@@ -142,15 +142,15 @@ pnpm build                → 3 routes 靜態 build 全綠
 | **S1** | macOS .app（Electron 包現有） | 1-2 天 | — | 📋 排隊中 |
 | **S2** | iOS .ipa（Capacitor） | 3-5 天 + Xcode build | 需 Apple Developer | 📋 排隊中 |
 | **S3** | Android .apk（Capacitor） | 3-5 天 + AS build | 需 Google Play | 📋 排隊中 |
-| **S5** | 律師實務案例 court 補完（3 件） | 30 分鐘（律師口述） | 需律師 | 📋 等律師 |
+| **S5** | 經紀人實務案例 court 補完（3 件） | 30 分鐘（經紀人口述） | 需經紀人 | 📋 等經紀人 |
 | **S6** | 14 個法院代碼查證 | 1 小時（查司法院表） | 需查證 | 📋 等查證 |
-| **S7** | 3 個小鏈（scar/labor/other）建檔 | 半天（律師手動） | 需律師 | 📋 等律師 |
+| **S7** | 3 個小鏈（scar/labor/other）建檔 | 半天（經紀人手動） | 需經紀人 | 📋 等經紀人 |
 | **S8** | scrape v2 chain 補完（精選 keyword） | 1-2 天 | — | 🟡 可做 |
 | **S9** | ML 進階（XGBoost / 完整 ensemble） | 1 個月 | 需 S5-7 資料 | 📋 過度工程 |
 
 **MVP 建議順序**（2026-Q3）：
 1. **S1.5 PWA**（2-3 小時，零成本）→ 立即可桌面化
-2. **S5+S6+S7 律師補完**（律師有空時，1 天內可清完）
+2. **S5+S6+S7 經紀人補完**（經紀人有空時，1 天內可清完）
 3. **S1 macOS .app**（1-2 天，可上架）
 4. **S8 scrape v2 keyword**（持續優化）
 5. **S2/S3 iOS+Android**（需帳號 + 1 週工作）
@@ -167,7 +167,7 @@ pnpm build                → 3 routes 靜態 build 全綠
 | 司法院反爬 | ✅ **已解決**：用公開搜尋頁，無驗證碼、無 Cloudflare |
 | 個資法風險 | ✅ **已處理**：regex 抽取金額/案號，**不存當事人姓名/身分證字號** |
 | 商業化引用判決 | 走「加值應用」授權（司法院有窗口）|
-| 律師時程卡住（待補 8+14+3 件）| 提供 `_pending-courts-to-fill.json` 給律師一次清單 |
+| 經紀人時程卡住（待補 8+14+3 件）| 提供 `_pending-courts-to-fill.json` 給經紀人一次清單 |
 | scrape 飽和（v0.2.13 99.2% 去重率）| 改加新 keyword 角度（如「慰撫金 死亡等級」）+ 新鏈（死亡案件鏈）|
 | 法院代碼猜錯污染資料 | ✅ **鐵律**：未知就標 `(未知代碼)`，不猜（v0.2.11 確立）|
 | Capacitor 跟 Next.js SSR 衝突 | Capacitor 用 static export（`output: 'export'`），純 client rendering |
@@ -176,15 +176,15 @@ pnpm build                → 3 routes 靜態 build 全綠
 
 ## 現階段 pending 決策
 
-### 立即可開工（不需律師 / 不需帳號）
+### 立即可開工（不需經紀人 / 不需帳號）
 
 - [ ] **S1.5 PWA 補強**（推薦優先，2-3 小時起步）— 零成本，立即可桌面化
 - [ ] **S8 scrape v2 keyword**（1-2 天，純程式）— 提升命中率
 - [ ] **本計畫 review**（S0，30 分鐘）— 確認方向
 
-### 需律師決策（可批次一次給）
+### 需經紀人決策（可批次一次給）
 
-- [ ] **S5 律師實務案例 court 補完**（3 件，30 分鐘）— 給我 3 個答案
+- [ ] **S5 經紀人實務案例 court 補完**（3 件，30 分鐘）— 給我 3 個答案
 - [ ] **S6 14 個法院代碼**（1 小時）— 給我 14 個答案
 - [ ] **S7 3 個小鏈建檔**（半天）— 給我案例細節
 
@@ -226,10 +226,10 @@ pnpm build                → 3 routes 靜態 build 全綠
 **v0.2.17 之後的合理下一步**（推薦排序）：
 1. **S1.5 PWA 補強**（最低成本，立即可桌面化）
 2. **S8 scrape v2 keyword 角度**（突破飽和）
-3. **S5-S7 律師補完**（清 8+14+3 件待補，提升 cityOf 觸發率）
+3. **S5-S7 經紀人補完**（清 8+14+3 件待補，提升 cityOf 觸發率）
 4. **S1 macOS .app**（Electron 套殼，1-2 天）
 
 **明確不做**：
 - ❌ React Native / Flutter 重寫
 - ❌ 純學術 iPAS demo
-- ❌ AI 代拿官方證書（iPAS / 律師 / 會計師）
+- ❌ AI 代拿官方證書（iPAS / 保險經紀人 / 會計師）

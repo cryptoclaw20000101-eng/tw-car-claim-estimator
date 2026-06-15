@@ -74,7 +74,7 @@ const KEYWORDS = {
     "後遺症 殘廢 車禍",
     "殘廢 車禍 等級",
   ],
-  // v0.2.6+ 新鏈：車禍調解流程（從律師/調解委員視角）
+  // v0.2.6+ 新鏈：車禍調解流程（從理賠顧問/調解委員視角）
   mediation: [
     "調解委員會 車禍 和解",
     "鄉鎮市調解 交通事故",
@@ -83,9 +83,9 @@ const KEYWORDS = {
     "調解 車禍 撤回",
     "調解委員會 車禍",
   ],
-  // v0.2.6+ 新鏈：律師實務案例（車禍處理經驗）
+  // v0.2.6+ 新鏈：理賠實務案例（車禍處理經驗）
   practice: [
-    "律師實務 車禍 和解",
+    "理賠實務 車禍 和解",
     "訴訟實務 交通事故 處理",
     "強制險 車禍 理賠 案例",  // 擴
     // v0.2.20+ 衝量 keyword
@@ -251,7 +251,7 @@ const CHAIN_LABEL: Record<ChainKey, string> = {
   disability: "失能慰撫金",
   disability_v2: "失能(後遺症)",
   mediation: "車禍調解",
-  practice: "律師實務",
+  practice: "理賠實務",
   settlement_v2: "和解金(肇責)",
   // v0.2.19+
   nursing_care: "看護費",
@@ -457,7 +457,7 @@ function parseDataLinks(html: string): RawHit[] {
     // 找不到 COURT_CODE 對照時，加 "(未知代碼)" 標記
     // 原因：v0.2.9+ cityOf() 邏輯靠「臺灣XX地方法院」字串配對，
     //       裸代碼 ('CHDM' / 'ULDV') 會被當成不可解析，cityOf = null，無法觸發同縣市配對
-    // 改為加標記後，未來律師/工程師看 precedents.json 一眼就知道這幾筆需要補 COURT_CODE
+    // 改為加標記後，未來理賠顧問/工程師看 precedents.json 一眼就知道這幾筆需要補 COURT_CODE
     // 同步：在 data/precedents/_pending-courts-to-fill.json 追蹤
     const court = COURT_CODE[code] || `${code}（未知代碼）`;
     const yearInt = parseInt(year, 10);

@@ -4,58 +4,72 @@
 <meta charset="UTF-8" />
 <title>台灣車禍理賠金額估算器 — 桌面小程式 v0.3.0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<!-- jsPDF (CDN) for PDF 匯出 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- jsPDF (CDN) for PDF 匯出 — 加 defer 不阻塞渲染 -->
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+  onerror="console.error('jsPDF CDN 載入失敗，PDF 匯出功能將不可用，但表單估算不受影響')"></script>
 
-<!-- Google Fonts: Noto Serif TC + Source Serif 4 + Inter -->
+<!-- Google Fonts: 思源黑體 (v0.4.5 從 Noto Serif TC 改) + Inter -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+TC:wght@400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<!-- v0.4.5: JS 沒跑時的友善提示（noscript fallback） -->
+<noscript>
+  <div style="position:fixed;top:0;left:0;right:0;background:#C93B3B;color:#fff;padding:16px 20px;text-align:center;z-index:99999;font-size:15px;line-height:1.5;box-shadow:0 2px 8px rgba(0,0,0,0.2)">
+    ⚠️ <strong>JavaScript 沒開啟</strong>，本估算器需要 JS 才能運作。<br>
+    請到瀏覽器「設定」→ 開啟 JavaScript 後重新整理頁面。
+  </div>
+</noscript>
+
+<!-- v0.4.5: JS 載入狀態提示（goStep 按下沒反應時，用戶看得到原因） -->
+<div id="js-status" style="position:fixed;bottom:16px;right:16px;background:#003D7A;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,0.15);font-family:system-ui,-apple-system,sans-serif">
+  ⏳ 載入中...
+</div>
 
 <style>
 /* ============================================================
-   台灣車禍理賠估算器 — 桌面小程式 v0.3.0
-   設計風格：律師事務所（深綠/酒紅/金/襯線）
+   台灣車禍理賠估算器 — 桌面小程式 v0.4.5
+   設計風格：理賠顧問（信任藍/橘紅/白/思源黑體）
    對齊 AGENTS.md §2.3 鐵律：InfoAlert 概念、AntD icons 替代
    ============================================================ */
 
 :root {
-  /* === 律師事務所 design token（v0.3.0 取代 v0.2.20 rose-700） === */
-  --primary: #1B4332;            /* 深綠 — 主色（律所主色）*/
-  --primary-dark: #0F2E20;       /* 深綠更深 — hover / 強對比 */
-  --primary-soft: #E8F0EA;       /* 深綠淡 — 區塊底 */
+  /* === 理賠顧問 design token（v0.4.5 取代 v0.3.0 律師事務所深綠） === */
+  --primary: #003D7A;            /* 信任藍 — 主色（保險業標準）*/
+  --primary-dark: #002952;       /* 信任藍深 — hover / 強對比 */
+  --primary-soft: #E6F0FA;       /* 信任藍淡 — 區塊底 */
 
-  --secondary: #722F37;          /* 酒紅 — 副色（警示/錯誤/secondary 強調）*/
-  --secondary-soft: #F5E8E9;     /* 酒紅淡 — 警示背景 */
+  --secondary: #F26522;          /* 橘紅 — accent / CTA / 重點強調 */
+  --secondary-soft: #FFEFE6;     /* 橘紅淡 — 警示背景 */
 
-  --gold: #C9A961;               /* 金箔 — Logo / accent rule / 點綴 */
-  --gold-dark: #A88B45;          /* 金箔深 — hover */
+  --accent: #FFB800;             /* 金黃 — hover accent */
+  --accent-dark: #D49500;        /* 金黃深 */
 
-  --bg: #F5F2EC;                 /* 米白底 — 主背景（律所文件感）*/
+  --bg: #F8FAFC;                 /* 淡灰白底 — 主背景（金融 app 感）*/
   --bg-card: #FFFFFF;            /* 純白 — 卡片 */
-  --bg-subtle: #EFEAE0;          /* 米色 — 區塊分隔 */
+  --bg-subtle: #EEF2F7;          /* 淺藍灰 — 區塊分隔 */
 
-  --border: #D6CFC2;             /* 米色邊框 */
-  --border-strong: #B8AEA0;      /* 米色邊框強 */
+  --border: #D8E0EA;             /* 淺藍邊框 */
+  --border-strong: #A8B8CC;      /* 藍灰邊框強 */
 
   --text: #1A1A1A;               /* 主文字 */
-  --text-muted: #5C5852;         /* 次要文字 */
-  --text-faint: #8A857C;         /* 微弱文字（標籤/註腳）*/
+  --text-muted: #5A6470;         /* 次要文字 */
+  --text-faint: #8A95A3;         /* 微弱文字（標籤/註腳）*/
 
   /* 數據色 */
   --data-positive: #166534;
-  --data-warning: #B45309;
-  --data-negative: #722F37;
+  --data-warning: #D97706;
+  --data-negative: #C93B3B;
 
   /* 字型 */
-  --font-serif: "Noto Serif TC", "Source Serif 4", "Times New Roman", serif;
   --font-sans: "Inter", "Noto Sans TC", -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", "PingFang TC", sans-serif;
+  --font-serif: "Noto Sans TC", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
 
-  /* 圓角（律所感：少圓角）*/
-  --r-sm: 2px;
-  --r-md: 4px;
-  --r-lg: 6px;
+  /* 圓角（金融 app 感：中等圓角）*/
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 12px;
 }
 
 * { box-sizing: border-box; }
@@ -141,7 +155,7 @@ h4 { font-size: 16px; font-weight: 600; line-height: 1.4; }
   position: relative;
 }
 
-/* === Stepper（7 步驟條，律所文件流程感） === */
+/* === Stepper（7 步驟條，保經文件流程感） === */
 .stepper {
   display: flex;
   gap: 0;
@@ -580,9 +594,9 @@ h4 { font-size: 16px; font-weight: 600; line-height: 1.4; }
 
   <!-- ============ Hero ============ -->
   <header class="hero">
-    <span class="version-tag">v0.3.0 · 桌面小程式</span>
+    <span class="version-tag">v0.4.5 · 理賠顧問版</span>
     <h1>台灣車禍理賠金額估算器</h1>
-    <p class="subtitle">Taiwan Car-Claim Estimator — 律師事務所桌面版</p>
+    <p class="subtitle">Taiwan Car-Claim Estimator — 理賠顧問桌面版</p>
   </header>
 
   <!-- ============ 免責聲明 + 4 條鐵律（永遠顯示） ============ -->
@@ -955,7 +969,7 @@ h4 { font-size: 16px; font-weight: 600; line-height: 1.4; }
   <footer class="disclaim">
     <div class="disclaim-title">⚖ 免責聲明 / Disclaimer</div>
     <p>本系統依使用者輸入資料、強制汽車責任保險給付標準、常見民事損害賠償項目、金融評議公開案例及法院實務區間進行<strong>初步試算</strong>。實際理賠金額仍須依保險公司審核、醫療資料、肇事責任、保單條款、金融評議結果、法院認定及雙方和解結果為準。</p>
-    <p><strong>本系統不保證理賠金額，亦不構成法律意見。</strong>涉及具體案件請諮詢執業律師。</p>
+    <p><strong>本系統不保證理賠金額，亦不構成法律意見。</strong>涉及具體案件請諮詢您的理賠顧問。</p>
     <p style="font-family:var(--font-mono); font-size:11px; color:var(--text-faint); margin-top:10px">
       © 2026 tw-car-claim-estimator · 桌面小程式 v0.3.0 · 計算引擎對齊 lib/insurance/* 8 函式
     </p>
@@ -964,8 +978,30 @@ h4 { font-size: 16px; font-weight: 600; line-height: 1.4; }
 </div>
 
 <script>
+// v0.4.5: 全域 JS 錯誤攔截（給手機用戶看）
+window.addEventListener('error', (e) => {
+  console.error('[v0.4.5 全域錯誤]', e.message, e.filename, e.lineno);
+  const status = document.getElementById('js-status');
+  if (status) {
+    status.style.background = '#C93B3B';
+    status.innerHTML = '⚠️ JS 錯誤：' + e.message.slice(0, 60) + (e.message.length > 60 ? '...' : '') + ' <button onclick="location.reload()" style="margin-left:8px;background:#fff;color:#C93B3B;border:0;padding:2px 8px;border-radius:4px;cursor:pointer">重整</button>';
+  }
+});
+
+// v0.4.5: 隱藏「載入中」狀態（DOMContentLoaded 後）
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const status = document.getElementById('js-status');
+    if (status && status.innerHTML.includes('載入中')) {
+      status.style.background = '#166534';
+      status.innerHTML = '✓ 已就緒';
+      setTimeout(() => status.remove(), 2000);
+    }
+  }, 500);
+});
+
 // ============================================================
-// 台灣車禍理賠估算器 — 計算引擎（內嵌版 v0.3.0）
+// 台灣車禍理賠估算器 — 計算引擎（內嵌版 v0.4.5）
 // 對齊 lib/insurance/* 8 函式（精簡版，移除測試 hooks）
 // ============================================================
 
@@ -1613,16 +1649,26 @@ function renderResults() {
 // Stepper 切換
 // ============================================================
 function goStep(n) {
-  document.querySelectorAll('.step-pane').forEach(p => p.classList.remove('active'));
-  document.querySelector(`.step-pane[data-pane="${n}"]`).classList.add('active');
-  document.querySelectorAll('.step').forEach(s => {
-    const stepNum = parseInt(s.dataset.step);
-    s.classList.remove('active', 'completed');
-    if (stepNum === n) s.classList.add('active');
-    else if (stepNum < n) s.classList.add('completed');
-  });
-  if (n === 7) renderResults();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  try {
+    document.querySelectorAll('.step-pane').forEach(p => p.classList.remove('active'));
+    const target = document.querySelector(`.step-pane[data-pane="${n}"]`);
+    if (!target) {
+      console.error('goStep: 找不到 step-pane n=' + n);
+      return;
+    }
+    target.classList.add('active');
+    document.querySelectorAll('.step').forEach(s => {
+      const stepNum = parseInt(s.dataset.step);
+      s.classList.remove('active', 'completed');
+      if (stepNum === n) s.classList.add('active');
+      else if (stepNum < n) s.classList.add('completed');
+    });
+    if (n === 7) renderResults();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (e) {
+    alert('切換步驟時發生錯誤：' + e.message + '\n請重整頁面再試。');
+    console.error('goStep error:', e);
+  }
 }
 
 // v0.4.3: 全域清空表單函式（給選單「新案件」呼叫）

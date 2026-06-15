@@ -1,7 +1,7 @@
 [package]
 name = "tw-car-claim-estimator"
 version = "0.4.0"
-description = "台灣車禍理賠金額估算器 — 律師事務所桌面版"
+description = "台灣車禍理賠金額估算器 — 理賠顧問桌面版"
 authors = ["FlowTrace Labs"]
 edition = "2021"
 rust-version = "1.77.2"
