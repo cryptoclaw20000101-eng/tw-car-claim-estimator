@@ -12,15 +12,20 @@ const HTML_PATH = path.join(__dirname, '..', 'public', 'claim-calculator.html');
 const TS_DIR = path.join(__dirname, '..', 'lib', 'insurance');
 
 const html = fs.readFileSync(HTML_PATH, 'utf8');
-const scriptMatch = html.match(/<script>([\s\S]*?)<\/script>/);
-if (!scriptMatch) { console.error('No <script> found'); process.exit(1); }
-const js = scriptMatch[1];
+// v0.4.5: 多個 <script> 段，內含 <noscript><script> 跟實際計算引擎
+// drift 抓「最長的」inline script 段（計算引擎）
+const scriptMatches = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+if (scriptMatches.length === 0) { console.error('No <script> found'); process.exit(1); }
+const js = scriptMatches.reduce((max, m) => m[1].length > max.length ? m[1] : max, '');
 
 // --- 1. 切出純函式段 ---
 // 從 <script> 後第一個 const COMPULSORY_LIMITS 開始（涵蓋所有常數 + 函式）
 // 到 findRelatedPracticeCases 函式結尾
+// v0.4.5: 註解 "配權 4 維度" 已不存在（v0.3.3+ 改寫），
+//         改用函式定義作為 end marker
+// v0.5.0: 加 'var EMBEDDED_PRECEDENTS = [];' 在更早位置（給 drift 純函式段使用）
 const START_MARKER = 'const COMPULSORY_LIMITS = {';
-const END_COMMENT_MARKER = '// 配權 4 維度';
+const END_COMMENT_MARKER = 'function findRelatedPracticeCases';
 const startIdx = js.indexOf(START_MARKER);
 const funcStartIdx = js.indexOf(END_COMMENT_MARKER, startIdx);
 let brace = 0, started = false, pureEnd = -1;
@@ -34,7 +39,8 @@ for (let i = funcStartIdx; i < js.length; i++) {
 // 先拔掉 const $ = ... 那一行（純函式段內不需要）
 let pureJs = js.substring(startIdx, pureEnd);
 pureJs = pureJs.replace(/^const \$ = .*$/m, '// $ 函式已 stub');
-const cleanJs = 'const $ = (id) => null;\n' + pureJs;
+// v0.5.0: 在純函式段開頭加 var EMBEDDED_PRECEDENTS = [] 宣告
+const cleanJs = 'const $ = (id) => null;\nvar EMBEDDED_PRECEDENTS = [];\n' + pureJs;
 console.log(`📐 純函式段：${startIdx} → ${pureEnd} (${cleanJs.length} chars)`);
 
 // --- 2. 評估純函式段，取常數 ---

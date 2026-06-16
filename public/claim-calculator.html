@@ -1346,7 +1346,7 @@ function hoffmannCalc(annualAmount, years, lossPercent, regionalMult) {
 // 函式 8/8：findRelatedPracticeCases 配權相似判例
 // v0.3.1：用 441 件真實 precedents，配權 4 維度
 // ============================================================
-<script src="embedded-precedents.js?v=0.4.5"></script>
+/* EMBEDDED_PRECEDENTS moved to external .js */
 
 
 // 配權 4 維度（每條分數獨立，總分 = 加總）
@@ -2088,9 +2088,15 @@ $('historySelect')?.addEventListener('change', (e) => {
 console.log('✅ 台灣車禍理賠估算器 v0.3.3 桌面小程式已載入');
 console.log('   - 8 個計算函式 + 441 件真實 precedents 內嵌（v0.3.1）');
 console.log('   - drift 偵測：scripts/check-rule-drift.js（v0.3.2）');
-console.log('   - 設計 token：深綠 #1B4332 + 酒紅 #722F37 + 金 #C9A961 + Noto Serif TC 襯線');
+console.log('   - 設計 token：信任藍 #003D7A + 橘紅 #F26522 + 思源黑體（v0.4.5 理賠顧問版）');
 console.log('   - PDF 匯出：jsPDF CDN');
 console.log('   - 歷史案件：localStorage 最多 10 件（v0.3.3）');
+console.log('   - v0.5.0: 改為靜態 export 模式，部署到 Vercel');
 </script>
+
+<!-- v0.5.0: 外部 precedents 載入（54KB）— 拆出去避免 iOS Safari script 卡住 -->
+<script src="embedded-precedents.js?v=0.5.0"
+  onerror="console.error('[v0.5.0] embedded-precedents.js 載入失敗，案例配權功能可能受影響')"></script>
+
 </body>
 </html>

@@ -3,9 +3,10 @@ const fs = require('fs');
 const path = require('path');
 
 const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'claim-calculator.html'), 'utf8');
-const scriptMatch = html.match(/<script>([\s\S]*?)<\/script>/);
-if (!scriptMatch) { console.error('No <script> found'); process.exit(1); }
-let js = scriptMatch[1];
+// v0.4.5: 多個 <script> 段（noscript 內含 0-char 段），抓最長的
+const scriptMatches = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+if (scriptMatches.length === 0) { console.error('No <script> found'); process.exit(1); }
+let js = scriptMatches.reduce((max, m) => m[1].length > max.length ? m[1] : max, '');
 
 // 拔掉 document/window/$ 相關的程式碼，純函式庫
 const removePatterns = [
@@ -20,8 +21,10 @@ const removePatterns = [
 removePatterns.forEach(p => { js = js.replace(p, ''); });
 
 // 構造執行環境（v0.3.3：切出純函式段，跟 check-rule-drift 共用邏輯）
+// v0.4.5: end marker 從 "配權 4 維度" 改為函式定義
+// v0.5.0: 加 var EMBEDDED_PRECEDENTS = [] stub（HTML 內已宣告）
 const START_MARKER = 'const COMPULSORY_LIMITS = {';
-const END_COMMENT_MARKER = '// 配權 4 維度';
+const END_COMMENT_MARKER = 'function findRelatedPracticeCases';
 const startIdx = js.indexOf(START_MARKER);
 const funcStartIdx = js.indexOf(END_COMMENT_MARKER, startIdx);
 let brace = 0, started = false, pureEnd = -1;
@@ -31,8 +34,9 @@ for (let i = funcStartIdx; i < js.length; i++) {
 }
 let pureJs = js.substring(startIdx, pureEnd);
 pureJs = pureJs.replace(/^const \$ = .*$/m, '// $ stub');
+// v0.5.0: stub EMBEDDED_PRECEDENTS + 空實作 findRelatedPracticeCases
 const lib = {};
-const wrapper = new Function(pureJs + `
+const wrapper = new Function('var EMBEDDED_PRECEDENTS = [];\nvar findRelatedPracticeCases = function() { return []; };\n' + pureJs + `
   return {
     calcCompulsory, calcDisability, calcCivilDamages, calcThirdParty,
     calcRegion, hoffmannCalc, findRelatedPracticeCases, calcEvidence,
