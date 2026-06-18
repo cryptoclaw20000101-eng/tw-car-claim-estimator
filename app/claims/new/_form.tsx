@@ -573,6 +573,15 @@ function Step2Fault({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>
 
 // ============== Step 3：人身 / 工作 ==============
 function Step3Person({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
+  // v0.5.3 bugfix: birthDate DatePicker 也會踩 rc-picker getUDayjs('') isValid 炸
+  // 跟 Step1 一樣：mount 時若不是 dayjs 物件就塞 dayjs()（空字串轉 dayjs()，user 選完 onChange 會再轉回字串）
+  useEffect(() => {
+    const cur = form.getFieldValue(['person', 'birthDate'])
+    if (!cur || typeof cur === 'string') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      form.setFieldsValue({ person: { birthDate: dayjs() } } as any)
+    }
+  }, [form])
   return (
     <Card title={<><UserOutlined className="mr-2" />受害人身分與工作</>}>
       <Row gutter={16}>
@@ -656,6 +665,14 @@ function Step3Person({ form }: { form: ReturnType<typeof Form.useForm<FormSchema
 // ============== Step 4：診斷書 ==============
 function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
   const jointName = Form.useWatch(['medical', 'jointName'], form) as JointName | null
+  // v0.5.3 bugfix: emergencyDate DatePicker 跟 birthDate 同症狀 — 收到空字串炸
+  useEffect(() => {
+    const cur = form.getFieldValue(['medical', 'emergencyDate'])
+    if (!cur || typeof cur === 'string') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      form.setFieldsValue({ medical: { emergencyDate: dayjs() } } as any)
+    }
+  }, [form])
   return (
     <Card title={<><MedicineBoxOutlined className="mr-2" />診斷書 / 傷勢資料</>}>
       <Row gutter={16}>
