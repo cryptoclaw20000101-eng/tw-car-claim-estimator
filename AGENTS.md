@@ -7,7 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # tw-car-claim-estimator — 專案層級規則
 
 > **適用對象**: 在本專案執行任務的所有 AI agent (Claude / Codex / Hermes / 其他)
-> **生效版本**: v0.5.3 (2026-06-18)
+> **生效版本**: v0.5.4 (2026-06-18)
 > **同步於**: `package.json` version + git tag
 > **優先序**: `AGENTS.md` > commit message > 自由發揮。若有衝突以本檔為準。
 
@@ -22,16 +22,17 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ---
 
-## §1 估算規則鐵律（4 條，**永不改**）
+## §1 估算規則鐵律（3 條，**永不改**）
 
 | # | 規則 | 位置 |
 |---|---|---|
 | ① | **強制險無過失不乘肇責** — 強制險為無過失責任，肇責比例只影響第三人責任險 | `lib/insurance/compulsory.ts` |
 | ② | **精神慰撫金 / 工作損失 / 車損不進強制險** — 這 3 類只算第三人責任險 | `lib/insurance/civil-damages.ts` |
-| ③ | **關節角度喪失只進失能初篩、不直判失能等級** — 必須提醒補件（X 光 / 醫師評估） | `lib/insurance/joint-rom.ts` + `lib/insurance/disability.ts` |
-| ④ | **資料不足不硬算** — 回傳 `null` + 補件清單，絕不憑空填值 | `lib/insurance/evidence.ts` |
+| ③ | **資料不足不硬算** — 回傳 `null` + 補件清單，絕不憑空填值 | `lib/insurance/evidence.ts` |
 
-UI 結果頁頂部永遠顯示這 4 條 + 完整免責聲明（見 `app/page.tsx` 「四條鐵律」段）。
+> v0.5.3 移除「關節角度喪失只進失能初篩」鐵律 — 初篩計算引擎仍存在於 `lib/insurance/joint-rom.ts` + `disability.ts` 但不再視為鐵律。
+
+UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx` 「三條鐵律」段）。
 
 ---
 

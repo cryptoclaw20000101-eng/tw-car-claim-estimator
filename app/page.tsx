@@ -183,9 +183,9 @@ export default function Home() {
       <section className="border-t border-border bg-background">
         <div className="mx-auto w-full max-w-6xl px-6 py-16 md:py-20">
           <Title level={2} className="!mb-8 !text-2xl !tracking-tight md:!text-3xl">
-            四條鐵律，系統永遠守著。
+            三條鐵律，系統永遠守著。
           </Title>
-          <div className="grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-3">
             <IronRow
               label="強制險採無過失主義"
               desc="不乘肇責比例，純依傷害程度計算"
@@ -193,10 +193,6 @@ export default function Home() {
             <IronRow
               label="精神慰撫金 / 工作損失 / 車損不放入強制險"
               desc="這是法律強制，不是系統限制"
-            />
-            <IronRow
-              label="關節角度喪失只進失能初篩"
-              desc="不直判失能，給補件建議"
             />
             <IronRow
               label="資料不足不硬算"
