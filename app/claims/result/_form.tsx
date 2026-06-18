@@ -546,25 +546,11 @@ function CivilSection({ result }: { result: EstimationResult }) {
 // ============== ④ 第三人責任險 ==============
 function ThirdPartySection({ result, input }: { result: EstimationResult; input: ClaimInput }) {
   const t = result.thirdParty
-  if (!input.basics.hasThirdPartyInsurance) {
-    return (
-      <Card>
-        <Empty description="未填寫第三人責任險" />
-        <Paragraph type="secondary" className="!mt-4">
-          若您/對方有第三人責任險體傷+財損保額，請在 Step 1 補填，本估算才有意義。
-        </Paragraph>
-      </Card>
-    )
-  }
+  // v0.5.2: 拿掉「未填寫第三人責任險」空狀態（永遠有第三人險）+ 4 個 Cap Statistic
+  // input 仍傳入以顯示「乘己方肇責 %」段落
   return (
     <Card>
-      <Row gutter={16} className="!mb-4">
-        <Col xs={12} md={6}><Statistic title="體傷保額" value={t.bodilyCap} formatter={(v) => dollar(Number(v))} /></Col>
-        <Col xs={12} md={6}><Statistic title="財損保額" value={t.propertyCap} formatter={(v) => dollar(Number(v))} /></Col>
-        <Col xs={12} md={6}><Statistic title="用盡體傷額度" value={t.usedBodilyCap ? '是' : '否'} valueStyle={{ color: t.usedBodilyCap ? 'var(--data-negative)' : 'var(--data-positive)' }} /></Col>
-        <Col xs={12} md={6}><Statistic title="用盡財損額度" value={t.usedPropertyCap ? '是' : '否'} valueStyle={{ color: t.usedPropertyCap ? 'var(--data-negative)' : 'var(--data-positive)' }} /></Col>
-      </Row>
-      <Divider>第三人責任險估算（不含強制險）</Divider>
+      <Divider>第三人責任險估算（不含強制險，v0.5.2 起無保額上限）</Divider>
       <Row gutter={16}>
         <Col xs={8}><Statistic title="低標" value={t.thirdPartyEstimateLow} formatter={(v) => dollar(Number(v))} /></Col>
         <Col xs={8}><Statistic title="中標" value={t.thirdPartyEstimateMid} formatter={(v) => dollar(Number(v))} valueStyle={{ color: 'var(--accent)' }} /></Col>
