@@ -9,10 +9,6 @@ describe('UI 整合 E2E：scarRevision / workLossExtended / laborCapacityRetirem
     const r = estimateClaim({
       basics: {
         accidentDate: '2024-01-15',
-        hasThirdPartyInsurance: true,
-        thirdPartyBodilyLimit: 2_000_000,
-        thirdPartyPropertyLimit: 200_000,
-        excessLiabilityLimit: 0,
         accidentCity: '臺中市',
         courtJurisdiction: '臺灣臺中地方法院',
       },
@@ -76,8 +72,7 @@ describe('UI 整合 E2E：scarRevision / workLossExtended / laborCapacityRetirem
   it('蟹足腫（isKeloid=true）→ 自動走 injection 術式', () => {
     const r = estimateClaim({
       basics: {
-        accidentDate: '2024-01-15', hasThirdPartyInsurance: false,
-        thirdPartyBodilyLimit: 0, thirdPartyPropertyLimit: 0, excessLiabilityLimit: 0,
+        accidentDate: '2024-01-15',
         accidentCity: '臺中市', courtJurisdiction: '臺灣臺中地方法院',
       },
       fault: { selfFaultRatio: 0, otherFaultRatio: 100 },
@@ -117,8 +112,7 @@ describe('UI 整合 E2E：scarRevision / workLossExtended / laborCapacityRetirem
   it('無疤 + 無失能 → 兩個新欄位都是 0/null 但有 notes', () => {
     const r = estimateClaim({
       basics: {
-        accidentDate: '2024-01-15', hasThirdPartyInsurance: false,
-        thirdPartyBodilyLimit: 0, thirdPartyPropertyLimit: 0, excessLiabilityLimit: 0,
+        accidentDate: '2024-01-15',
         accidentCity: '臺中市', courtJurisdiction: '臺灣臺中地方法院',
       },
       fault: { selfFaultRatio: 0, otherFaultRatio: 100 },

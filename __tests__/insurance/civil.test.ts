@@ -26,12 +26,7 @@ const case2Basics: AccidentBasics = {
   isAutomobileAccident: true,
   hasPolicePreliminaryReport: true,
   hasAccidentAppraisal: false,
-  isSettled: false,
   hasCompulsoryInsurance: true,
-  hasThirdPartyInsurance: true,
-  thirdPartyBodilyLimit: 1_000_000,
-  thirdPartyPropertyLimit: 200_000,
-  excessLiabilityLimit: 0,
   accidentCity: '台中市',
   accidentDistrict: '西屯區',
   claimantResidenceCity: '台中市',
@@ -310,7 +305,7 @@ describe('測試案例 4：車損', () => {
 describe('測試案例 5：看護 40 日 + 體傷 100 萬 / 財損 50 萬', () => {
   it('強制險看護只認 30 日（1,200 × 30 = 36,000）', () => {
     const r = estimateClaim({
-      basics: { ...case2Basics, thirdPartyBodilyLimit: 1_000_000, thirdPartyPropertyLimit: 500_000 },
+      basics: { ...case2Basics },
       fault: { ...case2Fault, otherFaultRatio: 50 },
       person: case2Person,
       medical: {
@@ -687,10 +682,7 @@ describe('computeThirdParty Bug A 修復：不重複扣減強制險', () => {
     const r = computeThirdParty({
       basics: {
         ...case2Basics,
-        thirdPartyBodilyLimit: 1_000_000,
-        thirdPartyPropertyLimit: 200_000,
-        hasThirdPartyInsurance: true,
-      } as any,
+      },
       civil: {
         civilMedicalExpense: 500_000,  // 已是差額（已扣 20 萬強制險）
         civilNursingFeeLow: 0,

@@ -29,12 +29,7 @@ function makeBasics(overrides: Partial<AccidentBasics> = {}): AccidentBasics {
     isAutomobileAccident: true,
     hasPolicePreliminaryReport: true,
     hasAccidentAppraisal: false,
-    isSettled: false,
     hasCompulsoryInsurance: true,
-    hasThirdPartyInsurance: true,
-    thirdPartyBodilyLimit: 2000000,
-    thirdPartyPropertyLimit: 200000,
-    excessLiabilityLimit: 0,
     accidentCity: '台中市',
     accidentDistrict: '西區',
     claimantResidenceCity: '台中市',
@@ -469,24 +464,7 @@ describe('generateEvidence — 保險狀態風險', () => {
     expect(result.riskNotes).toContain('⚠️ 未投保強制險，將由交通事故特別補償基金處理，請先確認加害人車輛是否有投保')
   })
 
-  it('加害人未保第三人責任險且肇責 > 0 → 風險提示', () => {
-    const input = makeInput({
-      basics: makeBasics({ hasThirdPartyInsurance: false }),
-      fault: makeFault({ otherFaultRatio: 70 }),
-    })
-    const result = generateEvidence(input, makeDisability(), makeWorkLoss(), makePas())
-    expect(result.riskNotes).toContain('加害人未保第三人責任險，工作損失、精神慰撫金等須直接向加害人求償或訴訟')
-  })
-
-  it('加害人未保第三人責任險但肇責 0% → 不應觸發該風險', () => {
-    const input = makeInput({
-      basics: makeBasics({ hasThirdPartyInsurance: false }),
-      fault: makeFault({ otherFaultRatio: 0 }),
-    })
-    const result = generateEvidence(input, makeDisability(), makeWorkLoss(), makePas())
-    const hasNoThirdPartyRisk = result.riskNotes.some((r) => r.includes('加害人未保第三人責任險'))
-    expect(hasNoThirdPartyRisk).toBe(false)
-  })
+  // v0.5.2: 拿掉「加害人未保第三人責任險」風險提示 — 永遠當有第三人險
 })
 
 // =====================================================================
