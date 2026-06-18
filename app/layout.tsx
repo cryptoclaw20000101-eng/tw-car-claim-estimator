@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
-import { ConfigProvider } from "antd";
+import { App, ConfigProvider } from "antd";
 import zhTW from "antd/locale/zh_TW";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 import "./globals.css";
@@ -80,7 +80,9 @@ export default function RootLayout({
               },
             }}
           >
-            {children}
+            {/* v0.5.1 bugfix: AntD 6 的 message.error / message.success 是 static function，
+                在 dynamic theme 下抓不到 context，會跳警告。要包 <App> 才吃到 ConfigProvider theme。 */}
+            <App>{children}</App>
           </ConfigProvider>
         </AntdRegistry>
         <ServiceWorkerRegistrar />
