@@ -94,9 +94,7 @@ export function generateEvidence(
   if (!input.basics.hasCompulsoryInsurance) {
     risks.push('⚠️ 未投保強制險，將由交通事故特別補償基金處理，請先確認加害人車輛是否有投保')
   }
-  if (!input.basics.hasThirdPartyInsurance && input.fault.otherFaultRatio > 0) {
-    risks.push('加害人未保第三人責任險，工作損失、精神慰撫金等須直接向加害人求償或訴訟')
-  }
+  // v0.5.2: 拿掉「加害人未保第三人險」風險提示 — 估算永遠當有第三人險
 
   // 8. 強制險細項警示
   if (pas.severityScore >= 45) {

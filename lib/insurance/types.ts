@@ -82,13 +82,10 @@ export interface AccidentBasics {
 
   hasPolicePreliminaryReport: boolean
   hasAccidentAppraisal: boolean
-  isSettled: boolean
+  // v0.5.2: 拿掉 isSettled / hasThirdPartyInsurance / thirdPartyBodilyLimit /
+  // thirdPartyPropertyLimit / excessLiabilityLimit — 表單永遠當有第三人險、無保額上限
 
   hasCompulsoryInsurance: boolean
-  hasThirdPartyInsurance: boolean
-  thirdPartyBodilyLimit: number   // 體傷保額（元）
-  thirdPartyPropertyLimit: number // 財損保額（元）
-  excessLiabilityLimit: number    // 超額責任險保額（元）
 
   // === v2 新增：地區欄位 ===
   accidentCity: string
@@ -313,10 +310,8 @@ export interface ThirdPartyEstimate {
   thirdPartyEstimateMid: number
   thirdPartyEstimateHigh: number
 
-  bodilyCap: number   // 體傷保額
-  propertyCap: number // 財損保額
-  usedBodilyCap: boolean
-  usedPropertyCap: boolean
+  // v0.5.2: 拿掉 bodilyCap / propertyCap / usedBodilyCap / usedPropertyCap
+  // 無保額上限，永遠是 1：1 對方肇責比例
 
   notes: string[]
 }

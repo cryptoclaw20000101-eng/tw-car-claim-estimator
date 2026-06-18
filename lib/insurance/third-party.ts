@@ -4,9 +4,7 @@
 //   民事損害總額 = 醫療差額 + 看護費 + 交通 + 工作損失 + 勞減 + 慰撫金 + 車損 + 財損
 //   對方依法應賠 = 民事總額 × 對方肇責比例 / 100
 //   第三人險可賠 = max(對方應賠 - 強制險已估, 0)
-//   最終估算 = min(第三人險可賠, 體傷保額 + 財損保額 + 超額保額)
-//
-// 體傷/財損分上限（保額分離）
+//   最終估算 = 第三人險可賠  （v0.5.2: 無保額上限）
 // =====================================================================
 
 import type { PropertyDamageInputs, AccidentBasics, ThirdPartyEstimate, PainAndSufferingResult } from './types'
@@ -66,7 +64,9 @@ function sumProperty(c: ReturnType<typeof packPropertyCivil>): number {
 // --- 主計算 ------------------------------------------------------------
 
 export function computeThirdParty(input: ThirdPartyInput): ThirdPartyEstimate {
-  const { basics, civil, compulsoryTotalApproved, otherFaultRatio } = input
+  const { civil, otherFaultRatio } = input
+  // v0.5.2: compulsoryTotalApproved 已隱含在 civilDamage 裡（caller 已扣過），不再使用
+  void input.compulsoryTotalApproved
   const ratio = otherFaultRatio / 100
 
   const bodilyLow = packBodilyCivil(civil, 'Low')
@@ -88,57 +88,17 @@ export function computeThirdParty(input: ThirdPartyInput): ThirdPartyEstimate {
   const liableAmountMid = Math.round(civilDamageTotalMid * ratio)
   const liableAmountHigh = Math.round(civilDamageTotalHigh * ratio)
 
-  // 第三人險可賠 = 對方應賠 - 強制險已估
-  const thirdPartyEstimateLow = Math.max(liableAmountLow - compulsoryTotalApproved, 0)
-  const thirdPartyEstimateMid = Math.max(liableAmountMid - compulsoryTotalApproved, 0)
-  const thirdPartyEstimateHigh = Math.max(liableAmountHigh - compulsoryTotalApproved, 0)
+  // 第三人險可賠 = 對方依法應賠（CivilDamageInput 已是差額，已扣過 compulsory）
+  // v0.5.2: 拿掉保額上限，民事差額全由第三人險吸收；不再二次扣 compulsory（Bug A）
+  const thirdPartyEstimateLow = liableAmountLow
+  const thirdPartyEstimateMid = liableAmountMid
+  const thirdPartyEstimateHigh = liableAmountHigh
 
-  // 保額限制（體傷 + 財損 + 超額）
-  const totalCap = basics.thirdPartyBodilyLimit + basics.thirdPartyPropertyLimit + basics.excessLiabilityLimit
-
-  // 體傷 vs 財損的實際用量
-  // 第三人險體傷保額優先用於體傷，財損保額優先用於財損，超額兩者共用
-  const bodilyCapLimit = basics.thirdPartyBodilyLimit
-  const propertyCapLimit = basics.thirdPartyPropertyLimit
-
-  // 體傷被保額限制後
-  // 注意：CivilDamageInput 已是「民事差額」（已扣過強制險核准），
-  // 所以 bodilyPay = min(bodilyLiable, bodilyCapLimit) 不再二次扣 compulsory
-  const bodilyLiableLow = Math.round(bodilyTotalLow * ratio)
-  const bodilyLiableMid = Math.round(bodilyTotalMid * ratio)
-  const bodilyLiableHigh = Math.round(bodilyTotalHigh * ratio)
-  const propertyLiable = Math.round(propertyTotal * ratio)
-
-  const bodilyPayLow = Math.max(Math.min(bodilyLiableLow, bodilyCapLimit), 0)
-  const bodilyPayMid = Math.max(Math.min(bodilyLiableMid, bodilyCapLimit), 0)
-  const bodilyPayHigh = Math.max(Math.min(bodilyLiableHigh, bodilyCapLimit), 0)
-
-  const propertyPay = Math.max(Math.min(propertyLiable, propertyCapLimit), 0)
-
-  // 第三人險體傷實際可賠
-  const bodilyFinalLow = Math.min(bodilyPayLow, bodilyCapLimit)
-  const bodilyFinalMid = Math.min(bodilyPayMid, bodilyCapLimit)
-  const bodilyFinalHigh = Math.min(bodilyPayHigh, bodilyCapLimit)
-
-  // 第三人險財損實際可賠
-  const propertyFinal = Math.min(propertyPay, propertyCapLimit)
-
-  // 最終 = 體傷實際 + 財損實際
-  const finalLow = bodilyFinalLow + propertyFinal
-  const finalMid = bodilyFinalMid + propertyFinal
-  const finalHigh = bodilyFinalHigh + propertyFinal
-
-  // 檢查是否撞上限
-  const usedBodilyCap = bodilyFinalLow >= bodilyCapLimit || bodilyFinalMid >= bodilyCapLimit || bodilyFinalHigh >= bodilyCapLimit
-  const usedPropertyCap = propertyFinal >= propertyCapLimit
+  const finalLow = thirdPartyEstimateLow
+  const finalMid = thirdPartyEstimateMid
+  const finalHigh = thirdPartyEstimateHigh
 
   const notes: string[] = []
-  if (!basics.hasThirdPartyInsurance) {
-    notes.push('未投保第三人責任險，本估算僅供民事和解參考')
-  }
-  if (totalCap === 0 && basics.hasThirdPartyInsurance) {
-    notes.push('第三人責任險保額未填，請補體傷/財損/超額保額')
-  }
   if (otherFaultRatio === 0) {
     notes.push('對方肇責比例為 0，第三人責任險不會理賠')
   }
@@ -156,10 +116,6 @@ export function computeThirdParty(input: ThirdPartyInput): ThirdPartyEstimate {
     thirdPartyEstimateLow: finalLow,
     thirdPartyEstimateMid: finalMid,
     thirdPartyEstimateHigh: finalHigh,
-    bodilyCap: bodilyCapLimit,
-    propertyCap: propertyCapLimit,
-    usedBodilyCap,
-    usedPropertyCap,
     notes,
   }
 }
