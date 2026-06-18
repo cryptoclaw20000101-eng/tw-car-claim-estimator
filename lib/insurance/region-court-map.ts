@@ -35,6 +35,7 @@ export const regionCourtMap: Record<string, string> = {
   '澎湖縣': '臺灣澎湖地方法院',
   '金門縣': '福建金門地方法院',
   '連江縣': '福建連江地方法院',
+  // v0.2.21+ — 臺南高分院/橋頭地院走 courtToCity 的 SPECIAL_COURT_MAP (避免 value 衝突)
 }
 
 /**
@@ -65,6 +66,19 @@ export function courtToCity(courtName: string): string | null {
   if (!courtName) return null
   const normalized = courtName.trim()
   if (!normalized) return null
+  // v0.2.21+ — 分院/特殊法院直接對應（避免 regionCourtMap 的 value 衝突）
+  const SPECIAL_COURT_MAP: Record<string, string> = {
+    '臺灣高等法院臺南分院': '臺南市',
+    '臺灣高等法院高雄分院': '高雄市',
+    '臺灣高等法院臺中分院': '臺中市',
+    '臺灣高等法院臺北分院': '臺北市',
+    '臺灣高等法院花蓮分院': '花蓮縣',
+    '臺灣士林地方法院': '臺北市',  // 管臺北北區+士林北投+北海岸，行政劃入臺北市
+    '臺灣橋頭地方法院': '高雄市',  // 2025 新設高雄分院民事庭升格
+  }
+  if (SPECIAL_COURT_MAP[normalized]) {
+    return SPECIAL_COURT_MAP[normalized]
+  }
   // 收集所有匹配 key，去重後回標準「臺」字版
   const matches: string[] = []
   for (const [city, court] of Object.entries(regionCourtMap)) {

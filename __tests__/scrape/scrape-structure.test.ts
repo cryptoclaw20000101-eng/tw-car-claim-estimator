@@ -188,3 +188,32 @@ describe('S8 COURT_CODE 對照表（v0.2.11 鐵律：不要擅自填代碼）', 
     expect(scrapeSource).toContain('（未知代碼）')
   })
 })
+
+describe('S8 v0.2.21 — 年度範圍過濾 + SCRAPE_MAX_PAGES 預設 3', () => {
+  it('isInYearRange 函式存在', () => {
+    expect(scrapeSource).toMatch(/function isInYearRange/)
+  })
+
+  it('SCRAPE_MAX_PAGES 預設 3（v0.2.21 從 1 改 3 衝量）', () => {
+    expect(scrapeSource).toMatch(/SCRAPE_MAX_PAGES\s*\|\|\s*"3"/)
+  })
+
+  it('year filter CLI flag --year-min / --year-max 解析', () => {
+    expect(scrapeSource).toContain('--year-min')
+    expect(scrapeSource).toContain('--year-max')
+    expect(scrapeSource).toContain('yearMin')
+    expect(scrapeSource).toContain('yearMax')
+  })
+
+  it('套用 isInYearRange + isCivilCase 雙層過濾', () => {
+    // v0.2.21+: year filter 先（在 detail HTML parse 前）, isCivilCase 後（extractAmounts 後）
+    expect(scrapeSource).toContain('isInYearRange')
+    expect(scrapeSource).toContain('isCivilCase')
+    // 用「呼叫點」檢查順序 (避免抓到函式定義)
+    // 函式定義:  "function isInYearRange(...)"
+    // 呼叫點:    "if (!isInYearRange("
+    const yearCallIdx = scrapeSource.indexOf('if (!isInYearRange(')
+    const detailIdx = scrapeSource.indexOf('getHtml(jar, hit.href')
+    expect(yearCallIdx, 'isInYearRange 呼叫應在 getHtml detail 之後').toBeGreaterThan(detailIdx)
+  })
+})

@@ -38,6 +38,22 @@ describe("courtToCity — 法院名 → 縣市", () => {
     expect(courtToCity("ULDV")).toBeNull();
   });
 
+  // v0.2.21+ — 分院/特殊法院（SPECIAL_COURT_MAP）
+  it("v0.2.21 — 分院對應所屬地院轄區", () => {
+    expect(courtToCity("臺灣高等法院臺南分院")).toBe("臺南市");
+    expect(courtToCity("臺灣高等法院高雄分院")).toBe("高雄市");
+    expect(courtToCity("臺灣高等法院臺中分院")).toBe("臺中市");
+    expect(courtToCity("臺灣高等法院臺北分院")).toBe("臺北市");
+    expect(courtToCity("臺灣高等法院花蓮分院")).toBe("花蓮縣");
+  });
+
+  it("v0.2.21 — 特殊地院（士林/橋頭）", () => {
+    // 士林地院：管臺北北區+士林北投+北海岸，行政劃入臺北市
+    expect(courtToCity("臺灣士林地方法院")).toBe("臺北市");
+    // 橋頭地院：2025 新設，原高雄地院橋頭簡易庭升格
+    expect(courtToCity("臺灣橋頭地方法院")).toBe("高雄市");
+  });
+
   it("trim：前後空白不影響", () => {
     expect(courtToCity("  臺灣臺中地方法院  ")).toBe("臺中市");
     expect(courtToCity("\t臺灣新北地方法院\n")).toBe("新北市");

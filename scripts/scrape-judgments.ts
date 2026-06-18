@@ -591,6 +591,21 @@ function isCivilCase(caseNo: string): boolean {
   return true;
 }
 
+/**
+ * isInYearRange — v0.2.21+ — 案號是否在指定民國年範圍內
+ * 用例: SCRAPE_MIN_YEAR=109 SCRAPE_MAX_YEAR=111 → 只抓 109~111 年案件
+ * 案號格式: "{year} 年度 {caseType} 字第 {caseNum} 號"
+ */
+function isInYearRange(caseNo: string, yearMin: number | null, yearMax: number | null): boolean {
+  if (yearMin === null || yearMax === null) return true; // 沒設範圍=不過濾
+  if (!caseNo) return true;
+  const m = caseNo.match(/^(\d+)\s*年度/);
+  if (!m) return true;
+  const year = parseInt(m[1], 10);
+  if (!Number.isFinite(year)) return true;
+  return year >= yearMin && year <= yearMax;
+}
+
 async function main() {
   // CLI: --dry-run = 不寫檔，只跑流程; --chain <name> = 只跑單鏈; --quiet = 精簡輸出（給 cron 用）
   //       --retry <N> = fetch 重試次數（預設 3，設 0 關閉）; --retry-delay <ms> = 起始退避毫秒（預設 500，指數倍增）
@@ -611,9 +626,20 @@ async function main() {
     const ms = parseInt(process.argv[retryDelayArgIdx + 1] ?? "500", 10);
     retryConfig.baseDelayMs = isNaN(ms) ? 500 : Math.max(100, ms);
   }
+  // v0.2.21+ — 年度範圍過濾（民國年），預設不限。例: --year-min 109 --year-max 111
+  const yearMinArgIdx = process.argv.indexOf("--year-min");
+  const yearMaxArgIdx = process.argv.indexOf("--year-max");
+  const yearMin: number | null = yearMinArgIdx >= 0
+    ? parseInt(process.argv[yearMinArgIdx + 1] ?? "0", 10)
+    : null;
+  const yearMax: number | null = yearMaxArgIdx >= 0
+    ? parseInt(process.argv[yearMaxArgIdx + 1] ?? "0", 10)
+    : null;
+  const hasYearFilter = yearMin !== null && !isNaN(yearMin) && yearMax !== null && !isNaN(yearMax);
   if (!isQuiet) {
     if (isDryRun) console.log("[scrape] 🧪 DRY RUN — 不會寫入 precedents 檔");
     if (chainFilter) console.log(`[scrape] 🔗 只跑 ${chainFilter} 鏈`);
+    if (hasYearFilter) console.log(`[scrape] 📅 年度範圍: 民國 ${yearMin} ~ ${yearMax} 年`);
     console.log(
       `[scrape] 🔁 retry 設定：maxRetries=${retryConfig.maxRetries}, baseDelayMs=${retryConfig.baseDelayMs}`,
     );
@@ -650,7 +676,7 @@ async function main() {
     console.log(`[scrape]   Step 2: q=${qHash.slice(0, 8)}...`);
 
     // 3. GET qryresultlst 拿 data.aspx 連結（v0.2.14+ 支援分頁: a=1..maxPages）
-    const maxPages = Math.max(1, parseInt(process.env.SCRAPE_MAX_PAGES || "1", 10));
+    const maxPages = Math.max(1, parseInt(process.env.SCRAPE_MAX_PAGES || "3", 10));  // v0.2.21+ 預設 3 (從 1 改 3, 衝量)
     const allHitsMap = new Map<string, RawHit>();  // v0.2.14 用 href 去重(避免 page 1+2+3 重複抓同一件)
     let actualPages = 0;
     const qryReferer = `${BASE}/FJUD/qryresultlst.aspx?ty=JUDBOOK&q=${qHash}`;  // 給 detail 抓取當 referer
@@ -679,6 +705,12 @@ async function main() {
       console.log(`[scrape]     抓 ${hit.court} ${hit.caseNo} ...`);
       try {
         const detail = await getHtml(jar, hit.href, qryReferer);
+        // v0.2.21+ — 年度範圍過濾（在抓 detail 後立刻套用，省 token 流量）
+        if (!isInYearRange(hit.caseNo, hasYearFilter ? yearMin : null, hasYearFilter ? yearMax : null)) {
+          console.log(`[scrape]       📅 [年度過濾] 排除 ${hit.caseNo}`);
+          totalSkipped++;
+          continue;
+        }
         const amts = extractAmounts(detail, chain);
         if (!amts) {
           console.log(`[scrape]       ⚠ 沒抓到 ${CHAIN_LABEL[chain]}金額`);
