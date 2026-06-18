@@ -50,7 +50,7 @@ try {
   // Demo 案件（你之前按的：機車 vs 汽車，臺中，肇責 30/70，右膝韌帶）
   const demo = {
     accidentCity: '臺中市',
-    thirdPartyBodilyLimit: 2000000,
+    // v0.5.2: 拿掉 thirdPartyBodilyLimit（永遠有第三人險、無保額上限）
     otherFaultRatio: 70,
     selfFaultRatio: 30,
     age: 35,

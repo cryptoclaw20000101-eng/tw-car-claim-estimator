@@ -702,12 +702,7 @@ h4 { font-size: 16px; font-weight: 600; line-height: 1.4; }
         <label><input type="checkbox" id="hasPolicePreliminaryReport" /> 警方初步研判表</label>
         <label><input type="checkbox" id="hasAccidentAppraisal" /> 車輛行車事故鑑定</label>
         <label><input type="checkbox" id="hasCompulsoryInsurance" checked /> 有強制險</label>
-        <label><input type="checkbox" id="hasThirdPartyInsurance" checked /> 有第三人責任險</label>
-      </div>
-      <div class="field-row-3" style="margin-top:12px">
-        <div class="field"><label>第三人責任險 體傷保額（元）</label><input type="number" id="thirdPartyBodilyLimit" value="2000000" /></div>
-        <div class="field"><label>第三人責任險 財損保額（元）</label><input type="number" id="thirdPartyPropertyLimit" value="200000" /></div>
-        <div class="field"><label>超額責任險保額（元）</label><input type="number" id="excessLiabilityLimit" value="0" /></div>
+        <!-- v0.5.2: 拿掉「有第三人責任險」+ 3 個保額欄位（永遠有第三人險、無保額上限） -->
       </div>
     </div>
     <div class="btn-row">
@@ -1283,18 +1278,17 @@ function calcThirdParty(input, civil, compulsory) {
   const afterCompulsoryMid = Math.max(liableMid - compulsoryTotal, 0);
   const afterCompulsoryHigh = Math.max(liableHigh - compulsoryTotal, 0);
 
-  // 套體傷保額
-  const bodilyCap = input.thirdPartyBodilyLimit || 0;
-  const tpLow = Math.min(afterCompulsoryLow, bodilyCap);
-  const tpMid = Math.min(afterCompulsoryMid, bodilyCap);
-  const tpHigh = Math.min(afterCompulsoryHigh, bodilyCap);
+  // v0.5.2: 拿掉保額上限，民事差額全由第三人險吸收（永遠有第三人險）
+  const tpLow = afterCompulsoryLow;
+  const tpMid = afterCompulsoryMid;
+  const tpHigh = afterCompulsoryHigh;
 
   return {
     bodilyTotal: { low: bodilyTotalLow, mid: bodilyTotalMid, high: bodilyTotalHigh },
     liable: { low: liableLow, mid: liableMid, high: liableHigh },
     afterCompulsory: { low: afterCompulsoryLow, mid: afterCompulsoryMid, high: afterCompulsoryHigh },
     estimate: { low: tpLow, mid: tpMid, high: tpHigh },
-    bodilyCap, usedCap: tpHigh >= bodilyCap,
+    usedCap: false,  // v0.5.2: 無保額上限，永遠 false
     notes: otherFaultRatio < 1 ? [`肇責比例 ${input.otherFaultRatio}% 已套用於第三人責任險`] : []
   };
 }
@@ -1433,10 +1427,7 @@ function collectInput() {
       hasPolicePreliminaryReport: bool('hasPolicePreliminaryReport'),
       hasAccidentAppraisal: bool('hasAccidentAppraisal'),
       hasCompulsoryInsurance: bool('hasCompulsoryInsurance'),
-      hasThirdPartyInsurance: bool('hasThirdPartyInsurance'),
-      thirdPartyBodilyLimit: num('thirdPartyBodilyLimit'),
-      thirdPartyPropertyLimit: num('thirdPartyPropertyLimit'),
-      excessLiabilityLimit: num('excessLiabilityLimit'),
+      // v0.5.2: 拿掉第三人險相關欄位（永遠有第三人險、無保額上限）
       courtJurisdiction: $('courtJurisdiction').value
     },
     fault: {
@@ -1699,10 +1690,8 @@ function clearAllForm() {
     $('faultSource').value = 'both_sides_agreed';
     $('employmentType').value = 'full_time_salary';
     $('age').value = 40;
-    $('thirdPartyBodilyLimit').value = 2000000;
-    $('thirdPartyPropertyLimit').value = 200000;
     $('hasCompulsoryInsurance').checked = true;
-    $('hasThirdPartyInsurance').checked = true;
+    // v0.5.2: 拿掉「hasThirdPartyInsurance」「thirdPartyBodilyLimit」「thirdPartyPropertyLimit」三行 DOM 設定
     goStep(1);
   }
 }
@@ -2011,10 +2000,7 @@ function loadFromHistory(idx) {
   $('hasPolicePreliminaryReport').checked = input.basics.hasPolicePreliminaryReport;
   $('hasAccidentAppraisal').checked = input.basics.hasAccidentAppraisal;
   $('hasCompulsoryInsurance').checked = input.basics.hasCompulsoryInsurance;
-  $('hasThirdPartyInsurance').checked = input.basics.hasThirdPartyInsurance;
-  $('thirdPartyBodilyLimit').value = input.basics.thirdPartyBodilyLimit || 2000000;
-  $('thirdPartyPropertyLimit').value = input.basics.thirdPartyPropertyLimit || 200000;
-  $('excessLiabilityLimit').value = input.basics.excessLiabilityLimit || 0;
+  // v0.5.2: 拿掉「hasThirdPartyInsurance」「thirdPartyBodilyLimit」「thirdPartyPropertyLimit」「excessLiabilityLimit」四行 DOM 設定
 
   $('selfFaultRatio').value = input.fault.selfFaultRatio;
   $('otherFaultRatio').value = input.fault.otherFaultRatio;

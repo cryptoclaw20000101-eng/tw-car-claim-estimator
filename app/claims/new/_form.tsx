@@ -80,12 +80,8 @@ const DEFAULT_BASICS: AccidentBasics = {
   isAutomobileAccident: true,
   hasPolicePreliminaryReport: true,
   hasAccidentAppraisal: false,
-  isSettled: false,
   hasCompulsoryInsurance: true,
-  hasThirdPartyInsurance: false,
-  thirdPartyBodilyLimit: 0,
-  thirdPartyPropertyLimit: 0,
-  excessLiabilityLimit: 0,
+  // v0.5.2: 拿掉 isSettled / hasThirdPartyInsurance / 3 個保額欄位（永遠有第三人險、無保額上限）
   accidentCity: '臺中市',
   accidentDistrict: '',
   claimantResidenceCity: '臺中市',
@@ -503,36 +499,9 @@ function Step1Basics({ form, onCityChange }: { form: ReturnType<typeof Form.useF
             <Switch />
           </Form.Item>
         </Col>
-        <Col xs={24} md={8}>
-          <Form.Item label="有第三人責任險" name={['basics', 'hasThirdPartyInsurance']} valuePropName="checked">
-            <Switch />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={8}>
-          <Form.Item label="已和解" name={['basics', 'isSettled']} valuePropName="checked">
-            <Switch />
-          </Form.Item>
-        </Col>
       </Row>
 
-      <Title level={5} className="!mt-4">第三人責任險保額（如有）</Title>
-      <Row gutter={16}>
-        <Col xs={24} md={8}>
-          <Form.Item label="體傷保額（元）" name={['basics', 'thirdPartyBodilyLimit']}>
-            <InputNumber style={{ width: '100%' }} min={0} step={100_000} placeholder="0" formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={8}>
-          <Form.Item label="財損保額（元）" name={['basics', 'thirdPartyPropertyLimit']}>
-            <InputNumber style={{ width: '100%' }} min={0} step={50_000} placeholder="0" formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={8}>
-          <Form.Item label="超額責任險（元）" name={['basics', 'excessLiabilityLimit']}>
-            <InputNumber style={{ width: '100%' }} min={0} step={1_000_000} placeholder="0" formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
-          </Form.Item>
-        </Col>
-      </Row>
+      {/* v0.5.2: 拿掉「有第三人責任險」「已和解」+ 3 個保額欄位（永遠當有第三人險、無保額上限） */}
 
       <Title level={5} className="!mt-4">地區（自動帶入法院，可手改）</Title>
       <Row gutter={16}>
