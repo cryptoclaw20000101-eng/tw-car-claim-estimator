@@ -13,6 +13,9 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || "https://tw-car-claim-estimator.vercel.app",
   },
+  // v0.5.1: 允許 LAN 裝置（HMR / dev resources）— Next 16 預設只允 localhost
+  // 手機/別台電腦用 http://<你的 IP>:3001 開的時候需要加，否則 webpack-hmr 會被擋
+  allowedDevOrigins: ["192.168.1.146", "192.168.1.156", "localhost", "127.0.0.1"],
   // v0.5.0: 標頭由 Vercel 的 vercel.json 控制（output: export 不支援 headers()）
 };
 

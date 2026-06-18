@@ -1,5 +1,6 @@
+'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation';
 import {
   Button,
@@ -300,13 +301,23 @@ export default function NewClaimForm() {
   const [current, setCurrent] = useState(0)
   const [form] = Form.useForm<FormSchema>()
   const [data, setData] = useState<FormSchema>({
-    basics: DEFAULT_BASICS,
+    basics: { ...DEFAULT_BASICS, accidentDate: '' as unknown as string }, // v0.5.1 bugfix: 初始不塞字串，DatePicker 用 dayjs 物件才不會炸
     fault: DEFAULT_FAULT,
     person: DEFAULT_PERSON,
     medical: DEFAULT_MEDICAL,
     receipts: DEFAULT_RECEIPTS,
     property: DEFAULT_PROPERTY,
   })
+
+  // v0.5.1 bugfix: DatePicker 收到字串會觸發 rc-picker 的 getUDayjs(value).isValid()
+  // 但 dayjs.js 對字串直接 return value，導致 '2026-06-18'.isValid() 炸
+  // 解法: mount 後用 dayjs() 物件 setFieldsValue 注入，不要用 initialValues 字串
+  useEffect(() => {
+    // dayjs 物件強轉: Form schema 的 accidentDate 是 string，但 DatePicker 需要 dayjs
+    // v0.5.1: 這裡先塞 dayjs，user 選完日期 onChange 會再轉回字串
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    form.setFieldsValue({ basics: { accidentDate: dayjs() } } as any)
+  }, [form])
 
   // 監聽 basics.accidentCity 自動帶入 courtJurisdiction
   const accidentCity = Form.useWatch('basics.accidentCity', form)
@@ -421,6 +432,16 @@ function mergeStep(prev: FormSchema, step: number, values: Partial<FormSchema>):
 
 // ============== Step 1：事故基本 ==============
 function Step1Basics({ form, onCityChange }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0]; onCityChange: (v: string) => void }) {
+  // v0.5.1 bugfix: DatePicker 在 Form.Item 控制下不能同時用 defaultValue（會跳 .isValid）
+  // 改用 setFieldsValue 在 client 端注入 dayjs() 物件，避免 SSR 字串傳遞炸 picker
+  // （父層 useEffect 已處理，這裡保留當 fallback: 若父層 setFieldsValue 沒生效就補上）
+  useEffect(() => {
+    const cur = form.getFieldValue(['basics', 'accidentDate'])
+    if (!cur) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      form.setFieldsValue({ basics: { accidentDate: dayjs() } } as any)
+    }
+  }, [form])
   return (
     <Card title={<><CarOutlined className="mr-2" />事故基本資料</>}>
       <InfoAlert
@@ -435,7 +456,6 @@ function Step1Basics({ form, onCityChange }: { form: ReturnType<typeof Form.useF
             <DatePicker
               style={{ width: '100%' }}
               format="YYYY-MM-DD"
-              defaultValue={dayjs()}
               onChange={(d: Dayjs | null) => {
                 form.setFieldValue(['basics', 'accidentDate'], d?.format('YYYY-MM-DD') ?? '')
               }}
