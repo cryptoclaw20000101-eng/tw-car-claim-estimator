@@ -2,7 +2,7 @@
   {
     "id": "tw-md-114-114964",
     "caseNo": "114 年度 竹小 字第 964 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2025,
     "category": "minor_injury",
     "facts": "被告應給付原告新臺幣38,828元，及自民國114年7月18日起至清償日止，按週年利率百分之5計算之利息。原告其餘之訴駁回。訴訟費用新臺幣1,500元由被告負擔新臺幣150元，及自本判決確定之翌日起至清償日止，加給按週年利率百分之5計算之利",
@@ -223,7 +223,7 @@
   {
     "id": "tw-mental_distress-114-114964",
     "caseNo": "114 年度 竹小 字第 964 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "mental_distress",
@@ -691,7 +691,7 @@
   {
     "id": "tw-mental_distress_v2-114-11422",
     "caseNo": "114 年度 重上 字第 22 號",
-    "court": "TNHV（未知代碼）",
+    "court": "臺灣高等法院臺南分院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "mental_distress_v2",
@@ -799,7 +799,7 @@
   {
     "id": "tw-mental_distress-115-11553",
     "caseNo": "115 年度 基簡 字第 53 號",
-    "court": "KLDV（未知代碼）",
+    "court": "臺灣基隆地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "mental_distress",
@@ -853,7 +853,7 @@
   {
     "id": "tw-mental_distress-114-114364",
     "caseNo": "114 年度 竹簡 字第 364 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "mental_distress",
@@ -1033,7 +1033,7 @@
   {
     "id": "tw-mental_distress-113-113125",
     "caseNo": "113 年度 竹簡 字第 125 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "mental_distress",
@@ -1087,7 +1087,7 @@
   {
     "id": "tw-mental_distress-114-11422",
     "caseNo": "114 年度 勞上 字第 22 號",
-    "court": "TNHV（未知代碼）",
+    "court": "臺灣高等法院臺南分院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "mental_distress",
@@ -1141,7 +1141,7 @@
   {
     "id": "tw-mental_distress-115-1159",
     "caseNo": "115 年度 簡上 字第 9 號",
-    "court": "KLDV（未知代碼）",
+    "court": "臺灣基隆地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "mental_distress",

@@ -272,7 +272,7 @@
   {
     "id": "tw-medical_expense-114-114206",
     "caseNo": "114 年度 竹簡 字第 206 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "medical_expense",
@@ -290,7 +290,7 @@
   {
     "id": "tw-medical_expense-114-114242",
     "caseNo": "114 年度 竹簡 字第 242 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "medical_expense",
@@ -488,7 +488,7 @@
   {
     "id": "tw-medical_expense-114-114418",
     "caseNo": "114 年度 基簡 字第 418 號",
-    "court": "KLDV（未知代碼）",
+    "court": "臺灣基隆地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "medical_expense",
