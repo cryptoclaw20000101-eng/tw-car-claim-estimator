@@ -673,38 +673,4 @@ describe('computeLaborCapacityLoss', () => {
 })
 
 // --- 回歸測試：第三人險不應 double-count 強制險（B 修前為 Bug A） ---
-
-describe('computeThirdParty Bug A 修復：不重複扣減強制險', () => {
-  it('強制險已賠 20 萬 + 民事體傷差額 50 萬 + 肇責 70% → 第三人體傷應為 50 萬 × 70% = 35 萬（非扣 20 萬）', () => {
-    // 構造一個 civilMedicalExpense 50 萬、civilNursingFee 0、其他 0 的情境
-    // 強制險已賠 20 萬是 compulsory.approved（已在 civilMedicalExpense 內扣過）
-    // 第三人險體傷 = 50 萬 × 70% = 35 萬（不該再扣 20 萬）
-    const r = computeThirdParty({
-      basics: {
-        ...case2Basics,
-      },
-      civil: {
-        civilMedicalExpense: 500_000,  // 已是差額（已扣 20 萬強制險）
-        civilNursingFeeLow: 0,
-        civilNursingFeeMid: 0,
-        civilNursingFeeHigh: 0,
-        civilTransportationFee: 0,
-        workLoss: 0,
-        laborCapacityLossEstimate: 0,
-        painAndSuffering: {
-          regionalLow: 0, regionalMid: 0, regionalHigh: 0,
-          baseLow: 0, baseMid: 0, baseHigh: 0,
-          regionalMultiplier: 1, severityLevel: '', severityScore: 0, breakdown: {} as any,
-        },
-        vehicleDamage: 0,
-        propertyDamage: 0,
-      },
-      compulsoryTotalApproved: 200_000,  // 已在 civilMedicalExpense 內扣過
-      otherFaultRatio: 70,
-    })
-    // 第三人體傷低 = 50 萬 × 0.7 = 35 萬（修 Bug A 之前會被扣 20 萬 * (50/50) = 20 萬 → 15 萬）
-    expect(r.thirdPartyEstimateLow).toBe(350_000)
-    expect(r.thirdPartyEstimateMid).toBe(350_000)
-    expect(r.thirdPartyEstimateHigh).toBe(350_000)
-  })
-})
+// v0.5.7+ 拆到 __tests__/insurance/third-party-bug-a.test.ts（單元職責更清楚）
