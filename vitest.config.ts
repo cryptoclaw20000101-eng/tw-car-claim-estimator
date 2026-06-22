@@ -5,7 +5,9 @@ export default defineConfig({
   test: {
     globals: false,
     environment: 'node',
-    include: ['__tests__/**/*.test.ts'],
+    include: ['__tests__/**/*.test.ts', '__tests__/**/*.test.tsx'],
+    // v0.5.5: 新增 .tsx 支援 component 結構性測試 (e.g. StepShell)
+    // component 測試仍跑在 node env，不引入 jsdom（避免 ui testing-library 重 deps）
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov', 'html'],
