@@ -22,6 +22,7 @@ import {
   Tag,
 } from 'antd'
 import { InfoAlert } from '@/components/InfoAlert'
+import { StepShell } from '@/components/StepShell'
 import {
   LeftOutlined,
   RightOutlined,
@@ -439,13 +440,12 @@ function Step1Basics({ form, onCityChange }: { form: ReturnType<typeof Form.useF
     }
   }, [form])
   return (
-    <Card title={<><CarOutlined className="mr-2" />事故基本資料</>}>
-      <InfoAlert
-        type="info"
-        showIcon
-        className="!mb-4"
-        title="強制險採無過失主義，肇責比例只會影響第三人責任險的估算。"
-      />
+    <StepShell
+      icon={<CarOutlined />}
+      title="事故基本資料"
+      alertType="info"
+      alertTitle="強制險採無過失主義，肇責比例只會影響第三人責任險的估算。"
+    >
       <Row gutter={16}>
         <Col xs={24} md={12}>
           <Form.Item label="事故日期 *" name={['basics', 'accidentDate']} rules={[{ required: true }]}>
@@ -524,7 +524,7 @@ function Step1Basics({ form, onCityChange }: { form: ReturnType<typeof Form.useF
           </Form.Item>
         </Col>
       </Row>
-    </Card>
+    </StepShell>
   )
 }
 
@@ -532,13 +532,12 @@ function Step1Basics({ form, onCityChange }: { form: ReturnType<typeof Form.useF
 function Step2Fault({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
   const selfRatio = Form.useWatch(['fault', 'selfFaultRatio'], form) as number | undefined
   return (
-    <Card title={<><AuditOutlined className="mr-2" />肇責比例</>}>
-      <InfoAlert
-        type="warning"
-        showIcon
-        className="!mb-4"
-        title="強制險不乘肇責；第三人責任險的『有責金額』才會乘此比例。"
-      />
+    <StepShell
+      icon={<AuditOutlined />}
+      title="肇責比例"
+      alertType="warning"
+      alertTitle="強制險不乘肇責；第三人責任險的『有責金額』才會乘此比例。"
+    >
       <Row gutter={16}>
         <Col xs={24} md={12}>
           <Form.Item label="己方肇責 (%) *" name={['fault', 'selfFaultRatio']} rules={[{ required: true }]}>
@@ -567,7 +566,7 @@ function Step2Fault({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>
       <Paragraph type="secondary" className="!text-sm">
         己方 {selfRatio ?? 0}% / 對方 {100 - (selfRatio ?? 0)}%
       </Paragraph>
-    </Card>
+    </StepShell>
   )
 }
 
@@ -864,14 +863,13 @@ function Step5Receipts({ form }: { form: ReturnType<typeof Form.useForm<FormSche
   // 對應強制汽車責任保險給付標準 §2 第 1-3 項（醫療給付 15 細項）
   // 不在強制險範圍：精神慰撫金 / 工作損失 / 車損（這 3 項走第三人責任險）
   return (
-    <Card title={<><FileTextOutlined className="mr-2" />醫療收據（強制險 15 細項）</>}>
-      <InfoAlert
-        type="info"
-        showIcon
-        className="!mb-4"
-        title="依強制汽車責任保險給付標準 §2 細項填寫；看護費有 1,200 元/日、30 日硬上限（會自動套用）。"
-        body="本表單只收醫療相關；精神慰撫金 / 工作損失 / 車損請勿填入此處（法律強制不併入強制險，會在 Step 3 工作、Step 6 車損分開算）。"
-      />
+    <StepShell
+      icon={<FileTextOutlined />}
+      title="醫療收據（強制險 15 細項）"
+      alertType="info"
+      alertTitle="依強制汽車責任保險給付標準 §2 細項填寫；看護費有 1,200 元/日、30 日硬上限（會自動套用）。"
+      alertBody="本表單只收醫療相關；精神慰撫金 / 工作損失 / 車損請勿填入此處（法律強制不併入強制險，會在 Step 3 工作、Step 6 車損分開算）。"
+    >
       <Section title="救護與掛號（急診/救護/掛號/診斷書）">
         <R2C name={['receipts', 'emergencyFee']} label="急診費" />
         <R2C name={['receipts', 'ambulanceFee']} label="救護車費" />
@@ -901,7 +899,7 @@ function Step5Receipts({ form }: { form: ReturnType<typeof Form.useForm<FormSche
         <R2C name={['receipts', 'nursingDays']} label="看護天數" />
         <R2C name={['receipts', 'otherNecessaryMedicalFee']} label="其他必要醫療" />
       </Section>
-    </Card>
+    </StepShell>
   )
 }
 
