@@ -268,5 +268,185 @@
     "gist": "撫養費 1,646,873 元",
     "source": "臺灣嘉義地方法院 104 年度 訴 字第 57 號",
     "scrapedAt": "2026-06-12T07:01:27.351Z"
+  },
+  {
+    "id": "tw-support_payment-115-1152",
+    "caseNo": "115 年度 破 字第 2 號",
+    "court": "臺灣嘉義地方法院",
+    "year": 2026,
+    "category": "minor_injury",
+    "chain": "support_payment",
+    "facts": "聲請駁回。聲請程序費用由聲請人負擔。理由一、聲請意旨略以：聲請人於民國86年5月與其父黃山霖共同經營聖裕原木行，作原木買賣生意，期間將黃山霖用於經營之債務轉移至聲請人。黃山霖於90年11月過世後，聲請人完全接手聖裕原木行之經營。於90年7月",
+    "amount": 1017810,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "撫養費 1,017,810 元",
+    "source": "臺灣嘉義地方法院 115 年度 破 字第 2 號",
+    "scrapedAt": "2026-06-22T14:51:11.708Z"
+  },
+  {
+    "id": "tw-support_payment-115-11585",
+    "caseNo": "115 年度 消債清 字第 85 號",
+    "court": "臺灣新北地方法院",
+    "year": 2026,
+    "category": "minor_injury",
+    "chain": "support_payment",
+    "facts": "聲請人Ａ０１自民國115年6月15日下午4時起開始清算程序。命司法事務官進行本件清算程序。理由一、按債務人不能清償債務或有不能清償之虞者，得依本條例所定更生或清算程序，清理其債務；債務人於法院裁定開始更生程序或許可和解或宣告破產前，得向法院",
+    "amount": 35496,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "撫養費 35,496 元",
+    "source": "臺灣新北地方法院 115 年度 消債清 字第 85 號",
+    "scrapedAt": "2026-06-22T14:51:12.110Z"
+  },
+  {
+    "id": "tw-support_payment-114-11445",
+    "caseNo": "114 年度 簡上 字第 45 號",
+    "court": "SCDV（未知代碼）",
+    "year": 2025,
+    "category": "minor_injury",
+    "chain": "support_payment",
+    "facts": "一、原判決關於駁回上訴人後開第二項之訴，及該部分假執行之聲請，暨訴訟費用（除確定部分外）之裁判均廢棄。二、被上訴人應再給付上訴人許秋煌新臺幣壹佰壹拾捌萬伍仟零柒拾陸元；再給付上訴人姜靜蘭新臺幣壹佰參拾伍萬參仟零玖拾參元，及均自民國一一三年四",
+    "amount": 2129173,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "撫養費 2,129,173 元",
+    "source": "SCDV（未知代碼） 114 年度 簡上 字第 45 號",
+    "scrapedAt": "2026-06-22T14:51:38.673Z"
+  },
+  {
+    "id": "tw-support_payment-113-1133",
+    "caseNo": "113 年度 原簡上 字第 3 號",
+    "court": "CTDV（未知代碼）",
+    "year": 2024,
+    "category": "minor_injury",
+    "chain": "support_payment",
+    "facts": "一、原判決關於命㈠視同上訴人丁○○、上訴人仁美交通股份有限公司應連帶給付被上訴人李○實超過新臺幣壹佰壹拾肆萬貳仟柒佰伍拾參元本息，及該部分假執行之宣告；㈡視同上訴人丁○○、上訴人仁美交通股份有限公司應連帶給付被上訴人顏○蕙超過新臺幣貳佰柒拾",
+    "amount": 1841263,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "撫養費 1,841,263 元",
+    "source": "CTDV（未知代碼） 113 年度 原簡上 字第 3 號",
+    "scrapedAt": "2026-06-22T14:51:39.811Z"
+  },
+  {
+    "id": "tw-support_payment-112-11286",
+    "caseNo": "112 年度 簡上 字第 86 號",
+    "court": "ULDV（未知代碼）",
+    "year": 2023,
+    "category": "minor_injury",
+    "chain": "support_payment",
+    "facts": "一、原判決關於駁回上訴人丙○○後開第二項之訴部分，及該部分假執行之聲請，暨訴訟費用之裁判均廢棄。二、上開廢棄部分，被上訴人應再連帶給付上訴人丙○○新臺幣參拾玖萬參仟柒佰貳拾肆元，及被上訴人甲○○自民國一一一年七月二十六日起，被上訴人己○○自",
+    "amount": 955048,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "撫養費 955,048 元",
+    "source": "ULDV（未知代碼） 112 年度 簡上 字第 86 號",
+    "scrapedAt": "2026-06-22T14:51:41.554Z"
+  },
+  {
+    "id": "tw-support_payment-112-11285",
+    "caseNo": "112 年度 簡上 字第 85 號",
+    "court": "臺灣南投地方法院",
+    "year": 2023,
+    "category": "minor_injury",
+    "chain": "support_payment",
+    "facts": "上訴駁回。第二審訴訟費用由上訴人負擔。事實及理由一、上訴人主張略以：㈠被上訴人於民國111年1月8日上午6時12分許，駕駛車牌號碼000-0000號自用小客車（下稱系爭車輛），沿南投縣竹山鎮保甲路往集山路2段（下稱系爭路段）方向直行，明知駕",
+    "amount": 517877,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "撫養費 517,877 元",
+    "source": "臺灣南投地方法院 112 年度 簡上 字第 85 號",
+    "scrapedAt": "2026-06-22T14:51:42.871Z"
+  },
+  {
+    "id": "tw-support_payment-113-11332",
+    "caseNo": "113 年度 婚 字第 32 號",
+    "court": "臺灣臺南地方法院",
+    "year": 2024,
+    "category": "minor_injury",
+    "chain": "support_payment",
+    "facts": "准原告與被告離婚。兩造所生未成年之長女甲○○（民國000年0月00日生）權利義務之行使或負擔由原告任之。被告應自本判決關於兩造所生未成年長女甲○○權利義務之行使或負擔部分確定由原告任之翌日起至甲○○成年之前一日（即民國000年0月00日）止",
+    "amount": 18000,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "撫養費 18,000 元",
+    "source": "臺灣臺南地方法院 113 年度 婚 字第 32 號",
+    "scrapedAt": "2026-06-22T14:51:43.600Z"
+  },
+  {
+    "id": "tw-support_payment-112-1121",
+    "caseNo": "112 年度 原簡 字第 1 號",
+    "court": "ULDV（未知代碼）",
+    "year": 2023,
+    "category": "minor_injury",
+    "chain": "support_payment",
+    "facts": "被告應分別給付原告賴宛鈺、賴宜暄、賴柏州新臺幣壹佰參拾萬柒仟零肆元、壹佰肆拾陸萬參仟零參元、捌拾肆萬壹仟零參拾參元，及均自民國一一二年五月十六日起至清償日止，按週年利率百分之五計算之利息。原告其餘之訴駁回。訴訟費用（減縮部分除外）由被告負擔",
+    "amount": 423248,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "撫養費 423,248 元",
+    "source": "ULDV（未知代碼） 112 年度 原簡 字第 1 號",
+    "scrapedAt": "2026-06-22T14:51:45.853Z"
+  },
+  {
+    "id": "tw-support_payment-112-11267",
+    "caseNo": "112 年度 簡 字第 67 號",
+    "court": "ULDV（未知代碼）",
+    "year": 2023,
+    "category": "minor_injury",
+    "chain": "support_payment",
+    "facts": "被告應給付原告新臺幣陸拾萬元，及自民國一一二年三月八日起至清償日止，按週年利率百分之五計算之利息。訴訟費用由被告負擔。本判決第一項得假執行。事實及理由一、被告經合法通知，未於言詞辯論期日到場，核無民事訴訟法第386條各款所列情形，爰依原告之",
+    "amount": 2215131,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "撫養費 2,215,131 元",
+    "source": "ULDV（未知代碼） 112 年度 簡 字第 67 號",
+    "scrapedAt": "2026-06-22T14:51:46.273Z"
+  },
+  {
+    "id": "tw-support_payment-111-111296",
+    "caseNo": "111 年度 勞訴 字第 296 號",
+    "court": "臺灣臺中地方法院",
+    "year": 2022,
+    "category": "minor_injury",
+    "chain": "support_payment",
+    "facts": "被告應給付原告新臺幣85,500元，及自民國111年10月20日起至清償日止，按年息5%計算之利息。原告其餘之訴駁回。本判決原告勝訴部分得假執行。但被告以新臺幣85,500元為原告預供擔保，得免為假執行。原告其餘假執行之聲請駁回。事實及理由",
+    "amount": 1870608,
+    "totalAward": 85500,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "撫養費 1,870,608 元",
+    "source": "臺灣臺中地方法院 111 年度 勞訴 字第 296 號",
+    "scrapedAt": "2026-06-22T14:51:47.262Z"
   }
 ]
