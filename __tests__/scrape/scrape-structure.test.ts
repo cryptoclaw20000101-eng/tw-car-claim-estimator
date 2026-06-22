@@ -194,8 +194,8 @@ describe('S8 v0.2.21 — 年度範圍過濾 + SCRAPE_MAX_PAGES 預設 3', () => 
     expect(scrapeSource).toMatch(/function isInYearRange/)
   })
 
-  it('SCRAPE_MAX_PAGES 預設 3（v0.2.21 從 1 改 3 衝量）', () => {
-    expect(scrapeSource).toMatch(/SCRAPE_MAX_PAGES\s*\|\|\s*"3"/)
+  it('SCRAPE_MAX_PAGES 預設 6（v0.5.7 從 3 改 6 衝量）', () => {
+    expect(scrapeSource).toMatch(/SCRAPE_MAX_PAGES\s*\|\|\s*"6"/)
   })
 
   it('year filter CLI flag --year-min / --year-max 解析', () => {
@@ -215,5 +215,34 @@ describe('S8 v0.2.21 — 年度範圍過濾 + SCRAPE_MAX_PAGES 預設 3', () => 
     const yearCallIdx = scrapeSource.indexOf('if (!isInYearRange(')
     const detailIdx = scrapeSource.indexOf('getHtml(jar, hit.href')
     expect(yearCallIdx, 'isInYearRange 呼叫應在 getHtml detail 之後').toBeGreaterThan(detailIdx)
+  })
+})
+
+describe('S8 v0.5.7 — 衝量 2 新鏈 (appeal_case + pain_suffering_basis)', () => {
+  it('appeal_case chain 完整（KEYWORDS/REGEX/FILE/LABEL 四處都有）', () => {
+    expect(scrapeSource).toMatch(/appeal_case:\s*\[/)
+    expect(scrapeSource).toContain('appeal_case: /(?:上訴|二審|撤回上訴)')
+    expect(scrapeSource).toContain('appeal_case: "practice-cases.json"')
+    expect(scrapeSource).toContain('appeal_case: "訴訟終結"')
+  })
+
+  it('pain_suffering_basis chain 完整（KEYWORDS/REGEX/FILE/LABEL 四處都有）', () => {
+    expect(scrapeSource).toMatch(/pain_suffering_basis:\s*\[/)
+    expect(scrapeSource).toContain('pain_suffering_basis: /(?:精神)?慰撫金')
+    expect(scrapeSource).toContain('pain_suffering_basis: "taipei-mental-distress.json"')
+    expect(scrapeSource).toContain('pain_suffering_basis: "慰撫金計算基準"')
+  })
+
+  it('既 4 Record keys 數量 v0.5.7 ≥ 15（13 + 2 新鏈）', () => {
+    function getKeysInRecord(startMarker: string, endMarker: string): string[] {
+      const startIdx = scrapeSource.indexOf(startMarker)
+      if (startIdx === -1) return []
+      const endIdx = scrapeSource.indexOf(endMarker, startIdx)
+      if (endIdx === -1) return []
+      const slice = scrapeSource.slice(startIdx, endIdx)
+      return Array.from(slice.matchAll(/^\s{2}(\w+):/gm)).map((m) => m[1])
+    }
+    const k = new Set(getKeysInRecord('const KEYWORDS', 'type ChainKey'))
+    expect(k.size).toBeGreaterThanOrEqual(15)
   })
 })

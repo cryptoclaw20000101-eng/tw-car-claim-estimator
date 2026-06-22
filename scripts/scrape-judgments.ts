@@ -163,21 +163,48 @@ const KEYWORDS = {
     "死亡 車禍 賠償",
     "致死 交通事故 民事",
     "過失致死 車禍 和解",
+    // v0.5.7+ 衝量 keyword
+    "車禍 死亡 慰撫金",
+    "車禍 死亡 撫養費",
+    "車禍 死亡 過失比例",
   ],
   transport_fee: [
     "計程車 車禍 費用",
     "就醫 交通 車禍",
     "代步 車禍 費用",
+    // v0.5.7+ 衝量 keyword
+    "計程車 往返 醫院",
+    "就醫 計程車 車禍",
   ],
   support_payment: [
     "扶養費 車禍",
     "扶養 交通事故",
     "遺屬 車禍 撫卹",
+    // v0.5.7+ 衝量 keyword
+    "撫養費 計算 車禍",
+    "扶養 親屬 車禍",
   ],
   overtime_loss: [
     "加班費 車禍 損失",
     "全勤獎金 車禍",
     "年終獎金 車禍 損失",
+    // v0.5.7+ 衝量 keyword
+    "績效獎金 車禍",
+    "車禍 請假 扣薪",
+  ],
+  // v0.5.7+ 新鏈：訴訟終結與上訴（從律師實務切入補上 2020-2022 缺口）
+  appeal_case: [
+    "車禍 上訴 民事",
+    "二審 車禍 和解",
+    "上訴 駁回 車禍",
+    "車禍 撤回上訴",
+  ],
+  // v0.5.7+ 新鏈：慰撫金計算基準（最高法院 + 地方法院常引）
+  pain_suffering_basis: [
+    "慰撫金 計算基準",
+    "精神慰撫金 酌定",
+    "慰撫金 數額",
+    "慰撫金 審酌",
   ],
 } as const;
 
@@ -217,6 +244,10 @@ const CHAIN_REGEX: Record<ChainKey, RegExp> = {
   support_payment: /(?:扶養|撫養|撫卹)(?:費|費用|金)[^。]*?([\d,]+)\s*元/,
   // 加班費：抓「加班費/全勤/年終 X 元」
   overtime_loss: /(?:加班費|全勤獎金|年終獎金)[^。]*?([\d,]+)\s*元/,
+  // v0.5.7+ 訴訟終結：抓「上訴/二審/撤回 X 元」金額
+  appeal_case: /(?:上訴|二審|撤回上訴)[^。]*?([\d,]+)\s*元/,
+  // v0.5.7+ 慰撫金計算基準：借 mental_distress regex（慰撫金/精神慰撫金 X 元）
+  pain_suffering_basis: /(?:精神)?慰撫金[^。]*?([\d,]+)\s*元/,
 };
 
 const CHAIN_FILE: Record<ChainKey, string> = {
@@ -239,6 +270,9 @@ const CHAIN_FILE: Record<ChainKey, string> = {
   transport_fee: "transport-fee.json",
   support_payment: "support-payment.json",
   overtime_loss: "overtime-loss.json",
+  // v0.5.7+ 衝量 2 新檔（訴訟終結 + 慰撫金計算基準）
+  appeal_case: "practice-cases.json",  // 訴訟終結併入 practice-cases.json（已有調解/律師實務）
+  pain_suffering_basis: "taipei-mental-distress.json",  // 慰撫金計算基準併入精神慰撫金主鏈
 };
 
 const CHAIN_LABEL: Record<ChainKey, string> = {
@@ -261,6 +295,9 @@ const CHAIN_LABEL: Record<ChainKey, string> = {
   transport_fee: "交通費用",
   support_payment: "撫養費",
   overtime_loss: "加班損失",
+  // v0.5.7+ 衝量新鏈 label
+  appeal_case: "訴訟終結",
+  pain_suffering_basis: "慰撫金計算基準",
 };
 
 const COURT_CODE: Record<string, string> = {
@@ -676,7 +713,7 @@ async function main() {
     console.log(`[scrape]   Step 2: q=${qHash.slice(0, 8)}...`);
 
     // 3. GET qryresultlst 拿 data.aspx 連結（v0.2.14+ 支援分頁: a=1..maxPages）
-    const maxPages = Math.max(1, parseInt(process.env.SCRAPE_MAX_PAGES || "3", 10));  // v0.2.21+ 預設 3 (從 1 改 3, 衝量)
+    const maxPages = Math.max(1, parseInt(process.env.SCRAPE_MAX_PAGES || "6", 10));  // v0.5.7+ 預設 6 (從 3 改 6, 衝量)
     const allHitsMap = new Map<string, RawHit>();  // v0.2.14 用 href 去重(避免 page 1+2+3 重複抓同一件)
     let actualPages = 0;
     const qryReferer = `${BASE}/FJUD/qryresultlst.aspx?ty=JUDBOOK&q=${qHash}`;  // 給 detail 抓取當 referer
