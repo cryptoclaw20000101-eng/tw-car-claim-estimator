@@ -18,6 +18,7 @@
 
 import type { CourtCaseReference } from "@/lib/data-sources/types";
 import { courtToCity } from "@/lib/insurance/region-court-map";
+import { precedentDistance } from "./precedent-knn";
 
 interface ScrapedPrecedent {
   id: string;
@@ -305,59 +306,48 @@ export function findRelatedPracticeCases(
   const practiceCases = all.filter((p) => p.category === 'practice_case')
   if (practiceCases.length === 0) return []
 
-  // 算 city match 分
-  const score = (p: PracticeCase): number => {
-    let s = 0
-    // 縣市 match：v0.2.9+ 改用 region-court-map 完整對照表(18 縣市)
-    // 取代舊 hardcoded 7 縣市陣列 — 修掉 v0.2.8 之前花蓮/苗栗/彰化等 8 件案例
-    // court 欄位無法觸發「同縣市 +10」配權的 bug。
-    // 法院代碼(TCDV/CHDM 等)仍不支援 — 那是資料問題,需 scrape 那邊補 COURT_CODE。
-    const courtCity = courtToCity(courtName)
-    const caseCity = courtToCity(p.court)
-    if (courtCity && caseCity && courtCity === caseCity) s += 10
-
-    // 失能等級相近（差 ≤2 +8，差 ≤1 額外 +4）
-    let bestLevelDiff = Infinity
-    let hasDisabilityRecord = false
-    if (possibleLevel !== null) {
-      const dis = p.disabilities ?? []
-      hasDisabilityRecord = dis.length > 0
-      for (const d of dis) {
-        const lv = parseInt(d.level, 10)
-        if (!isNaN(lv)) {
-          const diff = Math.abs(lv - possibleLevel)
-          if (diff < bestLevelDiff) bestLevelDiff = diff
-        }
+  // v0.6.1+ — 改用 KNN 距離取代硬編配權
+  // 每維正規化到 [0, 1]，加總即距離，越小越相似
+  // 保留 scrapedAt 當同分決勝（避免完全打散既有測試的預期）
+  // 詳見 lib/estimate/precedent-knn.ts
+  const score = (p: PracticeCase): { distance: number; scrapedAt: string } => {
+    // 從案例 disabilityLevel 萃取（取第一筆有效值）
+    let caseDisabilityLevel: number | null = null
+    for (const d of p.disabilities ?? []) {
+      const lv = parseInt(d.level, 10)
+      if (!isNaN(lv)) {
+        caseDisabilityLevel = lv
+        break
       }
-      if (bestLevelDiff <= 2) s += 8
-      if (bestLevelDiff <= 1) s += 4
     }
+    const caseHasDisability = (p.disabilities ?? []).length > 0
 
-    // 該案例有失能紀錄 +1（弱信號鼓勵入選 — 獨立於查詢方失能等級）
-    if (hasDisabilityRecord || (p.disabilities ?? []).length > 0) s += 1
+    const distance = precedentDistance(
+      courtName,
+      possibleLevel,
+      new Date().getFullYear(),
+      possibleLevel !== null,  // query 有失能等級 → hasDisabilityRecord = true
+      p.court,
+      caseDisabilityLevel,
+      p.year,
+      caseHasDisability,
+      courtToCity,
+    )
 
-    // year 接近（弱化：±2 +2，±1 額外 +1）
-    const thisYear = new Date().getFullYear()
-    const yearDiff = Math.abs(p.year - thisYear)
-    if (yearDiff <= 2) s += 2
-    if (yearDiff <= 1) s += 1
-
-    return s
+    return { distance, scrapedAt: p.scrapedAt }
   }
 
   const scored = practiceCases
-    .map((p) => ({ p, s: score(p), scrapedAt: p.scrapedAt }))
+    .map((p) => ({ p, ...score(p) }))
     .sort((a, b) => {
-      // 同分以 scrapedAt 較新優先
-      if (b.s !== a.s) return b.s - a.s
+      // KNN 排序：距離小 = 相似 = 排前面
+      if (a.distance !== b.distance) return a.distance - b.distance
+      // 同距離以 scrapedAt 較新優先
       return b.scrapedAt > a.scrapedAt ? 1 : -1
     })
 
-  // fallback：若全 0 分 → 取最近 3 筆（依 scrapedAt desc）
-  const hasAnyMatch = scored.some((x) => x.s > 0)
-  const top = hasAnyMatch
-    ? scored.filter((x) => x.s > 0).slice(0, limit)
-    : scored.slice(0, limit)
+  // 取前 K 筆（不篩選 0 距離 — KNN 總會有距離，無需 fallback）
+  const top = scored.slice(0, limit)
 
   return top.map((x) => x.p)
 }

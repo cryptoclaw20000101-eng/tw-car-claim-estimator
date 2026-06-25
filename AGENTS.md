@@ -7,7 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # tw-car-claim-estimator — 專案層級規則
 
 > **適用對象**: 在本專案執行任務的所有 AI agent (Claude / Codex / Hermes / 其他)
-> **生效版本**: v0.6.0 (2026-06-19)
+> **生效版本**: v0.6.1 (2026-06-19)
 > **同步於**: `package.json` version + git tag
 > **優先序**: `AGENTS.md` > commit message > 自由發揮。若有衝突以本檔為準。
 
@@ -71,7 +71,7 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - **改任何 lib/insurance 必跑**:
   ```bash
   pnpm tsc --noEmit                    # 0 錯
-  pnpm test                            # 32 檔 / 327 測試全綠（v0.6.0 期待值）
+  pnpm test                            # 33 檔 / 348 測試全綠（v0.6.1 期待值）
   pnpm build                           # 5 routes 靜態 build 全綠
   ```
 - **新增規則必先寫測試** (TDD: RED → GREEN → REFACTOR) — 沒測試的改動 revert
@@ -144,3 +144,43 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - 精神慰撫金區塊加 [依據：歷史 P10 ~ P90] badge
 - 信心度標籤（🟢 high / 🟡 medium / 🔴 low）
 - diverge 警示 → 提示「此案件建議人工複核」
+
+## §9 KNN 相似判例推薦引擎（v0.6.1+）
+
+> **檔案**: `lib/estimate/precedent-knn.ts` + `lib/estimate/precedents.ts` 整合
+> **測試**: `__tests__/estimate/precedent-knn.test.ts`（21 it）
+
+### 為什麼從硬編配權升級 KNN？
+- 既有 score() 用「縣市 +10 / 等級 +8 / year +2」硬編配權，無法調整維度權重
+- 業務場景：當 city 維度都為 null（律師和解案件）時，level 才是主要區分
+- KNN 每維距離正規化到 [0, 1]，加總可控 → 易理解、易測試、可解釋
+
+### 5 維特徵向量
+1. **city** — 二元（match 0 / mismatch 1）+ null 中性 0.5
+2. **disability_level** — |diff| / 15（線性正規化）
+3. **year** — |diff| / 26（2000-2026 範圍）
+4. **injury_severity** — ordinal 距離（死亡/重傷/中/輕傷/失能）
+5. **has_disability_record** — 二元（一致 0 / 不一致 1）
+
+### 不變量（測試守護）
+- distance(a, a) === 0
+- distance(a, b) === distance(b, a)（對稱）
+- distance(a, b) >= 0
+- 5 維全極端 → distance <= 5
+
+### 與既有 score() 比較
+| 維度 | score() | KNN |
+|---|---|---|
+| 縣市 match | +10（fixed） | 0（正規化） |
+| 等級差 1 | +4 | |1-7|/15 ≈ 0.07 |
+| 等級差 7 | 0 | |7-7|/15 ≈ 0.47 |
+| year 差 1 | +1 | 1/26 ≈ 0.04 |
+| year 差 5 | 0 | 5/26 ≈ 0.19 |
+| 失能紀錄 | +1 | 0 / 1 |
+
+**關鍵差異**：KNN 對 year 差 5 年的懲罰 (0.19) ≈ 等級差 3 (0.20)，符合實務「近年案例參考價值高」直覺。
+
+### v0.6.2+ 規劃
+- injury_severity 從 practiceCase 萃取（目前都是 null，未來律師補資料）
+- 動態權重：根據 query 自動調整（例如 query 是失能案件 → 等級權重 ×2）
+- 報表呈現「為什麼這個案例被推薦」（debug mode）
