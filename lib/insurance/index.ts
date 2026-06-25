@@ -26,6 +26,7 @@ import { getRegionAdjustment } from './region-adjustments'
 import { findRelatedPracticeCases } from '@/lib/estimate/precedents'
 import { predictPainRange, reconcileWithRules } from './pain-ml'
 import { ensembleEstimate } from './pain-ensemble'
+import { mockLLMAdvisor, type AdvisorInput } from './pain-advisor'
 
 export function estimateClaim(input: ClaimInput): EstimationResult {
   const { basics, fault, person, medical, medicalReceipts, property } = input
@@ -118,6 +119,27 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
     knnAvailable: knnCases.length > 0,
     mlConfidence: painML.confidence,
   })
+
+  // 6d) LLM 理賠顧問複核（v0.6.3+，mock 階段，**同步純函式**）
+  // ⚠️ 純函式骨架，v0.6.4 接 Claude API 時會改為 async
+  // 個資保護：絕不傳姓名/ID/車號/精確日期
+  // 免責聲明：永遠在 advisor.disclaimer
+  // 設計：mockLLMAdvisor 為 sync 純函式 → estimateClaim 保持 sync 向後相容
+  const advisorInput: AdvisorInput = {
+    courtName,
+    rulesMid: pas.regionalMid,
+    rulesLevel: painML.severityLabel,
+    mlP50: painML.p50,
+    mlConfidence: painML.confidence,
+    knnAmount: painEnsemble.knnAmount,
+    knnCases,
+    ensembleConsensus: painEnsemble.consensus,
+    ensembleAmount: painEnsemble.consensusAmount,
+    outlier: painEnsemble.outlier ?? null,
+    isDivergent: painReconcile.status === 'diverge',
+    hasWarnings: painReconcile.warning !== undefined,
+  }
+  const painAdvisor = mockLLMAdvisor(advisorInput)
   const labor = computeLaborCapacityLoss({
     medical,
     person,
@@ -238,6 +260,17 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
       warning: painEnsemble.warning,
     },
 
+    painAdvisor: {
+      riskLevel: painAdvisor.riskLevel,
+      riskFactors: painAdvisor.riskFactors,
+      recommendations: painAdvisor.recommendations,
+      consensusInterpretation: painAdvisor.consensusInterpretation,
+      requiresHumanReview: painAdvisor.requiresHumanReview,
+      promptTokens: painAdvisor.promptTokens,
+      completionTokens: painAdvisor.completionTokens,
+      disclaimer: painAdvisor.disclaimer,
+    },
+
     scarRevision: {
       amount: scarRevision.amount,
       estimateLow: scarRevision.range.low,
@@ -288,3 +321,4 @@ export * from './third-party'
 export * from './evidence'
 export * from './pain-ml'
 export * from './pain-ensemble'
+export * from './pain-advisor'

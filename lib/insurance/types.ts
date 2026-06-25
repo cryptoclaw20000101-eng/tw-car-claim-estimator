@@ -423,6 +423,24 @@ export interface EstimationResult {
   }
 
   /**
+   * 精神慰撫金 LLM 理賠顧問複核（v0.6.3+）
+   * 純函式骨架 + mock LLM（v0.6.4 接 Claude API）
+   * 個資保護：絕不傳姓名/ID/車號/精確日期
+   * 免責聲明：永遠在 disclaimer
+   * 設計詳見 lib/insurance/pain-advisor.ts
+   */
+  painAdvisor: {
+    riskLevel: 'low' | 'medium' | 'high'
+    riskFactors: string[]
+    recommendations: string[]
+    consensusInterpretation: string
+    requiresHumanReview: boolean
+    promptTokens: number
+    completionTokens: number
+    disclaimer: string
+  }
+
+  /**
    * 除疤 / 修疤費用（4 術式 × 北中南 × 疤痕長度）。
    * 依據：臺中市美容醫學醫療機構收費標準表 111.03.30 + 中地院 110 簡 202 判決。
    * 預設 estimate=0（未填疤痕時）；UI 可顯示 notes 提示去補資料。

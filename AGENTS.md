@@ -7,7 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # tw-car-claim-estimator — 專案層級規則
 
 > **適用對象**: 在本專案執行任務的所有 AI agent (Claude / Codex / Hermes / 其他)
-> **生效版本**: v0.6.2 (2026-06-19)
+> **生效版本**: v0.6.3 (2026-06-19)
 > **同步於**: `package.json` version + git tag
 > **優先序**: `AGENTS.md` > commit message > 自由發揮。若有衝突以本檔為準。
 
@@ -71,7 +71,7 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - **改任何 lib/insurance 必跑**:
   ```bash
   pnpm tsc --noEmit                    # 0 錯
-  pnpm test                            # 35 檔 / 368 測試全綠（v0.6.2 期待值）
+  pnpm test                            # 37 檔 / 395 測試全綠（v0.6.3 期待值）
   pnpm build                           # 5 routes 靜態 build 全綠
   ```
 - **新增規則必先寫測試** (TDD: RED → GREEN → REFACTOR) — 沒測試的改動 revert
@@ -226,3 +226,58 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - **Bagging**：三票 = 三種 bootstrap 樣本視角
 - **Boosting**：confidence = 樣本權重
 - **Voting**：共識度 = 投票結果
+
+## §11 LLM 理賠顧問複核（v0.6.3+）
+
+> **檔案**: `lib/insurance/pain-advisor.ts` + `lib/insurance/index.ts` 整合
+> **測試**: `__tests__/insurance/pain-advisor.test.ts` + `pain-advisor-integration.test.ts`（21+6 it）
+
+### 設計策略：分階段交付
+| 階段 | 內容 | 風險 |
+|---|---|---|
+| **v0.6.3 (現在)** | 純函式骨架 + mock LLM（同步） | 0（不接 API） |
+| v0.6.4 | 接 Claude API + 個資脫敏 + cost control | 中 |
+| v0.6.5 | UI 整合 + 複核 SOP + 律師審核流程 | 高 |
+
+### 為什麼 v0.6.3 mock 是「同步」？
+- `estimateClaim` 有 134 處呼叫端，改 async 會污染全 codebase
+- mock LLM 確定性 → 沒必要 async
+- v0.6.4 接真 API 時才會：
+  1. 拆出 `callClaudeAdvisor(input)` async 函式
+  2. `estimateClaim` 改 async
+  3. UI 端用 React 19 `use()` + Suspense 處理 loading
+
+### 三個純函式
+1. **`buildAdvisorPrompt(input)`** — 吃 AdvisorInput 吐 Markdown prompt
+   - 包含免責聲明、三票金額、共識度、預判風險因子
+   - 要求 LLM 回結構化 JSON
+2. **`parseAdvisorResponse(raw)`** — 吃 LLM 字串吐 AdvisorOutput
+   - 安全處理 malformed JSON（fallback medium）
+   - 永遠補 disclaimer
+3. **`mockLLMAdvisor(input)`** — 純規則確定性 mock
+   - 預判 riskLevel（依 ensembleConsensus + mlConfidence）
+   - 預判 riskFactors / recommendations
+
+### 個資保護（v0.6.3 已守護）
+- ❌ 絕不傳：姓名、身分證字號、車牌號碼、精確事故日期
+- ✅ 可傳：法院名、傷勢等級、金額、年份、縣市、共識度
+- 測試守護：`buildAdvisorPrompt` 不含「姓名/身分證/車牌」字串
+
+### 責任歸屬（重要）
+- **規則引擎 + ML + KNN 三票共識**才是「真實估算」
+- **LLM 顧問只是「風險標示 + 建議補充資料」**
+- `requiresHumanReview=true` 時 UI 必須顯示律師複核按鈕
+- 免責聲明永遠在 `painAdvisor.disclaimer`，UI 必須顯示
+
+### iPAS 教學應用
+完整呼應 iPAS AI應用規劃師 第 3 課 LLM 概念：
+- **Token context** — prompt template 是結構化 context window
+- **Temperature** — v0.6.4 接 API 時設 0.3（穩定但有變化）
+- **Hallucination** — 結構化 JSON 輸出 + parser fallback
+- **Human-in-the-loop** — requiresHumanReview = 強制 human 介入
+
+### v0.6.4 規劃
+- 接 Claude API（MiniMax M3 或 Claude Fable 5，依 cost 決定）
+- 個資脫敏層（v0.6.3 prompt 已設計，但 runtime 也要防呆）
+- Cost control：每案件最多 1 次 LLM 呼叫
+- Rate limit fallback：API 失敗時降級回 mockLLMAdvisor
