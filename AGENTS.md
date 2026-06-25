@@ -7,7 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # tw-car-claim-estimator — 專案層級規則
 
 > **適用對象**: 在本專案執行任務的所有 AI agent (Claude / Codex / Hermes / 其他)
-> **生效版本**: v0.6.1 (2026-06-19)
+> **生效版本**: v0.6.2 (2026-06-19)
 > **同步於**: `package.json` version + git tag
 > **優先序**: `AGENTS.md` > commit message > 自由發揮。若有衝突以本檔為準。
 
@@ -71,7 +71,7 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - **改任何 lib/insurance 必跑**:
   ```bash
   pnpm tsc --noEmit                    # 0 錯
-  pnpm test                            # 33 檔 / 348 測試全綠（v0.6.1 期待值）
+  pnpm test                            # 35 檔 / 368 測試全綠（v0.6.2 期待值）
   pnpm build                           # 5 routes 靜態 build 全綠
   ```
 - **新增規則必先寫測試** (TDD: RED → GREEN → REFACTOR) — 沒測試的改動 revert
@@ -184,3 +184,45 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - injury_severity 從 practiceCase 萃取（目前都是 null，未來律師補資料）
 - 動態權重：根據 query 自動調整（例如 query 是失能案件 → 等級權重 ×2）
 - 報表呈現「為什麼這個案例被推薦」（debug mode）
+
+## §10 精神慰撫金 Ensemble 三票共識（v0.6.2+）
+
+> **檔案**: `lib/insurance/pain-ensemble.ts` + `lib/insurance/index.ts` 整合
+> **測試**: `__tests__/insurance/pain-ensemble.test.ts` + `pain-ensemble-integration.test.ts`（14+6 it）
+
+### 三票來源
+| 票 | 來源 | 給什麼 |
+|---|---|---|
+| 🎯 **規則票** | `computePainAndSuffering.regionalMid` | 公式推導（8 級 + 治療加成 + 地區） |
+| 📊 **ML 票** | `predictPainRange.p50` | 歷史 13 件 anchor 中位數 |
+| 🔍 **KNN 票** | `findRelatedPracticeCases` 平均 | 相似案件 `civilSettlement` 平均 |
+
+### 為什麼這是真 Ensemble？
+- iPAS 第 2 課 Ensemble = 多模型投票/加權（不是同一模型多次訓練）
+- 我們這裡是「三種不同推理路徑」共識：
+  - **規則** = 領域知識（易解釋但易過時）
+  - **ML** = 統計推論（13 件樣本偏差，但能抓到新趨勢）
+  - **KNN** = 案例相似度（4 件律師手動建檔，最貼近實務）
+- 三種錯誤模式**互補**，不是冗餘
+
+### 共識度判定
+- **strong** — 三票差距 ≤ 20% → 加權平均
+- **partial** — 兩票聚集（≤20%），一票 outlier → 用兩票平均 + 標 outlier
+- **weak** — 三票分散 → 顯示區間（min-max）+ 警示人工複核
+- **insufficient** — 票數 < 2 → 回 null + 補件提示
+
+### 權重策略
+- rules: 永遠 1.0
+- ml: high=1.0 / medium=0.7 / low=0.4（依信心度）
+- knn: 可用時 1.0
+
+### 不變量（測試守護）
+- consensusAmount 永遠 ≥ 0
+- suggestedRange.low ≤ suggestedRange.high
+- 三票金額獨立可讀（UI debug 顯示用）
+
+### iPAS 教學應用
+本引擎完整呼應 iPAS AI應用規劃師 第 2 課 Ensemble 概念：
+- **Bagging**：三票 = 三種 bootstrap 樣本視角
+- **Boosting**：confidence = 樣本權重
+- **Voting**：共識度 = 投票結果

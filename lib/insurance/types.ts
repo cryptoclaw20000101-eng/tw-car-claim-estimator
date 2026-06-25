@@ -404,6 +404,25 @@ export interface EstimationResult {
   }
 
   /**
+   * 精神慰撫金 Ensemble 三票共識（v0.6.2+）
+   * 三票：規則引擎 + ML 區間 + KNN 相似案件
+   * 設計詳見 lib/insurance/pain-ensemble.ts
+   */
+  painEnsemble: {
+    consensus: 'strong' | 'partial' | 'weak' | 'insufficient'
+    consensusAmount: number | null
+    suggestedRange: { low: number; high: number } | null
+    outlier?: 'rules' | 'ml' | 'knn'
+    rulesAmount: number
+    mlAmount: number
+    knnAmount: number | null
+    rulesWeight: number
+    mlWeight: number
+    knnWeight: number
+    warning?: string
+  }
+
+  /**
    * 除疤 / 修疤費用（4 術式 × 北中南 × 疤痕長度）。
    * 依據：臺中市美容醫學醫療機構收費標準表 111.03.30 + 中地院 110 簡 202 判決。
    * 預設 estimate=0（未填疤痕時）；UI 可顯示 notes 提示去補資料。

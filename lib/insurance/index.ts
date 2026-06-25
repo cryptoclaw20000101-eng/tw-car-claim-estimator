@@ -23,7 +23,9 @@ import {
 import { generateEvidence } from './evidence'
 import { lookupCourt } from './region-court-map'
 import { getRegionAdjustment } from './region-adjustments'
+import { findRelatedPracticeCases } from '@/lib/estimate/precedents'
 import { predictPainRange, reconcileWithRules } from './pain-ml'
+import { ensembleEstimate } from './pain-ensemble'
 
 export function estimateClaim(input: ClaimInput): EstimationResult {
   const { basics, fault, person, medical, medicalReceipts, property } = input
@@ -95,6 +97,27 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
     rawLevel !== null && rawLevel >= 1 && rawLevel <= 15
       ? (rawLevel as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15)
       : null
+
+  // 6c) 精神慰撫金 Ensemble 三票共識（v0.6.2+）
+  // 規則 + ML + KNN 三票共識，呼應 iPAS 第 2 課 Ensemble 概念
+  // 放在 finalDisabilityLevel 之後才能用 KNN
+  const practiceCases = findRelatedPracticeCases(courtName, finalDisabilityLevel, 3)
+  const knnCases: Array<{ caseNo: string; amount: number }> = []
+  for (const c of practiceCases) {
+    const settlement = c.settlement as
+      | { totalInsurerPayout?: number; civilSettlement?: number }
+      | undefined
+    if (!settlement) continue
+    const amount = settlement.civilSettlement ?? settlement.totalInsurerPayout ?? 0
+    if (amount > 0) knnCases.push({ caseNo: c.caseNo, amount })
+  }
+  const painEnsemble = ensembleEstimate({
+    rulesMid: pas.regionalMid,
+    mlP50: painML.p50,
+    knnCases,
+    knnAvailable: knnCases.length > 0,
+    mlConfidence: painML.confidence,
+  })
   const labor = computeLaborCapacityLoss({
     medical,
     person,
@@ -201,6 +224,20 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
       },
     },
 
+    painEnsemble: {
+      consensus: painEnsemble.consensus,
+      consensusAmount: painEnsemble.consensusAmount,
+      suggestedRange: painEnsemble.suggestedRange,
+      outlier: painEnsemble.outlier,
+      rulesAmount: painEnsemble.rulesAmount,
+      mlAmount: painEnsemble.mlAmount,
+      knnAmount: painEnsemble.knnAmount,
+      rulesWeight: painEnsemble.rulesWeight,
+      mlWeight: painEnsemble.mlWeight,
+      knnWeight: painEnsemble.knnWeight,
+      warning: painEnsemble.warning,
+    },
+
     scarRevision: {
       amount: scarRevision.amount,
       estimateLow: scarRevision.range.low,
@@ -250,3 +287,4 @@ export * from './scar-revision'
 export * from './third-party'
 export * from './evidence'
 export * from './pain-ml'
+export * from './pain-ensemble'
