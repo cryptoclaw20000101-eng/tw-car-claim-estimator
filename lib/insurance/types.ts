@@ -373,6 +373,37 @@ export interface EstimationResult {
   painAndSuffering: PainAndSufferingResult
 
   /**
+   * 精神慰撫金 ML 校驗層（v0.6.0+）
+   * 三層區間引擎：啟發式 baseline + 歷史 anchor + fallback
+   * 提供 P10/P50/P90 + 信心度 + 規則 vs ML 落差警告
+   * 設計詳見 lib/insurance/pain-ml.ts
+   */
+  painML: {
+    lower: number
+    mid: number
+    upper: number
+    p10: number
+    p50: number
+    p90: number
+    confidence: 'high' | 'medium' | 'low'
+    method: 'ml_v1_ensemble' | 'heuristic_only' | 'fallback'
+    severityLevel: number
+    severityLabel: string
+    anchorCases: Array<{
+      caseNo: string
+      court: string
+      amount: number
+      year: number
+      category: string
+    }>
+    reconcile: {
+      status: 'agree' | 'minor_diverge' | 'diverge'
+      divergence: number
+      warning?: string
+    }
+  }
+
+  /**
    * 除疤 / 修疤費用（4 術式 × 北中南 × 疤痕長度）。
    * 依據：臺中市美容醫學醫療機構收費標準表 111.03.30 + 中地院 110 簡 202 判決。
    * 預設 estimate=0（未填疤痕時）；UI 可顯示 notes 提示去補資料。

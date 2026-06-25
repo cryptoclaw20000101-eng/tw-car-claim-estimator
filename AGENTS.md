@@ -7,7 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # tw-car-claim-estimator — 專案層級規則
 
 > **適用對象**: 在本專案執行任務的所有 AI agent (Claude / Codex / Hermes / 其他)
-> **生效版本**: v0.5.7 (2026-06-19)
+> **生效版本**: v0.6.0 (2026-06-19)
 > **同步於**: `package.json` version + git tag
 > **優先序**: `AGENTS.md` > commit message > 自由發揮。若有衝突以本檔為準。
 
@@ -71,8 +71,8 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - **改任何 lib/insurance 必跑**:
   ```bash
   pnpm tsc --noEmit                    # 0 錯
-  pnpm test                            # 23 檔 / 240 測試全綠（v0.2.12 期待值）
-  pnpm build                           # 4 routes 靜態 build 全綠
+  pnpm test                            # 32 檔 / 327 測試全綠（v0.6.0 期待值）
+  pnpm build                           # 5 routes 靜態 build 全綠
   ```
 - **新增規則必先寫測試** (TDD: RED → GREEN → REFACTOR) — 沒測試的改動 revert
 - **scrape 改動必先 `--dry-run`** — `pnpm scrape:dry --chain <name> --retry 0` 看 stdout 確認 regex 沒爆掉
@@ -112,3 +112,35 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - 本專案是「真實業務」 — 計算引擎有對應 iPAS AI應用規劃師 第 2 課 Ensemble / 第 3 課 LLM
 - 6 大引擎（強制 / 失能 / 民事 / 第三人 / 地區 / 補件）可借鑑 Ensemble 概念（XGBoost + 規則引擎 + 理賠顧問複核）
 - 不接受純學術 demo，所有改動都要有真實業務場景
+
+## §8 精神慰撫金 ML 區間引擎（v0.6.0+）
+
+> **檔案**: `lib/insurance/pain-ml.ts` + `lib/insurance/index.ts` 整合層
+> **測試**: `__tests__/insurance/pain-ml.test.ts` + `pain-ml-integration.test.ts`
+
+### 三層架構
+1. **Layer 1（啟發式 baseline）** — 規則引擎 8 級區間 + 治療加成（保守 +20%）+ 地區係數
+2. **Layer 2（歷史 anchor）** — 從 `data/precedents/taipei-mental-distress.json` 載入 13 件有金額的真實判決（v0.6.0 為止），產 P10/P50/P90
+3. **Layer 3（fallback）** — anchor < 5 件 → 純啟發式
+
+### 為什麼 v0.6.0 不用 XGBoost？
+- 樣本 13 件太少，訓練有意義模型會過擬合
+- 13 件都集中在 minor_injury，傷勢梯度學不到
+- v0.6.1+ 律師手動建檔補完 89 件 0 元資料 → 才能真正用 XGBoost 學出傷勢梯度
+
+### 不變量（測試守護）
+- `lower ≤ mid ≤ upper`（單調遞增）
+- 地區係數正確生效（臺北 > 臺中 > 高雄）
+- 未知法院 → fallback 到 1.0 係數，不報錯
+- confidence: high ≥ 20 件 / medium 10-19 / low < 10
+
+### 與規則引擎的關係
+- ML 是**校驗層**不是**取代層** — 規則引擎仍負責主要金額計算
+- `reconcileWithRules` 比較兩者中點：
+  - agree ≤ 15% / minor_diverge 15-30% / diverge > 30%
+- diverge + confidence=low → 警告降級（避免誤報）
+
+### UI 顯示規劃（後續 v0.6.x）
+- 精神慰撫金區塊加 [依據：歷史 P10 ~ P90] badge
+- 信心度標籤（🟢 high / 🟡 medium / 🔴 low）
+- diverge 警示 → 提示「此案件建議人工複核」

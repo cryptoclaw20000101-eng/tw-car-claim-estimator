@@ -23,6 +23,7 @@ import {
 import { generateEvidence } from './evidence'
 import { lookupCourt } from './region-court-map'
 import { getRegionAdjustment } from './region-adjustments'
+import { predictPainRange, reconcileWithRules } from './pain-ml'
 
 export function estimateClaim(input: ClaimInput): EstimationResult {
   const { basics, fault, person, medical, medicalReceipts, property } = input
@@ -62,8 +63,17 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
   // 5) 看護費
   const nursing = computeCivilNursingFee(medicalReceipts, medical, courtName)
 
-  // 6) 精神慰撫金
+  // 6) 精神慰撫金（規則引擎）
   const pas = computePainAndSuffering(medical, courtName)
+
+  // 6b) 精神慰撫金 ML 校驗層（v0.6.0+）
+  // 提供歷史 P10/P50/P90 + 信心度 + 規則 vs ML 落差警告
+  const painML = predictPainRange({
+    medical,
+    courtName,
+    rulesRegionalMid: pas.regionalMid,
+  })
+  const painReconcile = reconcileWithRules(painML, pas.regionalMid)
 
   // 7) 工作損失
   const workLoss = computeWorkLoss(person, courtName)
@@ -172,6 +182,25 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
 
     painAndSuffering: pas,
 
+    painML: {
+      lower: painML.lower,
+      mid: painML.mid,
+      upper: painML.upper,
+      p10: painML.p10,
+      p50: painML.p50,
+      p90: painML.p90,
+      confidence: painML.confidence,
+      method: painML.method,
+      severityLevel: painML.severityLevel,
+      severityLabel: painML.severityLabel,
+      anchorCases: painML.anchorCases,
+      reconcile: {
+        status: painReconcile.status,
+        divergence: painReconcile.divergence,
+        warning: painReconcile.warning,
+      },
+    },
+
     scarRevision: {
       amount: scarRevision.amount,
       estimateLow: scarRevision.range.low,
@@ -220,3 +249,4 @@ export * from './work-loss-extended'
 export * from './scar-revision'
 export * from './third-party'
 export * from './evidence'
+export * from './pain-ml'
