@@ -3,7 +3,7 @@
 /* ============================================================
    台灣車禍理賠金額估算器 — 設計 Token
    套用 taste-skill v1 anti-AI-slop 設計紀律：
-   - 不用 Inter 字體（premium 場景禁用），主力 Geist Sans / Geist Mono
+   - 不依賴遠端字體下載，使用系統 sans / mono 字體
    - 不用 AI 紫藍漸層；色相走 Zinc 中性 + Deep Rose 強調色
    - 不用 h-screen（iOS Safari 跳動），用 100dvh
    - Tailwind v4 @theme 區塊登記 design tokens
@@ -30,10 +30,10 @@
   --data-negative: #991b1b;       /* red-800，深紅 */
   --data-neutral: #1f2937;        /* gray-800 */
 
-  /* 字體階梯 — 對應 taste-skill v1 §3 Rule 1 */
-  --font-display: var(--font-geist-sans);  /* h1/h2 顯示字體 */
-  --font-body: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);      /* 金額數字一律 mono */
+  /* 字體階梯 — CI build 不依賴 Google Fonts 下載 */
+  --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  --font-mono: "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", Menlo, ui-monospace, monospace;
 }
 
 @theme inline {
@@ -79,7 +79,7 @@ html, body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-body), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-feature-settings: "ss01", "cv01", "tnum";  /* Geist 開 ss01 stylistic set、tnum tabular 數字 */
+  font-feature-settings: "tnum";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
