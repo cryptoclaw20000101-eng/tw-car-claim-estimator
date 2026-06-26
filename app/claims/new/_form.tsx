@@ -306,14 +306,17 @@ export default function NewClaimForm() {
     property: DEFAULT_PROPERTY,
   })
 
-  // v0.5.1 bugfix: DatePicker 收到字串會觸發 rc-picker 的 getUDayjs(value).isValid()
-  // 但 dayjs.js 對字串直接 return value，導致 '2026-06-18'.isValid() 炸
-  // 解法: mount 後用 dayjs() 物件 setFieldsValue 注入，不要用 initialValues 字串
+  // v0.6.4 bugfix: DatePicker 在 Form.Item 控制下，validateFields() 會跑所有 Step 的欄位
+  // 即便當前 Step 沒 mount（conditional render），Form store 仍存字串/空字串 → rc-picker
+  // 內部 getUDayjs('1990-01-01').isValid() 炸（v0.5.1/v0.5.3 只在子 Step useEffect 補救，跨 Step 不夠）
+  // 解法：父層 mount 時一次把所有日期欄位注入 dayjs()，不受 conditional render 影響
   useEffect(() => {
-    // dayjs 物件強轉: Form schema 的 accidentDate 是 string，但 DatePicker 需要 dayjs
-    // v0.5.1: 這裡先塞 dayjs，user 選完日期 onChange 會再轉回字串
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    form.setFieldsValue({ basics: { accidentDate: dayjs() } } as any)
+    form.setFieldsValue({
+      basics: { accidentDate: dayjs() },
+      person: { birthDate: dayjs('1990-01-01') },
+      medical: { emergencyDate: dayjs() },
+    } as any)
   }, [form])
 
   // 監聽 basics.accidentCity 自動帶入 courtJurisdiction
@@ -448,7 +451,7 @@ function Step1Basics({ form, onCityChange }: { form: ReturnType<typeof Form.useF
     >
       <Row gutter={16}>
         <Col xs={24} md={12}>
-          <Form.Item label="事故日期 *" name={['basics', 'accidentDate']} rules={[{ required: true }]}>
+          <Form.Item label="事故日期 *" name={['basics', 'accidentDate']} rules={[{ required: true }]} getValueProps={(value) => ({ value: value ? dayjs(value) : null })}>
             <DatePicker
               style={{ width: '100%' }}
               format="YYYY-MM-DD"
@@ -585,7 +588,7 @@ function Step3Person({ form }: { form: ReturnType<typeof Form.useForm<FormSchema
     <Card title={<><UserOutlined className="mr-2" />受害人身分與工作</>}>
       <Row gutter={16}>
         <Col xs={24} md={8}>
-          <Form.Item label="出生年月日" name={['person', 'birthDate']}>
+          <Form.Item label="出生年月日" name={['person', 'birthDate']} getValueProps={(value) => ({ value: value ? dayjs(value) : null })}>
             <DatePicker
               style={{ width: '100%' }}
               format="YYYY-MM-DD"
@@ -688,7 +691,7 @@ function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchem
           </Form.Item>
         </Col>
         <Col xs={24} md={12}>
-          <Form.Item label="急診日期" name={['medical', 'emergencyDate']}>
+          <Form.Item label="急診日期" name={['medical', 'emergencyDate']} getValueProps={(value) => ({ value: value ? dayjs(value) : null })}>
             <DatePicker
               style={{ width: '100%' }}
               format="YYYY-MM-DD"

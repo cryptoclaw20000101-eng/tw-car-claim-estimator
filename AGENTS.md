@@ -62,7 +62,11 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - **`route.ts` 必 client runtime** — AntD Form / Table 依賴 client React context
 - **去查 `node_modules/next/dist/docs/` 再寫** — 04-glossary.md 有完整術語表，03-architecture 解釋 server/client boundary
 - **dev server LAN 訪問需 `allowedDevOrigins`** — Next.js 16 dev server 預設只允 localhost，從 LAN IP 連會被 HMR/webpack-hmr 擋；要在 `next.config.ts` 加 `allowedDevOrigins: ['192.168.1.X', ...]`，否則手機開 http://<IP>:3001 會 cross-origin error
-- **AntD DatePicker 不能從 Form `initialValues` 餵字串** — rc-picker 的 `dayjs.js:95-99` 對非 dayjs 物件直接 `return value`，後續 `value.isValid()` 在字串上炸。Form schema 是 string，但 DatePicker 需要 dayjs 物件。**正解**: mount 時 `useEffect` 用 `setFieldsValue({ field: dayjs() } as any)` 注入 dayjs 物件（不能用 `defaultValue`，Form.Item 控制下無效且觸發警告）
+- **AntD DatePicker 不能從 Form `initialValues` 餵字串** — rc-picker 的 `dayjs.js:95-99` 對非 dayjs 物件直接 `return value`，後續 `value.isValid()` 在字串上炸。Form schema 是 string，但 DatePicker 需要 dayjs 物件。**正解 (v0.6.5 完整版)**:
+  - **(1) 父層 mount**：`useEffect` 一次性注入 dayjs 到所有日期欄位（不受 conditional render 影響，避免未 mount Step 的 useEffect 沒跑就 `validateFields()` 炸）
+  - **(2) Form.Item 層**：`getValueProps={(value) => ({ value: value ? dayjs(value) : null })}` — 守護 onChange 寫字串回流後 DatePicker 永遠收 dayjs 物件
+  - **(不能用 `defaultValue`)**：Form.Item 控制下無效且觸發警告
+  - **迴歸測試**：`__tests__/components/date-picker-invariants.test.ts`（7 it，grep 原始碼守護 3 個 getValueProps + 3 個 useEffect 注入）
 
 ---
 
