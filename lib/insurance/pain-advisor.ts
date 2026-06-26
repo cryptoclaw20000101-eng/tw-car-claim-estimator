@@ -128,6 +128,10 @@ ${ADVISOR_DISCLAIMER}
 - ML 票（歷史中位數）：${mlP50.toLocaleString()} 元（信心度：${mlConfidence}）
 - KNN 票（相似案件平均）：${
     knnAmount === null ? '不可用' : `${knnAmount.toLocaleString()} 元（${knnCases.length} 件）`
+  }${
+    knnCases.length > 0 && knnCases.length <= 100
+      ? '\n' + knnCases.map((c) => `  - 案號 ${c.caseNo}：${c.amount.toLocaleString()} 元`).join('\n')
+      : ''
   }
 - Ensemble 共識：${ensembleConsensus}${
     ensembleAmount !== null ? `（金額 ${ensembleAmount.toLocaleString()} 元）` : '（無單一金額）'
