@@ -24,8 +24,10 @@ describe('12 大類失能保典 E2E：常數表', () => {
     expect(DISABILITY_LEVELS[14].value).toBe(15)
   })
 
-  it('getDefaultLevel 對應：上肢 11 → 第 9 級（缺損 4 項 2-6 / 手指 18 項 7-14 → 中位數 9）', () => {
-    expect(getDefaultLevel('11_upper_limb')).toBe(9)
+  it('getDefaultLevel 對應：上肢 11 → 第 13 級（v0.6.6 統一最保守預設）', () => {
+    // v0.6.5 之前 defaultLevel=9（硬編猜測），但會覆蓋 ROM 細算結果
+    // v0.6.6 統一為 13 級（最輕），讓真實附表對照結果優先（見 disability-joint-mapping.ts）
+    expect(getDefaultLevel('11_upper_limb')).toBe(13)
   })
 
   it('getDefaultLevel 對應：精神 → 第 13 級（通常無礙勞動）', () => {

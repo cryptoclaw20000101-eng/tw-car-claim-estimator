@@ -57,71 +57,85 @@ describe('resolveNormalRom — 正常 ROM 解析', () => {
 })
 
 // =====================================================================
-// 3. levelFromRomLoss — 7 段等級對應（覆蓋全部邊界）
+// 3. levelFromRomLoss — 真實附表三分類（v0.6.6）
+// 法源：強制汽車責任保險失能給付標準 §3 / §6 審核基準
+//   - < 33% → 無明顯障害（severity=none, level=15）
+//   - 33% ≤ loss < 50% → 運動障害（severity=motion, level=13）
+//   - 50% ≤ loss < 100% → 顯著運動障害（severity=significant, level=11）
+//   - 100% → 喪失機能（severity=lost, level=9）
+// 對應條號（user 案例）：踝關節 20°/50° = 40% → 12-35 第 13 級
 // =====================================================================
 
-describe('levelFromRomLoss — 等級推估', () => {
-  it('負數 → 推定等級 15（不適用）', () => {
-    expect(levelFromRomLoss(-5)).toEqual({ level: 15, confidence: 0 })
+describe('levelFromRomLoss — 真實附表三分類', () => {
+  it('負數 → severity=none + 第 15 級', () => {
+    const r = levelFromRomLoss(-5)
+    expect(r.severity).toBe('none')
+    expect(r.level).toBe(15)
   })
 
-  it('0% 邊界 → 推定等級 15（無明顯失能）', () => {
-    expect(levelFromRomLoss(0)).toEqual({ level: 15, confidence: 0.3 })
+  it('0% 邊界 → severity=none + 第 15 級', () => {
+    const r = levelFromRomLoss(0)
+    expect(r.severity).toBe('none')
+    expect(r.level).toBe(15)
   })
 
-  it('< 5% → 推定等級 15', () => {
-    expect(levelFromRomLoss(4.99)).toEqual({ level: 15, confidence: 0.3 })
+  it('< 33% → severity=none（無明顯障害）', () => {
+    expect(levelFromRomLoss(4.99).severity).toBe('none')
+    expect(levelFromRomLoss(20).severity).toBe('none')
+    expect(levelFromRomLoss(32.9).severity).toBe('none')
   })
 
-  it('5% 邊界 → 推定等級 12', () => {
-    expect(levelFromRomLoss(5)).toEqual({ level: 12, confidence: 0.5 })
+  it('33% 邊界 → severity=motion + 第 13 級（剛好 1/3）', () => {
+    const r = levelFromRomLoss(33)
+    expect(r.severity).toBe('motion')
+    expect(r.level).toBe(13)
   })
 
-  it('< 15% → 推定等級 12', () => {
-    expect(levelFromRomLoss(14)).toEqual({ level: 12, confidence: 0.5 })
+  it('< 50% → severity=motion（user 案例 40%）', () => {
+    expect(levelFromRomLoss(40).severity).toBe('motion')
+    expect(levelFromRomLoss(40).level).toBe(13)
+    expect(levelFromRomLoss(49.9).severity).toBe('motion')
   })
 
-  it('15% 邊界 → 推定等級 9', () => {
-    expect(levelFromRomLoss(15)).toEqual({ level: 9, confidence: 0.6 })
+  it('50% 邊界 → severity=significant + 第 11 級（剛好 1/2）', () => {
+    const r = levelFromRomLoss(50)
+    expect(r.severity).toBe('significant')
+    expect(r.level).toBe(11)
   })
 
-  it('< 30% → 推定等級 9', () => {
-    expect(levelFromRomLoss(29)).toEqual({ level: 9, confidence: 0.6 })
+  it('< 100% → severity=significant', () => {
+    expect(levelFromRomLoss(50).severity).toBe('significant')
+    expect(levelFromRomLoss(75).severity).toBe('significant')
+    expect(levelFromRomLoss(99.9).severity).toBe('significant')
   })
 
-  it('30% 邊界 → 推定等級 6', () => {
-    expect(levelFromRomLoss(30)).toEqual({ level: 6, confidence: 0.7 })
+  it('100% 完整喪失 → severity=lost + 第 9 級', () => {
+    const r = levelFromRomLoss(100)
+    expect(r.severity).toBe('lost')
+    expect(r.level).toBe(9)
   })
 
-  it('< 50% → 推定等級 6', () => {
-    expect(levelFromRomLoss(49)).toEqual({ level: 6, confidence: 0.7 })
-  })
-
-  it('50% 邊界 → 推定等級 4（重度）', () => {
-    expect(levelFromRomLoss(50)).toEqual({ level: 4, confidence: 0.75 })
-  })
-
-  it('< 70% → 推定等級 4', () => {
-    expect(levelFromRomLoss(69)).toEqual({ level: 4, confidence: 0.75 })
-  })
-
-  it('70% 邊界 → 推定等級 2（極重度）', () => {
-    expect(levelFromRomLoss(70)).toEqual({ level: 2, confidence: 0.8 })
-  })
-
-  it('100% 完整喪失 → 推定等級 2', () => {
-    expect(levelFromRomLoss(100)).toEqual({ level: 2, confidence: 0.8 })
-  })
-
-  it('> 100% 異常值 → 仍推定等級 2（防呆）', () => {
-    expect(levelFromRomLoss(150)).toEqual({ level: 2, confidence: 0.8 })
+  it('> 100% 異常值 → 仍視為 lost + 第 9 級（防呆）', () => {
+    const r = levelFromRomLoss(150)
+    expect(r.severity).toBe('lost')
+    expect(r.level).toBe(9)
   })
 
   it('回傳的 level 必為合法的 1-15 級', () => {
-    for (const pct of [0, 5, 15, 30, 50, 70, 100]) {
+    for (const pct of [0, 33, 40, 50, 75, 99, 100, 150]) {
       const { level } = levelFromRomLoss(pct)
       expect(level).toBeGreaterThanOrEqual(1)
       expect(level).toBeLessThanOrEqual(15)
     }
+  })
+
+  it('confidence 隨 severity 提高（none < motion < significant ≤ lost）', () => {
+    const none = levelFromRomLoss(0).confidence
+    const motion = levelFromRomLoss(40).confidence
+    const significant = levelFromRomLoss(60).confidence
+    const lost = levelFromRomLoss(100).confidence
+    expect(none).toBeLessThan(motion)
+    expect(motion).toBeLessThan(significant)
+    expect(significant).toBeLessThanOrEqual(lost)
   })
 })

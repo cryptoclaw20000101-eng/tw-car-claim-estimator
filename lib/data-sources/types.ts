@@ -86,6 +86,7 @@ export interface LegalReference {
   title: string                      // 法條名稱
   effectiveDate: string              // 生效日 ISO
   sourceUrl: string                  // 來源 URL（mock 用 placeholder）
+  sourceNote?: string                // v0.6.6 新增：URL 補充說明（如 pcode 待驗證）
   summary: string                    // 重點摘要
   relevantArticles: string[]         // 重要條號 e.g. ["§27", "附表"]
   lastReviewed: string               // 最後檢視日 ISO

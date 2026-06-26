@@ -50,29 +50,62 @@ export function resolveNormalRom(joint: JointName, override: number): number {
 }
 
 /**
- * 依關節活動度喪失比例推估失能等級
+ * 依關節活動度喪失比例 → 障害程度（v0.6.6 真實附表版）
  *
- * 規則（保守對應 — MVP 採用比例切 8 段）：
- *   0-5%   → 推定無明顯失能（等級 15 或不適用）
- *   5-15%  → 推定第 12-13 級（輕度）
- *   15-30% → 推定第 9-11 級（中度）
- *   30-50% → 推定第 6-8 級（中重度）
- *   50-70% → 推定第 4-6 級（重度）
- *   70-100% → 推定第 1-3 級（極重度）
+ * 法源依據：強制汽車責任保險失能給付標準 §3 / §6 審核基準
+ *   - 「喪失機能」= 完全強直 / 完全麻痺
+ *   - 「顯著運動障害」= 喪失生理運動範圍 1/2 以上（≥ 50%）
+ *   - 「運動障害」= 喪失生理運動範圍 1/3 以上（33% ≤ loss < 50%）
+ *   - 33% 以下 → 無明顯障害
  *
- * 注意：這只是「規則引擎初篩」，實際失能等級仍須
- *   1. 症狀固定證明
- *   2. 合格失能診斷書
- *   3. 醫師量測佐證
- *   4. 強制險失能給付審核
- * 才得以認定。
+ * 注意：這只給單一關節的障害程度。要算整肢等級還需：
+ *   1. 知道該關節屬於哪個三大關節組（上肢：肩/肘/腕；下肢：髖/膝/踝）
+ *   2. 整肢三大關節中有幾個落入同一障害程度（由 disability.ts 處理）
+ *
+ * 回傳的「推定等級」是「該關節獨立推定」對應的最低條號：
+ *   - 單一關節 motion (40%) → 12-35 第 13 級（user 案例）
+ *   - 單一關節 significant (60%) → 12-29 第 11 級
+ *   - 單一關節 lost (100%) → 12-23 第 9 級
+ *
+ * 這只是「初判」，最終等級須依整肢三大關節狀態組合 + 對側肢體狀態決定
+ * （見 disability-joint-mapping.ts）
  */
-export function levelFromRomLoss(lossPercent: number): { level: import('./types').DisabilityLevel; confidence: number } {
-  if (lossPercent < 0) return { level: 15, confidence: 0 }
-  if (lossPercent < 5) return { level: 15, confidence: 0.3 }   // 不明顯
-  if (lossPercent < 15) return { level: 12, confidence: 0.5 }
-  if (lossPercent < 30) return { level: 9, confidence: 0.6 }
-  if (lossPercent < 50) return { level: 6, confidence: 0.7 }
-  if (lossPercent < 70) return { level: 4, confidence: 0.75 }
-  return { level: 2, confidence: 0.8 }
+export function levelFromRomLoss(lossPercent: number): {
+  level: import('./types').DisabilityLevel
+  confidence: number
+  /** v0.6.6 新增：真實附表的障害程度三分類 */
+  severity: 'none' | 'motion' | 'significant' | 'lost'
+} {
+  // 重用 disability-joint-mapping 的三分類邏輯（避免重複實作）
+  // 這裡 inline 是因為 joint-rom.ts 在 disability-joint-mapping 之前
+  // 載入，且舊測試可能依賴這個函式
+  let severity: 'none' | 'motion' | 'significant' | 'lost'
+  if (lossPercent < 0) {
+    return { level: 15, confidence: 0, severity: 'none' }
+  } else if (lossPercent >= 100) {
+    severity = 'lost'
+  } else if (lossPercent >= 50) {
+    severity = 'significant'
+  } else if (lossPercent >= 33) {
+    severity = 'motion'
+  } else {
+    severity = 'none'
+  }
+
+  // 對應單一關節獨立推定的「最低條號」（= 三關節中只有 1 個關節障害）
+  // 真實附表（v0.6.6）：
+  //   - motion + 1 大關節 → 12-35 第 13 級 / 11-40 第 13 級
+  //   - significant + 1 大關節 → 12-29 第 11 級 / 11-34 第 11 級
+  //   - lost + 1 大關節 → 12-23 第 9 級 / 11-28 第 9 級
+  //   - < 33% → 第 15 級（無明顯障害）
+  switch (severity) {
+    case 'none':
+      return { level: 15, confidence: 0.3, severity }
+    case 'motion':
+      return { level: 13, confidence: 0.6, severity }
+    case 'significant':
+      return { level: 11, confidence: 0.75, severity }
+    case 'lost':
+      return { level: 9, confidence: 0.8, severity }
+  }
 }

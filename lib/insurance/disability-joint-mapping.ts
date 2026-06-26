@@ -1,0 +1,219 @@
+// =====================================================================
+// 三大關節 × 3 種狀態 → 條號/等級 對照表
+//
+// 法源：強制汽車責任保險失能給付標準表（民國 115-05-29 修正，115-07-01 施行）
+// 來源 PDF：CALI 法規資料庫 doc_48f88159057e_附表-強制汽車責任保險失能給付標準表.pdf
+//
+// 重要定義（法源條文）：
+//   - 「喪失機能」= 關節完全強直或完全麻痺狀態
+//   - 「顯著運動障害」= 喪失生理運動範圍 1/2 以上（≥ 50%）
+//   - 「運動障害」= 喪失生理運動範圍 1/3 以上（≥ 33%，< 50%）
+//
+// 對照表結構：
+//   - 上肢：11-23 ~ 11-44（肩 + 肘 + 腕 三大關節）
+//   - 下肢：12-18 ~ 12-37（髖 + 膝 + 踝 三大關節）
+//
+// 每張表都是「兩側肢體狀態」組合 → 等級：
+//   - 兩肢體均 X → 等級 N
+//   - 兩肢體三大關節各有 X 大關節 → 等級 N
+//   - 一肢體 X → 等級 N
+//   - 一肢體三大關節有 X 大關節 → 等級 N（X=2 大關節 = 中度；X=1 大關節 = 輕度）
+// =====================================================================
+
+import type { DisabilityLevel } from './types'
+
+// --- ROM 比例 → 障害程度三分類（法源 §3 / §6）---
+
+export type JointDisorderSeverity = 'none' | 'motion' | 'significant' | 'lost'
+
+/**
+ * 從 ROM 喪失比例 → 障害程度（真實附表定義）
+ *
+ * @param lossPercent - 喪失比例 0-100（0 = 無喪失，100 = 完全喪失）
+ * @returns JointDisorderSeverity
+ *   - 'none'      : 喪失 < 33%（客觀上不構成明顯障害）
+ *   - 'motion'    : 33% ≤ 喪失 < 50%（運動障害 — 最輕）
+ *   - 'significant': 50% ≤ 喪失 < 100%（顯著運動障害 — 中度）
+ *   - 'lost'      : 完全喪失（強直/麻痺 — 最重；此處 lossPercent === 100 視為 lost）
+ */
+export function classifyJointDisorder(lossPercent: number): JointDisorderSeverity {
+  if (lossPercent < 0) return 'none'
+  if (lossPercent >= 100) return 'lost'
+  if (lossPercent >= 50) return 'significant'
+  if (lossPercent >= 33) return 'motion'
+  return 'none'
+}
+
+// --- 對照表（key = 兩側障害程度 + 大關節數）---
+
+/**
+ * 上肢障害對照表（11-23 ~ 11-44）
+ *
+ * key 格式：`${leftSeverity}|${leftJointCount}|${rightSeverity}|${rightJointCount}`
+ *   - severity: 'none' | 'motion' | 'significant' | 'lost'
+ *   - jointCount: 'full' = 整肢（三關節都障害），'2' = 三大關節中有二大關節障害，'1' = 三大關節中有一大關節障害
+ *
+ * value: { articleId: '11-23', level: 2 }
+ */
+const UPPER_LIMB_TABLE: Record<string, { articleId: string; level: DisabilityLevel }> = {
+  // 兩上肢均喪失機能
+  'lost|full|lost|full': { articleId: '11-23', level: 2 },
+  // 兩上肢三大關節各有二大關節喪失機能
+  'lost|2|lost|2': { articleId: '11-24', level: 3 },
+  // 兩上肢三大關節各有一大關節喪失機能
+  'lost|1|lost|1': { articleId: '11-25', level: 6 },
+
+  // 一上肢喪失機能（不限對側）
+  'lost|full|none|0': { articleId: '11-26', level: 6 },
+  'none|0|lost|full': { articleId: '11-26', level: 6 },
+
+  // 一上肢三大關節有二大關節喪失機能
+  'lost|2|none|0': { articleId: '11-27', level: 7 },
+  'none|0|lost|2': { articleId: '11-27', level: 7 },
+
+  // 一上肢三大關節有一大關節喪失機能
+  'lost|1|none|0': { articleId: '11-28', level: 9 },
+  'none|0|lost|1': { articleId: '11-28', level: 9 },
+
+  // 兩上肢均遺存顯著運動障害
+  'significant|full|significant|full': { articleId: '11-29', level: 4 },
+  // 兩上肢三大關節各有二大關節遺存顯著運動障害
+  'significant|2|significant|2': { articleId: '11-30', level: 5 },
+  // 兩上肢三大關節各有一大關節遺存顯著運動障害
+  'significant|1|significant|1': { articleId: '11-31', level: 7 },
+
+  // 一上肢遺存顯著運動障害
+  'significant|full|none|0': { articleId: '11-32', level: 7 },
+  'none|0|significant|full': { articleId: '11-32', level: 7 },
+  // 一上肢三大關節有二大關節遺存顯著運動障害
+  'significant|2|none|0': { articleId: '11-33', level: 8 },
+  'none|0|significant|2': { articleId: '11-33', level: 8 },
+  // 一上肢三大關節有一大關節遺存顯著運動障害
+  'significant|1|none|0': { articleId: '11-34', level: 11 },
+  'none|0|significant|1': { articleId: '11-34', level: 11 },
+
+  // 兩上肢均遺存運動障害
+  'motion|full|motion|full': { articleId: '11-35', level: 6 },
+  // 兩上肢三大關節各有二大關節遺存運動障害
+  'motion|2|motion|2': { articleId: '11-36', level: 9 },
+  // 兩上肢三大關節各有一大關節遺存運動障害
+  'motion|1|motion|1': { articleId: '11-37', level: 11 },
+
+  // 一上肢遺存運動障害
+  'motion|full|none|0': { articleId: '11-38', level: 9 },
+  'none|0|motion|full': { articleId: '11-38', level: 9 },
+  // 一上肢三大關節有二大關節遺存運動障害
+  'motion|2|none|0': { articleId: '11-39', level: 11 },
+  'none|0|motion|2': { articleId: '11-39', level: 11 },
+  // 一上肢三大關節有一大關節遺存運動障害
+  'motion|1|none|0': { articleId: '11-40', level: 13 },
+  'none|0|motion|1': { articleId: '11-40', level: 13 },
+}
+
+/**
+ * 下肢障害對照表（12-18 ~ 12-37）
+ * 三大關節：髖 + 膝 + 踝
+ */
+const LOWER_LIMB_TABLE: Record<string, { articleId: string; level: DisabilityLevel }> = {
+  // 兩下肢均喪失機能
+  'lost|full|lost|full': { articleId: '12-18', level: 2 },
+  // 兩下肢三大關節各有二大關節喪失機能
+  'lost|2|lost|2': { articleId: '12-19', level: 3 },
+  // 兩下肢三大關節各有一大關節喪失機能
+  'lost|1|lost|1': { articleId: '12-20', level: 6 },
+
+  // 一下肢喪失機能
+  'lost|full|none|0': { articleId: '12-21', level: 6 },
+  'none|0|lost|full': { articleId: '12-21', level: 6 },
+  // 一下肢三大關節有二大關節喪失機能
+  'lost|2|none|0': { articleId: '12-22', level: 7 },
+  'none|0|lost|2': { articleId: '12-22', level: 7 },
+  // 一下肢三大關節有一大關節喪失機能
+  'lost|1|none|0': { articleId: '12-23', level: 9 },
+  'none|0|lost|1': { articleId: '12-23', level: 9 },
+
+  // 兩下肢均遺存顯著運動障害
+  'significant|full|significant|full': { articleId: '12-24', level: 4 },
+  // 兩下肢三大關節各有二大關節遺存顯著運動障害
+  'significant|2|significant|2': { articleId: '12-25', level: 5 },
+  // 兩下肢三大關節各有一大關節遺存顯著運動障害
+  'significant|1|significant|1': { articleId: '12-26', level: 7 },
+
+  // 一下肢遺存顯著運動障害
+  'significant|full|none|0': { articleId: '12-27', level: 7 },
+  'none|0|significant|full': { articleId: '12-27', level: 7 },
+  // 一下肢三大關節有二大關節遺存顯著運動障害
+  'significant|2|none|0': { articleId: '12-28', level: 8 },
+  'none|0|significant|2': { articleId: '12-28', level: 8 },
+  // 一下肢三大關節有一大關節遺存顯著運動障害
+  'significant|1|none|0': { articleId: '12-29', level: 11 },
+  'none|0|significant|1': { articleId: '12-29', level: 11 },
+
+  // 兩下肢均遺存運動障害
+  'motion|full|motion|full': { articleId: '12-30', level: 6 },
+  // 兩下肢三大關節各有二大關節遺存運動障害
+  'motion|2|motion|2': { articleId: '12-31', level: 9 },
+  // 兩下肢三大關節各有一大關節遺存運動障害
+  'motion|1|motion|1': { articleId: '12-32', level: 11 },
+
+  // 一下肢遺存運動障害
+  'motion|full|none|0': { articleId: '12-33', level: 9 },
+  'none|0|motion|full': { articleId: '12-33', level: 9 },
+  // 一下肢三大關節有二大關節遺存運動障害
+  'motion|2|none|0': { articleId: '12-34', level: 11 },
+  'none|0|motion|2': { articleId: '12-34', level: 11 },
+  // 一下肢三大關節有一大關節遺存運動障害 — user 案例：踝關節 ROM 20° → 第 13 級
+  'motion|1|none|0': { articleId: '12-35', level: 13 },
+  'none|0|motion|1': { articleId: '12-35', level: 13 },
+}
+
+/**
+ * 從單一關節的 ROM 喪失 → 障害程度
+ *
+ * 注意：這只決定**單一關節**的狀態。要算整肢等級還需：
+ *   1. 知道是哪個關節（肩/肘/腕 vs 髖/膝/踝）
+ *   2. 整肢有多少關節落入同一障害程度
+ *   3. 對側肢體狀態
+ *
+ * 這層是給 caller 算「三大關節中有幾個關節落入 X 障害」用的基本分類。
+ */
+export type { DisabilityLevel }
+
+// --- 公共 API -----------------------------------------------------
+
+export interface LimbDisorderSummary {
+  /** 整肢三大關節中有幾個落入此障害程度（0 / 1 / 2 / 3）*/
+  count: '0' | '1' | '2' | 'full'
+  /** 整肢最嚴重的障害程度（lost > significant > motion > none）*/
+  severity: JointDisorderSeverity
+}
+
+/**
+ * 查詢上肢障害等級
+ *
+ * @param left - 左上肢障害摘要
+ * @param right - 右上肢障害摘要
+ * @returns { articleId, level } | null（找不到對應條號時）
+ */
+export function lookupUpperLimbLevel(
+  left: LimbDisorderSummary,
+  right: LimbDisorderSummary
+): { articleId: string; level: DisabilityLevel } | null {
+  const key = `${left.severity}|${left.count}|${right.severity}|${right.count}`
+  return UPPER_LIMB_TABLE[key] ?? null
+}
+
+/**
+ * 查詢下肢障害等級
+ *
+ * @param left - 左下肢障害摘要
+ * @param right - 右下肢障害摘要
+ * @returns { articleId, level } | null
+ */
+export function lookupLowerLimbLevel(
+  left: LimbDisorderSummary,
+  right: LimbDisorderSummary
+): { articleId: string; level: DisabilityLevel } | null {
+  const key = `${left.severity}|${left.count}|${right.severity}|${right.count}`
+  return LOWER_LIMB_TABLE[key] ?? null
+}

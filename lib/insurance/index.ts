@@ -89,11 +89,20 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
   })
 
   // 8) 勞動能力減損
-  // 失能等級優先順序：手填 disabilityLevel > 自動推算 possibleLevel > null
-  // （失能保典 12 大類下拉選單會自動帶出常見等級 → 表單可直接覆蓋）
+  // v0.6.6 重大改動：失能等級優先順序改為 ROM 細算 > 手填 > null
+  // 原因：v0.6.5 之前 `medical.disabilityLevel`（手填或 12 大類 defaultLevel）
+  // 蓋掉 `disability.possibleLevel`（ROM 細算結果），導致
+  // 「踝關節 ROM 20°」被 12 大類 defaultLevel=9 蓋掉，誤判為第 9 級。
+  // 真實附表（v0.6.6）：踝關節 20° = 40% motion → 12-35 第 13 級。
+  //
+  // 新優先序：
+  //   1. ROM 細算（disability.possibleLevel）— 真實附表對照，最精確
+  //   2. user 手填 disabilityLevel（且 ROM 細算沒跑時的 fallback）
+  //   3. null（都沒資料）
+  //
   // 型別收斂：number → 1-15 literal union（執行期已在 form 驗證）
   const rawLevel: number | null =
-    medical.disabilityLevel ?? disability.possibleLevel ?? null
+    disability.possibleLevel ?? medical.disabilityLevel ?? null
   const finalDisabilityLevel: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | null =
     rawLevel !== null && rawLevel >= 1 && rawLevel <= 15
       ? (rawLevel as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15)

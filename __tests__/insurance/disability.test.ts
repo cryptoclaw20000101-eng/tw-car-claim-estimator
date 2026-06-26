@@ -60,9 +60,10 @@ describe('失能引擎 — spec §六 案例：右踝關節活動角度喪失 20
       // 缺：isSymptomFixed, hasDisabilityCertificate
     }
     const r = runDisabilityRuleEngine({ medical: m, accidentDate: '2026-08-01' })
-    // 20/50 = 40% → 推定第 6 級 + confidence 0.7
+    // v0.6.6 真實附表：踝關節 ROM 20°/50° = 40% → motion（33%-50%）
+    // 三大關節中有一大關節遺存運動障害 → 12-35 第 13 級
     expect(r.romLossPercent).toBeCloseTo(40, 0)
-    expect(r.baseLevel).toBe(6)
+    expect(r.baseLevel).toBe(13)
     // 40% ROM 喪失 → 進 C 級（高度可能需申請失能診斷），
     // 因為角度喪失本身是強烈線索，但缺症狀固定/失能診斷書
     expect(['B', 'C']).toContain(r.screening)
@@ -82,9 +83,8 @@ describe('失能引擎 — spec §六 案例：右踝關節活動角度喪失 20
     }
     const r = runDisabilityRuleEngine({ medical: m, accidentDate: '2026-08-01' })
     expect(r.screening).toBe('D')
-    // ROM 0.7 + 永久障害 0.1 + 失能診斷書 0.0 = 0.8
-    expect(r.confidenceScore).toBeGreaterThanOrEqual(0.7)
-    expect(r.finalLevel).toBe(6)
+    // v0.6.6 真實附表對應第 13 級（不再是舊版第 6 級）
+    expect(r.finalLevel).toBe(13)
   })
 })
 
@@ -114,10 +114,10 @@ describe('失能引擎 — 神經損傷等級加重', () => {
       hasNerveDamage: true,
     }
     const r = runDisabilityRuleEngine({ medical: m, accidentDate: '2026-08-01' })
-    // ROM 30/150 = 20% → 推定第 9 級
-    // + 神經 -2 → 第 7 級
-    expect(r.baseLevel).toBe(9)
-    expect(r.finalLevel).toBe(7)
+    // v0.6.6 真實附表：腕關節 ROM 30°/150° = 20% < 33% → 無明顯障害（severity=none, level=15）
+    // + 神經損傷 shift=-2 → 13 級
+    expect(r.baseLevel).toBe(15)
+    expect(r.finalLevel).toBe(13)
   })
 })
 

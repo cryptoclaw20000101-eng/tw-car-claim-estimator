@@ -2,7 +2,7 @@
 // 失能初篩規則引擎（spec §七 + 完整規則引擎）
 //
 // 規則：
-// 1. 關節角度喪失 → 失能等級（保守對應）
+// 1. 關節角度喪失 → 失能等級（真實附表三分類，v0.6.6）
 // 2. 截肢 → 直接第 1 級
 // 3. 神經損傷 / 肌力 / 感覺喪失 → 等級加成
 // 4. 症狀固定 + 永久障害 → confidence 提升
@@ -19,6 +19,12 @@
 import type { MedicalRecord, DisabilityScreeningResult, DisabilityLevel, JointName, DisabilityScreening } from './types'
 import { jointLabelZh, resolveNormalRom, levelFromRomLoss } from './joint-rom'
 import { pickDisabilityTable, lookupDisabilityAmount } from './disability-tables'
+import {
+  lookupUpperLimbLevel,
+  lookupLowerLimbLevel,
+  type JointDisorderSeverity,
+  type LimbDisorderSummary,
+} from './disability-joint-mapping'
 
 // 失能給付初篩的觸發關鍵字（spec §六 Step 4）
 const DISABILITY_TRIGGER_KEYWORDS = [
@@ -164,11 +170,12 @@ export function runDisabilityRuleEngine(input: RuleEngineInput): RuleEngineOutpu
   if (medical.hasDisabilityCertificate) signals.push('已持失能診斷書')
   if (medical.hasRangeOfMotionLimitation) signals.push('關節活動受限')
 
-  // 3) ROM 比例計算
+  // 3) ROM 比例計算（v0.6.6 真實附表版）
   let romLossPercent: number | null = null
   let jointName: JointName | null = null
   let baseLevel: DisabilityLevel | null = null
   let baseConfidence = 0
+  let articleId: string | null = null  // v0.6.6 新增：條號追蹤
 
   if (medical.jointName && medical.hasRangeOfMotionLimitation && medical.romLossDegree > 0) {
     jointName = medical.jointName
@@ -177,11 +184,53 @@ export function runDisabilityRuleEngine(input: RuleEngineInput): RuleEngineOutpu
     const result = levelFromRomLoss(romLossPercent)
     baseLevel = result.level
     baseConfidence = result.confidence
+    const severity: JointDisorderSeverity = result.severity
 
     notes.push(
       `${jointLabelZh[jointName]}喪失 ${medical.romLossDegree} 度 / 正常 ${normalRom} 度 = ${romLossPercent.toFixed(1)}% 活動度喪失`,
     )
-    notes.push(`ROM 規則引擎初判：第 ${result.level} 級（confidence ${(result.confidence * 100).toFixed(0)}%）`)
+
+    // v0.6.6 新增：用真實附表對照三大關節組合
+    // 上肢三大關節：肩 + 肘 + 腕（finger 不算）
+    // 下肢三大關節：髖 + 膝 + 踝（toe 不算）
+    // 中軸：cervical/lumbar 屬軀幹障害，不適用本對照
+    const UPPER_LIMB_JOINTS: JointName[] = ['shoulder', 'elbow', 'wrist']
+    const LOWER_LIMB_JOINTS: JointName[] = ['hip', 'knee', 'ankle']
+
+    if (UPPER_LIMB_JOINTS.includes(jointName)) {
+      // 簡化：只記錄單一關節障害，三大關節中 count='1'
+      // （未來可擴充支援多關節輸入）
+      const summary: LimbDisorderSummary = {
+        count: '1',  // 三大關節中有一大關節障害
+        severity,
+      }
+      const otherLimb: LimbDisorderSummary = { count: '0', severity: 'none' }
+      const matched = lookupUpperLimbLevel(summary, otherLimb)
+      if (matched) {
+        baseLevel = matched.level
+        articleId = matched.articleId
+        notes.push(`強制險附表 ${matched.articleId}：第 ${matched.level} 級（單一關節 ${severity}）`)
+      }
+    } else if (LOWER_LIMB_JOINTS.includes(jointName)) {
+      const summary: LimbDisorderSummary = {
+        count: '1',
+        severity,
+      }
+      const otherLimb: LimbDisorderSummary = { count: '0', severity: 'none' }
+      const matched = lookupLowerLimbLevel(summary, otherLimb)
+      if (matched) {
+        baseLevel = matched.level
+        articleId = matched.articleId
+        notes.push(`強制險附表 ${matched.articleId}：第 ${matched.level} 級（單一關節 ${severity}）`)
+      }
+    } else {
+      // 中軸或手指/腳趾：用舊的 levelFromRomLoss 結果
+      notes.push(`ROM 規則引擎初判：第 ${result.level} 級（中軸/手指/腳趾不適用三大關節對照）`)
+    }
+
+    if (baseLevel === null) {
+      notes.push(`ROM 規則引擎初判：第 ${result.level} 級（confidence ${(result.confidence * 100).toFixed(0)}%）`)
+    }
 
     // ROM 缺資料提醒
     if (romLossPercent < 5) {
