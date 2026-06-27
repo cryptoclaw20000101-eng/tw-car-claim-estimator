@@ -125,7 +125,7 @@ export function PainEnsembleCard({
             }
             value={headlineAmount}
             formatter={(v) => dollar(Number(v))}
-            valueStyle={{ color: 'var(--accent)' }}
+            styles={{ content: { color: 'var(--accent)' } }}
           />
           {painEnsemble.consensusAmount === null && (
             <Text type="secondary" className="!text-xs">
@@ -138,7 +138,7 @@ export function PainEnsembleCard({
             <Statistic
               title="建議區間（弱共識時）"
               value={`${dollar(painEnsemble.suggestedRange.low)} ~ ${dollar(painEnsemble.suggestedRange.high)}`}
-              valueStyle={{ fontSize: 18 }}
+              styles={{ content: { fontSize: 18 } }}
             />
           ) : (
             <Statistic

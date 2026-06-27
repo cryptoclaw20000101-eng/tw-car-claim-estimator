@@ -260,7 +260,7 @@ function CompulsorySection({ result }: { result: EstimationResult }) {
     <Card>
       <Row gutter={16} className="!mb-4">
         <Col xs={12} md={6}><motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0, ease: 'easeOut' }}><Statistic title="申請小計" value={totalApplied} formatter={(v) => dollar(Number(v))} /></motion.div></Col>
-        <Col xs={12} md={6}><motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.08, ease: 'easeOut' }}><Statistic title="預估可認列" value={totalApproved} formatter={(v) => dollar(Number(v))} valueStyle={{ color: 'var(--accent)' }} /></motion.div></Col>
+        <Col xs={12} md={6}><motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.08, ease: 'easeOut' }}><Statistic title="預估可認列" value={totalApproved} formatter={(v) => dollar(Number(v))} styles={{ content: { color: 'var(--accent)' } }} /></motion.div></Col>
         <Col xs={12} md={6}><motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.16, ease: 'easeOut' }}><Statistic title="失能給付" value={result.compulsoryDisabilityAmount} formatter={(v) => dollar(Number(v))} /></motion.div></Col>
         <Col xs={12} md={6}><motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.24, ease: 'easeOut' }}><Statistic title="死亡給付" value={result.compulsoryDeathAmount} formatter={(v) => dollar(Number(v))} /></motion.div></Col>
       </Row>
@@ -456,7 +456,7 @@ function CivilSection({ result }: { result: EstimationResult }) {
 
       <Divider>除疤 / 修疤費用（4 術式 × 北中南）</Divider>
       <Row gutter={16}>
-        <Col xs={24} md={8}><Statistic title="估算金額（中）" value={result.scarRevision.estimate} formatter={(v) => dollar(Number(v))} valueStyle={{ color: 'var(--accent)' }} /></Col>
+        <Col xs={24} md={8}><Statistic title="估算金額（中）" value={result.scarRevision.estimate} formatter={(v) => dollar(Number(v))} styles={{ content: { color: 'var(--accent)' } }} /></Col>
         <Col xs={8}><Statistic title="低標" value={result.scarRevision.estimateLow} formatter={(v) => dollar(Number(v))} /></Col>
         <Col xs={8}><Statistic title="高標" value={result.scarRevision.estimateHigh} formatter={(v) => dollar(Number(v))} /></Col>
       </Row>
@@ -490,7 +490,7 @@ function CivilSection({ result }: { result: EstimationResult }) {
       <Divider>精神慰撫金（依 {result.region.courtName} 係數）</Divider>
       <Row gutter={16}>
         <Col xs={8}><Statistic title="低標" value={pas.regionalLow} formatter={(v) => dollar(Number(v))} /></Col>
-        <Col xs={8}><Statistic title="中標" value={pas.regionalMid} formatter={(v) => dollar(Number(v))} valueStyle={{ color: 'var(--accent)' }} /></Col>
+        <Col xs={8}><Statistic title="中標" value={pas.regionalMid} formatter={(v) => dollar(Number(v))} styles={{ content: { color: 'var(--accent)' } }} /></Col>
         <Col xs={8}><Statistic title="高標" value={pas.regionalHigh} formatter={(v) => dollar(Number(v))} /></Col>
       </Row>
       <Paragraph type="secondary" className="!mt-2 text-sm">
@@ -508,7 +508,7 @@ function CivilSection({ result }: { result: EstimationResult }) {
 
       <Divider>工作損失（擴充版：短期/長期/退休分流）</Divider>
       <Row gutter={16}>
-        <Col xs={24} md={8}><Statistic title="擴充版估算" value={result.workLossExtended.amount} formatter={(v) => dollar(Number(v))} valueStyle={{ color: 'var(--accent)' }} /></Col>
+        <Col xs={24} md={8}><Statistic title="擴充版估算" value={result.workLossExtended.amount} formatter={(v) => dollar(Number(v))} styles={{ content: { color: 'var(--accent)' } }} /></Col>
         <Col xs={12} md={4}><Statistic title="計算類型" value={
           result.workLossExtended.calculationType === 'short_term' ? '短期（日薪）'
           : result.workLossExtended.calculationType === 'long_term' ? (result.workLossExtended.isRetired ? '已退休' : '長期（霍夫曼）')
@@ -562,7 +562,7 @@ function ThirdPartySection({ result, input }: { result: EstimationResult; input:
       <Divider>第三人責任險估算（不含強制險，v0.5.2 起無保額上限）</Divider>
       <Row gutter={16}>
         <Col xs={8}><Statistic title="低標" value={t.thirdPartyEstimateLow} formatter={(v) => dollar(Number(v))} /></Col>
-        <Col xs={8}><Statistic title="中標" value={t.thirdPartyEstimateMid} formatter={(v) => dollar(Number(v))} valueStyle={{ color: 'var(--accent)' }} /></Col>
+        <Col xs={8}><Statistic title="中標" value={t.thirdPartyEstimateMid} formatter={(v) => dollar(Number(v))} styles={{ content: { color: 'var(--accent)' } }} /></Col>
         <Col xs={8}><Statistic title="高標" value={t.thirdPartyEstimateHigh} formatter={(v) => dollar(Number(v))} /></Col>
       </Row>
       <Paragraph type="secondary" className="!mt-2 text-sm">

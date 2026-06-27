@@ -7,7 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # tw-car-claim-estimator — 專案層級規則
 
 > **適用對象**: 在本專案執行任務的所有 AI agent (Claude / Codex / Hermes / 其他)
-> **生效版本**: v0.6.3 (2026-06-19)
+> **生效版本**: v0.7.2 (2026-06-28)
 > **同步於**: `package.json` version + git tag
 > **優先序**: `AGENTS.md` > commit message > 自由發揮。若有衝突以本檔為準。
 
@@ -55,6 +55,7 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - **不存在的 icons**: `BalanceOutlined` / `ReceiptOutlined` **不存在**（AntD 6）
 - **正解**: `AuditOutlined`（審計/計算）/ `FileTextOutlined`（文件）/ `DollarOutlined`（金額）/ `CalculatorOutlined`（計算機）/ `InsuranceOutlined`（保險）
 - **InfoAlert wrapper**: `<Alert message=... description=...>` 已 deprecated → 改用 `<InfoAlert title=... body=...>` (`components/InfoAlert.tsx`)
+- **Statistic `valueStyle` 已 deprecated**（v0.7.2+ 起）— 改用 `styles={{ content: { color / fontSize / ... } }}`（AntD 6 `StatisticSemanticType.styles.content`）。型別見 `node_modules/antd/es/statistic/Statistic.d.ts`。迴歸測試：`PainEnsembleCard.test.tsx` SSR HTML 守護 `var(--accent)` 跟字級生效
 
 ### 2.4 Next.js 16 特別注意
 
@@ -75,8 +76,8 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - **改任何 lib/insurance 必跑**:
   ```bash
   pnpm tsc --noEmit                    # 0 錯
-  pnpm test                            # 37 檔 / 395 測試全綠（v0.6.3 期待值）
-  pnpm build                           # 5 routes 靜態 build 全綠
+  pnpm test                            # 47 檔 / 539 測試全綠（v0.7.2 期待值）
+  pnpm build                           # 6 routes 靜態 build 全綠
   ```
 - **新增規則必先寫測試** (TDD: RED → GREEN → REFACTOR) — 沒測試的改動 revert
 - **scrape 改動必先 `--dry-run`** — `pnpm scrape:dry --chain <name> --retry 0` 看 stdout 確認 regex 沒爆掉
