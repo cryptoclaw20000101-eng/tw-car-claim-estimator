@@ -367,3 +367,49 @@ describe('首頁 hero Ensemble 健康度卡（v0.6.9）', () => {
     expect(cardSource).toContain('injuryGradientWarning')
   })
 })
+
+/**
+ * v0.7.0 Hero Ensemble 健康度自動化更新
+ *
+ * 守護 rebuild-hero.sh 的 3 步順序（report → touch → build），
+ * 確保未來重構不會意外打斷 scrape → hero 自動化流程。
+ */
+describe('Hero rebuild 自動化（v0.7.0）', () => {
+  const scriptSource = readFileSync(
+    resolve(__dirname, '../../scripts/rebuild-hero.sh'),
+    'utf-8',
+  )
+  const packageJson = readFileSync(
+    resolve(__dirname, '../../package.json'),
+    'utf-8',
+  )
+
+  it('rebuild-hero.sh 存在 + 可執行', () => {
+    expect(scriptSource.length).toBeGreaterThan(0)
+  })
+
+  it('rebuild-hero.sh 3 步順序正確（report → touch → build）', () => {
+    // 用正則只匹配「執行行」（行首不是 #）排除註解干擾
+    const lines = scriptSource.split('\n').filter((l) => !l.trimStart().startsWith('#'))
+    const sourceNoComments = lines.join('\n')
+    const reportIdx = sourceNoComments.indexOf('pnpm report:precedents')
+    const touchIdx = sourceNoComments.indexOf('touch data/precedents/taipei-mental-distress.json')
+    const buildIdx = sourceNoComments.indexOf('pnpm build')
+    expect(reportIdx).toBeGreaterThan(-1)
+    expect(touchIdx).toBeGreaterThan(reportIdx)
+    expect(buildIdx).toBeGreaterThan(touchIdx)
+  })
+
+  it('rebuild-hero.sh 用 set -euo pipefail 守護失敗不繼續', () => {
+    expect(scriptSource).toMatch(/set\s+-euo\s+pipefail/)
+  })
+
+  it('rebuild-hero.sh 寫 log 到 /tmp（不污染 stdout）', () => {
+    expect(scriptSource).toMatch(/tee\s+-a\s+["']\$LOG_FILE["']/)
+  })
+
+  it('package.json 加 report:rebuild-hero script（hero rebuild wrapper）', () => {
+    expect(packageJson).toContain('"report:rebuild-hero"')
+    expect(packageJson).toContain('bash scripts/rebuild-hero.sh')
+  })
+})

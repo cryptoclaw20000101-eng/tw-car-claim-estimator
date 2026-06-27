@@ -320,3 +320,62 @@ v0.6.0~v0.6.4 引擎端已算好 Ensemble + Advisor，但結果頁還停在規�
 保經業務員看不到「為什麼這個金額」就無法對客戶解釋，
 此元件把「規則公式 / 歷史 anchor / 相似案件」三條推理路徑攤開來，是 v0.6.x 整套 Ensemble 投資的價值收口。
 
+## §12 Hero Ensemble 健康度自動化更新（v0.7.0+）
+
+> **檔案**: `scripts/rebuild-hero.sh` + `package.json` script `report:rebuild-hero`
+> **觸發時機**: scrape cron 跑完後 / 手動執行
+
+### 為什麼需要 hero rebuild？
+
+v0.6.9 把 Ensemble 健康度拉到首頁 hero（`components/EnsembleHealthHeroCard.tsx`），
+但 `import anchorData from '@/data/precedents/taipei-mental-distress.json'` 是 **build-time 靜態內嵌**。
+
+Next 16 `output: "export"` 靜態 export 模式：
+- ❌ 不支援 `revalidatePath` / ISR / on-demand revalidation
+- ❌ 不支援 API route（v0.6.4 advisor route 在部署上會壞，獨立問題）
+- ✅ Hero 健康度只能靠 `pnpm build` 重生
+
+### 3 步流程（必須按序）
+
+```bash
+pnpm report:rebuild-hero
+```
+
+內部依序執行：
+1. `pnpm report:precedents` — 重生 `data/precedents-report.html`
+2. `touch data/precedents/taipei-mental-distress.json` — bump mtime 觸發 Next turbopack cache 失效
+3. `pnpm build` — 全站 rebuild（含 hero Ensemble 健康度卡 build-time import）
+
+### 為什麼 bump mtime（步驟 2）？
+
+Next turbopack 對 JSON imports 有 in-memory cache，純粹 `report:precedents` 重生 JSON 內容但 mtime 不變，
+turbopack 不會 re-bundle 該 JSON → hero 仍用舊值。
+`touch` 是 surgical 解法，比清 `.next/cache` 安全。
+
+### 與 scrape cron 的整合
+
+Hermes cron `11ec3dc8bae1` 排程 `15 * * * *`（每小時第 15 分）跑 `~/.hermes/scripts/scrape-judicial.sh`，
+**未來可加**：scrape 完若抓到新件，自動 trigger `pnpm report:rebuild-hero`。
+當前手動觸發即可（cron 跑頻率低，30s build 成本可接受）。
+
+### 部署場景
+
+| 場景 | 流程 |
+|---|---|
+| **本地 / 自管 prod** | `pnpm report:rebuild-hero` 跑完即生效 |
+| **Vercel deploy** | 本地 rebuild + push → Vercel CI 觸發 `vercel deploy` |
+| **dev server** | `pnpm dev` 跑時 Next turbopack 自動 re-bundle（無需手動 rebuild） |
+
+### 預期耗時
+- `pnpm report:precedents`：~2 秒
+- `touch`：瞬間
+- `pnpm build`：~25-30 秒（靜態 export 含 6 routes + PWA sw）
+- **總計**：~30 秒
+- 對 cron 每小時第 15 分跑一次的頻率：**可接受**
+
+### 紅線
+
+- ❌ **不要在 production cron 跑此 script 不通知 user**（30s build 期間 hero 顯示 stale snapshot）
+- ❌ **不要試圖用 revalidatePath / ISR 解這個問題**（output: export 不支援）
+- ❌ **不要改 pnpm build 為 pnpm dev**（dev 模式無靜態檔，無法部署）
+

@@ -1,6 +1,6 @@
 {
   "name": "tw-car-claim-estimator",
-  "version": "0.6.9",
+  "version": "0.7.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -17,6 +17,7 @@
     "scrape:cron-dry": "node scripts/scrape-judgments.js --dry-run --quiet",
     "report:build": "tsc -p scripts/tsconfig.json",
     "report:precedents": "node scripts/report-precedents.js",
+    "report:rebuild-hero": "bash scripts/rebuild-hero.sh",
     "report:all": "node scripts/scrape-judgments.js --quiet && node scripts/report-precedents.js",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
