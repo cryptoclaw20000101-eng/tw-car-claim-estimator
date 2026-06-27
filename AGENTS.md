@@ -285,3 +285,38 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - 個資脫敏層（v0.6.3 prompt 已設計，但 runtime 也要防呆）
 - Cost control：每案件最多 1 次 LLM 呼叫
 - Rate limit fallback：API 失敗時降級回 mockLLMAdvisor
+
+## §11 精神慰撫金 Ensemble UI 呈現（v0.6.7+）
+
+> **檔案**: `components/PainEnsembleCard.tsx` + 結果頁 `app/claims/result/_form.tsx`
+> **測試**: `__tests__/components/PainEnsembleCard.test.tsx`（13 it）
+
+### 三層渲染結構
+1. **上方 — 共識金額 + badge**
+   - 大字統計 = `consensusAmount`（若 null → fallback 規則中標）
+   - 旁邊：共識度 badge（🟢 strong / 🟡 partial / 🔴 weak / ⚪ insufficient）
+   - Tooltip 顯示判定規則
+2. **中間 — 三票展開（TicketTile ×3）**
+   - 🎯 規則票 / 📊 ML 票 / 🔍 KNN 票
+   - 每票顯示：金額 + 權重 + outlier 標記
+   - KNN 票 null 時 dim + 「無相似案件」標籤
+3. **下方 — LLM 顧問複核面板**
+   - 風險等級 tag（low/medium/high）+ 共識解讀
+   - 風險因子清單（用「·」分隔）
+   - 建議清單（用「·」分隔）
+   - 人工複核旗標（紅框警示，引擎判定時顯示）
+   - 計算成本（prompt + completion tokens）
+   - 免責聲明（永遠顯示，不可隱藏）
+
+### 不變量（測試守護）
+- `consensus: 'strong'` 必搭配 `consensusAmount !== null`
+- `consensus: 'weak'` 必搭配 `suggestedRange !== null`
+- `outlier` 只能是 `'rules' | 'ml' | 'knn'`，無第四選項
+- `painAdvisor.disclaimer` 不可為空字串（個資法）
+- `painAdvisor.requiresHumanReview=true` → UI 必顯示紅框警示
+
+### 為什麼這層重要？
+v0.6.0~v0.6.4 引擎端已算好 Ensemble + Advisor，但結果頁還停在規則時代（v0.5.4 只看 regionalLow/Mid/High）。
+保經業務員看不到「為什麼這個金額」就無法對客戶解釋，
+此元件把「規則公式 / 歷史 anchor / 相似案件」三條推理路徑攤開來，是 v0.6.x 整套 Ensemble 投資的價值收口。
+
