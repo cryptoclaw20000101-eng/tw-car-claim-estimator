@@ -246,3 +246,67 @@ describe('S8 v0.5.7 — 衝量 2 新鏈 (appeal_case + pain_suffering_basis)', (
     expect(k.size).toBeGreaterThanOrEqual(15)
   })
 })
+
+/**
+ * v0.6.8 報表 Ensemble 健康度區塊
+ *
+ * 不重跑 Ensemble 引擎，直接 grep 報表 source 驗證結構：
+ * - computeEnsembleHealth 函式存在
+ * - renderEnsembleSection 函式存在
+ * - buildHtml 內呼叫 computeEnsembleSection 並插入到 <main>
+ * - 信心度 4 等級（high/medium/low/none）+ 對應 tip
+ * - 傷勢梯度警示（單一類別 / 集中 ≥90%）
+ * - 法院中位數 Top 8
+ */
+describe('報表 Ensemble 健康度區塊（v0.6.8）', () => {
+  it('report-precedents.ts 含 computeEnsembleHealth 函式', () => {
+    expect(reportSource).toContain('function computeEnsembleHealth')
+  })
+
+  it('report-precedents.ts 含 renderEnsembleSection 函式', () => {
+    expect(reportSource).toContain('function renderEnsembleSection')
+  })
+
+  it('buildHtml 呼叫 computeEnsembleSection 並渲染 ensembleSection', () => {
+    expect(reportSource).toMatch(/renderEnsembleSection\(\s*computeEnsembleHealth/)
+    // 渲染到 <main> 內（在 chainSections 之前）
+    expect(reportSource).toMatch(/<\/header>\s*<main>\s*\$\{ensembleSection\}/)
+  })
+
+  it('信心度 4 等級分支齊全（high ≥20 / medium ≥10 / low ≥5 / none <5）', () => {
+    expect(reportSource).toContain('"high"')
+    expect(reportSource).toContain('"medium"')
+    expect(reportSource).toContain('"low"')
+    expect(reportSource).toContain('"none"')
+    expect(reportSource).toMatch(/n >= 20/)
+    expect(reportSource).toMatch(/n >= 10/)
+    expect(reportSource).toMatch(/n >= 5/)
+  })
+
+  it('傷勢梯度警示：單一類別 + 90% 集中兩個條件', () => {
+    // 單一類別 → 全部集中警示
+    expect(reportSource).toContain('傷勢梯度為 0，XGBoost 無法學習')
+    // 兩類別且其中一類 ≥90% → 偏置警示
+    expect(reportSource).toContain('XGBoost 偏置風險高')
+  })
+
+  it('法院中位數取 Top 8 對齊規則票地區係數', () => {
+    expect(reportSource).toContain('slice(0, 8)')
+    expect(reportSource).toContain('法院中位數 (Top 8')
+    expect(reportSource).toContain('相對 anchor 中位')
+  })
+
+  it('ensemble section 標明對應引擎檔案（pain-ml / precedent-knn / pain-ensemble）', () => {
+    expect(reportSource).toContain('lib/insurance/pain-ml.ts')
+    expect(reportSource).toContain('lib/estimate/precedent-knn.ts')
+    expect(reportSource).toContain('lib/insurance/pain-ensemble.ts')
+  })
+
+  it('EnsembleHealth 型別定義包含 4 個指標', () => {
+    // anchor / court / confidence / injury 4 組
+    expect(reportSource).toContain('anchorN:')
+    expect(reportSource).toContain('courtMedians:')
+    expect(reportSource).toContain('confidenceLevel:')
+    expect(reportSource).toContain('injuryCoverage:')
+  })
+})

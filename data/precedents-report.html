@@ -36,9 +36,79 @@
 <body>
 <header>
   <h1>📊 precedents 監控報表</h1>
-  <p class="muted" style="color:#dbeafe;margin:0">產生時間：2026-06-22T14:55:09.899Z · 6 鏈合計 548 件 · 總計 555 件（6 鏈 + legacy）</p>
+  <p class="muted" style="color:#dbeafe;margin:0">產生時間：2026-06-27T11:28:48.835Z · 6 鏈合計 548 件 · 總計 555 件（6 鏈 + legacy）</p>
 </header>
 <main>
+  
+    <section class="chain" style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border:2px solid #f59e0b">
+      <h2 style="border-bottom-color:#f59e0b">🧠 Ensemble 健康度 <span class="muted">(精神慰撫金 anchor · v0.6.8+)</span></h2>
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-n">102</div><div class="kpi-l">anchor 件數</div></div>
+        <div class="kpi"><div class="kpi-n">450,000</div><div class="kpi-l">中位數</div></div>
+        <div class="kpi"><div class="kpi-n">47,419 ~ 2,285,689</div><div class="kpi-l">P10 ~ P90</div></div>
+        <div class="kpi" style="background:#10b98122;border-color:#10b981"><div class="kpi-l">信心度</div><div class="kpi-n" style="color:#10b981">🟢 high</div></div>
+      </div>
+      <p class="muted">💡 ≥20 件，ML 區間可信，可啟動 XGBoost 訓練</p>
+
+      <h3>法院中位數 (Top 8 · 對應規則票地區係數)</h3>
+      <table class="table">
+        <thead><tr><th>法院</th><th>件數</th><th class="num">中位數</th><th class="num">相對 anchor 中位</th></tr></thead>
+        <tbody>
+          <tr>
+                <td>臺灣新北地方法院</td>
+                <td class="num">20</td>
+                <td class="num">226,549</td>
+                <td class="num" style="color:#2563eb">0.50×</td>
+              </tr><tr>
+                <td>臺灣臺南地方法院</td>
+                <td class="num">11</td>
+                <td class="num">1,356,663</td>
+                <td class="num" style="color:#dc2626">3.01×</td>
+              </tr><tr>
+                <td>ULDV（未知代碼）</td>
+                <td class="num">9</td>
+                <td class="num">667,546</td>
+                <td class="num" style="color:#dc2626">1.48×</td>
+              </tr><tr>
+                <td>ILDV（未知代碼）</td>
+                <td class="num">8</td>
+                <td class="num">2,006,326</td>
+                <td class="num" style="color:#dc2626">4.46×</td>
+              </tr><tr>
+                <td>臺灣嘉義地方法院</td>
+                <td class="num">8</td>
+                <td class="num">393,222</td>
+                <td class="num" style="color:#2563eb">0.87×</td>
+              </tr><tr>
+                <td>臺灣桃園地方法院</td>
+                <td class="num">6</td>
+                <td class="num">1,500,000</td>
+                <td class="num" style="color:#dc2626">3.33×</td>
+              </tr><tr>
+                <td>臺灣臺中地方法院</td>
+                <td class="num">6</td>
+                <td class="num">1,200,000</td>
+                <td class="num" style="color:#dc2626">2.67×</td>
+              </tr><tr>
+                <td>臺灣高雄地方法院</td>
+                <td class="num">6</td>
+                <td class="num">366,000</td>
+                <td class="num" style="color:#2563eb">0.81×</td>
+              </tr>
+        </tbody>
+      </table>
+
+      <h3>傷勢覆蓋 (對應 KNN 第 4 維 injury_severity)</h3>
+      <div class="bars">
+        <div class="bar"><span class="bar-label">minor_injury</span><div class="bar-fill" style="width:100.0%;background:#f59e0b"></div><span class="bar-n">102</span></div>
+      </div>
+      <div class="kpi" style="background:#fef3c7;border-color:#f59e0b"><div class="kpi-l" style="color:#92400e">⚠️ 傷勢梯度警示</div><div class="muted" style="font-size:0.8rem;color:#78350f">全部 102 件都集中在 minor_injury，傷勢梯度為 0，XGBoost 無法學習</div></div>
+
+      <p class="muted" style="margin-top:0.75rem">
+        📌 對應引擎：<code>lib/insurance/pain-ml.ts</code> (ML 票) + <code>lib/estimate/precedent-knn.ts</code> (KNN 票) + <code>lib/insurance/pain-ensemble.ts</code> (三票共識)
+      </p>
+    </section>
+  
   
       <section class="chain">
         <h2>🔗 精神慰撫金 <span class="muted">(taipei-mental-distress.json)</span></h2>

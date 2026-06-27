@@ -125,6 +125,182 @@ function recentTimeline(rows: PrecedentRow[], k = 30): PrecedentRow[] {
     .slice(0, k);
 }
 
+/**
+ * Ensemble 健康度統計（v0.6.8+）
+ *
+ * 不重跑 Ensemble 引擎，而是從精神慰撫金這條鏈的歷史資料
+ * 算出「如果現在跑 predictPainRange 會用什麼 anchor」+ 信心度判斷依據。
+ *
+ * 4 個指標：
+ *   - anchorN / anchorMedian / anchorP10P90 → 對應 ML 票
+ *   - courtMedians → 對應規則票的地區係數（每個法院的中位數）
+ *   - confidenceLevel → high/medium/low 依 anchorN 數量判定
+ *   - injuryCoverage → 傷勢類別分布（凸顯傷勢梯度不足的問題）
+ */
+interface EnsembleHealth {
+  anchorFile: string; // "taipei-mental-distress.json"
+  anchorN: number; // 有金額的件數
+  anchorMedian: number;
+  anchorP10: number;
+  anchorP90: number;
+  confidenceLevel: "high" | "medium" | "low" | "none";
+  confidenceTip: string; // 信心度說明（為什麼是這個等級）
+  courtMedians: Array<{ court: string; n: number; median: number }>;
+  injuryCoverage: Array<{ category: string; n: number }>;
+  injuryGradientWarning: string | null; // 傷勢集中警示
+}
+
+function computeEnsembleHealth(
+  anchorRows: PrecedentRow[]
+): EnsembleHealth {
+  const amounts = anchorRows
+    .map((r) => Number(r.amount ?? r.mentalDistressAmount ?? 0))
+    .filter((n) => n > 0);
+
+  const n = amounts.length;
+  const sorted = [...amounts].sort((a, b) => a - b);
+  const at = (p: number) =>
+    sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))];
+
+  // 信心度分級（沿用 pain-ml.ts §8 規則）
+  let confidenceLevel: EnsembleHealth["confidenceLevel"];
+  let confidenceTip: string;
+  if (n >= 20) {
+    confidenceLevel = "high";
+    confidenceTip = "≥20 件，ML 區間可信，可啟動 XGBoost 訓練";
+  } else if (n >= 10) {
+    confidenceLevel = "medium";
+    confidenceTip = "10-19 件，ML 區間可用但需人類 review 邊界值";
+  } else if (n >= 5) {
+    confidenceLevel = "low";
+    confidenceTip = "5-9 件，僅 fallback 用啟發式，ML 不可信";
+  } else {
+    confidenceLevel = "none";
+    confidenceTip = "<5 件，完全 fallback 到啟發式規則";
+  }
+
+  // 法院中位數（給規則票地區係數對齊用）
+  const byCourt = new Map<string, number[]>();
+  for (const r of anchorRows) {
+    const amt = Number(r.amount ?? r.mentalDistressAmount ?? 0);
+    if (amt <= 0) continue;
+    const court = r.court || "(unknown)";
+    if (!byCourt.has(court)) byCourt.set(court, []);
+    byCourt.get(court)!.push(amt);
+  }
+  const courtMedians = Array.from(byCourt.entries())
+    .map(([court, nums]) => ({
+      court,
+      n: nums.length,
+      median: median(nums),
+    }))
+    .sort((a, b) => b.n - a.n)
+    .slice(0, 8);
+
+  // 傷勢覆蓋
+  const catMap = new Map<string, number>();
+  for (const r of anchorRows) {
+    const c = String(r.category || "(none)");
+    catMap.set(c, (catMap.get(c) ?? 0) + 1);
+  }
+  const injuryCoverage = Array.from(catMap.entries())
+    .map(([category, n]) => ({ category, n }))
+    .sort((a, b) => b.n - a.n);
+
+  // 傷勢梯度警示
+  let injuryGradientWarning: string | null = null;
+  if (injuryCoverage.length === 1) {
+    injuryGradientWarning = `全部 ${injuryCoverage[0].n} 件都集中在 ${injuryCoverage[0].category}，傷勢梯度為 0，XGBoost 無法學習`;
+  } else if (injuryCoverage.length === 2) {
+    const top = injuryCoverage[0];
+    const total = injuryCoverage.reduce((s, x) => s + x.n, 0);
+    if (top.n / total > 0.9) {
+      injuryGradientWarning = `${top.category} 佔 ${((top.n / total) * 100).toFixed(0)}%，傷勢梯度不足，XGBoost 偏置風險高`;
+    }
+  }
+
+  return {
+    anchorFile: "taipei-mental-distress.json",
+    anchorN: n,
+    anchorMedian: n > 0 ? median(amounts) : 0,
+    anchorP10: n > 0 ? at(0.1) : 0,
+    anchorP90: n > 0 ? at(0.9) : 0,
+    confidenceLevel,
+    confidenceTip,
+    courtMedians,
+    injuryCoverage,
+    injuryGradientWarning,
+  };
+}
+
+const CONFIDENCE_META: Record<EnsembleHealth["confidenceLevel"], { label: string; color: string }> = {
+  high: { label: "🟢 high", color: "#10b981" },
+  medium: { label: "🟡 medium", color: "#f59e0b" },
+  low: { label: "🔴 low", color: "#ef4444" },
+  none: { label: "⚪ none", color: "#9ca3af" },
+};
+
+function renderEnsembleSection(h: EnsembleHealth): string {
+  const meta = CONFIDENCE_META[h.confidenceLevel];
+  const bar = (
+    label: string,
+    n: number,
+    total: number,
+    color: string
+  ): string => {
+    const pct = total > 0 ? (n / total) * 100 : 0;
+    return `<div class="bar"><span class="bar-label">${esc(label)}</span><div class="bar-fill" style="width:${pct.toFixed(1)}%;background:${color}"></div><span class="bar-n">${n}</span></div>`;
+  };
+
+  const totalInj = h.injuryCoverage.reduce((s, x) => s + x.n, 0);
+  const gradientWarn = h.injuryGradientWarning
+    ? `<div class="kpi" style="background:#fef3c7;border-color:#f59e0b"><div class="kpi-l" style="color:#92400e">⚠️ 傷勢梯度警示</div><div class="muted" style="font-size:0.8rem;color:#78350f">${esc(h.injuryGradientWarning)}</div></div>`
+    : "";
+
+  return `
+    <section class="chain" style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border:2px solid #f59e0b">
+      <h2 style="border-bottom-color:#f59e0b">🧠 Ensemble 健康度 <span class="muted">(精神慰撫金 anchor · v0.6.8+)</span></h2>
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-n">${h.anchorN}</div><div class="kpi-l">anchor 件數</div></div>
+        <div class="kpi"><div class="kpi-n">${h.anchorMedian.toLocaleString()}</div><div class="kpi-l">中位數</div></div>
+        <div class="kpi"><div class="kpi-n">${h.anchorP10.toLocaleString()} ~ ${h.anchorP90.toLocaleString()}</div><div class="kpi-l">P10 ~ P90</div></div>
+        <div class="kpi" style="background:${meta.color}22;border-color:${meta.color}"><div class="kpi-l">信心度</div><div class="kpi-n" style="color:${meta.color}">${meta.label}</div></div>
+      </div>
+      <p class="muted">💡 ${esc(h.confidenceTip)}</p>
+
+      <h3>法院中位數 (Top 8 · 對應規則票地區係數)</h3>
+      <table class="table">
+        <thead><tr><th>法院</th><th>件數</th><th class="num">中位數</th><th class="num">相對 anchor 中位</th></tr></thead>
+        <tbody>
+          ${h.courtMedians
+            .map((c) => {
+              const ratio = h.anchorMedian > 0 ? c.median / h.anchorMedian : 0;
+              const ratioColor =
+                ratio > 1.1 ? "#dc2626" : ratio < 0.9 ? "#2563eb" : "#6b7280";
+              return `<tr>
+                <td>${esc(c.court)}</td>
+                <td class="num">${c.n}</td>
+                <td class="num">${c.median.toLocaleString()}</td>
+                <td class="num" style="color:${ratioColor}">${ratio.toFixed(2)}×</td>
+              </tr>`;
+            })
+            .join("") || "<tr><td colspan='4' class='muted'>無資料</td></tr>"}
+        </tbody>
+      </table>
+
+      <h3>傷勢覆蓋 (對應 KNN 第 4 維 injury_severity)</h3>
+      <div class="bars">
+        ${h.injuryCoverage.map((c) => bar(c.category, c.n, totalInj, "#f59e0b")).join("") || "<p class='muted'>無資料</p>"}
+      </div>
+      ${gradientWarn}
+
+      <p class="muted" style="margin-top:0.75rem">
+        📌 對應引擎：<code>lib/insurance/pain-ml.ts</code> (ML 票) + <code>lib/estimate/precedent-knn.ts</code> (KNN 票) + <code>lib/insurance/pain-ensemble.ts</code> (三票共識)
+      </p>
+    </section>
+  `;
+}
+
 function esc(s: string | number | undefined | null): string {
   if (s == null) return "";
   return String(s)
@@ -147,6 +323,11 @@ function buildHtml(args: {
   const { chain, legacy, generatedAt } = args;
   const totalChain = Array.from(chain.values()).reduce((s, r) => s + r.length, 0);
   const grand = totalChain + legacy.length;
+
+  // Ensemble 健康度（v0.6.8+）— 插在 6 鏈 section 之前
+  const ensembleSection = renderEnsembleSection(
+    computeEnsembleHealth(chain.get("taipei-mental-distress.json") ?? [])
+  );
 
   // 6 鏈摘要
   const chainSections: string[] = [];
@@ -262,6 +443,7 @@ function buildHtml(args: {
   <p class="muted" style="color:#dbeafe;margin:0">產生時間：${esc(generatedAt)} · 6 鏈合計 ${totalChain} 件 · 總計 ${grand} 件（6 鏈 + legacy）</p>
 </header>
 <main>
+  ${ensembleSection}
   ${chainSections.join("")}
   ${legacySection}
   <section class="chain">
