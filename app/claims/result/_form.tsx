@@ -18,6 +18,7 @@ import {
   Collapse,
 } from 'antd'
 import { InfoAlert } from '@/components/InfoAlert'
+import { PainEnsembleCard } from '@/components/PainEnsembleCard'
 import {
   ArrowLeftOutlined,
   FileTextOutlined,
@@ -496,6 +497,14 @@ function CivilSection({ result }: { result: EstimationResult }) {
         基礎值 {dollar(pas.baseLow)} / {dollar(pas.baseMid)} / {dollar(pas.baseHigh)} × 地區係數 {pas.regionalMultiplier}
         · 嚴重度評分 {pas.severityScore} / 100（{pas.severityLevel}）
       </Paragraph>
+
+      {/* v0.6.7 精神慰撫金 Ensemble 三票共識 + LLM 顧問複核 */}
+      <PainEnsembleCard
+        painEnsemble={result.painEnsemble}
+        painAdvisor={result.painAdvisor}
+        rulesRegionalMid={pas.regionalMid}
+        dollar={dollar}
+      />
 
       <Divider>工作損失（擴充版：短期/長期/退休分流）</Divider>
       <Row gutter={16}>
