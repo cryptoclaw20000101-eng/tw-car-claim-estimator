@@ -1,6 +1,24 @@
 // =====================================================================
 // /api/advisor route handler — v0.6.4
 //
+// ⚠️  v0.7.0 部署場景警告
+// =====================================================================
+// 此 route 在 `next.config.ts` 設 `output: "export"` 時不會被打包進
+// 靜態站點（Vercel Edge CDN 部署後 POST /api/advisor 會 404）。
+//
+// 目前 UI（PainEnsembleCard）直接從 build-time 內嵌的 mockLLMAdvisor
+// 拿 advisor 結果，沒有 fetch 這個 route，所以這個檔案對現有 UI 是
+// dead code — 純粹作為未來切換到「Vercel Functions / 自架 Node / Edge
+// Runtime」部署時的 server-side 入口預留。
+//
+// 若要啟用 live LLM 模式：
+//   1. 移除 `output: "export"`（會失去 Vercel Edge CDN 優化）
+//   2. 或把 route 改寫為 Edge Function + Vercel Functions 部署
+//   3. UI 端把 PainEnsembleCard 從純計算引擎 prop 改成 fetch('/api/advisor')
+//
+// 詳見 AGENTS.md §13 部署場景矩陣。
+// =====================================================================
+//
 // POST 接收 AdvisorInput，呼叫 callClaudeAdvisor，回傳 AdvisorApiResult
 //
 // 設計原則（AGENTS.md §2.4 + §6）：

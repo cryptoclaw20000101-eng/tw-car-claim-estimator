@@ -379,3 +379,70 @@ Hermes cron `11ec3dc8bae1` 排程 `15 * * * *`（每小時第 15 分）跑 `~/.h
 - ❌ **不要試圖用 revalidatePath / ISR 解這個問題**（output: export 不支援）
 - ❌ **不要改 pnpm build 為 pnpm dev**（dev 模式無靜態檔，無法部署）
 
+## §13 LLM Advisor 部署場景矩陣（v0.7.0+）
+
+> **檔案**：`app/api/advisor/route.ts` + `lib/insurance/advisor-api.ts` + `components/PainEnsembleCard.tsx`
+> **測試**：`__tests__/api/export-mode-guard.test.ts`（守 `output: export` 限制）
+
+### 核心事實
+
+`next.config.ts` 設 `output: "export"`（Vercel Edge CDN 靜態站點），
+**`/api/advisor` route 不會被打包進 `out/` 目錄**：
+
+```bash
+$ ls out/                       # 純 HTML + JS + assets
+$ ls out/api/                   # 404 — 不存在
+$ ls .next/server/app/api/      # 存在（build artifact，但 deploy 不會用）
+```
+
+### 場景矩陣
+
+| 場景 | advisor 行為 | 適合對象 |
+|---|---|---|
+| **Vercel Edge CDN**（當前預設） | ❌ `/api/advisor` 404 — UI 用 build-time 內嵌 mockLLMAdvisor | 公開展示、行銷頁、SEO 友善 |
+| **本地 dev server**（`pnpm dev`） | ✅ route 跑得起來，但 UI 仍用 build-time mock | 工程師開發 |
+| **Vercel Functions / Edge Functions** | ✅ live mode 可用 — 需手動加 `vercel.json` 設定 | 商業模式、需要 LLM live 回應 |
+| **自架 Node server**（移除 `output: export`） | ✅ live mode 完整 — 需自管 PWA / CDN | 律師事務所內網 |
+
+### 為什麼 UI 永遠顯示 mock 標籤？
+
+`PainEnsembleCard` Divider 文字目前是：
+
+> LLM 理賠顧問複核（靜態 mock · 部署模式請見 AGENTS.md §13）
+
+這是**故意為之** — 在 Vercel Edge CDN 部署下，使用者看到明確標籤不會誤以為是真 LLM 回應。
+若部署到 Vercel Functions / 自架 server，需同步：
+
+1. `PainEnsembleCard` 加 useEffect fetch `/api/advisor` 拿 `AdvisorApiResult`
+2. 把 build-time `mockLLMAdvisor` prop 改成 `useState` + loading skeleton
+3. route.ts 移除 deprecation 警告 + 改 `maxDuration` 對齊 Functions timeout
+
+### 為什麼不直接移除 `route.ts`？
+
+- **教育價值**：iPAS AI 應用規劃師 第 3 課「LLM 機制 + API 整合」的完整範例（含 PII 過濾 / token 上限 / fallback 分類 / timeout + retry）
+- **未來商業模式**：若律師事務所要內網自架或升級 Vercel Functions，這個檔案直接可用
+- **投資保護**：v0.6.4 寫的 5 個測試檔 43 it 仍有效（純函式測試不依賴 runtime）
+
+### 紅線
+
+- ❌ **不要把 `output: "export"` 改 `undefined`** 而不重新評估部署策略（會失去 Vercel Edge CDN）
+- ❌ **不要讓 UI fetch `/api/advisor` 在 Vercel Edge CDN 部署下被誤導**（會一直 404）
+- ❌ **不要把 deprecation 警告從 route.ts 移除**（這個警告保護未來的 agent 不誤改 config）
+
+### v0.7.0 觸碰的範圍
+
+| 改動 | 原因 |
+|---|---|
+| `app/api/advisor/route.ts` 加 deprecation 區塊 | 明確標註 export mode 不會跑 |
+| `components/PainEnsembleCard.tsx` 標籤改「靜態 mock · §13」 | 對齊事實（v0.6.4 mock → 靜態 mock） |
+| `AGENTS.md` §13（本段） | 部署場景矩陣 |
+| `__tests__/api/export-mode-guard.test.ts`（新） | 守護 `output: export` + `out/` 沒 `api/` + UI 標籤 |
+
+**沒改**：`next.config.ts`（保持 `output: export`）、`PainEnsembleCard` 邏輯、計算引擎、報表、scrape cron、scrape script。
+
+### 後續 v0.7.x 候選
+
+1. **真的接 Vercel Functions + live LLM**（需 API key + 商業模式評估）
+2. **scrape cron 自動 trigger `pnpm report:rebuild-hero`**（file watcher 或 shell 串接）
+3. **傷勢梯度補完** — 律師手動建 89 件 0 元資料
+

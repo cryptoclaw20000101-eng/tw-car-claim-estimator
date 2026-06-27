@@ -213,7 +213,7 @@ export function PainEnsembleCard({
 
       {/* LLM Advisor 風險面板 */}
       <Divider plain className="!mt-3 !mb-2 !text-xs">
-        LLM 理賠顧問複核（v0.6.4 mock）
+        LLM 理賠顧問複核（靜態 mock · 部署模式請見 AGENTS.md §13）
       </Divider>
       <div className="!mb-2">
         <Tag color={riskMeta.color} className="!mr-2">
