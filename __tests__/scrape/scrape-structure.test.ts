@@ -258,9 +258,11 @@ describe('S8 v0.5.7 — 衝量 2 新鏈 (appeal_case + pain_suffering_basis)', (
  * - 傷勢梯度警示（單一類別 / 集中 ≥90%）
  * - 法院中位數 Top 8
  */
-describe('報表 Ensemble 健康度區塊（v0.6.8）', () => {
-  it('report-precedents.ts 含 computeEnsembleHealth 函式', () => {
-    expect(reportSource).toContain('function computeEnsembleHealth')
+describe('報表 Ensemble 健康度區塊（v0.6.8 → v0.6.9 refactor）', () => {
+  it('report-precedents.ts 從共用函式 import computeEnsembleHealth', () => {
+    // v0.6.9 refactor: 函式搬到 lib/insurance/pain-ensemble-health.ts，
+    // report 改 import 共用，避免雙重實作
+    expect(reportSource).toMatch(/import\s*\{[^}]*computeEnsembleHealth[^}]*\}\s*from\s*["']\.\.\/lib\/insurance\/pain-ensemble-health["']/)
   })
 
   it('report-precedents.ts 含 renderEnsembleSection 函式', () => {
@@ -273,27 +275,22 @@ describe('報表 Ensemble 健康度區塊（v0.6.8）', () => {
     expect(reportSource).toMatch(/<\/header>\s*<main>\s*\$\{ensembleSection\}/)
   })
 
-  it('信心度 4 等級分支齊全（high ≥20 / medium ≥10 / low ≥5 / none <5）', () => {
-    expect(reportSource).toContain('"high"')
-    expect(reportSource).toContain('"medium"')
-    expect(reportSource).toContain('"low"')
-    expect(reportSource).toContain('"none"')
-    expect(reportSource).toMatch(/n >= 20/)
-    expect(reportSource).toMatch(/n >= 10/)
-    expect(reportSource).toMatch(/n >= 5/)
+  it('信心度 4 等級由 lib 提供（v0.6.9 refactor）', () => {
+    // v0.6.8 測試本來 hard-code 在 report；refactor 後由 lib 提供
+    // report 端只負責 import + 渲染，信心度分級由 lib/insurance/pain-ensemble-health.ts 守護
+    // 此處僅確認 report 沒意外 hard-code 信心度字串
+    expect(reportSource).not.toMatch(/n\s*>=\s*20\s*\{\s*confidenceLevel\s*=\s*["']high["']/)
   })
 
-  it('傷勢梯度警示：單一類別 + 90% 集中兩個條件', () => {
-    // 單一類別 → 全部集中警示
-    expect(reportSource).toContain('傷勢梯度為 0，XGBoost 無法學習')
-    // 兩類別且其中一類 ≥90% → 偏置警示
-    expect(reportSource).toContain('XGBoost 偏置風險高')
+  it('傷勢梯度警示由 lib 提供（v0.6.9 refactor）', () => {
+    // v0.6.8 測試本來 hard-code 在 report；refactor 後由 lib 提供
+    expect(reportSource).not.toMatch(/傷勢梯度為 0/)
+    expect(reportSource).not.toMatch(/XGBoost 偏置風險高/)
   })
 
-  it('法院中位數取 Top 8 對齊規則票地區係數', () => {
-    expect(reportSource).toContain('slice(0, 8)')
-    expect(reportSource).toContain('法院中位數 (Top 8')
-    expect(reportSource).toContain('相對 anchor 中位')
+  it('法院中位數 slice(0, 8) 由 lib 提供（v0.6.9 refactor）', () => {
+    // v0.6.8 測試本來 hard-code 在 report；refactor 後由 lib 提供
+    expect(reportSource).not.toMatch(/slice\(0,\s*8\)/)
   })
 
   it('ensemble section 標明對應引擎檔案（pain-ml / precedent-knn / pain-ensemble）', () => {
@@ -302,11 +299,71 @@ describe('報表 Ensemble 健康度區塊（v0.6.8）', () => {
     expect(reportSource).toContain('lib/insurance/pain-ensemble.ts')
   })
 
-  it('EnsembleHealth 型別定義包含 4 個指標', () => {
-    // anchor / court / confidence / injury 4 組
-    expect(reportSource).toContain('anchorN:')
-    expect(reportSource).toContain('courtMedians:')
-    expect(reportSource).toContain('confidenceLevel:')
-    expect(reportSource).toContain('injuryCoverage:')
+  it('EnsembleHealth 型別從共用 import（v0.6.9 refactor）', () => {
+    // 不再是本地 interface，改從 lib/insurance/pain-ensemble-health import
+    expect(reportSource).toMatch(/import\s*\{[^}]*type\s+EnsembleHealth[^}]*\}\s*from/)
+    // 確保本地沒有重複宣告
+    expect(reportSource).not.toMatch(/^interface EnsembleHealth\s*\{/m)
+  })
+})
+
+/**
+ * v0.6.9 首頁 hero Ensemble 健康度卡
+ *
+ * 為什麼測 source 而不是 render：
+ *   沿用既有 .tsx 測試 pattern（StepShell.test.tsx / PainEnsembleCard.test.tsx）：
+ *   用 props 介面契約 + 結構性斷言，避免 jsdom 依賴。
+ *   對於純組合元件（內含 fetch/import 靜態 JSON）是最 surgical 方案。
+ */
+describe('首頁 hero Ensemble 健康度卡（v0.6.9）', () => {
+  it('app/page.tsx import EnsembleHealthHeroCard', () => {
+    const pageSource = readFileSync(
+      resolve(__dirname, '../../app/page.tsx'),
+      'utf-8',
+    )
+    expect(pageSource).toContain('import { EnsembleHealthHeroCard }')
+  })
+
+  it('EnsembleHealthHeroCard 渲染在 hero 右側（引用法源 / 地區覆蓋之後）', () => {
+    const pageSource = readFileSync(
+      resolve(__dirname, '../../app/page.tsx'),
+      'utf-8',
+    )
+    expect(pageSource).toMatch(/<EnsembleHealthHeroCard\s*\/>/)
+  })
+
+  it('EnsembleHealthHeroCard 內含 build-time JSON import', () => {
+    const cardSource = readFileSync(
+      resolve(__dirname, '../../components/EnsembleHealthHeroCard.tsx'),
+      'utf-8',
+    )
+    // Next 16 turbopack JSON import（內嵌 bundle 不需 runtime fetch）
+    expect(cardSource).toContain(
+      "import anchorData from '@/data/precedents/taipei-mental-distress.json'"
+    )
+  })
+
+  it('EnsembleHealthHeroCard 沿用 taste-skill v1 設計紀律（無 emoji / tabular-nums）', () => {
+    const cardSource = readFileSync(
+      resolve(__dirname, '../../components/EnsembleHealthHeroCard.tsx'),
+      'utf-8',
+    )
+    // 不該出現的 emoji
+    expect(cardSource).not.toMatch(/[\u{1F300}-\u{1F9FF}]/u) // 範圍內 emoji
+    // 必含 tabular-nums
+    expect(cardSource).toContain('tabular-nums')
+    // 必含 anchor 件數 / 中位數 / 信心度 3 個指標
+    expect(cardSource).toContain('anchor 件數')
+    expect(cardSource).toContain('中位數')
+    expect(cardSource).toContain('信心度')
+  })
+
+  it('EnsembleHealthHeroCard 顯示傷勢梯度警示（用 WarningOutlined icon）', () => {
+    const cardSource = readFileSync(
+      resolve(__dirname, '../../components/EnsembleHealthHeroCard.tsx'),
+      'utf-8',
+    )
+    expect(cardSource).toContain('WarningOutlined')
+    expect(cardSource).toContain('injuryGradientWarning')
   })
 })

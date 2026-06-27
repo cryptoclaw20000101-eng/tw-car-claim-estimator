@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Button, Typography, Space, Alert } from "antd"
 import { InfoAlert } from '@/components/InfoAlert'
 import { motion } from "framer-motion"
+import { EnsembleHealthHeroCard } from "@/components/EnsembleHealthHeroCard"
 import {
   CalculatorOutlined,
   SafetyCertificateOutlined,
@@ -109,6 +110,9 @@ export default function Home() {
                 6 個直轄市地方法院 + 26 縣市自動對應（台 / 臺異體字相容）
               </Text>
             </div>
+
+            {/* Ensemble 健康度（v0.6.9+）— build-time 靜態載入 taipei-mental-distress */}
+            <EnsembleHealthHeroCard />
           </div>
         </div>
       </motion.section>

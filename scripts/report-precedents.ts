@@ -17,6 +17,11 @@
 
 import { writeFileSync, readFileSync, readdirSync, existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
+import {
+  computeEnsembleHealth,
+  type EnsembleHealth,
+  type PrecedentRow,
+} from "../lib/insurance/pain-ensemble-health";
 
 const OUT_FILE = join(process.cwd(), "data", "precedents-report.html");
 
@@ -45,18 +50,7 @@ const LEGACY_FILES = [
   "scar-revision.json",
 ];
 
-interface PrecedentRow {
-  id?: string;
-  caseNo?: string;
-  court?: string;
-  year?: number;
-  category?: string;
-  amount?: number;
-  mentalDistressAmount?: number;
-  chain?: string;
-  scrapedAt?: string;
-  [k: string]: unknown;
-}
+// PrecedentRow 型別已從 lib/insurance/pain-ensemble-health import（v0.6.9 refactor）
 
 function loadAllPrecedents(): { chain: Map<string, PrecedentRow[]>; legacy: PrecedentRow[] } {
   const chain = new Map<string, PrecedentRow[]>();
@@ -136,112 +130,20 @@ function recentTimeline(rows: PrecedentRow[], k = 30): PrecedentRow[] {
  *   - courtMedians → 對應規則票的地區係數（每個法院的中位數）
  *   - confidenceLevel → high/medium/low 依 anchorN 數量判定
  *   - injuryCoverage → 傷勢類別分布（凸顯傷勢梯度不足的問題）
+ *
+ * 4 個指標函式（computeEnsembleHealth）已抽到 lib/insurance/pain-ensemble-health.ts
+ * （v0.6.9 refactor）：首頁 hero + 報表 + 未來 API route 共用，無 fs 依賴
  */
-interface EnsembleHealth {
-  anchorFile: string; // "taipei-mental-distress.json"
-  anchorN: number; // 有金額的件數
-  anchorMedian: number;
-  anchorP10: number;
-  anchorP90: number;
-  confidenceLevel: "high" | "medium" | "low" | "none";
-  confidenceTip: string; // 信心度說明（為什麼是這個等級）
-  courtMedians: Array<{ court: string; n: number; median: number }>;
-  injuryCoverage: Array<{ category: string; n: number }>;
-  injuryGradientWarning: string | null; // 傷勢集中警示
-}
-
-function computeEnsembleHealth(
-  anchorRows: PrecedentRow[]
-): EnsembleHealth {
-  const amounts = anchorRows
-    .map((r) => Number(r.amount ?? r.mentalDistressAmount ?? 0))
-    .filter((n) => n > 0);
-
-  const n = amounts.length;
-  const sorted = [...amounts].sort((a, b) => a - b);
-  const at = (p: number) =>
-    sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))];
-
-  // 信心度分級（沿用 pain-ml.ts §8 規則）
-  let confidenceLevel: EnsembleHealth["confidenceLevel"];
-  let confidenceTip: string;
-  if (n >= 20) {
-    confidenceLevel = "high";
-    confidenceTip = "≥20 件，ML 區間可信，可啟動 XGBoost 訓練";
-  } else if (n >= 10) {
-    confidenceLevel = "medium";
-    confidenceTip = "10-19 件，ML 區間可用但需人類 review 邊界值";
-  } else if (n >= 5) {
-    confidenceLevel = "low";
-    confidenceTip = "5-9 件，僅 fallback 用啟發式，ML 不可信";
-  } else {
-    confidenceLevel = "none";
-    confidenceTip = "<5 件，完全 fallback 到啟發式規則";
-  }
-
-  // 法院中位數（給規則票地區係數對齊用）
-  const byCourt = new Map<string, number[]>();
-  for (const r of anchorRows) {
-    const amt = Number(r.amount ?? r.mentalDistressAmount ?? 0);
-    if (amt <= 0) continue;
-    const court = r.court || "(unknown)";
-    if (!byCourt.has(court)) byCourt.set(court, []);
-    byCourt.get(court)!.push(amt);
-  }
-  const courtMedians = Array.from(byCourt.entries())
-    .map(([court, nums]) => ({
-      court,
-      n: nums.length,
-      median: median(nums),
-    }))
-    .sort((a, b) => b.n - a.n)
-    .slice(0, 8);
-
-  // 傷勢覆蓋
-  const catMap = new Map<string, number>();
-  for (const r of anchorRows) {
-    const c = String(r.category || "(none)");
-    catMap.set(c, (catMap.get(c) ?? 0) + 1);
-  }
-  const injuryCoverage = Array.from(catMap.entries())
-    .map(([category, n]) => ({ category, n }))
-    .sort((a, b) => b.n - a.n);
-
-  // 傷勢梯度警示
-  let injuryGradientWarning: string | null = null;
-  if (injuryCoverage.length === 1) {
-    injuryGradientWarning = `全部 ${injuryCoverage[0].n} 件都集中在 ${injuryCoverage[0].category}，傷勢梯度為 0，XGBoost 無法學習`;
-  } else if (injuryCoverage.length === 2) {
-    const top = injuryCoverage[0];
-    const total = injuryCoverage.reduce((s, x) => s + x.n, 0);
-    if (top.n / total > 0.9) {
-      injuryGradientWarning = `${top.category} 佔 ${((top.n / total) * 100).toFixed(0)}%，傷勢梯度不足，XGBoost 偏置風險高`;
-    }
-  }
-
-  return {
-    anchorFile: "taipei-mental-distress.json",
-    anchorN: n,
-    anchorMedian: n > 0 ? median(amounts) : 0,
-    anchorP10: n > 0 ? at(0.1) : 0,
-    anchorP90: n > 0 ? at(0.9) : 0,
-    confidenceLevel,
-    confidenceTip,
-    courtMedians,
-    injuryCoverage,
-    injuryGradientWarning,
-  };
-}
-
-const CONFIDENCE_META: Record<EnsembleHealth["confidenceLevel"], { label: string; color: string }> = {
+const _CONFIDENCE_META_LEGACY = {
   high: { label: "🟢 high", color: "#10b981" },
   medium: { label: "🟡 medium", color: "#f59e0b" },
   low: { label: "🔴 low", color: "#ef4444" },
   none: { label: "⚪ none", color: "#9ca3af" },
-};
+} as const;
 
 function renderEnsembleSection(h: EnsembleHealth): string {
-  const meta = CONFIDENCE_META[h.confidenceLevel];
+  // 報表層用 emoji 版（與 buildHtml 風格一致）；hero 共用層是 emoji-free
+  const meta = _CONFIDENCE_META_LEGACY[h.confidenceLevel];
   const bar = (
     label: string,
     n: number,
