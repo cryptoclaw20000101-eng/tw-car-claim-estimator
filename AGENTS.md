@@ -7,7 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # tw-car-claim-estimator — 專案層級規則
 
 > **適用對象**: 在本專案執行任務的所有 AI agent (Claude / Codex / Hermes / 其他)
-> **生效版本**: v0.7.2 (2026-06-28)
+> **生效版本**: v0.7.3 (2026-06-28)
 > **同步於**: `package.json` version + git tag
 > **優先序**: `AGENTS.md` > commit message > 自由發揮。若有衝突以本檔為準。
 
@@ -76,7 +76,7 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - **改任何 lib/insurance 必跑**:
   ```bash
   pnpm tsc --noEmit                    # 0 錯
-  pnpm test                            # 47 檔 / 539 測試全綠（v0.7.2 期待值）
+  pnpm test                            # 50 檔 / 571 測試全綠（v0.7.3 期待值）
   pnpm build                           # 6 routes 靜態 build 全綠
   ```
 - **新增規則必先寫測試** (TDD: RED → GREEN → REFACTOR) — 沒測試的改動 revert
@@ -185,10 +185,16 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 
 **關鍵差異**：KNN 對 year 差 5 年的懲罰 (0.19) ≈ 等級差 3 (0.20)，符合實務「近年案例參考價值高」直覺。
 
-### v0.6.2+ 規劃
+### v0.7.3+ 已完成（debug mode 落地）
+- ✅ **5 維距離拆解**：`computeDimensionDistances(a, b)` 回傳 `{city, disabilityLevel, year, injurySeverity, hasDisabilityRecord}`（總和 === 加總距離）
+- ✅ **`findRelatedPracticeCases(..., withKnnDebug=true)`**：conditional return type，傳 true 回 `PracticeCaseWithKnn[]`，預設 false 向後相容（既有 47 個測試 0 修改）
+- ✅ **KnnDebugPanel 元件**：`components/KnnDebugPanel.tsx` 5 維長條（Progress）+ 距離標籤 + 解釋 Tooltip + 相似度 5 級（極相似/相似/普通/偏遠/極遠）
+- ✅ **結果頁 2 處串接**：`PainEnsembleCard` KNN 票下方 + 理賠實務案例 Collapse 每件加「KNN 距離 X.XX」標籤
+- ✅ **+3 測試檔 32 it**：`precedent-knn-debug.test.ts` (15) + `precedents-knn-debug.test.ts` (7) + `KnnDebugPanel.test.tsx` (10)
+
+### v0.7.3+ 規劃中
 - injury_severity 從 practiceCase 萃取（目前都是 null，未來律師補資料）
 - 動態權重：根據 query 自動調整（例如 query 是失能案件 → 等級權重 ×2）
-- 報表呈現「為什麼這個案例被推薦」（debug mode）
 
 ## §10 精神慰撫金 Ensemble 三票共識（v0.6.2+）
 
@@ -443,7 +449,14 @@ $ ls .next/server/app/api/      # 存在（build artifact，但 deploy 不會用
 
 ### 後續 v0.7.x 候選
 
-1. **真的接 Vercel Functions + live LLM**（需 API key + 商業模式評估）
-2. **scrape cron 自動 trigger `pnpm report:rebuild-hero`**（file watcher 或 shell 串接）
-3. **傷勢梯度補完** — 律師手動建 89 件 0 元資料
+1. **KNN 動態權重**（§9 規劃中）— query 是失能案件 → 等級權重 ×2
+2. **真的接 Vercel Functions + live LLM**（需 API key + 商業模式評估）
+3. **scrape cron 自動 trigger `pnpm report:rebuild-hero`**（file watcher 或 shell 串接）
+4. **傷勢梯度補完** — 律師手動建 89 件 0 元資料
+
+### 已完成（v0.7.0-v0.7.3）
+- v0.7.0 Hero Ensemble 健康度自動化更新
+- v0.7.1 LLM Advisor 部署場景矩陣 + export mode guard
+- v0.7.2 清除 Statistic valueStyle deprecation warning（9 處 → 0 處）
+- v0.7.3 KNN 推薦理由面板（5 維距離拆解 + debug mode）
 
