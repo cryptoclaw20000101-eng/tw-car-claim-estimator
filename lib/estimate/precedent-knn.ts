@@ -108,6 +108,76 @@ export function computePrecedentDistance(a: PrecedentFeatures, b: PrecedentFeatu
 }
 
 /**
+ * KNN 5 維距離拆解（v0.7.3+ debug panel 用）
+ *
+ * 為什麼要拆？
+ *   - 既有 computePrecedentDistance 只回加總距離，看不出「為什麼這個案例被推薦」
+ *   - debug 模式要讓 UI 顯示每維貢獻（哪個維度最相似/最不同）
+ *   - 純函式 → 易測試；總和必須等於 computePrecedentDistance(a, b)
+ *
+ * 不變量（測試守護）：
+ *   - sum(breakdown) === computePrecedentDistance(a, b)
+ *   - 每維值 ∈ [0, 1]
+ *   - city null vs null → 0
+ *   - city null vs value → 0.5
+ */
+export interface KnnDimensionBreakdown {
+  /** 縣市維度距離（0=同縣市, 1=不同縣市, 0.5=一邊 null） */
+  city: number
+  /** 失能等級維度距離（|差|/15） */
+  disabilityLevel: number
+  /** 年份維度距離（|年差|/26） */
+  year: number
+  /** 傷勢嚴重度維度距離（ordinal 差/4） */
+  injurySeverity: number
+  /** 失能紀錄二元維度距離（0=一致, 1=不一致） */
+  hasDisabilityRecord: number
+}
+
+export function computeDimensionDistances(a: PrecedentFeatures, b: PrecedentFeatures): KnnDimensionBreakdown {
+  // 1. city 維度（重用 computePrecedentDistance 的邏輯）
+  let city = 0
+  if (a.city !== null && b.city !== null) {
+    city = a.city === b.city ? 0 : 1
+  } else if (
+    (a.city !== null && b.city === null) ||
+    (a.city === null && b.city !== null)
+  ) {
+    city = 0.5
+  }
+
+  // 2. disability_level 維度
+  let disabilityLevel = 0
+  if (a.disabilityLevel !== null && b.disabilityLevel !== null) {
+    disabilityLevel = Math.abs(a.disabilityLevel - b.disabilityLevel) / 15
+  } else if (
+    (a.disabilityLevel !== null && b.disabilityLevel === null) ||
+    (a.disabilityLevel === null && b.disabilityLevel !== null)
+  ) {
+    disabilityLevel = 0.5
+  }
+
+  // 3. year 維度
+  const year = Math.abs(a.year - b.year) / 26
+
+  // 4. injury_severity 維度
+  let injurySeverity = 0
+  if (a.injurySeverity !== null && b.injurySeverity !== null) {
+    injurySeverity = Math.abs(SEVERITY_VALUE[a.injurySeverity] - SEVERITY_VALUE[b.injurySeverity]) / SEVERITY_MAX
+  } else if (
+    (a.injurySeverity !== null && b.injurySeverity === null) ||
+    (a.injurySeverity === null && b.injurySeverity !== null)
+  ) {
+    injurySeverity = 0.5
+  }
+
+  // 5. has_disability_record 維度
+  const hasDisabilityRecord = a.hasDisabilityRecord === b.hasDisabilityRecord ? 0 : 1
+
+  return { city, disabilityLevel, year, injurySeverity, hasDisabilityRecord }
+}
+
+/**
  * 從原始 court + disabilityLevel + year 萃取特徵向量
  *
  * @param court 法院名稱（含「和解」「新北地方法院（和解）」等格式）

@@ -18,7 +18,7 @@
 
 import type { CourtCaseReference } from "@/lib/data-sources/types";
 import { courtToCity } from "@/lib/insurance/region-court-map";
-import { precedentDistance } from "./precedent-knn";
+import { precedentDistance, computeDimensionDistances, type KnnDimensionBreakdown, type PrecedentFeatures } from "./precedent-knn";
 
 interface ScrapedPrecedent {
   id: string;
@@ -258,6 +258,19 @@ export function getGeneralPrecedentCount(): number {
 }
 
 /**
+ * v0.7.3+: 擴充 PracticeCase 加 KNN debug 欄位（向後相容 — 都是 optional）
+ * 既有呼叫端不傳 debug 也照常運作
+ */
+export interface PracticeCaseWithKnn extends PracticeCase {
+  /** KNN 加總距離（越小越相似） */
+  knnDistance?: number
+  /** 5 維各項距離拆解（給 debug panel 用） */
+  knnBreakdown?: KnnDimensionBreakdown
+  /** query 端用的特徵向量（給 debug panel 對比用） */
+  knnQuery?: PrecedentFeatures
+}
+
+/**
  * 找「相關理賠實務案例」（理賠案例集）
  * category='practice_case'，給「結果頁」用。
  *
@@ -296,21 +309,39 @@ export interface PracticeCase {
   scrapedAt: string
 }
 
-export function findRelatedPracticeCases(
+/**
+ * v0.7.3+ 新增 debug 參數：傳 true 就附 KNN 距離拆解
+ * - 預設 false：回 PracticeCase[]（向後相容既有測試 + ensemble 整合層）
+ * - 傳 true：回 PracticeCaseWithKnn[]（給 UI debug panel）
+ */
+export function findRelatedPracticeCases<T extends boolean = false>(
   courtName: string,
   possibleLevel: number | null,
   limit = 3,
-): PracticeCase[] {
-  const all = loadAllPrecedents() as unknown as PracticeCase[]
-  if (all.length === 0) return []
+  withKnnDebug?: T,
+): T extends true ? PracticeCaseWithKnn[] : PracticeCase[] {
+  const all = loadAllPrecedents() as unknown as PracticeCaseWithKnn[]
+  if (all.length === 0) return [] as unknown as T extends true ? PracticeCaseWithKnn[] : PracticeCase[]
   const practiceCases = all.filter((p) => p.category === 'practice_case')
-  if (practiceCases.length === 0) return []
+  if (practiceCases.length === 0) return [] as unknown as T extends true ? PracticeCaseWithKnn[] : PracticeCase[]
 
   // v0.6.1+ — 改用 KNN 距離取代硬編配權
   // 每維正規化到 [0, 1]，加總即距離，越小越相似
   // 保留 scrapedAt 當同分決勝（避免完全打散既有測試的預期）
   // 詳見 lib/estimate/precedent-knn.ts
-  const score = (p: PracticeCase): { distance: number; scrapedAt: string } => {
+  const queryYear = new Date().getFullYear()
+  const queryCity = courtToCity(courtName)
+  const queryHasDisability = possibleLevel !== null
+
+  const queryFeatures: PrecedentFeatures = {
+    city: queryCity,
+    disabilityLevel: possibleLevel,
+    year: queryYear,
+    injurySeverity: null,
+    hasDisabilityRecord: queryHasDisability,
+  }
+
+  const score = (p: PracticeCaseWithKnn): { distance: number; scrapedAt: string; breakdown: KnnDimensionBreakdown } => {
     // 從案例 disabilityLevel 萃取（取第一筆有效值）
     let caseDisabilityLevel: number | null = null
     for (const d of p.disabilities ?? []) {
@@ -322,19 +353,29 @@ export function findRelatedPracticeCases(
     }
     const caseHasDisability = (p.disabilities ?? []).length > 0
 
-    const distance = precedentDistance(
-      courtName,
-      possibleLevel,
-      new Date().getFullYear(),
-      possibleLevel !== null,  // query 有失能等級 → hasDisabilityRecord = true
-      p.court,
-      caseDisabilityLevel,
-      p.year,
-      caseHasDisability,
-      courtToCity,
-    )
+    const caseFeatures: PrecedentFeatures = {
+      city: courtToCity(p.court),
+      disabilityLevel: caseDisabilityLevel,
+      year: p.year,
+      injurySeverity: null,
+      hasDisabilityRecord: caseHasDisability,
+    }
 
-    return { distance, scrapedAt: p.scrapedAt }
+    return {
+      distance: precedentDistance(
+        courtName,
+        possibleLevel,
+        queryYear,
+        queryHasDisability,
+        p.court,
+        caseDisabilityLevel,
+        p.year,
+        caseHasDisability,
+        courtToCity,
+      ),
+      scrapedAt: p.scrapedAt,
+      breakdown: computeDimensionDistances(queryFeatures, caseFeatures),
+    }
   }
 
   const scored = practiceCases
@@ -349,5 +390,13 @@ export function findRelatedPracticeCases(
   // 取前 K 筆（不篩選 0 距離 — KNN 總會有距離，無需 fallback）
   const top = scored.slice(0, limit)
 
-  return top.map((x) => x.p)
+  return top.map((x) => {
+    if (!withKnnDebug) return x.p as PracticeCase
+    return {
+      ...x.p,
+      knnDistance: x.distance,
+      knnBreakdown: x.breakdown,
+      knnQuery: queryFeatures,
+    }
+  }) as T extends true ? PracticeCaseWithKnn[] : PracticeCase[]
 }

@@ -19,6 +19,7 @@ import {
 } from 'antd'
 import { InfoAlert } from '@/components/InfoAlert'
 import { PainEnsembleCard } from '@/components/PainEnsembleCard'
+import { KnnDebugPanel } from '@/components/KnnDebugPanel'
 import {
   ArrowLeftOutlined,
   FileTextOutlined,
@@ -343,11 +344,13 @@ function DisabilitySection({ result }: { result: EstimationResult }) {
 // ============== ②b 理賠實務案例（理賠案例集） ==============
 // 給結果頁顯示「同縣市/同年/同失能等級」的理賠實務案例
 // 來源：data/precedents/practice-cases.json（category='practice_case'）
+// v0.7.3+ KNN debug：傳 withKnnDebug=true 取得 5 維距離拆解
 function PracticeCasesSection({ result }: { result: EstimationResult }) {
   const refs = findRelatedPracticeCases(
     result.region.courtName,
     result.disability.possibleLevel,
     3,
+    true,  // v0.7.3+ KNN debug
   )
   if (refs.length === 0) return null
   return (
@@ -371,6 +374,11 @@ function PracticeCasesSection({ result }: { result: EstimationResult }) {
               <Space>
                 <Text strong>{r.caseNo}</Text>
                 <Tag color="blue">{r.court}</Tag>
+                {r.knnDistance !== undefined && (
+                  <Tag color="purple" className="!text-xs">
+                    KNN 距離 {r.knnDistance.toFixed(2)}
+                  </Tag>
+                )}
                 {sm?.totalInsurerPayout ? (
                   <Tag color="green">保險給付 {dollar(sm.totalInsurerPayout)}</Tag>
                 ) : null}
@@ -436,6 +444,8 @@ function PracticeCasesSection({ result }: { result: EstimationResult }) {
           }
         })}
       />
+      {/* v0.7.3+ KNN debug：每件被推薦案例的 5 維距離拆解 + 解釋 */}
+      <KnnDebugPanel cases={refs} title="🔍 KNN 推薦理由（debug）" />
     </Card>
   )
 }
@@ -499,11 +509,18 @@ function CivilSection({ result }: { result: EstimationResult }) {
       </Paragraph>
 
       {/* v0.6.7 精神慰撫金 Ensemble 三票共識 + LLM 顧問複核 */}
+      {/* v0.7.3+ KNN debug：多呼叫一次拿 withKnnDebug=true 給 PainEnsembleCard 顯示推薦理由 */}
       <PainEnsembleCard
         painEnsemble={result.painEnsemble}
         painAdvisor={result.painAdvisor}
         rulesRegionalMid={pas.regionalMid}
         dollar={dollar}
+        knnDebugCases={findRelatedPracticeCases(
+          result.region.courtName,
+          result.disability.possibleLevel,
+          3,
+          true,
+        )}
       />
 
       <Divider>工作損失（擴充版：短期/長期/退休分流）</Divider>

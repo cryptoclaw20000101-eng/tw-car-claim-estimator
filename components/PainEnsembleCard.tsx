@@ -21,6 +21,8 @@
 
 import { Statistic, Tag, Tooltip, Divider, Row, Col, Typography } from 'antd'
 import { InfoAlert } from './InfoAlert'
+import { KnnDebugPanel } from './KnnDebugPanel'
+import type { PracticeCaseWithKnn } from '@/lib/estimate/precedents'
 
 const { Text, Paragraph } = Typography
 
@@ -58,6 +60,12 @@ export interface PainEnsembleCardProps {
   rulesRegionalMid: number
   /** 顯示用的金額格式化函式 */
   dollar: (n: number) => string
+  /**
+   * v0.7.3+ KNN debug — 給 KNN 票下方顯示「為什麼推薦這幾件」
+   * 結果頁呼叫 findRelatedPracticeCases(..., true) 取得
+   * 不傳 = 不顯示（向後相容）
+   */
+  knnDebugCases?: PracticeCaseWithKnn[]
 }
 
 const CONSENSUS_META: Record<ConsensusLevel, { label: string; color: string; tip: string }> = {
@@ -94,6 +102,7 @@ export function PainEnsembleCard({
   painAdvisor,
   rulesRegionalMid,
   dollar,
+  knnDebugCases,
 }: PainEnsembleCardProps) {
   const meta = CONSENSUS_META[painEnsemble.consensus]
   const riskMeta = RISK_META[painAdvisor.riskLevel]
@@ -210,6 +219,11 @@ export function PainEnsembleCard({
           />
         </Col>
       </Row>
+
+      {/* v0.7.3+ KNN 推薦理由面板 — 顯示每個被推薦案例的 5 維距離拆解 */}
+      {knnDebugCases && knnDebugCases.length > 0 && (
+        <KnnDebugPanel cases={knnDebugCases} title="🔍 KNN 票 · 推薦理由（debug）" />
+      )}
 
       {/* LLM Advisor 風險面板 */}
       <Divider plain className="!mt-3 !mb-2 !text-xs">
