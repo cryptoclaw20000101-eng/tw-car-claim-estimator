@@ -5,6 +5,7 @@ import { Button, Typography, Space, Alert } from "antd"
 import { InfoAlert } from '@/components/InfoAlert'
 import { motion } from "framer-motion"
 import { EnsembleHealthHeroCard } from "@/components/EnsembleHealthHeroCard"
+import { InstallPWAButton, PWAHintCard } from "@/components/InstallPWAButton"
 import {
   CalculatorOutlined,
   SafetyCertificateOutlined,
@@ -67,10 +68,11 @@ export default function Home() {
                   開始估算（7 步表單）
                 </Button>
               </Link>
-              <Link href="#sections">
-                <Button size="large">看 5 大區塊</Button>
-              </Link>
+              {/* v0.8.0+：PWA 安裝按鈕 — Android 自動 prompt / iOS 顯示步驟 */}
+              <InstallPWAButton />
             </Space>
+            {/* v0.8.0+：提示卡 — 永遠顯示「可以裝成 app」 */}
+            <PWAHintCard />
             <Space size={20} className="!mt-10" wrap>
               <Stat label="6 直轄市法院" value="6" />
               <Divider />

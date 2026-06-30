@@ -7,7 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # tw-car-claim-estimator — 專案層級規則
 
 > **適用對象**: 在本專案執行任務的所有 AI agent (Claude / Codex / Hermes / 其他)
-> **生效版本**: v0.7.7 (2026-07-01)
+> **生效版本**: v0.8.0 (2026-07-01)
 > **同步於**: `package.json` version + git tag
 > **優先序**: `AGENTS.md` > commit message > 自由發揮。若有衝突以本檔為準。
 
@@ -76,7 +76,7 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - **改任何 lib/insurance 必跑**:
   ```bash
   pnpm tsc --noEmit                    # 0 錯
-  pnpm test                            # 52 檔 / 598 測試全綠（v0.7.7 期待值）
+  pnpm test                            # 53 檔 / 601 測試全綠（v0.8.0 期待值）
   pnpm build                           # 6 routes 靜態 build 全綠
   ```
 - **新增規則必先寫測試** (TDD: RED → GREEN → REFACTOR) — 沒測試的改動 revert
@@ -518,4 +518,56 @@ interface AdvisorConfig {
 - TTL 過期 → 視同 miss
 - privacy fallback → 不寫
 - `cacheKey({a, b}) === cacheKey({b, a})`（sort keys）
+
+## §15 PWA + 手機優化（v0.8.0+）
+
+> **檔案**: `components/InstallPWAButton.tsx` + `components/MobileNav.tsx` + `app/globals.css`
+> **測試**: `__tests__/components/InstallPWAButton.test.tsx` (3 it)
+
+### 為什麼 v0.8.0 加快捷？
+- v0.7.18 已配 PWA manifest / sw.js / icons，但用戶不知「可裝」— 90% 不知道 Safari/Chrome 右上「加到主畫面」
+- 桌機 AntD 6 已是 RWD，但「漢堡選單」「iOS safe-area」「拇指友善 44px」沒做
+
+### 跨平台 PWA 安裝引導（`InstallPWAButton`）
+| 平台 | 行為 |
+|---|---|
+| Android Chrome | 攔截 `beforeinstallprompt` → 按鈕觸發原生 prompt |
+| iOS Safari | 沒 prompt 事件 → 按鈕打開 Modal 顯示「分享 → 加主畫面」2 步驟 |
+| 已安裝（standalone） | 自動隱藏（不重複打擾） |
+| 不支援（舊瀏覽器） | 自動隱藏 |
+
+### `PWAHintCard` 永遠顯示（手機桌機都看得到）
+- 已安裝 → 隱藏
+- 顯示「可以裝到手機當 app 用」+ iOS/Android 引導
+
+### 手機導覽列（`MobileNav`）
+- 桌機（≥ 768px）：水平並排 nav + 當前頁 primary 高亮
+- 手機（< 768px）：漢堡按鈕 → Drawer 從右滑入
+- `sticky top-0` + `backdrop-blur` + `env(safe-area-inset-top)` 處理 iPhone 劉海
+
+### 手機 CSS token（`globals.css`）
+- `--safe-top/bottom/left/right` = `env(safe-area-inset-*)`
+- `--touch-target-min` = 44px（Apple HIG 拇指友善）
+- `.safe-top / .safe-bottom / .safe-x / .touch-target` 工具類
+- `.mobile-sticky-cta` 表單底部固定按鈕區
+- `@media (max-width: 768px) html { font-size: 16px }` 防止 iOS Safari focus input 自動放大
+
+### layout.tsx 補強
+- `viewport.viewportFit: 'cover'` 啟用 safe-area
+- `viewport.maximumScale: 5` accessibility
+- `<MobileNav />` 在 `<App>` 內、`<ServiceWorkerRegistrar />` 前
+
+### 不變量（測試守護）
+- SSR 不 render InstallPWAButton（避免 hydration mismatch — `platform=loading` 時 null）
+- SSR 不 render PWAHintCard（同理）
+- 已安裝 → 兩個都隱藏
+- iOS → 顯示步驟 Modal，非原生按鈕
+
+### 已完成（v0.7.x 範圍：v0.7.0-v0.7.7）
+- v0.7.0 Hero Ensemble 健康度自動化更新
+- v0.7.1 LLM Advisor 部署場景矩陣 + export mode guard
+- v0.7.2 清除 Statistic valueStyle deprecation warning
+- v0.7.3 KNN 推薦理由面板
+- v0.7.6 Step4 KNN 即時預視
+- v0.7.7 LLM Advisor in-memory LRU+TTL 快取
 

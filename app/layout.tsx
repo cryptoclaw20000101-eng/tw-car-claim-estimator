@@ -3,6 +3,7 @@ import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { App, ConfigProvider } from "antd";
 import zhTW from "antd/locale/zh_TW";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
+import { MobileNav } from "@/components/MobileNav";
 import "./globals.css";
 
 /**
@@ -16,6 +17,9 @@ export const viewport: Viewport = {
   colorScheme: "light",
   width: "device-width",
   initialScale: 1,
+  // v0.8.0+：手機優化
+  maximumScale: 5,              // 允許放大（accessibility）
+  viewportFit: "cover",        // iOS safe-area 必填
 };
 
 export const metadata: Metadata = {
@@ -71,7 +75,11 @@ export default function RootLayout({
           >
             {/* v0.5.1 bugfix: AntD 6 的 message.error / message.success 是 static function，
                 在 dynamic theme 下抓不到 context，會跳警告。要包 <App> 才吃到 ConfigProvider theme。 */}
-            <App>{children}</App>
+            <App>
+              {/* v0.8.0+：手機 / 桌機導覽列 */}
+              <MobileNav />
+              {children}
+            </App>
           </ConfigProvider>
         </AntdRegistry>
         <ServiceWorkerRegistrar />
