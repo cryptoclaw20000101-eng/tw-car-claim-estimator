@@ -24,6 +24,11 @@ import {
   MAX_PROMPT_TOKENS,
   type AdvisorConfig,
 } from './advisor-config'
+import {
+  getCachedAdvisor,
+  setCachedAdvisor,
+  type AdvisorCacheConfig,
+} from './advisor-cache'
 
 // --- 型別 ---------------------------------------------------------------
 
@@ -56,14 +61,16 @@ export interface AdvisorApiResult {
 /**
  * 呼叫 Claude API 取得 LLM 顧問建議
  *
- * 流程：
+ * 流程（v0.7.7+ 加快取層）：
+ *   0. **快取查詢**：mock mode 跳過；其他 mode 查 cacheKey(input)
  *   1. config.mode=mock → 直接 mockLLMAdvisor（不打 fetch）
  *   2. config.mode=live：
  *      a. buildAdvisorPrompt(input) → prompt
- *      b. validatePromptForPII(prompt) → fallback privacy（不送 API）
+ *      b. validatePromptForPII(prompt) → fallback privacy（不送 API、不寫快取）
  *      c. estimateTokenCount(prompt) → 超過 MAX → fallback token_limit
  *      d. fetch API → 失敗分類 fallback reason → retry 1 次
  *      e. 解析 LLM 回應 → parseAdvisorResponse → fallback parse_error
+ *   3. **快取寫入**：成功結果（live mode）寫入 cache
  *
  * @returns 永遠回傳 AdvisorApiResult（不會 throw）
  */
@@ -72,6 +79,15 @@ export async function callClaudeAdvisor(
   config?: AdvisorConfig
 ): Promise<AdvisorApiResult> {
   const cfg = config ?? loadAdvisorConfig()
+
+  // v0.7.7+：快取查詢（mock mode 跳過 — mock 是即時計算無成本）
+  const cacheConfig = cfg.cache
+  if (cfg.mode !== 'mock' && cacheConfig?.enabled !== false) {
+    const cached = getCachedAdvisor(input, cacheConfig)
+    if (cached) {
+      return cached
+    }
+  }
 
   // Mock 模式直接走 mockLLMAdvisor
   if (cfg.mode === 'mock') {
@@ -133,7 +149,7 @@ export async function callClaudeAdvisor(
           }
         }
         const advisor = parseAdvisorResponseSafe(textContent.text)
-        return {
+        const result: AdvisorApiResult = {
           mode: 'live',
           advisor,
           usage: {
@@ -141,6 +157,11 @@ export async function callClaudeAdvisor(
             outputTokens: data.usage.output_tokens,
           },
         }
+        // v0.7.7+：live 成功結果寫入快取
+        if (cacheConfig?.enabled !== false) {
+          setCachedAdvisor(input, result, cacheConfig)
+        }
+        return result
       }
 
       // 非 2xx — 分類錯誤

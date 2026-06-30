@@ -10,6 +10,8 @@
 // 與 Claude API 通訊改用原生 fetch（見 advisor-api.ts）
 // =====================================================================
 
+import type { AdvisorCacheConfig } from './advisor-cache'
+
 // --- 型別 ---------------------------------------------------------------
 
 export type AdvisorMode = 'live' | 'mock'
@@ -27,6 +29,8 @@ export interface AdvisorConfig {
   timeoutMs: number
   /** 失敗重試次數 */
   maxRetries: number
+  /** v0.7.7+：快取設定（不傳 = 預設啟用） */
+  cache?: AdvisorCacheConfig
 }
 
 export interface PIIDetection {

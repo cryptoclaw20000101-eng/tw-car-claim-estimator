@@ -8,6 +8,7 @@
 // =====================================================================
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { clearAdvisorCache } from '@/lib/insurance/advisor-cache'
 import { POST } from '@/app/api/advisor/route'
 import type { AdvisorInput } from '@/lib/insurance/pain-advisor'
 
@@ -21,6 +22,8 @@ beforeEach(() => {
   mockFetch.mockReset()
   vi.stubGlobal('fetch', mockFetch)
   delete process.env.ANTHROPIC_API_KEY
+  // v0.7.7+：清快取避免跨測試污染
+  clearAdvisorCache()
 })
 
 afterEach(() => {

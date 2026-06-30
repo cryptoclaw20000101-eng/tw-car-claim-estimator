@@ -9,6 +9,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { callClaudeAdvisor } from '@/lib/insurance/advisor-api'
+import { clearAdvisorCache } from '@/lib/insurance/advisor-cache'
 import type { AdvisorInput } from '@/lib/insurance/pain-advisor'
 import type { AdvisorConfig } from '@/lib/insurance/advisor-config'
 
@@ -38,6 +39,8 @@ const liveConfig: AdvisorConfig = {
   model: 'claude-sonnet-4-5',
   timeoutMs: 5000,
   maxRetries: 1,
+  // v0.7.7+：測試預設關閉快取，避免跨測試共享狀態污染
+  cache: { enabled: false },
 }
 
 const mockConfig: AdvisorConfig = {
@@ -57,6 +60,8 @@ const mockFetch = vi.fn()
 beforeEach(() => {
   mockFetch.mockReset()
   vi.stubGlobal('fetch', mockFetch)
+  // v0.7.7+：清快取避免跨測試污染
+  clearAdvisorCache()
 })
 
 afterEach(() => {
@@ -248,5 +253,48 @@ describe('callClaudeAdvisor API 請求格式', () => {
     expect(body.max_tokens).toBeGreaterThan(0)
     expect(body.messages).toBeInstanceOf(Array)
     expect(body.messages[0].role).toBe('user')
+  })
+})
+
+// =====================================================================
+// callClaudeAdvisor — v0.7.7+ 快取層
+// =====================================================================
+
+describe('callClaudeAdvisor v0.7.7+ 快取', () => {
+  const liveConfigCacheEnabled: AdvisorConfig = {
+    ...liveConfig,
+    cache: { enabled: true, ttlMs: 60_000 },
+  }
+
+  it('第一次 live → 打 fetch + 寫快取', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        content: [{ type: 'text', text: '{"riskLevel":"low","riskFactors":[],"recommendations":[],"consensusInterpretation":"ok","requiresHumanReview":false}' }],
+        usage: { input_tokens: 100, output_tokens: 30 },
+      }),
+    })
+
+    const result1 = await callClaudeAdvisor(mockInput, liveConfigCacheEnabled)
+    expect(result1.mode).toBe('live')
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('第二次同 input → 命中快取（不打 fetch）', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        content: [{ type: 'text', text: '{"riskLevel":"low","riskFactors":[],"recommendations":[],"consensusInterpretation":"ok","requiresHumanReview":false}' }],
+        usage: { input_tokens: 100, output_tokens: 30 },
+      }),
+    })
+
+    const result1 = await callClaudeAdvisor(mockInput, liveConfigCacheEnabled)
+    const result2 = await callClaudeAdvisor(mockInput, liveConfigCacheEnabled)
+    expect(result1.mode).toBe('live')
+    expect(result2.mode).toBe('live')
+    expect(mockFetch).toHaveBeenCalledTimes(1)  // 第二次命中快取，不打
   })
 })

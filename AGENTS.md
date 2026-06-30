@@ -7,7 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # tw-car-claim-estimator — 專案層級規則
 
 > **適用對象**: 在本專案執行任務的所有 AI agent (Claude / Codex / Hermes / 其他)
-> **生效版本**: v0.7.6 (2026-07-01)
+> **生效版本**: v0.7.7 (2026-07-01)
 > **同步於**: `package.json` version + git tag
 > **優先序**: `AGENTS.md` > commit message > 自由發揮。若有衝突以本檔為準。
 
@@ -76,7 +76,7 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - **改任何 lib/insurance 必跑**:
   ```bash
   pnpm tsc --noEmit                    # 0 錯
-  pnpm test                            # 51 檔 / 579 測試全綠（v0.7.6 期待值）
+  pnpm test                            # 52 檔 / 598 測試全綠（v0.7.7 期待值）
   pnpm build                           # 6 routes 靜態 build 全綠
   ```
 - **新增規則必先寫測試** (TDD: RED → GREEN → REFACTOR) — 沒測試的改動 revert
@@ -461,11 +461,61 @@ $ ls .next/server/app/api/      # 存在（build artifact，但 deploy 不會用
 1. **KNN 動態權重**（§9 規劃中）— query 是失能案件 → 等級權重 ×2
 2. **真的接 Vercel Functions + live LLM**（需 API key + 商業模式評估）
 3. **scrape cron 自動 trigger `pnpm report:rebuild-hero`**（file watcher 或 shell 串接）
-4. **傷勢梯度補完** — 律師手動建 89 件 0 元資料
+**沒改**：`next.config.ts`（保持 `output: export`）、`PainEnsembleCard` 邏輯、計算引擎、報表、scrape cron、scrape script。
 
 ### 已完成（v0.7.0-v0.7.3）
 - v0.7.0 Hero Ensemble 健康度自動化更新
 - v0.7.1 LLM Advisor 部署場景矩陣 + export mode guard
 - v0.7.2 清除 Statistic valueStyle deprecation warning（9 處 → 0 處）
 - v0.7.3 KNN 推薦理由面板（5 維距離拆解 + debug mode）
+
+## §14 LLM Advisor in-memory 快取（v0.7.7+）
+
+> **檔案**: `lib/insurance/advisor-cache.ts`
+> **測試**: `__tests__/insurance/advisor-cache.test.ts` (17 it) + `advisor-api.test.ts` 補 2 it
+
+### 為什麼 v0.7.7 加快取？
+- callClaudeAdvisor 每次都重打 Claude API（$0.015/次）
+- 實務：業務員重複查看同案件「理賠顧問建議」按鈕 → 重複計費
+- 預估省 60%+ Claude API 費（同 input 第二次起命中快取）
+
+### 設計
+- **0 套件**（AGENTS §2.2）— 原生 `Map` + 手刻 LRU 驅逐
+- **LRU + TTL 雙重驅逐**：容量上限（預設 100）+ 時間到期（預設 1 小時）
+- **Process-level singleton**：Next.js dev/prod 都共享同一 process
+- **統計**：hits/misses/evictions/expirations + hit rate
+
+### 5 個公開函式
+| 函式 | 用途 |
+|---|---|
+| `getCachedAdvisor(input, config?)` | 查快取（過期/disabled → null） |
+| `setCachedAdvisor(input, result, config?)` | 寫快取（隱私 fallback 不寫） |
+| `clearAdvisorCache()` | 清空（測試用） |
+| `getAdvisorCacheStats()` | 取得統計 |
+| `getAdvisorCacheHitRate()` | 命中率（0-1） |
+| `cacheKey(input)` | 純函式產生快取鍵（sort keys 確保順序無關） |
+
+### 不快取規則
+- `mode=fallback` + `fallbackReason=privacy` 不寫（避免重複 PII 掃描）
+- `cfg.mode=mock` 不查（mock 是即時計算無成本）
+- `cache.enabled=false` 不查不寫（測試 / 除錯）
+
+### AdvisorConfig 整合
+```ts
+interface AdvisorConfig {
+  // ...既有
+  cache?: AdvisorCacheConfig  // v0.7.7+ 新增
+}
+```
+
+### 測試整合
+- `advisor-api.test.ts` + `advisor-route.test.ts` 都在 `beforeEach` 呼叫 `clearAdvisorCache()` 避免跨測試共享 Map 污染
+- `liveConfig` fixture 加 `cache: { enabled: false }` 預設關閉（v0.7.7+ 新測試顯式啟用驗證命中）
+
+### 不變量（測試守護）
+- 同 input 第二次呼叫 → 命中快取（不打 fetch）
+- LRU 超過 maxEntries → 驅逐最舊
+- TTL 過期 → 視同 miss
+- privacy fallback → 不寫
+- `cacheKey({a, b}) === cacheKey({b, a})`（sort keys）
 
