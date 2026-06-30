@@ -23,6 +23,7 @@ import {
 } from 'antd'
 import { InfoAlert } from '@/components/InfoAlert'
 import { StepShell } from '@/components/StepShell'
+import { Step4KnnPreview } from '@/components/Step4KnnPreview'
 import {
   LeftOutlined,
   RightOutlined,
@@ -667,6 +668,9 @@ function Step3Person({ form }: { form: ReturnType<typeof Form.useForm<FormSchema
 // ============== Step 4：診斷書 ==============
 function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
   const jointName = Form.useWatch(['medical', 'jointName'], form) as JointName | null
+  // v0.7.6+：KNN 即時預視 — 監聽失能等級 + 事故地點
+  const disabilityLevelForKnn = Form.useWatch(['medical', 'disabilityLevel'], form) as number | undefined
+  const accidentLocationForKnn = Form.useWatch(['basics', 'accidentLocation'], form) as string | undefined
   // v0.5.3 bugfix: emergencyDate DatePicker 跟 birthDate 同症狀 — 收到空字串炸
   useEffect(() => {
     const cur = form.getFieldValue(['medical', 'emergencyDate'])
@@ -856,6 +860,11 @@ function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchem
           title={`已選關節：${JOINT_OPTIONS.find((o) => o.value === jointName)?.label ?? jointName}（正常活動度 ${ROM_NORMAL[jointName]} 度）`}
         />
       )}
+      {/* v0.7.6+：KNN 即時預視 — 填失能等級時邊看相似判例 */}
+      <Step4KnnPreview
+        disabilityLevel={disabilityLevelForKnn}
+        accidentLocation={accidentLocationForKnn}
+      />
     </Card>
   )
 }

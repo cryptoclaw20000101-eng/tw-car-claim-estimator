@@ -7,7 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # tw-car-claim-estimator — 專案層級規則
 
 > **適用對象**: 在本專案執行任務的所有 AI agent (Claude / Codex / Hermes / 其他)
-> **生效版本**: v0.7.3 (2026-06-28)
+> **生效版本**: v0.7.6 (2026-07-01)
 > **同步於**: `package.json` version + git tag
 > **優先序**: `AGENTS.md` > commit message > 自由發揮。若有衝突以本檔為準。
 
@@ -76,7 +76,7 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - **改任何 lib/insurance 必跑**:
   ```bash
   pnpm tsc --noEmit                    # 0 錯
-  pnpm test                            # 50 檔 / 571 測試全綠（v0.7.3 期待值）
+  pnpm test                            # 51 檔 / 579 測試全綠（v0.7.6 期待值）
   pnpm build                           # 6 routes 靜態 build 全綠
   ```
 - **新增規則必先寫測試** (TDD: RED → GREEN → REFACTOR) — 沒測試的改動 revert
@@ -192,9 +192,18 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - ✅ **結果頁 2 處串接**：`PainEnsembleCard` KNN 票下方 + 理賠實務案例 Collapse 每件加「KNN 距離 X.XX」標籤
 - ✅ **+3 測試檔 32 it**：`precedent-knn-debug.test.ts` (15) + `precedents-knn-debug.test.ts` (7) + `KnnDebugPanel.test.tsx` (10)
 
-### v0.7.3+ 規劃中
+### v0.7.6+ 已完成（表單即時預視）
+- ✅ **Step4KnnPreview 元件**：`components/Step4KnnPreview.tsx` 在 Step4「失能等級」輸入時即時顯示 top 3 相似判例
+- ✅ **useDebouncedValue hook**（300ms）：避免快速切換時重複計算
+- ✅ **複用 KnnDebugPanel**：展開 details 可看 5 維拆解
+- ✅ **0 網路成本**：純 client-side，200+ precedents 已在 bundle（v0.5.x iOS Safari 修護時驗證）
+- ✅ **+1 測試檔 8 it**：`__tests__/components/Step4KnnPreview.test.tsx` (8 SSR HTML 守護)
+- ✅ **整體**：51 檔 579 測試全綠 / build 6 routes 靜態 / tsc 0 錯
+
+### v0.7.6+ 規劃中
 - injury_severity 從 practiceCase 萃取（目前都是 null，未來律師補資料）
 - 動態權重：根據 query 自動調整（例如 query 是失能案件 → 等級權重 ×2）
+- Step4KnnPreview 跟 PainEnsembleCard 連動（KNN 票結果雙向同步）
 
 ## §10 精神慰撫金 Ensemble 三票共識（v0.6.2+）
 
