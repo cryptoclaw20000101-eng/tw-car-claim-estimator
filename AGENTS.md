@@ -7,7 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # tw-car-claim-estimator — 專案層級規則
 
 > **適用對象**: 在本專案執行任務的所有 AI agent (Claude / Codex / Hermes / 其他)
-> **生效版本**: v0.8.0 (2026-07-01)
+> **生效版本**: v0.8.1 (2026-07-01)
 > **同步於**: `package.json` version + git tag
 > **優先序**: `AGENTS.md` > commit message > 自由發揮。若有衝突以本檔為準。
 
@@ -76,7 +76,7 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - **改任何 lib/insurance 必跑**:
   ```bash
   pnpm tsc --noEmit                    # 0 錯
-  pnpm test                            # 53 檔 / 601 測試全綠（v0.8.0 期待值）
+  pnpm test                            # 54 檔 / 604 測試全綠（v0.8.1 期待值）
   pnpm build                           # 6 routes 靜態 build 全綠
   ```
 - **新增規則必先寫測試** (TDD: RED → GREEN → REFACTOR) — 沒測試的改動 revert
@@ -570,4 +570,40 @@ interface AdvisorConfig {
 - v0.7.3 KNN 推薦理由面板
 - v0.7.6 Step4 KNN 即時預視
 - v0.7.7 LLM Advisor in-memory LRU+TTL 快取
+
+## §16 手機 sticky CTA + 表單 input 優化（v0.8.1+）
+
+> **檔案**: `components/MobileStickyCTA.tsx`
+> **測試**: `__tests__/components/MobileStickyCTA.test.tsx` (3 it)
+
+### 為什麼 v0.8.1 加快捷？
+- v0.8.0 加了 safe-area / mobile 字體，但「下一步 / 上一步」按鈕在長表單最下方要捲很久
+- 表單填到一半看不到「送出」按鈕 → UX 卡住
+- 結果頁 7 個 Tabs 區塊很長，要「重新估算 / 回首頁」也要滑回去
+
+### `MobileStickyCTA` 元件
+- 桌機（≥ 768px）：回傳普通 flex 容器（`md:static`），不固定
+- 手機（< 768px）：套 `.mobile-sticky-cta` class
+  - `position: sticky; bottom: 0`
+  - `padding-bottom: max(12px, var(--safe-bottom))` 處理 iPhone home indicator
+  - 軟陰影 + 白底 + 邊框
+- `<Button block>` 寬度自動填滿左/右半邊
+
+### 套用範圍
+| 頁 | left | right |
+|---|---|---|
+| `/claims/new` Step 1-6 | 「上一步」disabled=current===0 | 「下一步」type=primary |
+| `/claims/new` Step 7 | 「上一步」 | 「送出並估算」type=primary |
+| `/claims/result` | 「重新估算」→ `/claims/new` | 「回首頁」→ `/` type=primary |
+
+### 表單 input 優化（v0.8.1）
+- `accidentLocation` → `autoComplete="street-address"` + `enterKeyHint="next"`
+- `occupation` → `autoComplete="organization-title"` + `enterKeyHint="next"`
+- AntD `InputNumber` 已內建 `inputMode="decimal"`（不用改）
+- `enterKeyHint` iOS Safari 鍵盤右下角按鈕顯示「下一個」
+
+### 不變量（測試守護）
+- 空 children 仍 render 容器
+- 左右按鈕都 render
+- `mobile-sticky-cta` + `md:static` class 都在 SSR HTML 中
 

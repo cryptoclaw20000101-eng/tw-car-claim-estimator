@@ -20,6 +20,7 @@ import {
 import { InfoAlert } from '@/components/InfoAlert'
 import { PainEnsembleCard } from '@/components/PainEnsembleCard'
 import { KnnDebugPanel } from '@/components/KnnDebugPanel'
+import { MobileStickyCTA } from '@/components/MobileStickyCTA'
 import {
   ArrowLeftOutlined,
   FileTextOutlined,
@@ -247,6 +248,20 @@ export default function ResultForm() {
           ]}
         />
         </div>
+
+        {/* v0.8.1+：結果頁底部手機 sticky CTA（避免長結果頁要滑回頂部操作） */}
+        <MobileStickyCTA
+          left={
+            <Link href="/claims/new">
+              <Button block icon={<ArrowLeftOutlined />}>重新估算</Button>
+            </Link>
+          }
+          right={
+            <Link href="/">
+              <Button block type="primary">回首頁</Button>
+            </Link>
+          }
+        />
       </div>
     </main>
   )

@@ -24,6 +24,7 @@ import {
 import { InfoAlert } from '@/components/InfoAlert'
 import { StepShell } from '@/components/StepShell'
 import { Step4KnnPreview } from '@/components/Step4KnnPreview'
+import { MobileStickyCTA } from '@/components/MobileStickyCTA'
 import {
   LeftOutlined,
   RightOutlined,
@@ -406,20 +407,25 @@ export default function NewClaimForm() {
           {current === 6 && <Step7Region form={form} />}
         </Form>
 
-        <div className="!mt-6 flex justify-between">
-          <Button disabled={current === 0} onClick={prev} icon={<LeftOutlined />}>
-            上一步
-          </Button>
-          {current < STEPS.length - 1 ? (
-            <Button type="primary" onClick={next} icon={<RightOutlined />} iconPlacement="end">
-              下一步
+        {/* v0.8.1+：手機 sticky CTA（桌機保留原本 flex 排版） */}
+        <MobileStickyCTA
+          left={
+            <Button block disabled={current === 0} onClick={prev} icon={<LeftOutlined />}>
+              上一步
             </Button>
-          ) : (
-            <Button type="primary" onClick={submit} icon={<CheckCircleOutlined />}>
-              送出並估算
-            </Button>
-          )}
-        </div>
+          }
+          right={
+            current < STEPS.length - 1 ? (
+              <Button block type="primary" onClick={next} icon={<RightOutlined />} iconPlacement="end">
+                下一步
+              </Button>
+            ) : (
+              <Button block type="primary" onClick={submit} icon={<CheckCircleOutlined />}>
+                送出並估算
+              </Button>
+            )
+          }
+        />
       </div>
     </main>
   )
@@ -464,7 +470,12 @@ function Step1Basics({ form, onCityChange }: { form: ReturnType<typeof Form.useF
         </Col>
         <Col xs={24} md={12}>
           <Form.Item label="事故地點 *" name={['basics', 'accidentLocation']} rules={[{ required: true }]}>
-            <Input placeholder="例：臺中市西區美村路與五權路口" />
+            <Input
+              placeholder="例：臺中市西區美村路與五權路口"
+              autoComplete="street-address"
+              inputMode="text"
+              enterKeyHint="next"
+            />
           </Form.Item>
         </Col>
       </Row>
@@ -611,7 +622,7 @@ function Step3Person({ form }: { form: ReturnType<typeof Form.useForm<FormSchema
         </Col>
         <Col xs={24} md={8}>
           <Form.Item label="職業" name={['person', 'occupation']}>
-            <Input placeholder="例：工程師" />
+            <Input placeholder="例：工程師" autoComplete="organization-title" enterKeyHint="next" />
           </Form.Item>
         </Col>
       </Row>
