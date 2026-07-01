@@ -4,7 +4,7 @@
 // =====================================================================
 
 import type { ClaimInput, EstimationResult } from './types'
-import { computeCompulsoryMedical } from './compulsory'
+import { computeCompulsoryMedical, computeCompulsoryMedicalByDate } from './compulsory'
 import { computeDisability } from './disability'
 import {
   computePainAndSuffering,
@@ -31,8 +31,8 @@ import { mockLLMAdvisor, type AdvisorInput } from './pain-advisor'
 export function estimateClaim(input: ClaimInput): EstimationResult {
   const { basics, fault, person, medical, medicalReceipts, property } = input
 
-  // 1) 強制險醫療
-  const compulsory = computeCompulsoryMedical(medicalReceipts)
+  // 1) 強制險醫療（v0.8.2+：依事故日切換新/舊法）
+  const compulsory = computeCompulsoryMedicalByDate(medicalReceipts, basics.accidentDate)
 
   // 2) 失能初篩
   const disability = computeDisability(medical, basics.accidentDate)

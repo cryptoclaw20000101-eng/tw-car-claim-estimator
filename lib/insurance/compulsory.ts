@@ -6,6 +6,7 @@
 // =====================================================================
 
 import type { CompulsoryMedicalInputs, CompulsoryItemResult } from './types'
+import { isNewLaw } from '../data-sources/regulation-cutoff'
 
 // --- 法定上限常數（依強制汽車責任保險給付標準） -----------------------
 
@@ -230,4 +231,122 @@ function mkItem(
 
 function formatTwd(n: number): string {
   return n.toLocaleString('zh-TW', { maximumFractionDigits: 0 })
+}
+
+// =====================================================================
+// v0.8.2 法規版本切換（新法 / 舊法）
+// 強制汽車責任保險給付標準 §2 第 3 項第 6 款 修法日期：2026-07-01
+//
+// 新法（事故日 >= 2026-07-01）：特殊材料費 + 輔具費 各自 pro-rata 套 2 萬上限（拆 subItems）
+// 舊法（事故日 < 2026-07-01）：醫材費 + 特殊材料費 + 輔具費 合併 1 個 2 萬上限（不拆）
+// =====================================================================
+
+/**
+ * 舊法版 calcMedicalMaterial（事故日 < 2026-07-01）
+ * 法源：強制汽車責任保險給付標準 §2.3.6 修法前
+ * 「醫療材料及輔具費 合計 2 萬上限」（不分特殊材料 / 一般醫材 / 輔具）
+ *
+ * @param input 含 specialMaterialFee / medicalMaterialFee / assistiveDeviceFee 及其自付額
+ * @returns CompulsoryItemResult（含 subItems 反映舊法合併邏輯）
+ */
+export function calcMedicalMaterialOldLaw(
+  input: CompulsoryMedicalInputs
+): CompulsoryItemResult {
+  const special = input.specialMaterialFee ?? 0
+  const generalMaterial = input.medicalMaterialFee ?? 0
+  const assistive = input.assistiveDeviceFee ?? 0
+  const subtotal = special + generalMaterial + assistive
+  if (subtotal === 0) {
+    return {
+      key: 'medicalMaterial',
+      label: '醫療材料／輔具費（舊法合併）',
+      applied: 0,
+      approved: 0,
+      legalCap: COMPULSORY_LIMITS.MEDICAL_MATERIAL_ASSISTIVE,
+      reductionReason: null,
+      supplementHint: null,
+      subItems: [
+        { key: 'specialMaterial', label: '特殊材料費', applied: special, approved: 0, note: '骨材、鋼板、人工關節等' },
+        { key: 'generalMaterial', label: '一般醫材費', applied: generalMaterial, approved: 0, note: '紗布、縫線、注射耗材（舊法不另設上限）' },
+        { key: 'assistiveDevice', label: '輔具費', applied: assistive, approved: 0, note: '拐杖、輪椅、支架等' },
+      ],
+    }
+  }
+  const cap = COMPULSORY_LIMITS.MEDICAL_MATERIAL_ASSISTIVE
+  const approvedTotal = Math.min(subtotal, cap)
+  // 舊法：合併按申請比例分攤（pro-rata）
+  const ratio = approvedTotal / subtotal
+  let approvedSpecial = Math.round(special * ratio)
+  let approvedGeneral = Math.round(generalMaterial * ratio)
+  let approvedAssistive = Math.round(assistive * ratio)
+  const diff = approvedTotal - (approvedSpecial + approvedGeneral + approvedAssistive)
+  if (diff !== 0) {
+    // rounding diff 補回最大項
+    const items = [
+      { v: special, ref: 's' as const },
+      { v: generalMaterial, ref: 'g' as const },
+      { v: assistive, ref: 'a' as const },
+    ].sort((x, y) => y.v - x.v)
+    if (items[0]!.ref === 's') approvedSpecial += diff
+    else if (items[0]!.ref === 'g') approvedGeneral += diff
+    else approvedAssistive += diff
+  }
+  const reduction = approvedTotal < subtotal
+    ? `醫療材料＋特殊材料＋輔具合計 ${subtotal.toLocaleString()} 元超出 2 萬上限（舊法合併計算）`
+    : null
+  const hint = subtotal > 15_000
+    ? '舊法合併上限 2 萬，建議檢附醫師必要性說明爭取全額'
+    : null
+  return {
+    key: 'medicalMaterial',
+    label: '醫療材料／輔具費（舊法合併）',
+    applied: subtotal,
+    approved: approvedTotal,
+    legalCap: cap,
+    reductionReason: reduction,
+    supplementHint: hint,
+    subItems: [
+      { key: 'specialMaterial', label: '特殊材料費', applied: special, approved: approvedSpecial, note: '骨材、鋼板、人工關節等' },
+      { key: 'generalMaterial', label: '一般醫材費', applied: generalMaterial, approved: approvedGeneral, note: '紗布、縫線、注射耗材（舊法不另設上限）' },
+      { key: 'assistiveDevice', label: '輔具費', applied: assistive, approved: approvedAssistive, note: '拐杖、輪椅、支架等' },
+    ],
+  }
+}
+
+/**
+ * 強制險傷害醫療主計算（依事故日自動切換新/舊法）
+ *
+ * @param input 醫療輸入
+ * @param accidentDate 事故日（YYYY-MM-DD 或 dayjs 可轉格式）；null/undefined 視為新法（保守預設）
+ * @returns CompulsoryComputeResult
+ */
+export function computeCompulsoryMedicalByDate(
+  input: CompulsoryMedicalInputs,
+  accidentDate?: string | null
+): CompulsoryComputeResult {
+  if (!isNewLaw(accidentDate)) {
+    // 舊法：自組 items（除 calcMedicalMaterial 外其他項目不變）
+    const items: CompulsoryItemResult[] = [
+      calcEmergency(input),
+      calcAmbulance(input),
+      calcNhiCopayment(input),
+      calcRegistration(input),
+      calcDiagnosisCertificate(input),
+      calcNonNhi(input),
+      calcWardFee(input),
+      calcMealFee(input),
+      calcProsthesis(input),
+      calcDenture(input),
+      calcArtificialEye(input),
+      calcMedicalMaterialOldLaw(input),
+      calcTransportation(input),
+      calcNursing(input),
+      calcOther(input),
+    ]
+    const subtotal = items.reduce((sum, it) => sum + it.approved, 0)
+    const approved = Math.min(subtotal, COMPULSORY_LIMITS.TOTAL_MEDICAL_CAP)
+    return { items, subtotal, approved }
+  }
+  // 新法（>= 2026-07-01 或未填）
+  return computeCompulsoryMedical(input)
 }

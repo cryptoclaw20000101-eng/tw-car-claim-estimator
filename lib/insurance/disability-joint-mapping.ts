@@ -21,6 +21,7 @@
 // =====================================================================
 
 import type { DisabilityLevel } from './types'
+import { isNewLaw } from '../data-sources/regulation-cutoff'
 
 // --- ROM 比例 → 障害程度三分類（法源 §3 / §6）---
 
@@ -216,4 +217,70 @@ export function lookupLowerLimbLevel(
 ): { articleId: string; level: DisabilityLevel } | null {
   const key = `${left.severity}|${left.count}|${right.severity}|${right.count}`
   return LOWER_LIMB_TABLE[key] ?? null
+}
+
+// =====================================================================
+// v0.8.2 法規版本切換（新法 / 舊法）
+// 強制汽車責任保險失能給付標準表（民國 115-05-29 修正，115-07-01 施行）
+//
+// 新法：先用 classifyJointDisorder 判定三分類 → 再查 UPPER/LOWER 對照表
+// 舊法：百分比段 5/15/30/50/70% 對應單一失能等級（v0.6.6 commit 之前邏輯）
+// =====================================================================
+
+/**
+ * 舊法版（事故日 < 2026-07-01）：ROM 喪失百分比 → 失能等級
+ * 法源：強制汽車責任保險失能給付標準表 修法前（民國 105 年以前常用對照）
+ *
+ * 5/15/30/50/70% 五層閾值：
+ *   ≥ 70% → 第 2 級（嚴重機能喪失）
+ *   ≥ 50% → 第 7 級（中度機能障害）
+ *   ≥ 30% → 第 9 級（輕度機能障害）
+ *   ≥ 15% → 第 11 級（輕微機能障害）
+ *   ≥ 5%  → 第 13 級（極輕微機能障害）
+ *   < 5%  → 第 15 級（無明顯障害）
+ */
+export function levelFromRomLossOldLaw(percent: number): DisabilityLevel {
+  if (percent < 0) return 15
+  if (percent >= 70) return 2
+  if (percent >= 50) return 7
+  if (percent >= 30) return 9
+  if (percent >= 15) return 11
+  if (percent >= 5) return 13
+  return 15
+}
+
+/**
+ * 依事故日自動切換新/舊法 + 整肢三大關節障害摘要 → 失能等級（單側基準）
+ *
+ * @param joint 'upper' | 'lower'（上肢 / 下肢）
+ * @param percent ROM 喪失百分比 0-100（單一關節或整肢平均）
+ * @param accidentDate 事故日（YYYY-MM-DD）；null/undefined 視為新法
+ * @returns DisabilityLevel 1-15
+ *
+ * @example
+ * // 踝關節 ROM 20°（40%），事故日 2024
+ * lookupDisabilityLevelByDate('lower', 40, '2024-01-01') // → 9（舊法 30% ≤ 40% < 50%）
+ *
+ * // 踝關節 ROM 20°（40%），事故日 2026-07-01
+ * // 須先 classifyJointDisorder(40) → 'motion' → 查 LOWER 對照表
+ * lookupDisabilityLevelByDate('lower', 40, '2026-07-01') // → 13（user 真實案例）
+ */
+export function lookupDisabilityLevelByDate(
+  joint: 'upper' | 'lower',
+  percent: number,
+  accidentDate?: string | null
+): DisabilityLevel {
+  if (!isNewLaw(accidentDate)) {
+    // 舊法：百分比段直接對應單一等級
+    return levelFromRomLossOldLaw(percent)
+  }
+  // 新法：三分類 → 查表（單關節障害，視為 motion|1|none|0 → 對應 article 11-40 上肢 / 12-35 下肢 = 13）
+  const severity = classifyJointDisorder(percent)
+  // 預設單關節障害：summary.count = '1'，對側無障害
+  const left: LimbDisorderSummary = { count: '1', severity }
+  const right: LimbDisorderSummary = { count: '0', severity: 'none' }
+  const result = joint === 'upper'
+    ? lookupUpperLimbLevel(left, right)
+    : lookupLowerLimbLevel(left, right)
+  return result?.level ?? 15
 }

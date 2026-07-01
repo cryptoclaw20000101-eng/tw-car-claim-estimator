@@ -7,7 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # tw-car-claim-estimator — 專案層級規則
 
 > **適用對象**: 在本專案執行任務的所有 AI agent (Claude / Codex / Hermes / 其他)
-> **生效版本**: v0.8.1 (2026-07-01)
+> **生效版本**: v0.8.2 (2026-07-01)
 > **同步於**: `package.json` version + git tag
 > **優先序**: `AGENTS.md` > commit message > 自由發揮。若有衝突以本檔為準。
 
@@ -76,7 +76,7 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - **改任何 lib/insurance 必跑**:
   ```bash
   pnpm tsc --noEmit                    # 0 錯
-  pnpm test                            # 54 檔 / 604 測試全綠（v0.8.1 期待值）
+  pnpm test                            # 57 檔 / 674 測試全綠（v0.8.2 期待值）
   pnpm build                           # 6 routes 靜態 build 全綠
   ```
 - **新增規則必先寫測試** (TDD: RED → GREEN → REFACTOR) — 沒測試的改動 revert
@@ -606,4 +606,56 @@ interface AdvisorConfig {
 - 空 children 仍 render 容器
 - 左右按鈕都 render
 - `mobile-sticky-cta` + `md:static` class 都在 SSR HTML 中
+
+## §17 法規版本切換（新法 / 舊法）（v0.8.2+）
+
+> **檔案**: `lib/data-sources/regulation-cutoff.ts` + `lib/insurance/compulsory.ts` + `lib/insurance/disability-joint-mapping.ts` + `lib/insurance/index.ts`
+> **測試**: `__tests__/data-sources/regulation-cutoff.test.ts` (17 it) + `__tests__/insurance/compulsory-medical-material.test.ts` (19 it) + `__tests__/insurance/disability-joint-mapping-by-date.test.ts` (34 it)
+
+### 為什麼 v0.8.2 加日期切換？
+- **2026-07-01 是強制險 §2.3.6 醫材 + 失能給付標準表 雙法同日施行日**
+- 之前 v0.2.5 + v0.6.6 修了新法邏輯，但**沒有日期判斷** — 連 2024 年舊事故都用新法算（這是 bug）
+- v0.8.2 補上 `isNewLaw(accidentDate)` 切換，確保：
+  - **事故日 >= 2026-07-01** → 新法（拆 subItems / 三分類查表）
+  - **事故日 < 2026-07-01** → 舊法（合併 3 項上限 / 百分比段）
+
+### 切換 API（純函式 + 向後相容）
+
+| 函式 | 用途 | 向後相容 |
+|---|---|---|
+| `isNewLaw(accidentDate)` | 純函式，true = 新法 / false = 舊法 | N/A（新函式）|
+| `getLawVersionLabel(accidentDate)` | UI 標籤（"新法 (2026-07-01 起)"）| N/A（新函式）|
+| `calcMedicalMaterialOldLaw(input)` | 舊法版醫材費（合併 3 項 + pro-rata）| 原 `calcMedicalMaterial` 一行不動 |
+| `computeCompulsoryMedicalByDate(input, accidentDate)` | 主計算依事故日切換 | 原 `computeCompulsoryMedical` 一行不動 |
+| `levelFromRomLossOldLaw(percent)` | 舊法版 ROM 百分比 → 等級 | 原 `lookupUpperLimbLevel/lookupLowerLimbLevel` 一行不動 |
+| `lookupDisabilityLevelByDate(joint, percent, accidentDate)` | 失能依事故日切換 | N/A（新 wrapper）|
+
+### 切換規則
+| 事故日 | 醫材費 | 失能判定 |
+|---|---|---|
+| `null` / `undefined` / `''` | **新法**（保守預設）| **新法** |
+| `2026-07-01` ~ 至今 | 新法 | 新法 |
+| `2026-06-30` 及之前 | 舊法（合併 3 項）| 舊法（百分比段 5/15/30/50/70%）|
+| 非標準格式（"2026/07/01" 等）| 舊法（保守，避免誤判）| 舊法 |
+
+### User 真實案例驗證
+**踝關節 ROM 20°（40% 喪失）**：
+- 事故日 2024-01-01（舊法）：40% ≥ 30% → **第 9 級**
+- 事故日 2026-07-01（新法）：33% ≤ 40% < 50% → motion → 12-35 → **第 13 級**
+
+### 設計決策
+- **保守預設 = 新法**：null/undefined 走新法，避免低估（向後相容 v0.8.2 前行為）
+- **原函式不動**：所有 wrapper 都是「新增」，沒有改既有 export → 既有 47 個測試 0 修改全綠
+- **UI 暫不顯示切換標籤**：表單結果頁頂部可考慮加 "依事故日判定：舊法 (2026-07-01 前)" badge（後續 v0.8.3+）
+- **subItems 結構差異**：新法 2 項 (special + assistive) / 舊法 3 項 (special + generalMaterial + assistive)，UI 顯示自動反映
+- **approved 可能相同**：當 special + assistive 合計已超過 2 萬，新舊法 approved 都 = 20000（因為都套上限）；但 subItems 結構不同，UI 可看出差異
+
+### 不變量（測試守護）
+- `isNewLaw('2026-06-30') === false`（邊界前一日）
+- `isNewLaw('2026-07-01') === true`（邊界當日，含當日）
+- `isNewLaw(null) === true`（保守預設）
+- `isNewLaw('invalid') === false`（格式錯走舊法，避免誤判）
+- 同一個案 2024 vs 2026-07-01 subItems 結構不同（舊法 3 項 / 新法 2 項）
+- DIFF_INPUT（special 8000 + generalMaterial 15000 + assistive 7000）：舊法 20000 / 新法 15000
+- level 結果必在 1-15 範圍內
 
