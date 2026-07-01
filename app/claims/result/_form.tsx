@@ -18,6 +18,7 @@ import {
   Collapse,
 } from 'antd'
 import { InfoAlert } from '@/components/InfoAlert'
+import { LawVersionBadge } from '@/components/LawVersionBadge'
 import { PainEnsembleCard } from '@/components/PainEnsembleCard'
 import { KnnDebugPanel } from '@/components/KnnDebugPanel'
 import { MobileStickyCTA } from '@/components/MobileStickyCTA'
@@ -139,6 +140,9 @@ export default function ResultForm() {
         <Paragraph type="secondary" className="!mb-4">
           事故地點：{input.basics.accidentLocation || '（未填）'} ·{' '}
           {input.basics.accidentDate} · 管轄法院：{result.region.courtName}
+          <span className="ml-2">
+            <LawVersionBadge accidentDate={input.basics.accidentDate} />
+          </span>
         </Paragraph>
 
         {stale && (

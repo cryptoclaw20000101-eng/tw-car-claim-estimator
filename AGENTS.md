@@ -7,7 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # tw-car-claim-estimator — 專案層級規則
 
 > **適用對象**: 在本專案執行任務的所有 AI agent (Claude / Codex / Hermes / 其他)
-> **生效版本**: v0.8.2 (2026-07-01)
+> **生效版本**: v0.8.3 (2026-07-01)
 > **同步於**: `package.json` version + git tag
 > **優先序**: `AGENTS.md` > commit message > 自由發揮。若有衝突以本檔為準。
 
@@ -76,7 +76,7 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - **改任何 lib/insurance 必跑**:
   ```bash
   pnpm tsc --noEmit                    # 0 錯
-  pnpm test                            # 57 檔 / 674 測試全綠（v0.8.2 期待值）
+  pnpm test                            # 58 檔 / 689 測試全綠（v0.8.3 期待值）
   pnpm build                           # 6 routes 靜態 build 全綠
   ```
 - **新增規則必先寫測試** (TDD: RED → GREEN → REFACTOR) — 沒測試的改動 revert
@@ -658,4 +658,42 @@ interface AdvisorConfig {
 - 同一個案 2024 vs 2026-07-01 subItems 結構不同（舊法 3 項 / 新法 2 項）
 - DIFF_INPUT（special 8000 + generalMaterial 15000 + assistive 7000）：舊法 20000 / 新法 15000
 - level 結果必在 1-15 範圍內
+
+## §18 法規版本標籤 UI（v0.8.3+）
+
+> **檔案**: `components/LawVersionBadge.tsx`
+> **測試**: `__tests__/components/LawVersionBadge.test.tsx` (15 it)
+> **串接**: `app/claims/result/_form.tsx` 第 141 行後（事故日 / 法院資訊旁）
+
+### 為什麼 v0.8.3 加 UI 標籤？
+- v0.8.2 加了計算引擎切換（純函式），但**結果頁 UI 沒顯示「依事故日判定的新/舊法」**
+- 使用者看到理賠金額差異會困惑「為什麼同樣骨折，金額不同？」 → 需要 badge 標明哪條法源
+- 一眼可辨「🆕 新法」vs「📜 舊法」 + hover tooltip 解釋差異
+
+### `LawVersionBadge` 元件
+- props: `accidentDate?: string | null`, `tooltip?: string`, `showIcon?: boolean`（預設 true）
+- 顯示：
+  - 新法（事故日 >= 2026-07-01 或未填）→ 綠色 Tag `ant-tag-success` + 🆕
+  - 舊法（事故日 < 2026-07-01）→ 橘色 Tag `ant-tag-warning` + 📜
+- Tag label 文字本身已帶說明（不依賴 hover）：
+  - 新法：`強制險新法 (2026-07-01 起) · 特殊材料＋輔具各自 2 萬上限`
+  - 舊法：`強制險舊法 (2026-07-01 前) · 醫材＋特殊材料＋輔具合併 2 萬上限`
+- SSR-safe：`'use client'` 但無 client state，純 props 渲染
+- AntD `Tooltip` 提供詳細說明（client-side hover 才顯示）
+
+### 串接位置
+結果頁頂部「事故地點：xxx · 事故日：YYYY-MM-DD · 管轄法院：xxx」後面加 badge。
+
+### 設計決策
+- **Tag 顏色**：新法 = success（綠）暗示「新版好」、舊法 = warning（橘）暗示「需注意」
+- **Emoji 圖示**：🆕 新法 / 📜 舊法（可關閉 `showIcon={false}`）
+- **Tag label 含說明**：避免使用者看不到 tooltip 也能懂差異
+- **`<Tooltip>` 詳細說明**：hover 顯示法源條文 + 計算差異
+
+### 不變量（測試守護）
+- 新法日期集合（含 null/undefined）→ 顯示 `data-law-version="new"` + 綠色
+- 舊法日期集合 → 顯示 `data-law-version="old"` + 橘色
+- 每個變體都 render AntD Tag
+- Tag label 必含「2026-07-01」標示（不論新舊法）
+- `showIcon={false}` → 不顯示 emoji
 
