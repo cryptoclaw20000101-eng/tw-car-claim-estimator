@@ -60,3 +60,6 @@ next-env.d.ts
 # Tauri icon 生成中繼（從 public/icons/icon-512.png 生成，已 commit 到 src-tauri/icons/）
 /src-tauri/icons/android/
 /src-tauri/icons/ios/
+
+# v0.8.4+ law-cutoff CLI 編譯產物（pnpm law-cutoff:build 產生）
+/.law-cutoff-build/

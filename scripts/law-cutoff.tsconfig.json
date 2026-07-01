@@ -1,0 +1,14 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noEmit": false,
+    "outDir": "../.law-cutoff-build",
+    "target": "ES2022",
+    "isolatedModules": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": ["law-cutoff.ts", "../lib/data-sources/regulation-cutoff.ts", "../lib/insurance/compulsory.ts", "../lib/insurance/disability-joint-mapping.ts", "../lib/insurance/types.ts", "../lib/insurance/pain-ensemble-health.ts"]
+}

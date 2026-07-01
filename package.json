@@ -1,6 +1,6 @@
 {
   "name": "tw-car-claim-estimator",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -19,6 +19,8 @@
     "report:precedents": "node scripts/report-precedents.js",
     "report:rebuild-hero": "bash scripts/rebuild-hero.sh",
     "report:all": "node scripts/scrape-judgments.js --quiet && node scripts/report-precedents.js",
+    "law-cutoff:build": "tsc -p scripts/law-cutoff.tsconfig.json",
+    "law-cutoff": "node .law-cutoff-build/scripts/law-cutoff.js",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",

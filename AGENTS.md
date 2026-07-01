@@ -7,7 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # tw-car-claim-estimator — 專案層級規則
 
 > **適用對象**: 在本專案執行任務的所有 AI agent (Claude / Codex / Hermes / 其他)
-> **生效版本**: v0.8.3 (2026-07-01)
+> **生效版本**: v0.8.4 (2026-07-01)
 > **同步於**: `package.json` version + git tag
 > **優先序**: `AGENTS.md` > commit message > 自由發揮。若有衝突以本檔為準。
 
@@ -76,7 +76,7 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - **改任何 lib/insurance 必跑**:
   ```bash
   pnpm tsc --noEmit                    # 0 錯
-  pnpm test                            # 58 檔 / 689 測試全綠（v0.8.3 期待值）
+  pnpm test                            # 59 檔 / 705 測試全綠（v0.8.4 期待值）
   pnpm build                           # 6 routes 靜態 build 全綠
   ```
 - **新增規則必先寫測試** (TDD: RED → GREEN → REFACTOR) — 沒測試的改動 revert
@@ -696,4 +696,53 @@ interface AdvisorConfig {
 - 每個變體都 render AntD Tag
 - Tag label 必含「2026-07-01」標示（不論新舊法）
 - `showIcon={false}` → 不顯示 emoji
+
+## §19 法規切換 CLI 工具（v0.8.4+）
+
+> **檔案**: `scripts/law-cutoff.ts` + `scripts/law-cutoff.tsconfig.json`
+> **編譯產物**: `.law-cutoff-build/`（已加入 `.gitignore`）
+> **測試**: `__tests__/scripts/law-cutoff.test.ts` (16 it)
+> **NPM scripts**: `pnpm law-cutoff:build`（編譯）/ `pnpm law-cutoff`（執行）
+
+### 為什麼 v0.8.4 加 CLI？
+- v0.8.2 計算引擎切換純函式完成，但**沒有「一鍵試算工具」**給業務員/律師在沒有表單時快速判定
+- 業務場景：客戶走進來說「我是去年出車禍的」，業務員需要立即告訴他「強制險會用舊法算」+ 大概差多少
+- 終端機輸出 + JSON 模式（給 cron / dashboard 串接）
+
+### 用法
+```bash
+pnpm law-cutoff:build                                          # 編譯（首次必跑）
+pnpm law-cutoff 2024-03-15                                     # 基本判定（人類可讀）
+pnpm law-cutoff 2024-03-15 --special 8000 --general 15000 --assistive 7000 --rom 40 --joint lower  # 含醫材+失能差異
+pnpm law-cutoff 2026-07-01 --rom 40 --json                     # JSON 模式（給程式用）
+pnpm law-cutoff --help                                         # 說明
+```
+
+### CLI 功能
+1. **判定新/舊法**：依事故日 + 2026-07-01 切換日
+2. **距離切換日天數**：例如 2024-03-15 → -838 天
+3. **醫材費差異估算**：給定特殊材料/一般醫材/輔具費 → 跑 `computeCompulsoryMedicalByDate` 比新/舊法 approved
+4. **失能等級差異估算**：給定 ROM% + 關節 → 跑 `lookupDisabilityLevelByDate` 比新/舊法等級
+5. **Precedents 統計**：從 `data/precedents/*.json` 算切換日前/後案件數（目前 452 / 131 = 583 件）
+6. **法源說明**：依新/舊法顯示對應法條 + 重點摘要
+
+### 設計決策
+- **獨立 tsconfig** (`scripts/law-cutoff.tsconfig.json`)：避免污染 scrape 的 `scripts/tsconfig.json`（不同 module / outDir）
+- **輸出到 `.law-cutoff-build/`**（不入 repo）：避免 tsc emit 跑到 lib/ 污染 git tracking
+- **零套件紅線**：只用 `node:fs` + `node:path` + 內部 `@/lib/*` 模組
+- **JSON 模式 `--json`**：給 cron / dashboard 串接，便於自動化
+- **CLI 純函式計算**：跟 lib/insurance/* 完全一致，**沒有重複邏輯**
+
+### 不變量（測試守護）
+- 邊界日期 2026-06-30 / 2026-07-01 正確切換
+- null / undefined / 空字串 → 保守預設新法
+- 醫材差異案例（special 8000 + general 15000 + assistive 7000）：舊法 20000 / 新法 15000 / 差 -5000
+- 失能差異案例（ROM 40% 下肢）：舊法 9 級 / 新法 13 級
+- JSON 模式包含所有欄位（accidentDate / cutoffDate / daysFromCutoff / lawVersion / medicalMaterial / disability / precedents）
+
+### 反 pattern（v0.8.4 教訓）
+- **不要 import type**：nodenext + `import type` 可能導致整檔被判斷為 type-only → tsc 不 emit JS（這次踩到，解決：改用 `type X = import("...").X` 內聯型別）
+- **不要共用 scrape tsconfig**：不同 CLI 需要不同 module / outDir 設定，分檔管理
+- **不要 emit 到 lib/**：import `../lib/...` 會讓 tsc rootDir 推到專案根，emit 出去污染業務檔
+- **加 .gitignore**：CLI 編譯產物必須不入 repo
 
