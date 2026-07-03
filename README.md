@@ -46,18 +46,20 @@
 # 1. 安裝依賴
 pnpm install
 
-# 2. 跑測試（7 個檔案、79 個測試）
+# 2. 跑測試（62 個檔案、760 個測試）
 pnpm test
 
 # 3. 啟動開發伺服器（http://localhost:3000）
 pnpm dev
 
 # 4. 型別檢查 + 生產建置
-npx tsc --noEmit
+pnpm tsc --noEmit
 pnpm build
 ```
 
-> 需要 Node.js 20+ 與 pnpm 9+。
+> 需要 Node.js 20+ 與 pnpm 10+。
+>
+> **v0.9.0+ 重要更新**：專案已從純 SPA 升級到 SEO 友善版（sitemap / robots / OG image / Twitter card / apple-icon 全部自動生成）。production build 產出 13 個靜態 routes。
 
 ---
 
@@ -96,17 +98,42 @@ pnpm build
 ```
 tw-car-claim-estimator/
 ├── app/                          # Next.js 16 App Router
-│   ├── layout.tsx                # AntdRegistry + ConfigProvider
-│   ├── page.tsx                  # 首頁（5 大區塊說明 + CTA）
+│   ├── layout.tsx                # AntdRegistry + ConfigProvider + viewport + metadataBase
+│   ├── page.tsx                  # 首頁 server component + metadata
+│   ├── _components/              # 私人 server-only client components（_ prefix 資料夾不路由）
+│   │   └── HomeClient.tsx        # 首頁實際 UI（motion + bento + scroll reveal）
+│   ├── sitemap.ts                # v0.9.0+ MetadataRoute.Sitemap
+│   ├── robots.ts                 # v0.9.0+ MetadataRoute.Robots
+│   ├── opengraph-image.tsx       # v0.9.0+ 1200×630 ImageResponse
+│   ├── twitter-image.tsx         # v0.9.0+ 1200×630 summary_large_image
+│   ├── apple-icon.tsx            # v0.9.0+ 180×180 自動生成
+│   ├── manifest.ts               # PWA manifest（v0.12.0+ import tokens）
+│   ├── loading.tsx               # v0.11.0+ 自製 Skeleton（取代 AntD Skeleton）
+│   ├── error.tsx                 # 全站 Error Boundary
+│   ├── not-found.tsx             # 404
 │   └── claims/
 │       ├── new/                  # 估算表單（7 步 Steps）
-│       │   ├── page.tsx          # server shell + dynamic({ssr:false})
-│       │   └── _form.tsx         # client 表單本體
+│       │   ├── page.tsx          # server shell + metadata
+│       │   └── _form.tsx         # client 表單本體（AntD Form + StepShell）
 │       └── result/               # 結果頁（7 區 Tabs）
-│           ├── page.tsx
-│           └── _form.tsx
+│           ├── page.tsx          # server shell + metadata
+│           ├── _result-client.tsx # v0.9.0+ client wrapper（ssr:false dynamic）
+│           └── _form.tsx         # client 結果頁（Tabs + 8 區段）
+├── components/                   # 共用元件（v0.10.0+ 大多有 framer-motion）
+│   ├── PainEnsembleCard.tsx      # A 級：精神慰撫金三票共識 UI
+│   ├── EnsembleHealthHeroCard.tsx # A 級：首頁 hero 健康度卡
+│   ├── KnnDebugPanel.tsx         # A 級：KNN 5 維拆解
+│   ├── StepShell.tsx             # B→A：v0.10.0+ 加 accent 左邊條 + Step badge
+│   ├── MobileNav.tsx             # B→A：v0.10.0+ active underline motion
+│   ├── InstallPWAButton.tsx      # B→A：v0.10.0+ 自製 iOS SVG illustration
+│   ├── Step4KnnPreview.tsx       # B→A：v0.10.0+ motion fade-in
+│   ├── InfoAlert.tsx             # B→A：v0.10.0+ 加 closable / onClose
+│   ├── LawVersionBadge.tsx       # 強制險新/舊法標籤
+│   ├── MobileStickyCTA.tsx       # 手機底部固定按鈕
+│   ├── ServiceWorkerRegistrar.tsx # PWA service worker 註冊
+│   └── Skeleton.tsx              # v0.11.0+ 自製 branded skeleton
 ├── lib/
-│   ├── insurance/                # 計算引擎（MVP 核心）
+│   ├── insurance/                # 計算引擎（AGENTS §1 鐵律保護，不可改語意）
 │   │   ├── compulsory.ts         # 強制險醫療
 │   │   ├── disability.ts         # 失能初篩
 │   │   ├── civil-damages.ts      # 民事 5 大項
@@ -116,20 +143,36 @@ tw-car-claim-estimator/
 │   │   ├── region-court-map.ts   # 城市→法院對照
 │   │   ├── joint-rom.ts          # 關節活動度規則
 │   │   ├── disability-tables.ts  # 14 級失能金額表
+│   │   ├── pain-ml.ts            # §8 精神慰撫金 ML
+│   │   ├── pain-ensemble.ts      # §10 三票共識
+│   │   ├── pain-advisor.ts       # §11 LLM 顧問 mock
+│   │   ├── pain-ensemble-health.ts # §12 健康度計算
+│   │   ├── advisor-cache.ts      # §14 LRU+TTL 快取
+│   │   ├── regulation-cutoff.ts  # §17 依事故日切換
+│   │   ├── disability-joint-mapping.ts # §17 失能等級映射
 │   │   ├── types.ts              # 全部型別定義
 │   │   └── index.ts              # 統一對外 API: estimateClaim()
-│   └── data-sources/             # 外部資料來源（mock）
-│       ├── types.ts              # 3 組介面
-│       ├── foi.ts                # 補償基金評議案例
-│       ├── judicial.ts           # 司法院判決書
-│       ├── legal-reference.ts    # 法務部法規
-│       └── index.ts              # 統一 export
+│   ├── estimate/                 # KNN + precedents（§9）
+│   ├── data-sources/             # 外部資料來源（mock）
+│   ├── legal/                    # §17 法規版本表
+│   ├── types/                    # 共用型別
+│   └── design/
+│       └── tokens.ts             # v0.12.0+ 設計 tokens 單一來源
+├── data/
+│   └── precedents/               # 司法院 / 金融評議案例 JSON（build-time 內嵌）
 ├── __tests__/                    # Vitest 4 測試
-│   ├── insurance/                # 4 個檔，50 個測試
-│   └── data-sources/             # 3 個檔，29 個測試
-├── package.json
+│   ├── insurance/                # 計算引擎測試
+│   ├── estimate/                 # KNN + precedent 測試
+│   ├── data-sources/             # 資料來源測試
+│   ├── components/               # 元件 SSR HTML 守護
+│   ├── api/                      # API route 測試
+│   ├── scripts/                  # CLI 工具測試
+│   ├── pwa/                      # PWA / service worker 測試
+│   └── scrape/                   # scrape 結構性測試
+├── scripts/                      # CLI 工具（§19 law-cutoff 等）
+├── package.json                  # v0.12.0
 ├── tsconfig.json
-├── next.config.ts
+├── next.config.ts                # output: "export" 靜態 export
 └── vitest.config.ts
 ```
 
@@ -185,14 +228,20 @@ AntD React 元件不能直接吃 CSS var（會破壞 inline style + 主題計算
 
 ## 技術棧
 
-- **框架**：Next.js 16.2.7（App Router + Turbopack）
-- **UI**：React 19 + Ant Design 6 + @ant-design/nextjs-registry
-- **型別**：TypeScript 5
-- **測試**：Vitest 4
-- **套件管理**：pnpm 9
-- **node 引擎**：>= 20.0.0
+- **框架**：Next.js 16.2.7（App Router + Turbopack + `output: "export"`）
+- **UI**：React 19.2.4 + Ant Design 6.4.3 + @ant-design/nextjs-registry
+- **樣式**：Tailwind CSS v4（CSS-first `@theme inline`）
+- **動畫**：Framer Motion 12（v0.10.0+ 大量採用）
+- **圖示**：@ant-design/icons 6（主）+ lucide-react 1.17（404 頁輔助）
+- **桌面殼**：Tauri 2（`pnpm tauri:dev` / `pnpm tauri:build`）
+- **型別**：TypeScript 5（strict mode）
+- **測試**：Vitest 4 + @testing-library/react 16 + jsdom
+- **套件管理**：pnpm 10
+- **node 引擎**：>= 20.9.0
 
-> ⚠️ **Next.js 16 + AntD 6 SSR 注意**：所有用到 AntD `Form` / `Table` / `Statistic` 等 client-side hook 的頁面都需拆成 `page.tsx`（server shell）+ `_form.tsx`（client），並用 `dynamic(() => import('./_form'), { ssr: false })` 載入，wrapper 也必須加 `'use client'`。否則會在 prerender 階段炸 `isValid/createContext is not a function`。本專案已套用此 pattern。
+> ⚠️ **Next.js 16 + AntD 6 SSR 雙檔 pattern**：所有用到 AntD `Form` / `Table` / `Statistic` 等 client-side hook 的頁面都需拆成 `page.tsx`（server shell + metadata）+ `_form.tsx`（client），並用 `dynamic(() => import('./_form'), { ssr: false })` 載入。ssr:false 的 wrapper 必須獨立 client 元件（v0.9.0+ 用 `_result-client.tsx`）。否則會在 prerender 階段炸 `isValid/createContext is not a function`。
+>
+> ⚠️ **AntD 6 deprecations 已守護**：`Statistic` 的 `valueStyle` 已 deprecated（v0.7.2+ 起），改用 `styles={{ content: { color / fontSize } }}`（`StatisticSemanticType.styles.content`）。迴歸測試：`PainEnsembleCard.test.tsx` SSR HTML 守護 `var(--accent)` 跟字級生效。
 
 ---
 

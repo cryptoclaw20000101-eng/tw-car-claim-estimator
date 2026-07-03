@@ -746,3 +746,235 @@ pnpm law-cutoff --help                                         # 說明
 - **不要 emit 到 lib/**：import `../lib/...` 會讓 tsc rootDir 推到專案根，emit 出去污染業務檔
 - **加 .gitignore**：CLI 編譯產物必須不入 repo
 
+---
+
+## §20 SEO baseline + Page Metadata + Design Tokens 模組（v0.9.0+）
+
+> **檔案**：`app/sitemap.ts`、`app/robots.ts`、`app/opengraph-image.tsx`、`app/twitter-image.tsx`、`app/apple-icon.tsx`、`app/_components/HomeClient.tsx`、`app/claims/result/_result-client.tsx`、`app/page.tsx`、`app/claims/new/page.tsx`、`app/claims/result/page.tsx`、`app/layout.tsx`、`app/manifest.ts`、`lib/design/tokens.ts`、`__tests__/scrape/scrape-structure.test.ts`
+
+### 為什麼做這個改動
+- 首頁 / 表單 / 結果頁原本只有 root layout 的 metadata，缺 page-level SEO
+- 無 sitemap / robots / OG image / Twitter card / apple-icon → 社群分享預覽差、Lighthouse SEO 分數低
+- `#be123c` 4 處硬編（globals.css / layout viewport / ConfigProvider / manifest）→ 改色要動 4 檔
+- `layout.tsx` 引用 `var(--font-geist-sans)` 是 dead ref（globals.css 未定義）→ fallback 鏈混亂
+
+### 新增
+- `app/sitemap.ts` — Next 16 MetadataRoute.Sitemap（only `/` indexable，/claims/* robots:noindex）
+- `app/robots.ts` — allow `/`，disallow `/claims/*` / `/api/*`，指向 sitemap
+- `app/opengraph-image.tsx` — 1200×630 ImageResponse（5 區塊 chips + 標題 + 副標）
+- `app/twitter-image.tsx` — 1200×630 summary_large_image（簡化版）
+- `app/apple-icon.tsx` — 180×180 rose-700「車」字
+- `app/_components/HomeClient.tsx` — 從 `app/page.tsx` 抽出 client UI
+- `app/claims/result/_result-client.tsx` — dynamic + ssr:false client wrapper
+- `lib/design/tokens.ts` — COLORS + ACCENT + BACKGROUND + FOREGROUND runtime 單一來源
+
+### 修改
+- `app/page.tsx` — client → server（export metadata + OpenGraph + Twitter + canonical）
+- `app/claims/new/page.tsx` — client → server + metadata + robots:noindex
+- `app/claims/result/page.tsx` — client → server + metadata + robots:noindex
+- `app/claims/result/_form.tsx` — 加 `'use client'`（原本靠 page.tsx 傳遞，會被 Next 16 server boundary 切斷）
+- `app/layout.tsx` — metadataBase 避免 OG localhost fallback；修死 ref `font-geist-sans` → `font-body`
+- `__tests__/scrape/scrape-structure.test.ts` — EnsembleHealthHeroCard grep 指向 HomeClient
+- `package.json` — 0.8.4 → 0.9.0
+
+### 刪除
+- `public/{file,globe,next,vercel,window}.svg` — Next 預設未引用
+
+### 紅線
+- `output: "export"` 靜態 export 模式下，sitemap / robots / opengraph-image / twitter-image / apple-icon **都必須** `export const dynamic = 'force-static'`，否則 build 失敗
+- AGENTS.md §13 部署矩陣保持不變：output: export 不影響 SEO（靜態生成）
+
+### verify
+- `pnpm tsc --noEmit` → 0 錯
+- `pnpm test` → 62 檔 / 760 tests 全綠
+- `pnpm build` → 13 routes 靜態 export，0 warning
+- `out/sitemap.xml` / `robots.txt` / `opengraph-image` / `twitter-image` / `apple-icon` 都正確生成
+
+---
+
+## §21 Framer-Motion 進場動畫 + 7 個 B→A 元件升級（v0.10.0+）
+
+> **檔案**：`components/InfoAlert.tsx`、`components/MobileNav.tsx`、`components/InstallPWAButton.tsx`、`components/EnsembleHealthHeroCard.tsx`、`components/KnnDebugPanel.tsx`、`components/Step4KnnPreview.tsx`、`components/StepShell.tsx`、`app/_components/HomeClient.tsx`、`app/claims/result/_form.tsx`
+
+### 為什麼做這個改動
+- 11 個 components 之前完全沒用 framer-motion，僅靠 AntD 內建 + Tailwind hover
+- 缺「活感」，per B-grade 評估報告
+- 7 個 B 級元件（StepShell / MobileNav / InstallPWAButton / InfoAlert / EnsembleHealthHeroCard / Step4KnnPreview / KnnDebugPanel）視覺零驚喜
+
+### 修改
+
+**InfoAlert**：加 `closable` + `onClose` props（向後相容，21 處呼叫端不需改）
+
+**MobileNav**：
+- header 加 fade-in-down 進場
+- active nav 項加 motion underline（layoutId 跨 item 滑動）
+- spring physics (stiffness 380, damping 30)
+
+**InstallPWAButton**：
+- iOS Modal 的步驟 1/2 圖示從 AntD icon 改自製 SVG illustration
+- 顯示 iOS Safari URL bar + 分享按鈕 accent ring
+- 顯示 iOS share sheet + 加入主畫面高亮列
+
+**EnsembleHealthHeroCard**：
+- 3 KPI 加 staggered fade-in（per-KPI delay 0.08s）
+- 傷勢梯度警示也加 fade-in（delay 0.4s）
+
+**KnnDebugPanel**：
+- 每件案件加 fade-in（per-case stagger 0.1s）
+- 5 維長條加 slide-right（per-row delay 0.04s）
+
+**Step4KnnPreview**：
+- 主卡片用 `motion.div + key="${debouncedLevel}-${debouncedLocation}"` 觸發 fade-in on data change
+- 卡片列表加 per-card stagger 0.08s
+
+**StepShell**（B → A 升級）：
+- 加 4px accent 左邊條（rose-700）
+- icon 包在 accent 背景方框內
+- header 加 stepNumber badge + 「Step N」 eyebrow
+- 加 fade-in-up 進場
+
+**HomeClient**：3 個主要區塊（5 bento / 3 鐵律 / footer）加 whileInView fade-in-up
+
+**Result _form.tsx**：
+- 加 TabContent wrapper，8 個 Tabs children 都包 motion fade-in
+- 切 tab 時觸發淡入（AntD Tabs destroyOnHide=true → re-mount 觸發）
+
+### 設計紀律
+- 所有 motion 都 honor `prefers-reduced-motion`（`useReducedMotion` hook）
+- 測試守護的 SSR HTML 結構（emoji / testid / labels）全部保留
+- 0 視覺 regression
+
+### 風險
+- framer-motion 的 motion.div 在 SSR 渲染為普通 div，測試守護的 HTML 文字內容不變
+- 切 tab 的 fade-in 依賴 AntD `destroyOnHide` 預設行為（v5+ 為 true）
+
+### verify
+- `pnpm tsc --noEmit` → 0 錯
+- `pnpm test` → 62 檔 / 760 tests 全綠
+- `pnpm build` → 13 routes 靜態 export，0 warning
+
+---
+
+## §22 Hero & Result Refinement + 自製 Skeleton（v0.11.0+）
+
+> **檔案**：`app/_components/HomeClient.tsx`、`app/claims/result/_form.tsx`、`components/Skeleton.tsx`、`app/loading.tsx`、`app/error.tsx`、`app/not-found.tsx`
+
+### 為什麼做這個改動
+- 首頁 hero 右側 5fr 原本是「法源 + 地區 + Ensemble」3 卡堆疊，無主次
+- 結果頁 Hero Stat 4 欄 2fr+1fr+1fr 主數字不夠突出，業務員第一眼抓不到重點
+- AntD 6 Skeleton 在 Next 16 Turbopack SSR 有 `Element type is invalid` bug
+  → AGENTS.md §2.4 提到，要用自製元件取代
+- Error / 404 頁缺 accent 標記，與首頁 bento 視覺斷裂
+
+### 修改
+
+**HomeClient Hero 右側重排**：
+- Ensemble 健康度升為主格：border-2 border-accent/30 + shadow（主視覺錨點）
+- 法源 + 地區 改成 2 欄並排次格（grid-cols-2）
+- 引用法源字級降到 text-xs（更緊湊）
+- 整體視覺重心從「平均 3 卡」變「Ensemble 主 + 2 小格」
+
+**結果頁 Hero Stat 重設計**：
+- 主格「強制險總估算」：加 accent 左邊條（4px） + accent eyebrow dot
+- 主數字放大到 text-5xl + font-bold + text-accent（rose-700）
+- 副格（民事中標 / 失能初篩）：數字縮小到 text-base
+- 視覺權重對齊「強制險總估算」是核心結論
+
+**Custom Skeleton 元件**（新檔 `components/Skeleton.tsx`）：
+- 純 Tailwind div + bg-gray-200/60 + animate-pulse
+- client mount 後才跑 pulse（SSR 靜態，避免 hydration mismatch）
+- 兩個 export：`Skeleton`（單塊）+ `SkeletonBlock`（多行）
+- 取代 AntD Skeleton（避開 Next 16 Turbopack SSR `Element type is invalid` bug）
+
+**loading.tsx 改用 Skeleton 元件**：
+- Hero / bento 區塊全用 Skeleton 取代 AntD
+- 配合新的 Hero 右側重排 layout（Ensemble 主格 + 2 欄並排次格）
+
+**Error page 微調**：
+- eyebrow 加 accent dot 裝飾 + 改 text-accent
+- 與首頁 bento 視覺語言對齊
+
+**404 page 微調**：
+- eyebrow 加 accent dot + 改 text-accent
+- 404 數字下方加 accent 細線（h-px w-24 bg-accent）裝飾
+
+### 風險
+- 結果頁是核心 conversion page，主數字放大可能改變「強制險 vs 民事中標」視覺對比
+  → 業務員 review 截圖後可微調字級
+- Skeleton client-only pulse：SSR 渲染靜態灰底，client mount 後才動
+  → 測試守護的 SSR HTML 結構不受影響
+
+### verify
+- `pnpm tsc --noEmit` → 0 錯
+- `pnpm test` → 62 檔 / 760 tests 全綠
+- `pnpm build` → 13 routes 靜態 export，0 warning
+
+---
+
+## §23 Token Consolidation 單一來源（v0.12.0+）
+
+> **檔案**：`lib/design/tokens.ts`、`app/layout.tsx`、`app/manifest.ts`、`app/apple-icon.tsx`、`app/opengraph-image.tsx`、`app/twitter-image.tsx`、`README.md`
+
+### 為什麼做這個改動
+- 原本 `#be123c` 在 7 個地方硬編（globals.css / layout viewport / ConfigProvider / manifest / apple-icon / opengraph-image / twitter-image）
+- 換色要動 7 檔，非常容易漏
+- AntD ConfigProvider / manifest / ImageResponse 都不能直接吃 CSS var
+  → 需要 TS runtime 常數作為 single source of truth
+
+### 修改
+
+**lib/design/tokens.ts**（v0.9.0 建立，v0.12.0 開始被引用）：
+- `COLORS` 物件：中性色 + 強調色 + 數據色
+- 別名：`ACCENT` / `BACKGROUND` / `FOREGROUND`
+- 型別：`DesignColor` / `ColorKey`
+- 驗證函式：`isValidHex` / `validateTokens`
+
+**app/manifest.ts**：
+- 移除 `#be123c` / `#fafaf9` 硬編
+- 改 `import { ACCENT, BACKGROUND } from '@/lib/design/tokens'`
+
+**app/layout.tsx**：
+- viewport.themeColor 改 import ACCENT
+- ConfigProvider.theme.token 全部改 import COLORS 系列
+- 新增 AntD 元件層級 token 擴充（components 物件）：
+  - Card: borderRadiusLG=12, paddingLG=24
+  - Tag: borderRadiusSM=4, fontSize=12
+  - Button: borderRadius=8, controlHeight=40, fontWeight=500
+  - Tabs: itemActiveColor / Hover / Selected / inkBarColor 全用 ACCENT
+  - Alert: borderRadiusLG=8
+  - Statistic: titleFontSize=12, contentFontSize=24
+  - Tooltip: borderRadius=6
+
+**app/apple-icon.tsx + opengraph-image.tsx + twitter-image.tsx**：
+- 移除 `#be123c` 硬編
+- 改 `import { ACCENT } from '@/lib/design/tokens'`
+
+**README.md**：
+- 新增「如何換色」段落
+- 說明 2 處檔案（tokens.ts + globals.css）為什麼不能合成 1 處
+- Step-by-step 換色 SOP + 未來 CI script 規劃
+
+### 為什麼是 2 處不是 1 處
+
+| 層 | 檔案 | 影響 |
+|---|---|---|
+| **TS runtime** | `lib/design/tokens.ts` | AntD ConfigProvider（runtime React 元件）|
+| **CSS runtime** | `app/globals.css` | Tailwind utilities（透過 `@theme inline`）|
+
+AntD React 元件不能直接吃 CSS var（會破壞 inline style + 主題計算），所以需要 TS runtime 同步。換色時兩個檔必須一起改，否則 TS 改 blue 但 CSS 還是 rose → 視覺漂移。
+
+### 紅線
+- `grep -r "#be123c" app/ lib/` 應該只 hit `tokens.ts` + `globals.css` + 2 個描述性 comment（其餘都是 0 hit）
+- 任何新加的硬編 `#be123c` / `#fafaf9` 必須改 import tokens
+
+### 未來 v0.12.x 規劃
+- CI script 自動比對 tokens.ts vs globals.css 硬編值是否 drift
+- build 時若漂移自動 fail
+- 候選：`scripts/check-token-drift.ts` + 加進 `pnpm ci` script
+
+### verify
+- `pnpm tsc --noEmit` → 0 錯
+- `pnpm test` → 62 檔 / 760 tests 全綠
+- `pnpm build` → 13 routes 靜態 export，0 warning
+- `grep -r "#be123c" app/ lib/` → 0 hit（僅 tokens.ts + globals.css + 2 個描述性 comment）
+
