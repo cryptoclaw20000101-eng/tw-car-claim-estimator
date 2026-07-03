@@ -760,7 +760,18 @@ function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchem
         <Col xs={12} md={6}><Form.Item label="復健" name={['medical', 'hasRehabilitation']} valuePropName="checked"><Switch /></Form.Item></Col>
         <Col xs={12} md={6}><Form.Item label="復健次數" name={['medical', 'rehabilitationCount']}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item></Col>
         <Col xs={12} md={6}><Form.Item label="需看護" name={['medical', 'requiresNursingCare']} valuePropName="checked"><Switch /></Form.Item></Col>
-        <Col xs={12} md={6}><Form.Item label="看護日數" name={['medical', 'nursingDays']}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item></Col>
+        <Col xs={12} md={6}>
+          {/* v0.12.0+ Phase B1：看護日數加 30 日硬上限驗證（強制險 §2.4） */}
+          <Form.Item
+            label="看護日數"
+            name={['medical', 'nursingDays']}
+            rules={[
+              { type: 'number', max: 30, message: '強制險看護每日 1,200 元 × 上限 30 日 = 36,000 元' },
+            ]}
+          >
+            <InputNumber style={{ width: '100%' }} min={0} max={30} />
+          </Form.Item>
+        </Col>
       </Row>
       <Title level={5} className="!mt-2">傷勢細節（失能規則引擎用）</Title>
       <Row gutter={16}>
