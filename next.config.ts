@@ -1,4 +1,9 @@
 import type { NextConfig } from "next";
+import bundleAnalyzer from "@next/bundle-analyzer";
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
 
 const nextConfig: NextConfig = {
   // v0.5.0: Vercel 部署優化
@@ -19,4 +24,4 @@ const nextConfig: NextConfig = {
   // v0.5.0: 標頭由 Vercel 的 vercel.json 控制（output: export 不支援 headers()）
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

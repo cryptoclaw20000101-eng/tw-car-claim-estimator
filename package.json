@@ -19,6 +19,7 @@
     "report:precedents": "node scripts/report-precedents.js",
     "report:rebuild-hero": "bash scripts/rebuild-hero.sh",
     "report:all": "node scripts/scrape-judgments.js --quiet && node scripts/report-precedents.js",
+    "analyze": "ANALYZE=true pnpm build",
     "law-cutoff:build": "tsc -p scripts/law-cutoff.tsconfig.json",
     "law-cutoff": "node .law-cutoff-build/scripts/law-cutoff.js",
     "tauri": "tauri",
@@ -44,6 +45,7 @@
   },
   "packageManager": "pnpm@10.33.2",
   "devDependencies": {
+    "@next/bundle-analyzer": "^16.2.10",
     "@tailwindcss/postcss": "^4",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^20",
