@@ -14,15 +14,18 @@ export default function NotFound() {
     <main className="flex min-h-[100dvh] flex-1 flex-col items-center px-6 py-16 md:py-24">
       <div className="w-full max-w-6xl">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-4 md:grid-rows-2">
-          {/* 404 主格（2fr × 2fr） */}
+          {/* 404 主格（2fr × 2fr） — v0.11.0+ 加 accent decoration */}
           <div className="rounded-lg border border-border bg-surface p-10 md:col-span-2 md:row-span-2">
-            <div className="mb-4 flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted">
+            <div className="mb-4 flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-accent">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent" />
               <Compass className="h-3.5 w-3.5" aria-hidden />
               <span>404 · Page Not Found</span>
             </div>
             <div className="tabular-nums text-7xl font-semibold leading-none tracking-tight text-foreground md:text-9xl">
               404
             </div>
+            {/* v0.11.0+：404 數字下方 accent 細線裝飾 */}
+            <div aria-hidden className="mt-4 h-px w-24 bg-accent" />
             <h1 className="mb-3 mt-6 text-3xl font-semibold leading-tight tracking-tight text-foreground md:text-4xl">
               這個頁面不存在
             </h1>

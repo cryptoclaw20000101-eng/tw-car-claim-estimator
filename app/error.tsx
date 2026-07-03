@@ -77,7 +77,8 @@ export default function ErrorPage({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: 'easeOut' }}
           >
-            <div className="mb-3 flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted">
+            <div className="mb-3 flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-accent">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent" />
               <AlertOutlined />
               <span>Error · 系統錯誤</span>
             </div>

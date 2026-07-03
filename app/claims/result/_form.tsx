@@ -165,35 +165,44 @@ export default function ResultForm() {
           body="本結果為依使用者輸入及公開法源/案例之初步估算，非最終理賠金額。實際理賠須依保險公司審核、醫療資料、肇事責任、保單條款、評議/判決結果及雙方和解結果為準。"
         />
 
-        {/* ============ Hero Stat — 4 大關鍵數字 (variance 8 不對稱 / 2fr+1fr+1fr) ============ */}
+        {/* ============ Hero Stat — 4 大關鍵數字 (v0.11.0+ 主數字放大 2x + accent ring) ============ */}
         <div className="!mb-6 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-border bg-border transition-all duration-200 hover:shadow-md md:grid-cols-4">
-          <div className="bg-surface p-5 md:col-span-2">
-            <div className="mb-2 text-xs uppercase tracking-[0.18em] text-muted">
-              強制險總估算
+          {/* 主格 2fr：強制險總估算 — 放大 2x + accent 左邊條 + accent text */}
+          <div className="relative bg-surface p-5 md:col-span-2 md:p-6">
+            {/* v0.11.0+：主格 accent 左邊條強調主視覺 */}
+            <span
+              aria-hidden
+              className="absolute left-0 top-0 h-full w-1 bg-accent"
+            />
+            <div className="mb-2 flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-accent">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent" />
+              <span>強制險總估算（主視覺）</span>
             </div>
-            <div className="tabular-nums text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+            <div className="tabular-nums text-4xl font-bold tracking-tight text-accent md:text-5xl">
               {dollar(result.compulsoryTotalEstimated)}
             </div>
-            <div className="mt-1 text-xs text-muted">
+            <div className="mt-2 text-xs text-muted">
               含醫療 {dollar(result.compulsoryItems.reduce((s, r) => s + r.approved, 0))} / 失能 {dollar(result.compulsoryDisabilityAmount)} / 死亡 {dollar(result.compulsoryDeathAmount)}
             </div>
           </div>
+          {/* 副格 1：民事中標 — 縮小到 text-base */}
           <div className="bg-surface p-5">
             <div className="mb-2 text-xs uppercase tracking-[0.18em] text-muted">
               民事中標
             </div>
-            <div className="tabular-nums text-2xl font-semibold tracking-tight text-foreground">
+            <div className="tabular-nums text-base font-semibold tracking-tight text-foreground">
               {dollar(result.painAndSuffering.regionalMid)}
             </div>
             <div className="mt-1 text-xs text-muted">
               精神慰撫金 × {result.region.courtName} 係數
             </div>
           </div>
+          {/* 副格 2：失能初篩 — 縮小到 text-base */}
           <div className="bg-surface p-5">
             <div className="mb-2 text-xs uppercase tracking-[0.18em] text-muted">
               失能初篩
             </div>
-            <div className="text-2xl font-semibold tracking-tight">
+            <div className="text-base font-semibold tracking-tight">
               <span style={{ color: { A: 'var(--data-positive)', B: 'var(--accent)', C: 'var(--data-warning)', D: 'var(--data-negative)' }[result.disability.screening] }}>
                 分級 {result.disability.screening}
               </span>

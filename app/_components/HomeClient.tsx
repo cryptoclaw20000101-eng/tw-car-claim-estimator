@@ -85,39 +85,47 @@ export default function HomeClient() {
             </Space>
           </div>
 
-          {/* Hero 右侧 — 引用法源 卡片，bento 的「次要」格子 */}
+          {/* Hero 右侧 — bento 重排 (v0.11.0+)：
+              1 大格（Ensemble 健康度，accent 邊框為主視覺錨點）
+              + 2 小格（引用法源 / 地區覆蓋 並排） */}
           <div className="md:col-span-5">
-            <div className="rounded-lg border border-border bg-surface p-6 shadow-[0_1px_0_rgba(0,0,0,0.02)]">
-              <Space size={6} className="!mb-3">
-                <ReadOutlined />
-                <Text className="!text-sm !font-semibold uppercase tracking-wider text-foreground">
-                  引用法源
-                </Text>
-              </Space>
-              <ul className="m-0 space-y-2 !text-sm text-muted">
-                <li>強制汽車責任保險法（§27 給付項目）</li>
-                <li>強制汽車責任保險給付標準（§2-§4 + 失能等級附表）</li>
-                <li>民法 §184、§193、§194、§195</li>
-                <li>金融消費評議中心評議原則</li>
-                <li className="text-foreground">
-                  臺北 / 新北 / 臺中 / 臺南 / 高雄 / 桃園 地方法院慰撫金區間
-                </li>
-              </ul>
-            </div>
-            <div className="!mt-3 rounded-lg border border-border bg-surface-subtle p-4">
-              <Space size={6} className="!mb-2">
-                <EnvironmentOutlined />
-                <Text className="!text-xs uppercase tracking-wider text-muted">
-                  地區覆蓋
-                </Text>
-              </Space>
-              <Text className="!text-sm text-foreground">
-                6 個直轄市地方法院 + 26 縣市自動對應（台 / 臺異體字相容）
-              </Text>
+            {/* 主格：Ensemble 健康度 — 加大 padding、accent border 凸顯主視覺 */}
+            <div className="rounded-lg border-2 border-accent/30 bg-surface p-5 shadow-[0_1px_0_rgba(190,18,60,0.04)]">
+              <EnsembleHealthHeroCard />
             </div>
 
-            {/* Ensemble 健康度（v0.6.9+）— build-time 靜態載入 taipei-mental-distress */}
-            <EnsembleHealthHeroCard />
+            {/* 次格 2 欄並排：引用法源 + 地區覆蓋 */}
+            <div className="!mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+              <div className="rounded-lg border border-border bg-surface p-4 shadow-[0_1px_0_rgba(0,0,0,0.02)]">
+                <Space size={6} className="!mb-2">
+                  <ReadOutlined />
+                  <Text className="!text-xs !font-semibold uppercase tracking-wider text-foreground">
+                    引用法源
+                  </Text>
+                </Space>
+                <ul className="m-0 space-y-1.5 !text-xs text-muted">
+                  <li>強制汽車責任保險法 §27</li>
+                  <li>強制險給付標準 §2-§4 + 失能等級表</li>
+                  <li>民法 §184 / §193 / §194 / §195</li>
+                  <li className="text-foreground">
+                    6 直轄市地院慰撫金區間
+                  </li>
+                </ul>
+              </div>
+              <div className="rounded-lg border border-border bg-surface-subtle p-4">
+                <Space size={6} className="!mb-2">
+                  <EnvironmentOutlined />
+                  <Text className="!text-xs uppercase tracking-wider text-muted">
+                    地區覆蓋
+                  </Text>
+                </Space>
+                <Text className="!text-xs text-foreground">
+                  6 直轄市地院 + 26 縣市自動對應
+                  <br />
+                  （台 / 臺異體字相容）
+                </Text>
+              </div>
+            </div>
           </div>
         </div>
       </motion.section>
