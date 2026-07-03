@@ -103,12 +103,26 @@ export default function HomeClient() {
                     引用法源
                   </Text>
                 </Space>
-                <ul className="m-0 space-y-1.5 !text-xs text-muted">
-                  <li>強制汽車責任保險法 §27</li>
-                  <li>強制險給付標準 §2-§4 + 失能等級表</li>
-                  <li>民法 §184 / §193 / §194 / §195</li>
+                <ul className="m-0 space-y-2 !text-xs text-muted">
+                  <li>
+                    <span className="text-foreground">強制汽車責任保險法 §27</span>
+                    <br />
+                    <span className="text-[11px] text-muted">國家立法保障所有用路人，基本醫療與失能必賠</span>
+                  </li>
+                  <li>
+                    <span className="text-foreground">強制險給付標準 §2-§4</span>
+                    <br />
+                    <span className="text-[11px] text-muted">15 細項法定上限（如醫療 20 萬、看護每日 1,200 元）</span>
+                  </li>
+                  <li>
+                    <span className="text-foreground">民法 §184 / §193-§195</span>
+                    <br />
+                    <span className="text-[11px] text-muted">侵權行為 + 醫療 / 工作 / 精神慰撫金請求權</span>
+                  </li>
                   <li className="text-foreground">
                     6 直轄市地院慰撫金區間
+                    <br />
+                    <span className="text-[11px] text-muted">同類傷勢在不同地區法院的判賠區間</span>
                   </li>
                 </ul>
               </div>
@@ -214,21 +228,35 @@ export default function HomeClient() {
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         <div className="mx-auto w-full max-w-6xl px-6 py-16 md:py-20">
-          <Title level={2} className="!mb-8 !text-2xl !tracking-tight md:!text-3xl">
+          <Space size={6} className="!mb-2">
+            <ExperimentOutlined />
+            <Text className="!text-xs uppercase tracking-[0.18em] text-muted">
+              Engineering Principles
+            </Text>
+          </Space>
+          <Title level={2} className="!mb-3 !text-2xl !tracking-tight md:!text-3xl">
             三條鐵律，系統永遠守著。
           </Title>
+          <Paragraph className="!mb-10 !text-base text-muted">
+            這三條不是工程師個人偏好，是法律強制 + 業務實務的底線。
+            <br />
+            違反任一條都可能讓估算金額對保戶產生誤導，後果比「算不出來」更嚴重。
+          </Paragraph>
           <div className="grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-3">
             <IronRow
               label="強制險採無過失主義"
               desc="不乘肇責比例，純依傷害程度計算"
+              reason="1967 年強制險立法目的就是為了讓受害人不必舉證對方過失，肇責只影響第三人責任險層。"
             />
             <IronRow
               label="精神慰撫金 / 工作損失 / 車損不放入強制險"
               desc="這是法律強制，不是系統限制"
+              reason="強制險 §27 列舉的給付項目限定醫療 / 失能 / 死亡三類，把精神慰撫金塞進去會誤導保戶。"
             />
             <IronRow
               label="資料不足不硬算"
               desc="顯示需補資料，不給假數字"
+              reason="估算金額會影響保戶決策。缺資料時硬給一個數字，比老實說『需要補件』更不負責任。"
             />
           </div>
         </div>
@@ -244,19 +272,63 @@ export default function HomeClient() {
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         <div className="mx-auto w-full max-w-6xl px-6 py-10">
+          {/* v0.12.0+ Phase A4：免責聲明精準化 — 主標 + 3 點白話拆解 */}
           <InfoAlert
             type="warning"
             showIcon
-            className="!mb-6"
-            title="免責聲明"
-            body="本系統依使用者輸入資料、強制汽車責任保險給付標準、常見民事損害賠償項目、金融評議公開案例及法院實務區間進行初步估算。實際理賠金額仍須依保險公司審核、醫療資料、肇事責任、保單條款、金融評議結果、法院認定及雙方和解結果為準。本系統不保證理賠金額，亦不構成法律意見。"
+            className="!mb-4"
+            title="這是「估算」，不是「判決」"
+            body={
+              <>
+                <p className="!mb-3">
+                  本工具依你輸入的資料 + 強制汽車責任保險給付標準 + 民法 §184-196 +
+                  6 直轄市地方法院實務區間，做<strong>初步金額估算</strong>。
+                  這不是保險公司的最終理賠，也不是律師 / 法院的判決。
+                </p>
+                <p className="!mb-3">
+                  <strong>實際理賠金額</strong>還要看：保險公司審核 · 醫療單據齊全度 ·
+                  肇事責任認定 · 保單條款 · 金融評議結果 · 法院判決 · 雙方和解。
+                </p>
+                <p className="!mb-0">
+                  <strong>本工具不保證金額，亦不構成法律意見。</strong>
+                  涉及訴訟請洽執業律師；理賠爭議可向金融消費評議中心申訴。
+                </p>
+              </>
+            }
           />
+          {/* v0.12.0+ Phase A4：拆出「3 個常見誤解」幫保戶建立正確預期 */}
+          <div className="!mb-6 grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div className="rounded border border-border bg-surface-subtle p-3">
+              <Text strong className="!text-xs text-foreground">
+                「估算」不等於「保證」
+              </Text>
+              <Text className="!mt-1 !text-xs text-muted">
+                同一個案件，可能因為一份醫療單據差 1,000 元，估算就不同。
+              </Text>
+            </div>
+            <div className="rounded border border-border bg-surface-subtle p-3">
+              <Text strong className="!text-xs text-foreground">
+                「結果」需專業複核
+              </Text>
+              <Text className="!mt-1 !text-xs text-muted">
+                真實理賠前請交給保險經紀人 / 律師，依個案情節重新檢視。
+              </Text>
+            </div>
+            <div className="rounded border border-border bg-surface-subtle p-3">
+              <Text strong className="!text-xs text-foreground">
+                「規則」會持續更新
+              </Text>
+              <Text className="!mt-1 !text-xs text-muted">
+                法規與案例每 30 天更新。重大法規變動請參考司法院公告。
+              </Text>
+            </div>
+          </div>
           <div className="flex flex-col items-start justify-between gap-2 text-xs text-muted md:flex-row md:items-center">
             <Text className="!text-xs text-muted">
               © 2026 tw-car-claim-estimator · Built with Next.js 16 + AntD 6
             </Text>
             <Text className="!text-xs text-muted">
-              v0.1 MVP · 6 直轄市 + 26 縣市
+              v0.12.0 · 6 直轄市 + 26 縣市
             </Text>
           </div>
         </div>
@@ -329,7 +401,7 @@ function BentoCell({
   )
 }
 
-function IronRow({ label, desc }: { label: string; desc: string }) {
+function IronRow({ label, desc, reason }: { label: string; desc: string; reason?: string }) {
   return (
     <div className="bg-background p-5">
       <Space size={6} className="!mb-1">
@@ -337,6 +409,11 @@ function IronRow({ label, desc }: { label: string; desc: string }) {
         <Text className="!text-sm !font-semibold text-foreground">{label}</Text>
       </Space>
       <Text className="!text-sm text-muted">{desc}</Text>
+      {reason && (
+        <Text className="!mt-2 !text-xs italic text-muted opacity-80">
+          為什麼：{reason}
+        </Text>
+      )}
     </div>
   )
 }
