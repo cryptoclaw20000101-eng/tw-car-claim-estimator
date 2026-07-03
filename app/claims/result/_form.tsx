@@ -39,7 +39,7 @@ import {
   EditOutlined,
   EyeOutlined,
 } from '@ant-design/icons'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import type { ClaimInput, EstimationResult } from '@/lib/insurance/types'
 import { estimateClaim } from '@/lib/insurance'
 import { SAMPLE_INPUT } from '@/lib/insurance/sample'
@@ -214,42 +214,42 @@ export default function ResultForm() {
             {
               key: 'compulsory',
               label: <span><SafetyCertificateOutlined /> ① 強制險</span>,
-              children: <CompulsorySection result={result} />,
+              children: <TabContent><CompulsorySection result={result} /></TabContent>,
             },
             {
               key: 'disability',
               label: <span><FileTextOutlined /> ② 失能初篩</span>,
-              children: <DisabilitySection result={result} />,
+              children: <TabContent><DisabilitySection result={result} /></TabContent>,
             },
             {
               key: 'practice',
               label: <span><FileTextOutlined /> ②b 理賠實務案例</span>,
-              children: <PracticeCasesSection result={result} />,
+              children: <TabContent><PracticeCasesSection result={result} /></TabContent>,
             },
             {
               key: 'civil',
               label: <span><DollarOutlined /> ③ 民事損害</span>,
-              children: <CivilSection result={result} />,
+              children: <TabContent><CivilSection result={result} /></TabContent>,
             },
             {
               key: 'third',
               label: <span><BankOutlined /> ④ 第三人責任險</span>,
-              children: <ThirdPartySection result={result} input={input} />,
+              children: <TabContent><ThirdPartySection result={result} input={input} /></TabContent>,
             },
             {
               key: 'supplement',
               label: <span><AlertOutlined /> ⑤ 補件 / 風險</span>,
-              children: <SupplementSection result={result} />,
+              children: <TabContent><SupplementSection result={result} /></TabContent>,
             },
             {
               key: 'region',
               label: <span><EnvironmentOutlined /> ⑥ 地區實務</span>,
-              children: <RegionSection result={result} />,
+              children: <TabContent><RegionSection result={result} /></TabContent>,
             },
             {
               key: 'legal',
               label: <span><ReadOutlined /> ⑦ 法源依據</span>,
-              children: <LegalSection />,
+              children: <TabContent><LegalSection /></TabContent>,
             },
           ]}
         />
@@ -769,5 +769,26 @@ function LegalSection() {
         title="以上法源僅作估算依據；個案適用仍以最新法規及主管機關解釋為準。"
       />
     </Card>
+  )
+}
+
+/**
+ * v0.10.0+：Tab content wrapper — 切 tab 時淡入
+ * AntD Tabs 預設 destroyOnHide=true（v5+）→ 切換 tab 會 re-mount children
+ * 因此 motion initial/animate 在每次切換時都會觸發
+ *
+ * 用法：包在 Tabs items 每個 children 外層
+ *   children: <TabContent><CompulsorySection result={result} /></TabContent>
+ */
+function TabContent({ children }: { children: React.ReactNode }) {
+  const reduce = useReducedMotion()
+  return (
+    <motion.div
+      initial={reduce ? false : { opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+    >
+      {children}
+    </motion.div>
   )
 }

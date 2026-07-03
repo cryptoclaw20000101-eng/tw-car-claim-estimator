@@ -1,5 +1,5 @@
 /**
- * Step4KnnPreview — Step4 失能等級輸入時即時 KNN 預視（v0.7.6+）
+ * Step4KnnPreview — Step4 失能等級輸入時即時 KNN 預視（v0.7.6+，v0.10.0+ motion polish）
  *
  * 設計目的：
  *   v0.7.3 KNN debug panel 只在「結果頁」顯示，業務員填表時不知道
@@ -11,6 +11,11 @@
  *   2. 防抖 300ms 避免每 keystroke 重算
  *   3. 用 findRelatedPracticeCases(courtName, level, 3, true) 拿 top 3 + KNN 拆解
  *   4. 顯示 3 張卡片（案例編號 + 距離 + 相似度）+ KnnDebugPanel 展開 5 維
+ *
+ * v0.10.0+ motion polish：
+ *   - 卡片列表加 motion stagger fade-in（用 framer-motion）
+ *   - key on debounced value 觸發 transition on data change
+ *   - honor prefers-reduced-motion
  *
  * 不打 API / 不打 LLM：
  *   - 純 client-side，200+ precedents 已內嵌在 bundle（v0.5.x iOS Safari 修護時驗證）
@@ -28,6 +33,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { Alert, Card, Empty, Space, Spin, Tag, Typography } from 'antd'
+import { motion, useReducedMotion } from 'framer-motion'
 import type { PracticeCaseWithKnn } from '@/lib/estimate/precedents'
 import { findRelatedPracticeCases } from '@/lib/estimate/precedents'
 import { KnnDebugPanel } from '@/components/KnnDebugPanel'
@@ -65,6 +71,7 @@ function similarityLabel(distance: number): { label: string; color: string } {
 }
 
 export function Step4KnnPreview({ disabilityLevel, accidentLocation }: Step4KnnPreviewProps) {
+  const reduce = useReducedMotion()
   // 防抖：避免快速切換失能等級時重複計算
   const debouncedLevel = useDebouncedValue(disabilityLevel, DEBOUNCE_MS)
   const debouncedLocation = useDebouncedValue(accidentLocation, DEBOUNCE_MS)
@@ -98,62 +105,78 @@ export function Step4KnnPreview({ disabilityLevel, accidentLocation }: Step4KnnP
   }
 
   // 條件 3：兩欄齊全且有結果 → 3 張卡片 + KnnDebugPanel
+  // v0.10.0+：用 motion.div + key 觸發 fade-in on data change
   return (
-    <Card
-      size="small"
-      title={`📊 即時 KNN 預視（失能等級 ${disabilityLevel}${accidentLocation ? ` · ${accidentLocation}` : ''}）`}
-      className="!mt-4"
-      extra={<Tag color="blue">client-side · 0 網路成本</Tag>}
+    <motion.div
+      key={`${debouncedLevel}-${debouncedLocation}`}
+      initial={reduce ? false : { opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
     >
-      <Paragraph type="secondary" className="!text-xs !mt-0 !mb-3">
-        從 {cases.length > 0 ? '200+' : '0'} 筆真實判例中，依 5 維特徵（縣市/失能等級/年份/傷勢/失能紀錄）找出最相似的 {cases.length} 筆。
-        距離越小越相似。
-      </Paragraph>
+      <Card
+        size="small"
+        title={`📊 即時 KNN 預視（失能等級 ${disabilityLevel}${accidentLocation ? ` · ${accidentLocation}` : ''}）`}
+        className="!mt-4"
+        extra={<Tag color="blue">client-side · 0 網路成本</Tag>}
+      >
+        <Paragraph type="secondary" className="!text-xs !mt-0 !mb-3">
+          從 {cases.length > 0 ? '200+' : '0'} 筆真實判例中，依 5 維特徵（縣市/失能等級/年份/傷勢/失能紀錄）找出最相似的 {cases.length} 筆。
+          距離越小越相似。
+        </Paragraph>
 
-      <Space orientation="vertical" size="small" className="!w-full">
-        {cases.map((c) => {
-          const distance = c.knnDistance ?? 0
-          const sim = similarityLabel(distance)
-          return (
-            <Card
-              key={c.id}
-              size="small"
-              className="!bg-blue-50/30"
-              data-testid="knn-preview-card"
-            >
-              <Space size="small" wrap className="!w-full !justify-between">
-                <Space size="small" wrap>
-                  <Text strong className="!text-sm">
-                    {c.caseNo}
-                  </Text>
-                  <Tag color="default" className="!text-xs">
-                    {c.court}
-                  </Tag>
-                  <Tag color="default" className="!text-xs">
-                    {c.year} 年
-                  </Tag>
-                  {c.disabilities?.[0]?.level && (
-                    <Tag color="purple" className="!text-xs">
-                      失能 {c.disabilities[0].level} 級
+        <Space orientation="vertical" size="small" className="!w-full">
+          {cases.map((c, idx) => {
+            const distance = c.knnDistance ?? 0
+            const sim = similarityLabel(distance)
+            return (
+              <motion.div
+                key={c.id}
+                // v0.10.0+：卡片加 stagger fade-in
+                initial={reduce ? false : { opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.35,
+                  delay: reduce ? 0 : 0.1 + idx * 0.08,
+                  ease: 'easeOut',
+                }}
+                data-testid="knn-preview-card"
+              >
+                <Card size="small" className="!bg-blue-50/30">
+                  <Space size="small" wrap className="!w-full !justify-between">
+                    <Space size="small" wrap>
+                      <Text strong className="!text-sm">
+                        {c.caseNo}
+                      </Text>
+                      <Tag color="default" className="!text-xs">
+                        {c.court}
+                      </Tag>
+                      <Tag color="default" className="!text-xs">
+                        {c.year} 年
+                      </Tag>
+                      {c.disabilities?.[0]?.level && (
+                        <Tag color="purple" className="!text-xs">
+                          失能 {c.disabilities[0].level} 級
+                        </Tag>
+                      )}
+                    </Space>
+                    <Tag color={sim.color} className="!text-xs">
+                      距離 {distance.toFixed(2)} · {sim.label}
                     </Tag>
-                  )}
-                </Space>
-                <Tag color={sim.color} className="!text-xs">
-                  距離 {distance.toFixed(2)} · {sim.label}
-                </Tag>
-              </Space>
-            </Card>
-          )
-        })}
-      </Space>
+                  </Space>
+                </Card>
+              </motion.div>
+            )
+          })}
+        </Space>
 
-      <details className="!mt-3">
-        <summary className="!cursor-pointer !text-xs !text-gray-500">
-          🔍 展開 KNN 5 維拆解
-        </summary>
-        <KnnDebugPanel cases={cases} title="為什麼這些案例被推薦？" />
-      </details>
-    </Card>
+        <details className="!mt-3">
+          <summary className="!cursor-pointer !text-xs !text-gray-500">
+            🔍 展開 KNN 5 維拆解
+          </summary>
+          <KnnDebugPanel cases={cases} title="為什麼這些案例被推薦？" />
+        </details>
+      </Card>
+    </motion.div>
   )
 }
 

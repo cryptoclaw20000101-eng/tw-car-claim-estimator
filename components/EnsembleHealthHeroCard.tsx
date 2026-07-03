@@ -3,9 +3,9 @@
 /**
  * EnsembleHealthHeroCard — 首頁 hero Ensemble 健康度小卡（v0.6.9+）
  *
- * 設計目的：
- *   v0.6.8 報表層加了 Ensemble 健康度區塊，但保經/律師要自己開報表才看得到。
- *   此元件把 Ensemble 健康度拉到首頁 hero 第一眼可見的位置。
+ * v0.10.0+ motion polish：
+ *   - 3 KPI 加 staggered fade-in（用 framer-motion）
+ *   - honor prefers-reduced-motion
  *
  * 設計紀律（沿用 taste-skill v1）：
  *   - 無 emoji（用「high / medium / low / none」純文字 + 對應文字色）
@@ -21,6 +21,7 @@
 
 import { Space, Tooltip, Typography } from 'antd'
 import { ExperimentOutlined, WarningOutlined } from '@ant-design/icons'
+import { motion, useReducedMotion } from 'framer-motion'
 import anchorData from '@/data/precedents/taipei-mental-distress.json'
 import {
   computeEnsembleHealth,
@@ -31,6 +32,7 @@ import {
 const { Text } = Typography
 
 export function EnsembleHealthHeroCard() {
+  const reduce = useReducedMotion()
   // build-time 靜態計算（Next turbopack 把 JSON 內嵌進 bundle）
   const health = computeEnsembleHealth(anchorData as PrecedentRow[])
   const meta = CONFIDENCE_META[health.confidenceLevel]
@@ -44,53 +46,57 @@ export function EnsembleHealthHeroCard() {
         </Text>
       </Space>
       <div className="grid grid-cols-3 gap-3">
-        {/* anchor 件數 */}
-        <Tooltip title="歷史精神慰撫金判決 anchor 數量（ML 票依據）">
-          <div>
-            <div className="tabular-nums text-2xl font-semibold tracking-tight text-foreground">
-              {health.anchorN}
-            </div>
-            <div className="text-xs uppercase tracking-wider text-muted">
-              anchor 件數
-            </div>
+        {/* v0.10.0+：3 KPI 加 staggered fade-in */}
+        <KpiCell
+          index={0}
+          reduce={reduce}
+          tooltip="歷史精神慰撫金判決 anchor 數量（ML 票依據）"
+          label="anchor 件數"
+        >
+          <div className="tabular-nums text-2xl font-semibold tracking-tight text-foreground">
+            {health.anchorN}
           </div>
-        </Tooltip>
+        </KpiCell>
 
-        {/* 中位數 */}
-        <Tooltip title={`歷史 anchor 中位數（${health.anchorP10.toLocaleString()} ~ ${health.anchorP90.toLocaleString()}）`}>
-          <div>
-            <div className="tabular-nums text-2xl font-semibold tracking-tight text-foreground">
-              {Math.round(health.anchorMedian / 1000)}K
-            </div>
-            <div className="text-xs uppercase tracking-wider text-muted">
-              中位數
-            </div>
+        <KpiCell
+          index={1}
+          reduce={reduce}
+          tooltip={`歷史 anchor 中位數（${health.anchorP10.toLocaleString()} ~ ${health.anchorP90.toLocaleString()}）`}
+          label="中位數"
+        >
+          <div className="tabular-nums text-2xl font-semibold tracking-tight text-foreground">
+            {Math.round(health.anchorMedian / 1000)}K
           </div>
-        </Tooltip>
+        </KpiCell>
 
-        {/* 信心度 */}
-        <Tooltip title={health.confidenceTip}>
-          <div>
-            <div className={`tabular-nums text-2xl font-semibold tracking-tight ${meta.color}`}>
-              {meta.label}
-            </div>
-            <div className="text-xs uppercase tracking-wider text-muted">
-              信心度
-            </div>
+        <KpiCell
+          index={2}
+          reduce={reduce}
+          tooltip={health.confidenceTip}
+          label="信心度"
+        >
+          <div className={`tabular-nums text-2xl font-semibold tracking-tight ${meta.color}`}>
+            {meta.label}
           </div>
-        </Tooltip>
+        </KpiCell>
       </div>
 
       {/* 傷勢梯度警示（沿用 rose-700 強調色） */}
       {health.injuryGradientWarning && (
-        <div className="!mt-3 rounded border border-accent/20 bg-accent/5 p-2">
+        <motion.div
+          // v0.10.0+：警示也加 fade-in
+          initial={reduce ? false : { opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: reduce ? 0 : 0.4, ease: 'easeOut' }}
+          className="!mt-3 rounded border border-accent/20 bg-accent/5 p-2"
+        >
           <Space size={6} align="start">
             <WarningOutlined className="text-accent" />
             <Text className="!text-xs text-foreground">
               {health.injuryGradientWarning}
             </Text>
           </Space>
-        </div>
+        </motion.div>
       )}
 
       {/* 區間 + 提示（避免重複顯示 tip，tip 已在 tooltip 內） */}
@@ -98,5 +104,41 @@ export function EnsembleHealthHeroCard() {
         P10 ~ P90：{health.anchorP10.toLocaleString()} ~ {health.anchorP90.toLocaleString()}
       </Text>
     </div>
+  )
+}
+
+/**
+ * v0.10.0+：KPI 單元抽出，加 motion wrapper + stagger delay
+ */
+function KpiCell({
+  index,
+  reduce,
+  tooltip,
+  label,
+  children,
+}: {
+  index: number
+  reduce: boolean | null
+  tooltip: string
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <motion.div
+      initial={reduce ? false : { opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        duration: 0.4,
+        delay: reduce ? 0 : 0.1 + index * 0.08,
+        ease: 'easeOut',
+      }}
+    >
+      <Tooltip title={tooltip}>
+        <div>
+          {children}
+          <div className="text-xs uppercase tracking-wider text-muted">{label}</div>
+        </div>
+      </Tooltip>
+    </motion.div>
   )
 }

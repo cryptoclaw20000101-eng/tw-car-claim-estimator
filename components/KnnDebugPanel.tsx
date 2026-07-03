@@ -1,5 +1,5 @@
 /**
- * KnnDebugPanel — KNN 推薦理由面板（v0.7.3+）
+ * KnnDebugPanel — KNN 推薦理由面板（v0.7.3+，v0.10.0+ motion polish）
  *
  * 設計目的：
  *   引擎已經算好 KNN 距離（v0.6.1）但結果丟掉了，UI 完全看不到
@@ -19,6 +19,11 @@
  *   - 5 維長條用 AntD Progress（與既有 EnsembleHealthHeroCard 風格一致）
  *   - 距離 0 = 完全相同 / 5 = 5 維全極端
  *
+ * v0.10.0+ motion polish：
+ *   - 5 維長條加 staggered slide-right（用 framer-motion）
+ *   - honor prefers-reduced-motion
+ *   - SSR 仍渲染所有維度（測試守護 emoji + 標籤）
+ *
  * 不變量（測試守護）：
  *   - 空陣列 → 回 null 不 render
  *   - 每件距離加總 = 5 維 breakdown 加總
@@ -29,6 +34,7 @@
 'use client'
 
 import { Card, Progress, Space, Tag, Tooltip, Typography } from 'antd'
+import { motion, useReducedMotion } from 'framer-motion'
 import type { PracticeCaseWithKnn } from '@/lib/estimate/precedents'
 import type { KnnDimensionBreakdown, PrecedentFeatures } from '@/lib/estimate/precedent-knn'
 
@@ -124,6 +130,7 @@ function caseFeatures(p: PracticeCaseWithKnn): PrecedentFeatures {
 }
 
 export function KnnDebugPanel({ cases, title = '🔍 KNN 推薦理由（debug）' }: KnnDebugPanelProps) {
+  const reduce = useReducedMotion()
   // 過濾掉沒附 KNN 距離的（callers 沒傳 withKnnDebug=true）
   const debuggable = cases.filter(
     (c): c is PracticeCaseWithKnn & {
@@ -145,7 +152,7 @@ export function KnnDebugPanel({ cases, title = '🔍 KNN 推薦理由（debug）
       </Paragraph>
 
       <Space orientation="vertical" size="middle" className="!w-full">
-        {debuggable.map((c) => {
+        {debuggable.map((c, cIdx) => {
           const distance = c.knnDistance
           const breakdown = c.knnBreakdown
           const query = c.knnQuery
@@ -186,7 +193,18 @@ export function KnnDebugPanel({ cases, title = '🔍 KNN 推薦理由（debug）
           ]
 
           return (
-            <div key={c.id} className="!bg-white !p-2 !rounded">
+            <motion.div
+              key={c.id}
+              // v0.10.0+：每件案件用 motion fade-in（per-case stagger）
+              initial={reduce ? false : { opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.4,
+                delay: reduce ? 0 : cIdx * 0.1,
+                ease: 'easeOut',
+              }}
+              className="!bg-white !p-2 !rounded"
+            >
               <Space size="small" wrap className="!mb-2">
                 <Text strong className="!text-xs">
                   {c.caseNo}
@@ -197,8 +215,19 @@ export function KnnDebugPanel({ cases, title = '🔍 KNN 推薦理由（debug）
               </Space>
 
               <Space orientation="vertical" size={4} className="!w-full">
-                {rows.map((row) => (
-                  <div key={row.label} className="!flex !items-center !gap-2">
+                {rows.map((row, rowIdx) => (
+                  <motion.div
+                    key={row.label}
+                    // v0.10.0+：5 維長條 staggered slide-right
+                    initial={reduce ? false : { opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{
+                      duration: 0.35,
+                      delay: reduce ? 0 : cIdx * 0.1 + rowIdx * 0.04,
+                      ease: 'easeOut',
+                    }}
+                    className="!flex !items-center !gap-2"
+                  >
                     <Tooltip title={row.tip || `${row.label} 維度距離`}>
                       <Text className="!text-xs !w-20 !shrink-0">
                         {row.emoji} {row.label}
@@ -222,10 +251,10 @@ export function KnnDebugPanel({ cases, title = '🔍 KNN 推薦理由（debug）
                     <Text type="secondary" className="!text-xs !w-12 !text-right !shrink-0">
                       {row.value.toFixed(2)}
                     </Text>
-                  </div>
+                  </motion.div>
                 ))}
               </Space>
-            </div>
+            </motion.div>
           )
         })}
       </Space>

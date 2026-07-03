@@ -1,18 +1,17 @@
 /**
- * InfoAlert — 包裝 AntD Alert，自動解 deprecated `message` prop
+ * InfoAlert — 包裝 AntD Alert，提供統一 props 介面（v0.10.0+ 加 closable + onClose）
  *
  * 設計目的：
- *   AntD 6 把 `message` / `description` 改名 `title` / `body`，
- *   21 處手改極易漏，且 `message → title` 會改變視覺結構（標題浮到頂）。
+ *   統一全專案 Alert 呼叫端的 props 介面，避免散落在各頁面。
+ *   內部仍呼叫 AntD `Alert` 的 description prop。
  *
- *   本元件封裝在 `components/InfoAlert.tsx`，所有頁面用
- *   `<InfoAlert type="info" title="..." body="..." />` 一致介面，
- *   內部仍呼叫 AntD `Alert`，但 prop 走新名稱。
+ * v0.10.0+ 新增：
+ *   - closable + onClose：可選關閉按鈕，呼叫端控制關閉後行為
+ *   - 對應 AntD Alert 的 closable / onClose props
  *
- * 限制：
- *   - 不支援 `Icon` 自訂 icon（用 AntD 預設 type icon 就好）
- *   - 不支援 `closable` / `action` 等進階 prop（21 處沒用到）
- *   - description 仍可加（optional 第二段詳細說明）
+ * 介面：
+ *   `<InfoAlert type="info" title="..." body="..." closable onClose={fn} />`
+ *   內部把 `body` 對應到 AntD `Alert` 的 `description` prop。
  */
 'use client'
 
@@ -24,9 +23,21 @@ export interface InfoAlertProps {
   body?: React.ReactNode
   showIcon?: boolean
   className?: string
+  /** v0.10.0+：是否顯示關閉按鈕 */
+  closable?: boolean
+  /** v0.10.0+：關閉事件（搭配 closable=true 用） */
+  onClose?: (e: React.MouseEvent<HTMLButtonElement>) => void
 }
 
-export function InfoAlert({ type = 'info', title, body, showIcon, className }: InfoAlertProps) {
+export function InfoAlert({
+  type = 'info',
+  title,
+  body,
+  showIcon,
+  className,
+  closable,
+  onClose,
+}: InfoAlertProps) {
   return (
     <Alert
       type={type}
@@ -34,6 +45,8 @@ export function InfoAlert({ type = 'info', title, body, showIcon, className }: I
       description={body}
       showIcon={showIcon}
       className={className}
+      closable={closable}
+      onClose={onClose}
     />
   )
 }

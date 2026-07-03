@@ -1,12 +1,17 @@
 /**
- * MobileNav — v0.8.0+ 手機專屬導覽列
+ * MobileNav — v0.8.0+ 手機專屬導覽列（v0.10.0+ 加 framer-motion 進場與 active underline）
  *
  * 設計：
- *   - 桌機（≥ 768px）：水平並排 nav
+ *   - 桌機（≥ 768px）：水平並排 nav，active 項有 animated underline
  *   - 手機（< 768px）：漢堡選單（Drawer）
  *   - 黏在頂部（sticky top-0）
  *   - iOS safe-area 處理（env(safe-area-inset-top)）
  *   - z-index 高於內容、低於 Modal
+ *
+ * v0.10.0+ 新增：
+ *   - 進場動畫：header fade-in-down
+ *   - active underline：motion.div 用 layoutId 跨 nav item 滑動
+ *   - honor prefers-reduced-motion
  *
  * 為什麼手機需要漢堡？
  *   5 大區塊 + 「開始估算」按鈕 → 桌機可並排，手機擠不下
@@ -19,7 +24,16 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button, Drawer, Space, Typography } from 'antd'
-import { MenuOutlined, CloseOutlined, HomeOutlined, CalculatorOutlined, ReadOutlined, ExperimentOutlined, FileSearchOutlined } from '@ant-design/icons'
+import {
+  MenuOutlined,
+  CloseOutlined,
+  HomeOutlined,
+  CalculatorOutlined,
+  ReadOutlined,
+  ExperimentOutlined,
+  FileSearchOutlined,
+} from '@ant-design/icons'
+import { motion, useReducedMotion } from 'framer-motion'
 
 const { Text } = Typography
 
@@ -39,14 +53,15 @@ const NAV_ITEMS: NavItem[] = [
 export function MobileNav() {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
+  const reduce = useReducedMotion()
 
-  // 桌機版 — 水平並排
+  // 桌機版 — 水平並排 + active underline (v0.10.0+ motion polish)
   const DesktopNav = (
     <nav className="hidden md:flex items-center gap-1" data-testid="mobile-nav-desktop">
       {NAV_ITEMS.map((item) => {
         const active = pathname === item.href
         return (
-          <Link key={item.href} href={item.href}>
+          <Link key={item.href} href={item.href} className="relative">
             <Button
               type={active ? 'primary' : 'text'}
               icon={item.icon}
@@ -54,6 +69,19 @@ export function MobileNav() {
             >
               {item.label}
             </Button>
+            {/* v0.10.0+：active 項加 motion underline（layoutId 跨 item 共享） */}
+            {active && (
+              <motion.span
+                layoutId="nav-underline"
+                className="absolute -bottom-1 left-1/2 h-[2px] w-8 -translate-x-1/2 rounded-full bg-accent"
+                transition={
+                  reduce
+                    ? { duration: 0 }
+                    : { type: 'spring', stiffness: 380, damping: 30 }
+                }
+                aria-hidden
+              />
+            )}
           </Link>
         )
       })}
@@ -72,10 +100,14 @@ export function MobileNav() {
   )
 
   return (
-    <header
+    <motion.header
       className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
       data-testid="mobile-nav"
+      // v0.10.0+：header 進場 fade-in-down
+      initial={reduce ? false : { opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
     >
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3 md:px-6 md:py-4">
         {/* Logo */}
@@ -137,7 +169,7 @@ export function MobileNav() {
           </div>
         </Space>
       </Drawer>
-    </header>
+    </motion.header>
   )
 }
 

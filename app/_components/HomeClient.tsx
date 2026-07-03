@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button, Typography, Space, Alert } from "antd"
 import { InfoAlert } from '@/components/InfoAlert'
-import { motion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 import { EnsembleHealthHeroCard } from "@/components/EnsembleHealthHeroCard"
 import { InstallPWAButton, PWAHintCard } from "@/components/InstallPWAButton"
 import {
@@ -28,6 +28,9 @@ const { Title, Paragraph, Text } = Typography
  * - 數字 tabular-nums
  */
 export default function HomeClient() {
+  const reduce = useReducedMotion()
+  // v0.10.0+：scroll-reveal 共用 viewport 設定（觸發一次、20% 可見時啟動）
+  const viewportOnce = { once: true, amount: 0.2 } as const
   return (
     <main className="dvh-screen flex flex-1 flex-col">
       {/* ============ Hero — 偏左不置中 ============ */}
@@ -120,7 +123,15 @@ export default function HomeClient() {
       </motion.section>
 
       {/* ============ 5 大區塊 — bento grid 2fr / 1fr / 1fr ============ */}
-      <section id="sections" className="bg-surface-subtle">
+      <motion.section
+        id="sections"
+        className="bg-surface-subtle"
+        // v0.10.0+：scroll reveal
+        initial={reduce ? false : { opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={viewportOnce}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+      >
         <div className="mx-auto w-full max-w-6xl px-6 py-16 md:py-20">
           <Space size={6} className="!mb-2">
             <ExperimentOutlined />
@@ -183,10 +194,17 @@ export default function HomeClient() {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ============ 鐵律（不踩雷） ============ */}
-      <section className="border-t border-border bg-background">
+      <motion.section
+        className="border-t border-border bg-background"
+        // v0.10.0+：scroll reveal
+        initial={reduce ? false : { opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={viewportOnce}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+      >
         <div className="mx-auto w-full max-w-6xl px-6 py-16 md:py-20">
           <Title level={2} className="!mb-8 !text-2xl !tracking-tight md:!text-3xl">
             三條鐵律，系統永遠守著。
@@ -206,10 +224,17 @@ export default function HomeClient() {
             />
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ============ Footer / 免責 ============ */}
-      <footer className="mt-auto border-t border-border bg-background">
+      <motion.footer
+        className="mt-auto border-t border-border bg-background"
+        // v0.10.0+：scroll reveal
+        initial={reduce ? false : { opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={viewportOnce}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+      >
         <div className="mx-auto w-full max-w-6xl px-6 py-10">
           <InfoAlert
             type="warning"
@@ -227,7 +252,7 @@ export default function HomeClient() {
             </Text>
           </div>
         </div>
-      </footer>
+      </motion.footer>
     </main>
   )
 }
