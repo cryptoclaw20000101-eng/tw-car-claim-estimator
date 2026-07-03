@@ -240,3 +240,123 @@ input[type="number"] {
   border-top: 1px solid var(--border);
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
 }
+
+/* === v0.12.0+ Phase B4：列印友善樣式 ===
+   業務員常用：列印結果頁給客戶看（瀏覽器 → 列印 → 存 PDF）。
+   - 隱藏導覽列、sticky CTA、PWA button
+   - 黑白印刷優化（accent 改深灰）
+   - 每頁加頁首 / 頁尾提示
+*/
+@media print {
+  /* 隱藏導覽列 */
+  [data-testid="mobile-nav"],
+  header[class*="sticky"] {
+    display: none !important;
+  }
+
+  /* 隱藏 sticky CTA 與浮動按鈕 */
+  .mobile-sticky-cta,
+  [data-testid="install-pwa-button-ios"],
+  [data-testid="install-pwa-button-android"],
+  .ant-back-top,
+  .ant-float-btn {
+    display: none !important;
+  }
+
+  /* 隱藏 PWA 安裝提示卡 */
+  [data-testid="pwa-hint-card"],
+  [class*="pwa-hint"] {
+    display: none !important;
+  }
+
+  /* 背景色強制白色（省墨） */
+  body,
+  .bg-background,
+  .bg-surface,
+  .bg-surface-subtle {
+    background: white !important;
+  }
+
+  /* 文字顏色強制黑（避免彩色墨水） */
+  .text-foreground,
+  .text-muted,
+  .text-accent {
+    color: black !important;
+  }
+
+  /* accent 強調色改深灰（黑白印刷下仍可辨識） */
+  .text-accent,
+  [style*="--accent"] {
+    color: #333 !important;
+  }
+
+  /* Tabs 強制展開所有內容（不要點擊切換） */
+  .ant-tabs-nav {
+    display: none !important;
+  }
+  .ant-tabs-content-holder {
+    border: 0 !important;
+  }
+  .ant-tabs-tabpane {
+    display: block !important;
+    /* 強制每個 tab 內容獨立成頁，避免擠在一起 */
+    page-break-after: always;
+    page-break-inside: avoid;
+  }
+  .ant-tabs-tabpane:last-child {
+    page-break-after: auto;
+  }
+
+  /* 卡片陰影列印時拿掉（省墨） */
+  .ant-card,
+  .card-shadow,
+  .card-shadow-md {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+  }
+
+  /* 頁面分頁：每個 section 避免在切點斷裂 */
+  section,
+  .ant-card,
+  .ant-table-wrapper {
+    page-break-inside: avoid;
+  }
+
+  /* 結果頁 Hero Stat 4 欄強制單欄列印（避免數字擠在一起） */
+  .grid-cols-4,
+  [class*="md:grid-cols-4"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 字級縮放（紙張空間有限） */
+  body {
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
+  }
+
+  h1, h2, h3, h4, h5 {
+    page-break-after: avoid;
+  }
+
+  /* 隱藏 link URL（除非要印出） */
+  a[href]::after {
+    content: "" !important;
+  }
+
+  /* 結果頁頂部「免責聲明」強制顯示（即便 print 也要提醒） */
+  .ant-alert-warning {
+    page-break-inside: avoid;
+    border: 2px solid #333 !important;
+  }
+
+  /* 加頁首頁尾（列印自動加） */
+  @page {
+    margin: 2cm 1.5cm;
+    /* 頁尾加版本號與 URL（v0.12.0+） */
+    @bottom-right {
+      content: "tw-car-claim-estimator v0.12.0 · " counter(page) " / " counter(pages);
+      font-size: 9pt;
+      color: #666;
+    }
+  }
+}
