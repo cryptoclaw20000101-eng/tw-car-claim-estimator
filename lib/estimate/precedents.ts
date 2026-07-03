@@ -63,9 +63,7 @@ function loadPrecedentsSync(): ScrapedPrecedent[] {
       if (existsSync(p)) {
         const raw = readFileSync(p, "utf-8");
         _cache = JSON.parse(raw) as ScrapedPrecedent[];
-        console.log(
-          `[precedents] 載入 ${_cache.length} 件真實判決 from ${p}`,
-        );
+        // v0.12.0+ 移除 dev console.log（生產環境不應輸出 debug）
         return _cache;
       }
     }
@@ -194,9 +192,7 @@ export function loadAllPrecedents(): GeneralPrecedent[] {
         }
       }
       _generalCache = all
-      console.log(
-        `[precedents-general] 載入 ${all.length} 件通用判例 from ${dir}（${files.length} 檔）`,
-      )
+      // v0.12.0+ 移除 dev console.log（生產環境不應輸出 debug）
       return _generalCache
     }
     _generalCache = []

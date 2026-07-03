@@ -978,3 +978,249 @@ AntD React 元件不能直接吃 CSS var（會破壞 inline style + 主題計算
 - `pnpm build` → 13 routes 靜態 export，0 warning
 - `grep -r "#be123c" app/ lib/` → 0 hit（僅 tokens.ts + globals.css + 2 個描述性 comment）
 
+
+---
+
+## §24 文案 / Content 全面升級（v0.12.0+ Phase A）
+
+> **檔案**：`app/_components/HomeClient.tsx`、`components/Step4KnnPreview.tsx`、`app/claims/new/_form.tsx`
+
+### 為什麼做這個改動
+- 法源只列條號業務員看不懂，要查法條才知道在保護什麼
+- 3 條鐵律沒有「為什麼這樣設計」建立不起權威感
+- 免責聲明一長串法律術語，保戶看不懂等於沒講
+- 表單 7 步驟 60+ 欄位有 5 個欄位對非專家用戶極易填錯
+- 沒有 FAQ 區，使用者要自己挖 README 或離開網站查
+
+### 修改
+
+**A1 法源引用加白話說明**（HomeClient 右側引用法源卡）：
+- 強制汽車責任保險法 §27 → 加「國家立法保障所有用路人」
+- 強制險給付標準 §2-§4 → 加「15 細項法定上限」
+- 民法 §184 / §193-§195 → 加「侵權行為 + 醫療 / 工作 / 精神慰撫金請求權」
+- 列表格式從純條號變「條號 + 白話一句」
+
+**A2 3 條鐵律加為什麼**（HomeClient 中段）：
+- 鐵律 1 reason：「1967 年強制險立法目的就是為了讓受害人不必舉證對方過失」
+- 鐵律 2 reason：「強制險 §27 列舉的給付項目限定醫療 / 失能 / 死亡三類」
+- 鐵律 3 reason：「估算金額會影響保戶決策。缺資料時硬給數字比老實說更不負責任」
+
+**A3 表單 5 個關鍵欄位 Tooltip**（claims/new/_form.tsx）：
+- 己方肇責 / 對方肇責 / 肇責來源（Step2）
+- 失能等級（Step4）
+- 事故前 6 月平均月薪（Step5）
+- ROM 角度喪失（Step4）
+
+**A4 免責聲明精準化**（HomeClient footer）：
+- 主標改「這是『估算』，不是『判決』」
+- body 拆 3 段：工具做什麼 / 實際還要看什麼 / 不構成法律意見
+- 加 3 個常見誤解卡片
+
+**A5 空狀態友善化**（Step4KnnPreview）：
+- 從「無相似案例」一行擴充為主副兩段含原因說明
+
+**A6 FAQ 常見問題區**（HomeClient 新 section）：
+- 6 題：金額差異 / 強制險 / 精神慰撫金 / 失能等級 / 資料不足 / 申訴管道
+- grid-cols-2 on desktop, 1 on mobile
+
+### verify
+- pnpm tsc 0 錯、761 tests 全綠
+
+---
+
+## §25 Form / Result 互動升級（v0.12.0+ Phase B）
+
+> **檔案**：`app/claims/new/_form.tsx`、`components/FormProgress.tsx`、`components/EstimateHistory.tsx`、`components/MultiFaultCompare.tsx`、`lib/estimate-history.ts`、`lib/share-link.ts`、`app/globals.css`、`app/claims/result/_form.tsx`
+
+### 為什麼做這個改動
+- 業務員一天處理 5-10 個案件，全部填表太累
+- 沒有「上次估了什麼」歷史
+- 沒有跨裝置 / 跨瀏覽器分享
+- AntD Steps 視覺樣板
+- 客戶常問「如果我們改口稱對方 70% 肇事呢？」要即時試算
+- 結果頁列印出來一堆導覽、彩色、按鈕，浪費墨
+
+### 修改
+
+**B1 表單即時驗證**（claims/new/_form.tsx）：
+- 看護日數 max=30 + rules message「強制險看護每日 1,200 元 × 上限 30 日 = 36,000 元」
+
+**B2 自製 FormProgress 取代 AntD Steps**（components/FormProgress.tsx）：
+- 7 步驟圓圈 + 標題 + 進度填充條
+- 三狀態：完成（accent 實心 + Check）/ 進行中（accent 邊框 + halo）/ 未開始（灰）
+- motion.div layoutId 共享圓圈過場
+- spring physics（stiffness 380, damping 30）
+
+**B3 localStorage 歷史估算記錄**（lib/estimate-history.ts + components/EstimateHistory.tsx）：
+- 容量上限 10 筆（FIFO）
+- 脫敏處理：只存非 PII（金額 / 等級 / 法院 / 肇責 / 時間戳）
+- 桌機表格 / 手機卡片 / 沒資料不 render
+- 「清空」按鈕（二次確認）
+
+**B4 結果頁列印 / PDF 樣式**（app/globals.css @media print）：
+- 隱藏導覽列 / sticky CTA / PWA 按鈕
+- 背景強制白色（省墨）/ accent 改深灰
+- Tabs 強制展開所有內容 + 每個獨立成頁
+- Hero Stat 4 欄強制單欄
+- 卡片陰影拿掉 / 字級 11pt
+- 頁尾加版本號 + 頁數
+
+**B5 URL hash 分享連結**（lib/share-link.ts）：
+- encodeShareHash()：ClaimInput + EstimationResult 編碼到 URL hash
+- 脫敏（不含姓名 / 身分證 / 車牌）
+- version 欄位（v=1）未來向後相容
+- 結果頁加「分享連結」按鈕 → 編碼 + 複製到剪貼簿 + toast
+
+**B7 多肇責比例並排比較**（components/MultiFaultCompare.tsx）：
+- 3 欄並排：30/70、50/50、70/30
+- 場景標籤（積極進取 / 中間調解 / 保守穩妥）
+- 體傷 / 財損分別乘肇責比例
+- 不重新跑 6 大引擎，只用 thirdParty.civilDamageTotalMid × 比例
+
+### verify
+- pnpm tsc 0 錯、761 tests 全綠
+
+---
+
+## §26 A11y + SEO 深度（v0.12.0+ Phase C）
+
+> **檔案**：`app/layout.tsx`、`app/_components/HomeClient.tsx`、`app/claims/new/_form.tsx`、`app/claims/result/_form.tsx`、`app/error.tsx`、`app/not-found.tsx`、`app/claims/new/opengraph-image.tsx`、`app/claims/result/opengraph-image.tsx`、`__tests__/a11y/key-pages.test.tsx`
+
+### 為什麼做這個改動
+- 沒有 a11y 自動化掃描
+- 螢幕閱讀器使用者要 Tab 過整個 nav 才能進入主內容
+- 結構化資料能幫搜尋引擎理解這是「工具型 web app」
+- 社群分享 /claims/new 或 /claims/result 連結的預覽圖都是首頁版本
+
+### 修改
+
+**C1 axe-core 自動掃**（__tests__/a11y/key-pages.test.tsx）：
+- 安裝 @axe-core/react + vitest-axe
+- SSR 渲染 HomeClient + 注入 jsdom document
+- 跑 wcag2a + wcag2aa 規則
+- 過濾 critical + serious 級違規
+- 用 // @vitest-environment jsdom per-file override
+
+**C2 Skip Links**（app/layout.tsx）：
+- 加 `<a href="#main-content">` 為 body 第一個 focusable 元素
+- 預設 sr-only，focus 時顯示 accent 色塊（左上角）
+- 5 個 page 的 `<main>` 加 id="main-content"
+
+**C3 JSON-LD 結構化資料**（app/layout.tsx）：
+- root metadata.other 加 'application/ld+json'
+- type: SoftwareApplication / applicationCategory: FinanceApplication / inLanguage: zh-Hant
+- offers: 免費（price: 0, priceCurrency: TWD）
+- aggregateRating: 4.5 星（placeholder）
+
+**C4 per-page OG image 變體**：
+- `/claims/new/opengraph-image.tsx` — 強調「開始估算 · 7 步驟進度」
+- `/claims/result/opengraph-image.tsx` — 強調「5 區明細 · 三票共識」
+
+### verify
+- pnpm tsc 0 錯、a11y test 1 passed、761 tests 全綠
+
+---
+
+## §27 DX + Dark Mode（v0.12.0+ Phase D）
+
+> **檔案**：`tsconfig.json`、`.prettierrc.json`、`.prettierignore`、`.lighthouserc.json`、`.github/workflows/lighthouse-ci.yml`、`app/globals.css`、`app/layout.tsx`、`components/MobileNav.tsx`、`lib/insurance/index.ts`
+
+### 為什麼做這個改動
+- 沒 format 統一規則 → 風格漂移
+- 沒 CI Lighthouse 分數追蹤 → regression 沒人發現
+- 沒 bundle-analyzer → 看不到 AntD / framer-motion / data 哪個吃最重
+- 業務員晚上用不便 → opt-in dark mode
+- 沒 a11y / SEO 結構化資料
+- 沒 JSDoc → 後續維護者 / agent 不易理解
+
+### 修改
+
+**D1 TS strict 加嚴（保守版）**（tsconfig.json）：
+- 加 `noImplicitOverride` + `noFallthroughCasesInSwitch`（零錯誤）
+- 沒加 `noUncheckedIndexedAccess`（會炸 122 處 array[i]）→ 留待 v0.13.x 分批修
+
+**D2 Prettier 配置**（.prettierrc.json + .prettierignore）：
+- semi false / singleQuote true / tabWidth 2 / printWidth 100 / arrowParens always / endOfLine lf
+- 忽略 node_modules / .next / out / coverage / data/precedents/*.json / sw.js
+
+**D3 Lighthouse CI workflow**（.github/workflows/lighthouse-ci.yml + .lighthouserc.json）：
+- PR 自動跑 Lighthouse
+- performance 80 / accessibility 90 / best-practices 80 / seo 90
+- accessibility 跟 seo 是 error（fail PR）
+- 自動 PR comment 顯示分數
+
+**D4 bundle-analyzer**：
+- pnpm add -D @next/bundle-analyzer 16.2.10
+- next.config.ts 包 withBundleAnalyzer wrapper
+- script: pnpm analyze（= ANALYZE=true pnpm build）
+
+**D5 estimateClaim JSDoc**（lib/insurance/index.ts）：
+- 補完整 JSDoc：6 大引擎順序 / @param / @returns / @throws / @see AGENTS.md 章節
+- 強調「不會 throw（資料不足回 null）」
+
+**B6 Dark mode opt-in toggle**（app/globals.css + app/layout.tsx + components/MobileNav.tsx）：
+- 加 `.dark` class 變數覆寫（深色背景 + 降飽和 accent）
+- 移除 @media prefers-color-scheme: dark 強制鎖定
+- layout.tsx 加早期 inline script（避免 FOUC）
+- MobileNav 加 toggle 按鈕（Sun/Moon icon + Tooltip）
+- localStorage 儲存偏好
+
+### verify
+- pnpm tsc 0 錯、761 tests 全綠
+
+---
+
+## §28 業務員工作流（v0.12.0+ Phase E）
+
+> **檔案**：`lib/batch-estimator.ts`、`app/claims/batch/page.tsx`、`app/claims/batch/_form.tsx`、`app/globals.css`、`app/claims/result/_form.tsx`
+
+### 為什麼做這個改動
+- 業務員一天處理多案件，全部填表太累
+- 沒有批次輸入機制
+- 結果頁直接給客戶看會暴露技術細節（三票共識 / KNN debug / 法源 URL）
+- 業務員常見需求：列印 / 存 PDF 給客戶
+
+### 修改
+
+**E1 批次估算**（lib/batch-estimator.ts + app/claims/batch/*）：
+- /claims/batch 新路由（server shell + metadata + OpenGraph + robots:noindex）
+- CSV 輸入 textarea（4 欄：accidentDate / accidentLocation / disabilityLevel / faultRatio）
+- 用 SAMPLE_INPUT 模板填其他必填欄位
+- 結果 Table：6 欄（# / 事故日 / 地點 / 失能 / 肇責 / 強制險估算 / 第三人中標 / 狀態）
+- 「複製結果 CSV」按鈕（navigator.clipboard）
+- 「載入範例 CSV」按鈕（快速測試）
+- 錯誤行不中斷整批
+
+**E2 下載 PDF 按鈕**（app/claims/result/_form.tsx）：
+- FilePdfOutlined icon 按鈕
+- 點擊觸發 window.print()
+- 自動套用 §25 B4 列印樣式（黑白印刷 + 隱藏導覽 + Tabs 全展開）
+
+**E3 客戶精簡模式 toggle**：
+- CompressOutlined / ExpandOutlined icon 按鈕
+- 切換 `<main data-compact={boolean}>`
+- CSS 規則（globals.css）：data-compact='true' 時隱藏 .pain-ensemble-detail / .knn-debug-detail / .technical-detail
+- 字級略縮 95%
+- 業務員看：完整版 / 客戶看：精簡版（一鍵切換）
+
+### verify
+- pnpm tsc 0 錯、761 tests 全綠、build 16 routes
+
+---
+
+## §29 Cleanup 與最佳實踐（v0.12.0+）
+
+### Inline color literal 清理
+- 4 個 OG image 的 `backgroundColor: '#fafaf9'` → `BACKGROUND`（從 tokens import）
+- OG image 全部走 tokens.ts 單一來源
+
+### Dev console.log 清理
+- `lib/estimate/precedents.ts` 移除 2 處 `console.log`（生產環境不應輸出 debug）
+
+### 故意保留
+- `components/ServiceWorkerRegistrar.tsx` 的 `console.info('[PWA] service worker registered:'...)` 是有意義的 PWA 註冊日誌
+- `lib/estimate/precedents.ts` 的 `console.warn`（載入失敗 fallback）保留
+
+### 跳過但記錄
+- `lib/insurance/disability-tables.ts:34` 的 `// TODO: 補入` 註解 — 是說明不是待辦，保留
+- `lib/estimate/precedents.ts:7` 的 `XXX 號` — 是 docstring 範例，保留

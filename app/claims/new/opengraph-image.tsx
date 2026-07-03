@@ -1,7 +1,7 @@
 export const dynamic = 'force-static'
 
 import { ImageResponse } from 'next/og'
-import { ACCENT } from '@/lib/design/tokens'
+import { ACCENT, BACKGROUND } from '@/lib/design/tokens'
 
 /**
  * /claims/new 專用 OG image（v0.12.0+ Phase C4）
@@ -21,7 +21,7 @@ export default async function OpengraphImage() {
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          backgroundColor: '#fafaf9',
+          backgroundColor: BACKGROUND,
           padding: 80,
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif',
         }}
