@@ -65,23 +65,27 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  /* 使用者明確要求白天模式：忽略系統暗色偏好，強制保持淺色 token */
-  :root {
-    --background: #fafaf9;          /* stone-50 */
-    --foreground: #18181b;          /* zinc-900 */
-    --muted: #71717a;               /* zinc-500 */
-    --surface: #ffffff;             /* 純白卡片 */
-    --surface-subtle: #f4f4f5;      /* zinc-100 */
-    --border: #e4e4e7;              /* zinc-200 */
-    --border-strong: #d4d4d8;       /* zinc-300 */
-    --accent: #be123c;              /* rose-700 */
-    --accent-soft: #ffe4e6;         /* rose-100 */
-    --accent-foreground: #ffffff;
-    --data-positive: #166534;       /* green-800 */
-    --data-warning: #b45309;        /* amber-700 */
-    --data-negative: #991b1b;       /* red-800 */
-    --data-neutral: #1f2937;        /* gray-800 */
-  }
+  /* v0.12.0+ Phase B6：dark mode — 用 .dark class 控制（不用系統偏好避免鎖定失效）
+     注意：taste-skill v1 原本鎖定白天模式（@media 無 effect），
+     v0.12.0+ 改為 opt-in：使用者主動點 toggle 才生效 */
+}
+
+/* v0.12.0+ Phase B6：dark mode opt-in（手動 toggle） */
+.dark {
+  --background: #0a0a0a;          /* zinc-950 */
+  --foreground: #fafaf9;          /* stone-50 */
+  --muted: #a1a1aa;               /* zinc-400 */
+  --surface: #18181b;             /* zinc-900 */
+  --surface-subtle: #27272a;      /* zinc-800 */
+  --border: #3f3f46;              /* zinc-700 */
+  --border-strong: #52525b;       /* zinc-600 */
+  --accent: #fb7185;              /* rose-400（暗色模式降低飽和） */
+  --accent-soft: #4c0519;         /* rose-950 */
+  --accent-foreground: #ffffff;
+  --data-positive: #4ade80;        /* green-400 */
+  --data-warning: #fbbf24;        /* amber-400 */
+  --data-negative: #f87171;       /* red-400 */
+  --data-neutral: #d4d4d8;        /* zinc-300 */
 }
 
 html, body {

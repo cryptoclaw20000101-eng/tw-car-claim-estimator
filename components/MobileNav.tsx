@@ -20,10 +20,10 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Button, Drawer, Space, Typography } from 'antd'
+import { Button, Drawer, Space, Tooltip, Typography } from 'antd'
 import {
   MenuOutlined,
   CloseOutlined,
@@ -32,6 +32,9 @@ import {
   ReadOutlined,
   ExperimentOutlined,
   FileSearchOutlined,
+  // v0.12.0+ Phase B6：dark mode toggle icons
+  SunOutlined,
+  MoonOutlined,
 } from '@ant-design/icons'
 import { motion, useReducedMotion } from 'framer-motion'
 
@@ -52,8 +55,35 @@ const NAV_ITEMS: NavItem[] = [
 
 export function MobileNav() {
   const [open, setOpen] = useState(false)
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const pathname = usePathname()
   const reduce = useReducedMotion()
+
+  // v0.12.0+ Phase B6：讀 localStorage 套用 theme（client-side hydration 後）
+  useEffect(() => {
+    try {
+      const pref = window.localStorage.getItem('tw-car-claim-estimator:theme') || 'light'
+      setTheme(pref as 'light' | 'dark')
+    } catch {
+      // ignore
+    }
+  }, [])
+
+  const toggleTheme = () => {
+    const next = theme === 'light' ? 'dark' : 'light'
+    setTheme(next)
+    try {
+      window.localStorage.setItem('tw-car-claim-estimator:theme', next)
+    } catch {
+      // ignore
+    }
+    // 立即套用 / 移除 .dark class
+    if (next === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }
 
   // 桌機版 — 水平並排 + active underline (v0.10.0+ motion polish)
   const DesktopNav = (
@@ -119,6 +149,17 @@ export function MobileNav() {
 
         {/* 桌機 nav */}
         {DesktopNav}
+
+        {/* v0.12.0+ Phase B6：dark mode toggle */}
+        <Tooltip title={theme === 'dark' ? '切換淺色' : '切換深色'}>
+          <Button
+            type="text"
+            icon={theme === 'dark' ? <SunOutlined /> : <MoonOutlined />}
+            onClick={toggleTheme}
+            data-testid="theme-toggle"
+            aria-label={theme === 'dark' ? '切換淺色模式' : '切換深色模式'}
+          />
+        </Tooltip>
 
         {/* 手機漢堡 */}
         {MobileBurger}

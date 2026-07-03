@@ -1,0 +1,52 @@
+name: Lighthouse CI
+
+# v0.12.0+ Phase D3：自動跑 Lighthouse 分數追蹤
+# PR comment 會自動顯示 performance / accessibility / best-practices / SEO 分數變化
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        run: npm install -g pnpm@10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_SITE_URL: https://tw-car-claim-estimator.vercel.app
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v11
+        with:
+          configPath: ./.lighthouserc.json
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          # 自動 PR comment
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          # 分數門檻
+          performance: 80
+          accessibility: 90
+          best-practices: 80
+          seo: 90
+
+      - name: Fail if score dropped
+        if: steps.lighthouse.outputs.manifest != ''
+        run: |
+          echo "Lighthouse scores:"
+          echo "${{ steps.lighthouse.outputs.manifest }}"

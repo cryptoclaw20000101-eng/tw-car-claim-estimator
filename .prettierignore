@@ -1,0 +1,8 @@
+node_modules
+.next
+out
+coverage
+data/precedents/*.json
+public/sw.js
+**/*.min.js
+**/*.d.ts

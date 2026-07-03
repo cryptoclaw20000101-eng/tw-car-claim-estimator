@@ -85,6 +85,8 @@ export default function RootLayout({
     <html
       lang="zh-Hant"
       className="h-full antialiased"
+      // v0.12.0+ Phase B6：dark mode 由 client script 早期套用（避免 FOUC）
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         {/* v0.12.0+ Phase C2：Skip Links — 鍵盤 / 螢幕閱讀器使用者快速跳到主內容
@@ -95,6 +97,22 @@ export default function RootLayout({
         >
           跳到主要內容
         </a>
+        {/* v0.12.0+ Phase B6：dark mode 早期套用（避免 FOUC）
+            script 必須在 React hydration 前執行 */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var pref = localStorage.getItem('tw-car-claim-estimator:theme') || 'light';
+                  if (pref === 'dark') {
+                    document.documentElement.classList.add('dark');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
         <AntdRegistry>
           <ConfigProvider
             locale={zhTW}
