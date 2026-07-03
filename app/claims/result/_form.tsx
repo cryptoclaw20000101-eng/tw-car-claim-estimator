@@ -24,6 +24,8 @@ import { LawVersionBadge } from '@/components/LawVersionBadge'
 import { PainEnsembleCard } from '@/components/PainEnsembleCard'
 import { KnnDebugPanel } from '@/components/KnnDebugPanel'
 import { MobileStickyCTA } from '@/components/MobileStickyCTA'
+// v0.12.0+ Phase B7：多肇責比例並排比較
+import { MultiFaultCompare } from '@/components/MultiFaultCompare'
 import {
   ArrowLeftOutlined,
   FileTextOutlined,
@@ -257,6 +259,13 @@ export default function ResultForm() {
             </div>
           </div>
         </div>
+
+        {/* v0.12.0+ Phase B7：多肇責比例並排比較 */}
+        <MultiFaultCompare
+          civilMidBaseline={result.thirdParty.civilDamageTotalMid}
+          bodilyInjuryAmount={result.civilMedicalExpense + result.workLoss}
+          propertyDamageAmount={result.propertyDamage}
+        />
 
         <div className="sticky top-0 z-10 -mx-6 mb-6 bg-surface-subtle/95 px-6 py-3 backdrop-blur supports-[backdrop-filter]:bg-surface-subtle/80">
         <Tabs
