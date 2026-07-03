@@ -35,7 +35,7 @@ export default function HomeClient() {
   // v0.10.0+：scroll-reveal 共用 viewport 設定（觸發一次、20% 可見時啟動）
   const viewportOnce = { once: true, amount: 0.2 } as const
   return (
-    <main className="dvh-screen flex flex-1 flex-col">
+    <main id="main-content" className="dvh-screen flex flex-1 flex-col">
       {/* ============ Hero — 偏左不置中 ============ */}
       <motion.section
         className="border-b border-border bg-background"

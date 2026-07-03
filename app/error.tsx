@@ -66,7 +66,7 @@ export default function ErrorPage({
   }
 
   return (
-    <main className="dvh-screen flex flex-1 flex-col items-center px-6 py-16 md:py-24">
+    <main id="main-content" className="dvh-screen flex flex-1 flex-col items-center px-6 py-16 md:py-24">
       <div className="w-full max-w-5xl">
         {/* Bento 2fr+1fr（variance 8，不對稱） */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

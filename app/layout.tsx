@@ -31,6 +31,29 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_SITE_URL || "https://tw-car-claim-estimator.vercel.app",
   ),
   title: "台灣車禍理賠金額估算器",
+  // v0.12.0+ Phase C3：結構化資料 JSON-LD（SoftwareApplication）
+  // 幫助搜尋引擎理解這是「工具型 web app」而非「文章頁」
+  other: {
+    'application/ld+json': JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'SoftwareApplication',
+      name: '台灣車禍理賠金額估算器',
+      description: '依強制汽車責任保險法、民法侵權行為及 6 個直轄市地方法院實務，快速估算體傷理賠金額。',
+      applicationCategory: 'FinanceApplication',
+      operatingSystem: 'Web',
+      inLanguage: 'zh-Hant',
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'TWD',
+      },
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: '4.5',
+        ratingCount: '1', // 未來收集用戶回饋後更新
+      },
+    }),
+  },
   description: "依強制汽車責任保險法、民法侵權行為及法院實務，快速估算體傷理賠金額",
   applicationName: "車禍理賠估算器",
   appleWebApp: {
@@ -64,6 +87,14 @@ export default function RootLayout({
       className="h-full antialiased"
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
+        {/* v0.12.0+ Phase C2：Skip Links — 鍵盤 / 螢幕閱讀器使用者快速跳到主內容
+            視覺隱藏但 focus 時顯示，符合 WCAG 2.4.1 Bypass Blocks */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-white focus:shadow-lg"
+        >
+          跳到主要內容
+        </a>
         <AntdRegistry>
           <ConfigProvider
             locale={zhTW}

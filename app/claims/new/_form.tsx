@@ -374,7 +374,7 @@ export default function NewClaimForm() {
   }
 
   return (
-    <main className="flex flex-1 flex-col items-center px-6 py-8 bg-surface-subtle">
+    <main id="main-content" className="flex flex-1 flex-col items-center px-6 py-8 bg-surface-subtle">
       <div className="w-full max-w-3xl">
         <Title level={2} className="!mb-2">
           <FileAddOutlined className="mr-2" />

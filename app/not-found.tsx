@@ -11,7 +11,7 @@ import { Compass, House, PenLine, Search } from 'lucide-react'
 
 export default function NotFound() {
   return (
-    <main className="flex min-h-[100dvh] flex-1 flex-col items-center px-6 py-16 md:py-24">
+    <main id="main-content" className="flex min-h-[100dvh] flex-1 flex-col items-center px-6 py-16 md:py-24">
       <div className="w-full max-w-6xl">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-4 md:grid-rows-2">
           {/* 404 主格（2fr × 2fr） — v0.11.0+ 加 accent decoration */}

@@ -102,7 +102,7 @@ export default function ResultForm() {
 
   if (!input || !result) {
     return (
-      <main className="flex flex-1 flex-col items-center justify-center bg-surface-subtle px-6 py-16">
+      <main id="main-content" className="flex flex-1 flex-col items-center justify-center bg-surface-subtle px-6 py-16">
         <div className="w-full max-w-md text-center">
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -144,7 +144,7 @@ export default function ResultForm() {
   }
 
   return (
-    <main className="flex flex-1 flex-col items-center px-6 py-8 bg-surface-subtle">
+    <main id="main-content" className="flex flex-1 flex-col items-center px-6 py-8 bg-surface-subtle">
       <div className="w-full max-w-5xl">
         <Space className="!mb-4">
           <Link href="/claims/new"><Button icon={<ArrowLeftOutlined />}>重新估算</Button></Link>
