@@ -316,9 +316,11 @@ describe('報表 Ensemble 健康度區塊（v0.6.8 → v0.6.9 refactor）', () =
  *   對於純組合元件（內含 fetch/import 靜態 JSON）是最 surgical 方案。
  */
 describe('首頁 hero Ensemble 健康度卡（v0.6.9）', () => {
-  it('app/page.tsx import EnsembleHealthHeroCard', () => {
+  it('app/_components/HomeClient.tsx import EnsembleHealthHeroCard', () => {
+    // v0.9.0+：app/page.tsx 從 client 改 server + 抽出 HomeClient.tsx
+    // 實際 UI 在 HomeClient.tsx（client component），這裡 grep 改指向新位置
     const pageSource = readFileSync(
-      resolve(__dirname, '../../app/page.tsx'),
+      resolve(__dirname, '../../app/_components/HomeClient.tsx'),
       'utf-8',
     )
     expect(pageSource).toContain('import { EnsembleHealthHeroCard }')
@@ -326,7 +328,7 @@ describe('首頁 hero Ensemble 健康度卡（v0.6.9）', () => {
 
   it('EnsembleHealthHeroCard 渲染在 hero 右側（引用法源 / 地區覆蓋之後）', () => {
     const pageSource = readFileSync(
-      resolve(__dirname, '../../app/page.tsx'),
+      resolve(__dirname, '../../app/_components/HomeClient.tsx'),
       'utf-8',
     )
     expect(pageSource).toMatch(/<EnsembleHealthHeroCard\s*\/>/)

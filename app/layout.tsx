@@ -23,6 +23,10 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  // v0.9.0+：metadataBase 必須設定，否則 OG / Twitter image 解析會 fallback 到 localhost
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "https://tw-car-claim-estimator.vercel.app",
+  ),
   title: "台灣車禍理賠金額估算器",
   description: "依強制汽車責任保險法、民法侵權行為及法院實務，快速估算體傷理賠金額",
   applicationName: "車禍理賠估算器",
@@ -68,7 +72,7 @@ export default function RootLayout({
                 colorWarning: "#b45309",   // amber-700
                 colorError: "#991b1b",     // red-800
                 borderRadius: 8,
-                fontFamily: "var(--font-geist-sans)",
+                fontFamily: "var(--font-body)",
                 fontSize: 14,
               },
             }}

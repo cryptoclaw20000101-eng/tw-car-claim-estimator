@@ -1,309 +1,44 @@
-'use client'
-
-import Link from "next/link"
-import { Button, Typography, Space, Alert } from "antd"
-import { InfoAlert } from '@/components/InfoAlert'
-import { motion } from "framer-motion"
-import { EnsembleHealthHeroCard } from "@/components/EnsembleHealthHeroCard"
-import { InstallPWAButton, PWAHintCard } from "@/components/InstallPWAButton"
-import {
-  CalculatorOutlined,
-  SafetyCertificateOutlined,
-  FileTextOutlined,
-  EnvironmentOutlined,
-  ArrowRightOutlined,
-  CompassOutlined,
-  ExperimentOutlined,
-  ReadOutlined,
-} from "@ant-design/icons"
-
-const { Title, Paragraph, Text } = Typography
+import type { Metadata } from 'next'
+import HomeClient from './_components/HomeClient'
 
 /**
- * 首頁 — taste-skill v1 anti-slop 設計紀律：
- * - 對齊偏左（variance 8 預設 hero 不置中）
- * - 強調色單一 rose-700，不混紫藍漸層
- * - 5 大區塊改 bento grid 2fr/1fr/1fr 不對稱
- * - 無 emoji（AntD icons 取代）
- * - 數字 tabular-nums
+ * 首頁 server component（v0.9.0+ 從 client 重構為 server）
+ * - 負責 export metadata（SEO / OG / Twitter）
+ * - 把實際 UI 渲染交給 HomeClient（client component，內含 framer-motion）
+ *
+ * 為什麼這樣拆：
+ * - metadata 只能在 Server Component export（Next.js App Router 規定）
+ * - framer-motion / hooks 需要 'use client'，所以 UI 部分必須是 client
+ * - 兩者用 server→client 的標準 pattern 串起來
+ *
+ * SEO 重要欄位：
+ * - title: 明確含關鍵字「車禍理賠金額估算器」「5 分鐘」
+ * - description: 含「強制汽車責任保險法」「民法侵權行為」「6 直轄市地方法院」
+ * - openGraph: type=website, locale=zh_TW, 對齊 Facebook / LINE 分享預覽
  */
-export default function Home() {
-  return (
-    <main className="dvh-screen flex flex-1 flex-col">
-      {/* ============ Hero — 偏左不置中 ============ */}
-      <motion.section
-        className="border-b border-border bg-background"
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-      >
-        <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-12 px-6 py-16 md:grid-cols-12 md:py-24">
-          <div className="md:col-span-7 md:pr-8">
-            <Space size={6} className="!mb-4">
-              <Text className="text-xs uppercase tracking-[0.18em] text-muted">
-                v0.1 MVP
-              </Text>
-              <span className="text-muted">·</span>
-              <Text className="text-xs uppercase tracking-[0.18em] text-muted">
-                Taiwan Car-Claim Estimator
-              </Text>
-            </Space>
-            <Title
-              level={1}
-              className="!mb-4 !text-4xl !leading-[1.05] !tracking-tight md:!text-6xl"
-            >
-              車禍理賠金額，
-              <br />
-              <span className="text-accent">5 分鐘</span>算給你看。
-            </Title>
-            <Paragraph className="!mb-8 !text-base text-muted md:!text-lg">
-              依<strong className="text-foreground"> 強制汽車責任保險法 </strong>、
-              <strong className="text-foreground"> 民法 §184-196 侵權行為 </strong>
-              ，以及<strong className="text-foreground"> 6 個直轄市地方法院實務區間 </strong>
-              ，自動產出 5 區估算結果。
-            </Paragraph>
-            <Space size={12} wrap>
-              <Link href="/claims/new">
-                <Button type="primary" size="large" icon={<ArrowRightOutlined />} iconPlacement="end">
-                  開始估算（7 步表單）
-                </Button>
-              </Link>
-              {/* v0.8.0+：PWA 安裝按鈕 — Android 自動 prompt / iOS 顯示步驟 */}
-              <InstallPWAButton />
-            </Space>
-            {/* v0.8.0+：提示卡 — 永遠顯示「可以裝成 app」 */}
-            <PWAHintCard />
-            <Space size={20} className="!mt-10" wrap>
-              <Stat label="6 直轄市法院" value="6" />
-              <Divider />
-              <Stat label="26 縣市自動對應" value="26" />
-              <Divider />
-              <Stat label="強制險 15 細項" value="15" />
-            </Space>
-          </div>
-
-          {/* Hero 右侧 — 引用法源 卡片，bento 的「次要」格子 */}
-          <div className="md:col-span-5">
-            <div className="rounded-lg border border-border bg-surface p-6 shadow-[0_1px_0_rgba(0,0,0,0.02)]">
-              <Space size={6} className="!mb-3">
-                <ReadOutlined />
-                <Text className="!text-sm !font-semibold uppercase tracking-wider text-foreground">
-                  引用法源
-                </Text>
-              </Space>
-              <ul className="m-0 space-y-2 !text-sm text-muted">
-                <li>強制汽車責任保險法（§27 給付項目）</li>
-                <li>強制汽車責任保險給付標準（§2-§4 + 失能等級附表）</li>
-                <li>民法 §184、§193、§194、§195</li>
-                <li>金融消費評議中心評議原則</li>
-                <li className="text-foreground">
-                  臺北 / 新北 / 臺中 / 臺南 / 高雄 / 桃園 地方法院慰撫金區間
-                </li>
-              </ul>
-            </div>
-            <div className="!mt-3 rounded-lg border border-border bg-surface-subtle p-4">
-              <Space size={6} className="!mb-2">
-                <EnvironmentOutlined />
-                <Text className="!text-xs uppercase tracking-wider text-muted">
-                  地區覆蓋
-                </Text>
-              </Space>
-              <Text className="!text-sm text-foreground">
-                6 個直轄市地方法院 + 26 縣市自動對應（台 / 臺異體字相容）
-              </Text>
-            </div>
-
-            {/* Ensemble 健康度（v0.6.9+）— build-time 靜態載入 taipei-mental-distress */}
-            <EnsembleHealthHeroCard />
-          </div>
-        </div>
-      </motion.section>
-
-      {/* ============ 5 大區塊 — bento grid 2fr / 1fr / 1fr ============ */}
-      <section id="sections" className="bg-surface-subtle">
-        <div className="mx-auto w-full max-w-6xl px-6 py-16 md:py-20">
-          <Space size={6} className="!mb-2">
-            <ExperimentOutlined />
-            <Text className="!text-xs uppercase tracking-[0.18em] text-muted">
-              Estimation Sections
-            </Text>
-          </Space>
-          <Title level={2} className="!mb-3 !text-3xl !tracking-tight md:!text-4xl">
-            5 區估算結果
-          </Title>
-          <Paragraph className="!mb-10 !text-base text-muted">
-            每一區都是「試算」非「判決」。實際理賠仍須依保險公司審核、醫療資料、肇事責任、
-            保單條款、金融評議或法院認定為準。
-          </Paragraph>
-
-          {/* Bento grid — 2fr/1fr 上面 + 1fr/1fr/1fr 下面（variance 8 不對稱） */}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:grid-rows-2">
-            {/* 主格：強制險 — 2fr 寬 */}
-            <BentoCell
-              icon={<SafetyCertificateOutlined />}
-              index="01"
-              title="強制險"
-              subtitle="Compulsory Insurance"
-              description="依 15 細項法定上限逐項試算（醫療 20 萬 cap / 看護 30 日 1,200 元 / 日）"
-              featured
-            />
-            <BentoCell
-              icon={<CompassOutlined />}
-              index="02"
-              title="失能初篩"
-              subtitle="Disability Screening"
-              description="關節 ROM 量測 → 失能等級對照，不直接判定，給補件建議"
-            />
-            <BentoCell
-              icon={<CalculatorOutlined />}
-              index="03"
-              title="第三人責任險"
-              subtitle="Third-Party Liability"
-              description="體傷 + 財損分開 cap，自動扣強制險已估金額"
-            />
-            <BentoCell
-              icon={<FileTextOutlined />}
-              index="04"
-              title="補件清單"
-              subtitle="Evidence Checklist"
-              description="依空欄位自動產出需補件項目，避免估算不準"
-            />
-            <BentoCell
-              icon={<EnvironmentOutlined />}
-              index="05"
-              title="地區實務參考"
-              subtitle="Regional Court Data"
-              description="金融評議中心案例 + 司法院判決區間"
-            />
-            {/* 第 6 格空白 bento，營造 variance */}
-            <div className="hidden rounded-lg border border-dashed border-border md:flex md:items-center md:justify-center">
-              <Text className="!text-xs uppercase tracking-wider text-muted">
-                法源資料每 30 天更新
-              </Text>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============ 鐵律（不踩雷） ============ */}
-      <section className="border-t border-border bg-background">
-        <div className="mx-auto w-full max-w-6xl px-6 py-16 md:py-20">
-          <Title level={2} className="!mb-8 !text-2xl !tracking-tight md:!text-3xl">
-            三條鐵律，系統永遠守著。
-          </Title>
-          <div className="grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-3">
-            <IronRow
-              label="強制險採無過失主義"
-              desc="不乘肇責比例，純依傷害程度計算"
-            />
-            <IronRow
-              label="精神慰撫金 / 工作損失 / 車損不放入強制險"
-              desc="這是法律強制，不是系統限制"
-            />
-            <IronRow
-              label="資料不足不硬算"
-              desc="顯示需補資料，不給假數字"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* ============ Footer / 免責 ============ */}
-      <footer className="mt-auto border-t border-border bg-background">
-        <div className="mx-auto w-full max-w-6xl px-6 py-10">
-          <InfoAlert
-            type="warning"
-            showIcon
-            className="!mb-6"
-            title="免責聲明"
-            body="本系統依使用者輸入資料、強制汽車責任保險給付標準、常見民事損害賠償項目、金融評議公開案例及法院實務區間進行初步估算。實際理賠金額仍須依保險公司審核、醫療資料、肇事責任、保單條款、金融評議結果、法院認定及雙方和解結果為準。本系統不保證理賠金額，亦不構成法律意見。"
-          />
-          <div className="flex flex-col items-start justify-between gap-2 text-xs text-muted md:flex-row md:items-center">
-            <Text className="!text-xs text-muted">
-              © 2026 tw-car-claim-estimator · Built with Next.js 16 + AntD 6
-            </Text>
-            <Text className="!text-xs text-muted">
-              v0.1 MVP · 6 直轄市 + 26 縣市
-            </Text>
-          </div>
-        </div>
-      </footer>
-    </main>
-  )
+export const metadata: Metadata = {
+  title: '台灣車禍理賠金額估算器 — 5 分鐘算給你看',
+  description:
+    '依強制汽車責任保險法、民法侵權行為及 6 個直轄市地方法院實務，快速估算體傷理賠金額。包含強制險、失能初篩、第三人責任險、補件清單、地區實務 5 區估算。',
+  openGraph: {
+    title: '台灣車禍理賠金額估算器 — 5 分鐘算給你看',
+    description:
+      '依強制汽車責任保險法、民法侵權行為及 6 個直轄市地方法院實務，快速估算體傷理賠金額。',
+    type: 'website',
+    locale: 'zh_TW',
+    siteName: '車禍理賠估算器',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '台灣車禍理賠金額估算器 — 5 分鐘算給你看',
+    description:
+      '依強制汽車責任保險法、民法侵權行為及 6 個直轄市地方法院實務，快速估算體傷理賠金額。',
+  },
+  alternates: {
+    canonical: '/',
+  },
 }
 
-// ============== Sub-components ==============
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <Space orientation="vertical" size={2}>
-      <span className="tabular-nums text-2xl font-semibold tracking-tight text-foreground">
-        {value}
-      </span>
-      <span className="text-xs uppercase tracking-wider text-muted">{label}</span>
-    </Space>
-  )
-}
-
-function Divider() {
-  return <span aria-hidden className="hidden h-8 w-px bg-border md:inline-block" />
-}
-
-function BentoCell({
-  icon,
-  index,
-  title,
-  subtitle,
-  description,
-  featured = false,
-}: {
-  icon: React.ReactNode
-  index: string
-  title: string
-  subtitle: string
-  description: string
-  featured?: boolean
-}) {
-  return (
-    <div
-      className={[
-        "group rounded-lg border bg-surface p-6 transition-colors",
-        "border-border hover:border-border-strong",
-        featured ? "md:col-span-2 md:row-span-2" : "",
-      ].join(" ")}
-    >
-      <Space size={8} className="!mb-3">
-        <span className="text-lg text-accent">{icon}</span>
-        <span className="tabular-nums text-xs font-mono uppercase tracking-wider text-muted">
-          {index}
-        </span>
-      </Space>
-      <Title level={3} className="!mb-1 !text-xl !tracking-tight">
-        {title}
-      </Title>
-      <Text className="!mb-3 !text-xs uppercase tracking-wider text-muted">
-        {subtitle}
-      </Text>
-      <Paragraph
-        className={[
-          "!mb-0 !text-sm text-muted",
-          featured ? "md:!text-base" : "",
-        ].join(" ")}
-      >
-        {description}
-      </Paragraph>
-    </div>
-  )
-}
-
-function IronRow({ label, desc }: { label: string; desc: string }) {
-  return (
-    <div className="bg-background p-5">
-      <Space size={6} className="!mb-1">
-        <span className="text-accent">/</span>
-        <Text className="!text-sm !font-semibold text-foreground">{label}</Text>
-      </Space>
-      <Text className="!text-sm text-muted">{desc}</Text>
-    </div>
-  )
+export default function Page() {
+  return <HomeClient />
 }
