@@ -28,6 +28,27 @@ import { predictPainRange, reconcileWithRules } from './pain-ml'
 import { ensembleEstimate } from './pain-ensemble'
 import { mockLLMAdvisor, type AdvisorInput } from './pain-advisor'
 
+/**
+ * 車禍理賠估算主函式（v0.12.0+ 加 JSDoc）
+ *
+ * 整合 6 大引擎的總入口：
+ * 1) 強制險醫療（v0.8.2+ 依事故日切換新/舊法）
+ * 2) 失能初篩
+ * 3) 法院判定（自動帶入 + 可手改）
+ * 4) 民事醫療差額
+ * 5) 第三人責任險
+ * 6) 補件與風險
+ * + 精神慰撫金 Ensemble（規則 + ML + KNN 三票共識）
+ * + LLM 理賠顧問 mock
+ *
+ * @param input - 完整案件輸入（事故基本 / 肇責 / 人事 / 醫療 / 收據 / 車損）
+ * @returns 完整估算結果（含各區金額 + 風險標示 + 法源 + LLM 建議）
+ *
+ * @throws 不會 throw（資料不足回 null，不會硬算）
+ *
+ * @see AGENTS.md §0 法律邊界（試算 vs 判決）
+ * @see AGENTS.md §1 三條鐵律（強制險無過失 / 不併精神慰撫金 / 資料不足不硬算）
+ */
 export function estimateClaim(input: ClaimInput): EstimationResult {
   const { basics, fault, person, medical, medicalReceipts, property } = input
 
