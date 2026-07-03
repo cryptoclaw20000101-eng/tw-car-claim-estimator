@@ -12,6 +12,7 @@ import {
   Select,
   Space,
   Steps,
+// v0.12.0+ Phase B2：自製進度條（取代 AntD Steps）
   Switch,
   message,
   Alert,
@@ -25,6 +26,8 @@ import { InfoAlert } from '@/components/InfoAlert'
 import { StepShell } from '@/components/StepShell'
 import { Step4KnnPreview } from '@/components/Step4KnnPreview'
 import { MobileStickyCTA } from '@/components/MobileStickyCTA'
+// v0.12.0+ Phase B2：自製進度條
+import { FormProgress } from '@/components/FormProgress'
 import {
   LeftOutlined,
   RightOutlined,
@@ -385,7 +388,7 @@ export default function NewClaimForm() {
           資料不足會在結果頁自動列出補件清單。
         </Paragraph>
 
-        <Steps current={current} items={STEPS} className="!mb-8" responsive={false} />
+        <FormProgress current={current} steps={STEPS} className="!mb-8" />
 
         <Form
           form={form}
