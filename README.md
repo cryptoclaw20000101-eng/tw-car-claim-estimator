@@ -135,6 +135,54 @@ tw-car-claim-estimator/
 
 ---
 
+## 如何換色（v0.12.0+ single source of truth）
+
+v0.9.0 之後把 `#be123c` 等硬編從 4 處收斂到 `lib/design/tokens.ts` + `app/globals.css` 兩處。要改主色（例如從 rose-700 換到 blue-700）只需動 2 個檔：
+
+### Step 1：改 TS runtime token
+
+`lib/design/tokens.ts` 裡的 `COLORS.accent`（影響 AntD ConfigProvider + manifest + viewport）：
+
+```ts
+export const COLORS = {
+  accent: '#1d4ed8', // blue-700（從 rose-700 換到 blue-700）
+  // ... 其他顏色
+}
+```
+
+### Step 2：改 CSS runtime token
+
+`app/globals.css` 裡的 `:root --accent`（影響 Tailwind + 所有 CSS var 使用處）：
+
+```css
+:root {
+  --accent: #1d4ed8; /* blue-700 */
+  --accent-soft: #dbeafe; /* blue-100 */
+  /* ... 其他顏色 */
+}
+```
+
+### Step 3：重新 build
+
+```bash
+pnpm tsc --noEmit   # 確保型別沒漂
+pnpm test           # 確保 760 tests 沒漂
+pnpm build          # 重新產生靜態檔
+```
+
+### 為什麼是 2 處不是 1 處？
+
+| 層 | 檔案 | 影響 |
+|---|---|---|
+| **TS runtime** | `lib/design/tokens.ts` | AntD ConfigProvider（runtime React 元件）|
+| **CSS runtime** | `app/globals.css` | Tailwind utilities（透過 `@theme inline`）|
+
+AntD React 元件不能直接吃 CSS var（會破壞 inline style + 主題計算），所以需要 TS runtime 同步。換色時兩個檔必須一起改，否則 TS 改 blue 但 CSS 還是 rose → 視覺漂移。
+
+> **未來自動化（v0.12.x 規劃）**：加一個 CI script 比對 `tokens.ts` 跟 `globals.css` 的硬編值，跑 `pnpm build` 時若漂移就 build fail。
+
+---
+
 ## 技術棧
 
 - **框架**：Next.js 16.2.7（App Router + Turbopack）

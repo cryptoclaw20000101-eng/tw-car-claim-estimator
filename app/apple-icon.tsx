@@ -1,6 +1,7 @@
 export const dynamic = 'force-static'
 
 import { ImageResponse } from 'next/og'
+import { ACCENT } from '@/lib/design/tokens'
 
 /**
  * Apple touch icon — 自動生成 180x180（v0.9.0+ 新增）
@@ -22,7 +23,7 @@ export default async function AppleIcon() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#be123c',
+          backgroundColor: ACCENT,
           borderRadius: 32,
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
           fontWeight: 700,

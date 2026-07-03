@@ -1,6 +1,7 @@
 export const dynamic = 'force-static'
 
 import { ImageResponse } from 'next/og'
+import { ACCENT } from '@/lib/design/tokens'
 
 /**
  * OG image — 自動生成 1200x630（v0.9.0+ 新增）
@@ -63,7 +64,7 @@ export default async function OpengraphImage() {
         >
           <span>車禍理賠金額，</span>
           <span style={{ display: 'flex' }}>
-            <span style={{ color: '#be123c' }}>5 分鐘</span>
+            <span style={{ color: ACCENT }}>5 分鐘</span>
             <span>&nbsp;算給你看。</span>
           </span>
         </div>

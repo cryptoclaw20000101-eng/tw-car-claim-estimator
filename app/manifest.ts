@@ -1,12 +1,13 @@
 export const dynamic = "force-static";
 
 import type { MetadataRoute } from 'next'
+import { ACCENT, BACKGROUND } from '@/lib/design/tokens'
 
 /**
- * PWA Manifest — S1.5 PWA 補強
+ * PWA Manifest — S1.5 PWA 補強（v0.12.0+ 從硬編改 import tokens）
  *
  * 對齊 v0.2.18 設計語彙：
- * - 單一強調色 #be123c (rose-700) — 跟 ConfigProvider 主色一致
+ * - 強調色 rose-700 從 lib/design/tokens.ts 引用（單一來源）
  * - zh-Hant 為主名、English 為副
  * - display: standalone = 隱藏網址列，像原生 app
  * - 不啟用 gcm/push — iOS 17+ 仍不支援 PWA push，推遲到 S2/Capacitor 整合
@@ -14,6 +15,10 @@ import type { MetadataRoute } from 'next'
  *
  * 檔案位置：app/manifest.ts (Next 16 原生支援，自動生成 /manifest.webmanifest)
  * 參考：https://nextjs.org/docs/app/api-reference/file-conventions/metadata/manifest
+ *
+ * v0.12.0+ 改動：
+ * - 改從 tokens.ts import（ACCENT / BACKGROUND），不再硬編 #be123c / #fafaf9
+ * - 換色只需改 tokens.ts + globals.css 兩處
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -26,8 +31,9 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: '/',
     display: 'standalone',
     orientation: 'portrait',
-    background_color: '#fafaf9',  // 跟 globals.css surface-50 對齊
-    theme_color: '#be123c',      // 跟 ConfigProvider colorPrimary 一致
+    // v0.12.0+：從 tokens 引用（不再硬編）
+    background_color: BACKGROUND,
+    theme_color: ACCENT,
     categories: ['finance', 'productivity', 'utilities'],
     icons: [
       {

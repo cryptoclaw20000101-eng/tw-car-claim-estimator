@@ -4,6 +4,7 @@ import { App, ConfigProvider } from "antd";
 import zhTW from "antd/locale/zh_TW";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 import { MobileNav } from "@/components/MobileNav";
+import { COLORS, ACCENT, FOREGROUND } from "@/lib/design/tokens";
 import "./globals.css";
 
 /**
@@ -11,9 +12,11 @@ import "./globals.css";
  * Next 14+ 已 deprecated，會被忽略）。搭配 manifest.ts 的 theme_color 雙重設定：
  * - manifest 給 PWA 安裝 icon + 啟動畫面用
  * - viewport themeColor 給瀏覽器網址列 / 狀態列用
+ *
+ * v0.12.0+：themeColor 從 tokens.ACCENT 引用（不再硬編 #be123c）
  */
 export const viewport: Viewport = {
-  themeColor: "#be123c",        // 對齊 ConfigProvider colorPrimary
+  themeColor: ACCENT, // 對齊 ConfigProvider colorPrimary
   colorScheme: "light",
   width: "device-width",
   initialScale: 1,
@@ -66,14 +69,49 @@ export default function RootLayout({
             locale={zhTW}
             theme={{
               token: {
-                colorPrimary: "#be123c",  // rose-700 — 對齊 taste-skill v1 單一強調色
-                colorInfo: "#0e7490",       // cyan-700 — info 警示用
-                colorSuccess: "#166534",   // green-800
-                colorWarning: "#b45309",   // amber-700
-                colorError: "#991b1b",     // red-800
+                // v0.12.0+：全部從 tokens 引用，不再硬編
+                colorPrimary: ACCENT, // rose-700
+                colorInfo: COLORS.antInfo, // cyan-700
+                colorSuccess: COLORS.positive, // green-800
+                colorWarning: COLORS.warning, // amber-700
+                colorError: COLORS.negative, // red-800
+                colorText: FOREGROUND, // zinc-900
                 borderRadius: 8,
                 fontFamily: "var(--font-body)",
                 fontSize: 14,
+              },
+              // v0.12.0+：AntD 元件層級 token 擴充
+              // 細部元件覆寫（與 taste-skill v1 視覺紀律對齊）
+              components: {
+                Card: {
+                  borderRadiusLG: 12,
+                  paddingLG: 24,
+                },
+                Tag: {
+                  borderRadiusSM: 4,
+                  fontSize: 12,
+                },
+                Button: {
+                  borderRadius: 8,
+                  controlHeight: 40,
+                  fontWeight: 500,
+                },
+                Tabs: {
+                  itemActiveColor: ACCENT,
+                  itemHoverColor: ACCENT,
+                  itemSelectedColor: ACCENT,
+                  inkBarColor: ACCENT,
+                },
+                Alert: {
+                  borderRadiusLG: 8,
+                },
+                Statistic: {
+                  titleFontSize: 12,
+                  contentFontSize: 24,
+                },
+                Tooltip: {
+                  borderRadius: 6,
+                },
               },
             }}
           >
