@@ -99,7 +99,20 @@ export function Step4KnnPreview({ disabilityLevel, accidentLocation }: Step4KnnP
   if (cases.length === 0) {
     return (
       <Card size="small" title="📊 即時 KNN 預視" className="!mt-4">
-        <Empty description="無相似案例（資料庫可能尚未含此等級 / 地點組合）" />
+        {/* v0.12.0+ Phase A5：空狀態文案友善化 */}
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description={
+            <div className="space-y-1">
+              <p className="text-sm text-foreground">目前找不到相似判例</p>
+              <p className="!text-xs text-muted">
+                可能原因：失能等級少見、事故地點案例少、或資料庫尚未含此組合。
+                <br />
+                沒關係，這只是相似案例參考值 — 結果頁仍會依強制險 + 民事規則完整估算。
+              </p>
+            </div>
+          }
+        />
       </Card>
     )
   }

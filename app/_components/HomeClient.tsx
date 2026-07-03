@@ -15,6 +15,8 @@ import {
   CompassOutlined,
   ExperimentOutlined,
   ReadOutlined,
+  // v0.12.0+ Phase A6：FAQ 區 icon
+  QuestionCircleOutlined,
 } from "@ant-design/icons"
 
 const { Title, Paragraph, Text } = Typography
@@ -262,6 +264,59 @@ export default function HomeClient() {
         </div>
       </motion.section>
 
+      {/* ============ FAQ — v0.12.0+ Phase A6 常見問題 ============ */}
+      <motion.section
+        className="border-t border-border bg-surface-subtle"
+        initial={reduce ? false : { opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={viewportOnce}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+      >
+        <div className="mx-auto w-full max-w-6xl px-6 py-16 md:py-20">
+          <Space size={6} className="!mb-2">
+            <QuestionCircleOutlined />
+            <Text className="!text-xs uppercase tracking-[0.18em] text-muted">
+              FAQ
+            </Text>
+          </Space>
+          <Title level={2} className="!mb-3 !text-2xl !tracking-tight md:!text-3xl">
+            常見問題
+          </Title>
+          <Paragraph className="!mb-10 !text-base text-muted">
+            保戶最常問的 6 個問題，先看這裡；如果還有疑問，
+            <br />
+            請諮詢保險經紀人或律師（聯絡資訊見金融消費評議中心）。
+          </Paragraph>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <FaqCard
+              q="為什麼我的估算金額跟鄰居不一樣？"
+              a="車禍理賠估算至少受 3 個變數影響：肇責比例（強制險不受影響，但第三人責任險差很多）、失能等級（同一個部位不同等級差到 10 倍）、地區法院實務係數（臺北跟高雄的精神慰撫金可能差 30%）。填越多精確欄位，估算越接近實際理賠。"
+            />
+            <FaqCard
+              q="強制險是什麼？跟第三人責任險差在哪？"
+              a="強制險是國家立法規定每輛車都要保的「基本險」，保護所有用路人（不論肇事責任），賠醫療、失能、死亡三大類。第三人責任險是「自己加保的進階險」，賠對方的體傷與財損，乘肇責比例才有賠。"
+            />
+            <FaqCard
+              q="精神慰撫金怎麼算？為什麼這麼高？"
+              a="精神慰撫金沒有法定公式，採用法院實務區間 × 傷勢等級 × 地區係數。本工具用 13 件真實判決 + Ensemble 三票（規則公式 / ML 統計 / KNN 相似案件）給出區間，金額從數萬到數十萬都有可能，須依個案情節調整。"
+            />
+            <FaqCard
+              q="失能等級怎麼認定？我自己填準嗎？"
+              a="失能等級須由醫院開立「失能診斷書」並經保險公司 / 評議 / 法院認定。本工具的「失能等級」欄是「初步篩選用途」，真實理賠以官方診斷為準。業務員常用這欄做客戶預估，但不要直接拿這個等級去跟保險公司談。"
+            />
+            <FaqCard
+              q="資料不足怎麼辦？工具會給假數字嗎？"
+              a="不會。資料不足時工具會顯示「需補件清單」並回傳 null，不會硬給數字。這是系統的底線之一 — 估算金額會影響保戶決策，缺資料時硬給數字比老實說「需補件」更不負責任。"
+            />
+            <FaqCard
+              q="理賠結果不如預期，可以去哪裡申訴？"
+              a="三個管道：(1) 向保險公司申訴部門申訴；(2) 不滿結果可向「財團法人金融消費評議中心」申請評議（免費、具法律效力）；(3) 涉及訴訟請洽執業律師，循民事訴訟程序。本工具不提供申訴服務，也不介入個案。"
+            />
+          </div>
+        </div>
+      </motion.section>
+
       {/* ============ Footer / 免責 ============ */}
       <motion.footer
         className="mt-auto border-t border-border bg-background"
@@ -414,6 +469,23 @@ function IronRow({ label, desc, reason }: { label: string; desc: string; reason?
           為什麼：{reason}
         </Text>
       )}
+    </div>
+  )
+}
+
+/**
+ * v0.12.0+ Phase A6：FAQ 卡片子元件
+ * Q 在上、A 在下，hover 加陰影提示可閱讀
+ */
+function FaqCard({ q, a }: { q: string; a: string }) {
+  return (
+    <div className="group rounded-lg border border-border bg-surface p-5 transition-shadow hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+      <Text strong className="!text-sm text-foreground">
+        Q · {q}
+      </Text>
+      <Paragraph className="!mt-2 !mb-0 !text-sm text-muted">
+        {a}
+      </Paragraph>
     </div>
   )
 }
