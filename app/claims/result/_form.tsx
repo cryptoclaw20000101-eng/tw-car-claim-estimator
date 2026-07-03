@@ -18,7 +18,12 @@ import {
   Tag,
   Typography,
   Collapse,
+  // v0.12.0+ Phase B5：分享連結 toast
+  message,
 } from 'antd'
+
+// v0.12.0+ Phase B5：分享成功 / 失敗 toast
+const antdMessage = message
 import { InfoAlert } from '@/components/InfoAlert'
 import { LawVersionBadge } from '@/components/LawVersionBadge'
 import { PainEnsembleCard } from '@/components/PainEnsembleCard'
@@ -26,6 +31,8 @@ import { KnnDebugPanel } from '@/components/KnnDebugPanel'
 import { MobileStickyCTA } from '@/components/MobileStickyCTA'
 // v0.12.0+ Phase B7：多肇責比例並排比較
 import { MultiFaultCompare } from '@/components/MultiFaultCompare'
+// v0.12.0+ Phase B5：分享連結
+import { encodeShareHash } from '@/lib/share-link'
 import {
   ArrowLeftOutlined,
   FileTextOutlined,
@@ -37,10 +44,11 @@ import {
   ReadOutlined,
   BarChartOutlined,
   CheckCircleOutlined,
-  // v0.12.0+ Phase E2/E3：下載 PDF + 客戶精簡模式
+  // v0.12.0+ Phase E2/E3/B5：下載 PDF + 客戶精簡模式 + 分享連結
   FilePdfOutlined,
   CompressOutlined,
   ExpandOutlined,
+  ShareAltOutlined,
   WarningOutlined,
   EditOutlined,
   EyeOutlined,
@@ -66,6 +74,23 @@ const dollar = (n: number) => `NT$ ${(n ?? 0).toLocaleString('zh-TW')}`
 export default function ResultForm() {
   // v0.12.0+ Phase E3：客戶精簡模式（隱藏技術細節，給客戶看的精簡版）
   const [compactMode, setCompactMode] = useState(false)
+
+  // v0.12.0+ Phase B5：分享連結 handler
+  const handleShare = async () => {
+    if (!input || !result) return
+    try {
+      const hash = encodeShareHash(input, result)
+      if (!hash) {
+        antdMessage.error('產生分享連結失敗')
+        return
+      }
+      const url = `${window.location.origin}/claims/result#${hash}`
+      await navigator.clipboard.writeText(url)
+      antdMessage.success('已複製分享連結到剪貼簿')
+    } catch {
+      antdMessage.error('複製失敗，請手動複製網址')
+    }
+  }
 
   // 用 lazy initializer 在第一次 render 時同步讀 sessionStorage，
   // 避免在 useEffect 內同步 setState 觸發 cascading render
@@ -169,6 +194,14 @@ export default function ResultForm() {
             data-testid="download-pdf"
           >
             下載 PDF
+          </Button>
+          {/* v0.12.0+ Phase B5：分享連結 */}
+          <Button
+            icon={<ShareAltOutlined />}
+            onClick={handleShare}
+            data-testid="share-link"
+          >
+            分享連結
           </Button>
           {/* v0.12.0+ Phase E3：客戶精簡模式 toggle */}
           <Button
