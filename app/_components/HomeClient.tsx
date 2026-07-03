@@ -6,6 +6,7 @@ import { InfoAlert } from '@/components/InfoAlert'
 import { motion, useReducedMotion } from "framer-motion"
 import { EnsembleHealthHeroCard } from "@/components/EnsembleHealthHeroCard"
 import { InstallPWAButton, PWAHintCard } from "@/components/InstallPWAButton"
+import { EstimateHistory } from "@/components/EstimateHistory"
 import {
   CalculatorOutlined,
   SafetyCertificateOutlined,
@@ -316,6 +317,9 @@ export default function HomeClient() {
           </div>
         </div>
       </motion.section>
+
+      {/* ============ 最近估算紀錄 — v0.12.0+ Phase B3（localStorage） ============ */}
+      <EstimateHistory />
 
       {/* ============ Footer / 免責 ============ */}
       <motion.footer

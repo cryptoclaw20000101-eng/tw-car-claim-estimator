@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   Alert,
@@ -45,6 +45,8 @@ import { estimateClaim } from '@/lib/insurance'
 import { SAMPLE_INPUT } from '@/lib/insurance/sample'
 import { getMedianCourtCompensation, getCaseReferencesByCategory } from '@/lib/data-sources/judicial'
 import { findRelatedPrecedents, getPrecedentCount, findRelatedPracticeCases } from '@/lib/estimate/precedents'
+// v0.12.0+ Phase B3：localStorage 歷史記錄
+import { saveEstimateHistory, buildHistoryEntry } from '@/lib/estimate-history'
 import { getAverageFoiCompensation } from '@/lib/data-sources/foi'
 import { listLegalReferences, isLegalReferenceStale } from '@/lib/data-sources/legal-reference'
 import type { LegalReference } from '@/lib/data-sources/types'
@@ -83,6 +85,20 @@ export default function ResultForm() {
   const input = hydrated.input
   const result = hydrated.result
   const stale = hydrated.stale
+
+  // v0.12.0+ Phase B3：估算成功後自動寫入 localStorage 歷史（脫敏後）
+  // 用 useEffect 確保只在 client 跑（避免 SSR 報錯）
+  useEffect(() => {
+    if (!input || !result) return
+    try {
+      const entry = buildHistoryEntry(result, input.fault?.selfFaultRatio ?? 50)
+      saveEstimateHistory(entry)
+    } catch {
+      // silent fail — 歷史記錄不是關鍵功能
+    }
+    // 只在 mount 時跑一次（result 變動不重複存）
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (!input || !result) {
     return (
