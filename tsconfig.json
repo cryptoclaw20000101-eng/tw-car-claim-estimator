@@ -5,6 +5,11 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
+    // v0.12.0+ Phase D1：TypeScript strict 加嚴（保守版）
+    // - noUncheckedIndexedAccess：會炸 122 個 array[i] 存取（lib/ + tests/），留待 v0.13.x 修補
+    // - exactOptionalPropertyTypes：會炸 AntD 元件 prop 類型定義
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
