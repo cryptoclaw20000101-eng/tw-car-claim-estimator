@@ -35,6 +35,10 @@ import {
   ReadOutlined,
   BarChartOutlined,
   CheckCircleOutlined,
+  // v0.12.0+ Phase E2/E3：下載 PDF + 客戶精簡模式
+  FilePdfOutlined,
+  CompressOutlined,
+  ExpandOutlined,
   WarningOutlined,
   EditOutlined,
   EyeOutlined,
@@ -58,6 +62,9 @@ const { Title, Paragraph, Text } = Typography
 const dollar = (n: number) => `NT$ ${(n ?? 0).toLocaleString('zh-TW')}`
 
 export default function ResultForm() {
+  // v0.12.0+ Phase E3：客戶精簡模式（隱藏技術細節，給客戶看的精簡版）
+  const [compactMode, setCompactMode] = useState(false)
+
   // 用 lazy initializer 在第一次 render 時同步讀 sessionStorage，
   // 避免在 useEffect 內同步 setState 觸發 cascading render
   // （符合 react-hooks/set-state-in-effect 規則）
@@ -144,11 +151,31 @@ export default function ResultForm() {
   }
 
   return (
-    <main id="main-content" className="flex flex-1 flex-col items-center px-6 py-8 bg-surface-subtle">
+    <main
+      id="main-content"
+      data-compact={compactMode}
+      className="flex flex-1 flex-col items-center px-6 py-8 bg-surface-subtle"
+    >
       <div className="w-full max-w-5xl">
         <Space className="!mb-4">
           <Link href="/claims/new"><Button icon={<ArrowLeftOutlined />}>重新估算</Button></Link>
           <Link href="/"><Button>回首頁</Button></Link>
+          {/* v0.12.0+ Phase E2：下載 PDF 按鈕 — 觸發瀏覽器列印對話框（沿用 B4 列印樣式） */}
+          <Button
+            icon={<FilePdfOutlined />}
+            onClick={() => window.print()}
+            data-testid="download-pdf"
+          >
+            下載 PDF
+          </Button>
+          {/* v0.12.0+ Phase E3：客戶精簡模式 toggle */}
+          <Button
+            icon={compactMode ? <ExpandOutlined /> : <CompressOutlined />}
+            onClick={() => setCompactMode(!compactMode)}
+            data-testid="toggle-compact-mode"
+          >
+            {compactMode ? '展開技術細節' : '客戶精簡模式'}
+          </Button>
         </Space>
 
         <Title level={2} className="!mb-2">

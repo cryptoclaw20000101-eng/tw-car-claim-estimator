@@ -245,6 +245,22 @@ input[type="number"] {
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
 }
 
+/* === v0.12.0+ Phase E3：客戶精簡模式（隱藏技術細節）===
+   切換時 <main> 加 data-compact="true"，以下選擇器生效：
+   - PainEnsembleCard（精神慰撫金三票細節）— 業務員專用
+   - KNN Debug Panel — 工程師專用
+   - 「共識度」、「距離」、「相似度」等技術標籤
+*/
+[data-compact='true'] .pain-ensemble-detail,
+[data-compact='true'] .knn-debug-detail,
+[data-compact='true'] .technical-detail {
+  display: none !important;
+}
+[data-compact='true'] {
+  /* 簡化 hero stat：主數字保留，副數字淡化 */
+  font-size: 95%;
+}
+
 /* === v0.12.0+ Phase B4：列印友善樣式 ===
    業務員常用：列印結果頁給客戶看（瀏覽器 → 列印 → 存 PDF）。
    - 隱藏導覽列、sticky CTA、PWA button
