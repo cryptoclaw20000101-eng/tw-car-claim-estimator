@@ -38,6 +38,8 @@ import {
   AuditOutlined,
   FileTextOutlined,
   ReadOutlined,
+  // v0.12.0+ Phase A3：表單欄位 tooltip icon
+  InfoCircleOutlined,
 } from '@ant-design/icons'
 import dayjs, { Dayjs } from 'dayjs'
 import type {
@@ -555,7 +557,17 @@ function Step2Fault({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>
     >
       <Row gutter={16}>
         <Col xs={24} md={12}>
-          <Form.Item label="己方肇責 (%) *" name={['fault', 'selfFaultRatio']} rules={[{ required: true }]}>
+          <Form.Item
+            label="己方肇責 (%) *"
+            name={['fault', 'selfFaultRatio']}
+            rules={[{ required: true }]}
+            // v0.12.0+ Phase A3：tooltip 說明肇責意義與填法
+            tooltip={{
+              title:
+                '肇事責任比例由警方初判或法院判決認定。本欄不影響強制險（強制險不乘肇責），只影響第三人責任險的「可向對方求償」金額。',
+              icon: <InfoCircleOutlined />,
+            }}
+          >
             <InputNumber
               style={{ width: '100%' }}
               min={0} max={100} step={5}
@@ -567,12 +579,26 @@ function Step2Fault({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>
           </Form.Item>
         </Col>
         <Col xs={24} md={12}>
-          <Form.Item label="對方肇責 (%)" name={['fault', 'otherFaultRatio']}>
+          <Form.Item
+            label="對方肇責 (%)"
+            name={['fault', 'otherFaultRatio']}
+            tooltip={{
+              title: '自動計算（=100 − 己方肇責）。若未確定，可暫時填 50/50 後再勾「肇責仍有爭議」。',
+              icon: <InfoCircleOutlined />,
+            }}
+          >
             <InputNumber style={{ width: '100%' }} min={0} max={100} disabled />
           </Form.Item>
         </Col>
       </Row>
-      <Form.Item label="肇責來源" name={['fault', 'faultSource']}>
+      <Form.Item
+        label="肇責來源"
+        name={['fault', 'faultSource']}
+        tooltip={{
+          title: '若由警方初判、調委會調解、或法院判決決定，請選對應來源；尚未確定可選「尚未確定」。',
+          icon: <InfoCircleOutlined />,
+        }}
+      >
         <Select options={FAULT_SOURCE_OPTIONS} />
       </Form.Item>
       <Form.Item label="肇責仍有爭議" name={['fault', 'isFaultDisputed']} valuePropName="checked">
@@ -631,7 +657,16 @@ function Step3Person({ form }: { form: ReturnType<typeof Form.useForm<FormSchema
       </Form.Item>
       <Row gutter={16}>
         <Col xs={24} md={12}>
-          <Form.Item label="事故前 6 月平均月薪（元）" name={['person', 'sixMonthAverageSalary']}>
+          <Form.Item
+            label="事故前 6 月平均月薪（元）"
+            name={['person', 'sixMonthAverageSalary']}
+            // v0.12.0+ Phase A3：月薪證明影響工作損失計算
+            tooltip={{
+              title:
+                '需附「事故前 6 個月薪資證明」（如薪轉單、扣繳憑單）。無證明者，工作損失改按基本工資估算（金額較低）。',
+              icon: <InfoCircleOutlined />,
+            }}
+          >
             <InputNumber style={{ width: '100%' }} min={0} step={1000} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
           </Form.Item>
         </Col>
@@ -768,7 +803,16 @@ function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchem
           </Form.Item>
         </Col>
         <Col xs={24} md={6}>
-          <Form.Item label="失能等級（1=最重 / 15=最輕）" name={['medical', 'disabilityLevel']}>
+          <Form.Item
+            label="失能等級（1=最重 / 15=最輕）"
+            name={['medical', 'disabilityLevel']}
+            // v0.12.0+ Phase A3：失能等級是初篩，真實等級由醫院失能診斷書認定
+            tooltip={{
+              title:
+                '失能等級須由醫院開立「失能診斷書」並經保險公司 / 評議 / 法院認定，本欄為初步篩選用途。',
+              icon: <InfoCircleOutlined />,
+            }}
+          >
             <Select
               allowClear
               placeholder="選大類後自動帶出"
@@ -856,7 +900,20 @@ function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchem
           </Form.Item>
         </Col>
         <Col xs={12} md={4}><Form.Item label="有受限" name={['medical', 'hasRangeOfMotionLimitation']} valuePropName="checked"><Switch /></Form.Item></Col>
-        <Col xs={12} md={6}><Form.Item label="角度喪失 (度)" name={['medical', 'romLossDegree']}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item></Col>
+        <Col xs={12} md={6}>
+          <Form.Item
+            label="角度喪失 (度)"
+            name={['medical', 'romLossDegree']}
+            // v0.12.0+ Phase A3：ROM 角度喪失量測方式
+            tooltip={{
+              title:
+                '關節活動度（ROM）由醫院量測或自行估計。填「正常活動度 − 現在能動到的最大角度」。0° 表示完全沒受限；填越大表示受限越嚴重。',
+              icon: <InfoCircleOutlined />,
+            }}
+          >
+            <InputNumber style={{ width: '100%' }} min={0} />
+          </Form.Item>
+        </Col>
         <Col xs={12} md={6}><Form.Item label="正常活動度 (度)" name={['medical', 'romNormalDegree']}><InputNumber style={{ width: '100%' }} min={0} disabled /></Form.Item></Col>
       </Row>
       <Row gutter={16}>
