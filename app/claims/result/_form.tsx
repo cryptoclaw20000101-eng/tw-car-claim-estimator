@@ -69,6 +69,10 @@ import {
 } from '@/lib/estimate/precedents'
 // v0.12.0+ Phase B3：localStorage 歷史記錄
 import { saveEstimateHistory, buildHistoryEntry } from '@/lib/estimate-history'
+// v0.14.x：雲端持久化（Supabase + localStorage fallback）
+import { saveEstimate } from '@/lib/estimate-storage'
+// v0.14.x：登入狀態
+import { useAuth } from '@/components/AuthProvider'
 import { getAverageFoiCompensation } from '@/lib/data-sources/foi'
 import { listLegalReferences, isLegalReferenceStale } from '@/lib/data-sources/legal-reference'
 import type { LegalReference } from '@/lib/data-sources/types'
@@ -82,6 +86,8 @@ const dollar = (n: number) => `NT$ ${(n ?? 0).toLocaleString('zh-TW')}`
 export default function ResultForm() {
   // v0.12.0+ Phase E3：客戶精簡模式（隱藏技術細節，給客戶看的精簡版）
   const [compactMode, setCompactMode] = useState(false)
+  // v0.14.x：用戶登入狀態
+  const { user } = useAuth()
 
   // v0.12.0+ Phase B5：分享連結 handler
   const handleShare = async () => {
@@ -129,15 +135,21 @@ export default function ResultForm() {
   const stale = hydrated.stale
 
   // v0.12.0+ Phase B3：估算成功後自動寫入 localStorage 歷史（脫敏後）
+  // v0.14.x：登入時改存 Supabase 雲端（fallback 到 localStorage）
   // 用 useEffect 確保只在 client 跑（避免 SSR 報錯）
   useEffect(() => {
     if (!input || !result) return
-    try {
-      const entry = buildHistoryEntry(result, input.fault?.selfFaultRatio ?? 50)
-      saveEstimateHistory(entry)
-    } catch {
-      // silent fail — 歷史記錄不是關鍵功能
-    }
+    void (async () => {
+      try {
+        await saveEstimate(
+          input,
+          result,
+          user?.id ?? null,
+        )
+      } catch {
+        // silent fail
+      }
+    })()
     // 只在 mount 時跑一次（result 變動不重複存）
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

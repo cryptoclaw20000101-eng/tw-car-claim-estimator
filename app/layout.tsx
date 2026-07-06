@@ -118,18 +118,18 @@ export default function RootLayout({
           }}
         />
         <AntdRegistry>
-          {/* v0.13.x：ThemeProvider 取代靜態 ConfigProvider
-              支援 dark mode algorithm 動態切換（與 .dark CSS class 同步） */}
-          <ThemeProvider>
-            {/* v0.14.x：AuthProvider — Supabase magic link 登入 */}
-            <AuthProvider>
+          {/* v0.14.x：AuthProvider 必須在最外層（MobileNav / ThemeProvider 都要用 useAuth）*/}
+          <AuthProvider>
+            {/* v0.13.x：ThemeProvider 取代靜態 ConfigProvider
+                支援 dark mode algorithm 動態切換（與 .dark CSS class 同步） */}
+            <ThemeProvider>
               {/* v0.13.x：Web Vitals 上報（LCP/CLS/INP/FCP/TTFB）*/}
               <WebVitalsReporter />
               {/* v0.13.x：Sentry-style 錯誤追蹤 scaffold */}
               <ErrorTracker />
               {children}
-            </AuthProvider>
-          </ThemeProvider>
+            </ThemeProvider>
+          </AuthProvider>
         </AntdRegistry>
         <ServiceWorkerRegistrar />
       </body>
