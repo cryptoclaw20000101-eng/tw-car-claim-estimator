@@ -11,6 +11,7 @@ import { FormProgress } from '@/components/FormProgress'
 import { EstimateHistory } from '@/components/EstimateHistory'
 import { Skeleton, SkeletonBlock } from '@/components/Skeleton'
 import { MultiFaultCompare } from '@/components/MultiFaultCompare'
+import { AuthProvider } from '@/components/AuthProvider'
 
 describe('FormProgress SSR', () => {
   it('渲染 7 步驟圓圈', () => {
@@ -44,7 +45,12 @@ describe('FormProgress SSR', () => {
 
 describe('EstimateHistory SSR', () => {
   it('SSR 不 render（避免首次訪問打擾）', () => {
-    const html = renderToString(<EstimateHistory />)
+    // v0.14.x：EstimateHistory 內部用 useAuth，需包 AuthProvider
+    const html = renderToString(
+      <AuthProvider>
+        <EstimateHistory />
+      </AuthProvider>,
+    )
     expect(html).toBe('')
   })
 })

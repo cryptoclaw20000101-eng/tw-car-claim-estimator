@@ -54,6 +54,18 @@
     "node": ">=20.9.0"
   },
   "packageManager": "pnpm@10.33.2",
+  "pnpm": {
+    "overrides": {
+      "postcss@<8.5.10": ">=8.5.10",
+      "undici@<7.28.0": ">=7.28.0"
+    },
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "react": "19",
+        "react-dom": "19"
+      }
+    }
+  },
   "devDependencies": {
     "@axe-core/react": "^4.12.1",
     "@commitlint/cli": "^21.2.0",
