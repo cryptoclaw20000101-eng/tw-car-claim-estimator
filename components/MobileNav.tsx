@@ -175,7 +175,8 @@ export function MobileNav() {
         open={open}
         onClose={() => setOpen(false)}
         closeIcon={<CloseOutlined />}
-        width="80vw"
+        size="large"
+        style={{ width: '80vw', maxWidth: 360 }}
         data-testid="mobile-nav-drawer"
       >
         <Space orientation="vertical" size="small" className="!w-full">
