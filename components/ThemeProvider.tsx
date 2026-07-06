@@ -58,6 +58,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [mounted])
 
   const algorithm = mode === 'dark' ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm
+  // v0.15.x Phase 6：當 dark mode 時顯式給關鍵元件深色 token
+  // 因為 AntD 6 + 靜態 export 對 algorithm 自動計算支援有限
+  const isDark = mode === 'dark'
 
   return (
     <ConfigProvider
@@ -71,7 +74,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
           colorSuccess: '#166534',
           colorWarning: '#b45309',
           colorError: '#991b1b',
-          colorText: '#18181b',
+          colorText: isDark ? '#fafaf9' : '#18181b',
+          colorBgContainer: isDark ? '#18181b' : '#ffffff',
+          colorBgElevated: isDark ? '#27272a' : '#ffffff',
+          colorBgLayout: isDark ? '#0a0a0a' : '#fafaf9',
+          colorBorder: isDark ? '#3f3f46' : '#e4e4e7',
+          colorBorderSecondary: isDark ? '#27272a' : '#e4e4e7',
           borderRadius: 8,
           fontFamily: 'var(--font-body)',
           fontSize: 14,
@@ -80,6 +88,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
           Card: {
             borderRadiusLG: 12,
             paddingLG: 24,
+            colorBgContainer: isDark ? '#18181b' : '#ffffff',
           },
           Tag: {
             borderRadiusSM: 4,
