@@ -18,13 +18,21 @@
  */
 
 import { useEffect, useState } from 'react'
-import { Button, Space, Tag, Tooltip, Typography } from 'antd'
-import { ClockCircleOutlined, DeleteOutlined, CloudOutlined, ReloadOutlined } from '@ant-design/icons'
+import { Button, Space, Tag, Tooltip, Typography, message } from 'antd'
+import {
+  ClockCircleOutlined,
+  DeleteOutlined,
+  CloudOutlined,
+  ReloadOutlined,
+  CloudDownloadOutlined,
+} from '@ant-design/icons'
 import { getEstimateHistory, clearEstimateHistory, type HistoryEntry } from '@/lib/estimate-history'
 import { loadEstimates, deleteCloudEstimate, type CloudEstimate } from '@/lib/estimate-storage'
 import { useAuth } from '@/components/AuthProvider'
 // v0.14.x：載入舊案件
 import { saveForLoad } from '@/lib/estimate-loader'
+// v0.15.x Phase 3：雲端 ↔ 本地 同步
+import { smartSync, type SyncResult } from '@/lib/sync'
 
 const { Text, Paragraph } = Typography
 
@@ -34,6 +42,8 @@ export function EstimateHistory() {
   const [cloudItems, setCloudItems] = useState<CloudEstimate[]>([])
   const [storage, setStorage] = useState<'cloud' | 'local'>('local')
   const [mounted, setMounted] = useState(false)
+  // v0.15.x Phase 3：雲端同步狀態
+  const [syncing, setSyncing] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -61,6 +71,30 @@ export function EstimateHistory() {
       setItems(result.items as HistoryEntry[])
     }
     setStorage(result.storage)
+  }
+
+  /**
+   * v0.15.x Phase 3：雲端 ↔ 本地 同步
+   * 從雲端下載新估算到本地（時間戳去重）
+   */
+  const handleSync = async () => {
+    if (!user) return
+    setSyncing(true)
+    try {
+      const result: SyncResult = await smartSync(user.id)
+      await refresh()
+      if (result.downloaded > 0) {
+        message.success(`從雲端下載 ${result.downloaded} 筆新估算`)
+      } else if (result.errors.length > 0) {
+        message.error(`同步失敗：${result.errors.join(', ')}`)
+      } else {
+        message.info('已是最新，沒有新估算可下載')
+      }
+    } catch (e) {
+      message.error('同步失敗：' + (e instanceof Error ? e.message : '未知錯誤'))
+    } finally {
+      setSyncing(false)
+    }
   }
 
   /**
@@ -140,15 +174,32 @@ export function EstimateHistory() {
               本機儲存最近 10 筆估算（不涉及個資）。清空資料不會影響估算結果。
             </Paragraph>
           </div>
-          <Button
-            type="text"
-            size="small"
-            icon={<DeleteOutlined />}
-            onClick={handleClear}
-            data-testid="clear-history"
-          >
-            清空
-          </Button>
+          {/* v0.15.x Phase 3：雲端 ↔ 本地 同步按鈕（已登入才顯示）*/}
+          <Space>
+            {user && (
+              <Tooltip title="從雲端下載新估算到本地">
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<CloudDownloadOutlined />}
+                  onClick={handleSync}
+                  loading={syncing}
+                  data-testid="sync-cloud"
+                >
+                  同步雲端
+                </Button>
+              </Tooltip>
+            )}
+            <Button
+              type="text"
+              size="small"
+              icon={<DeleteOutlined />}
+              onClick={handleClear}
+              data-testid="clear-history"
+            >
+              清空
+            </Button>
+          </Space>
         </div>
 
         {/* 桌面：表格 / 手機：卡片堆疊 */}
