@@ -388,9 +388,20 @@ export default function HomeClient() {
             </div>
           </div>
           <div className="flex flex-col items-start justify-between gap-2 text-xs text-muted md:flex-row md:items-center">
-            <Text className="!text-xs text-muted">
-              © 2026 tw-car-claim-estimator · Built with Next.js 16 + AntD 6
-            </Text>
+            <Space size={12} wrap>
+              <Text className="!text-xs text-muted">
+                © 2026 tw-car-claim-estimator · Built with Next.js 16 + AntD 6
+              </Text>
+              <Link href="/about" className="!text-xs text-muted hover:text-accent">
+                關於我們
+              </Link>
+              <Link href="/privacy" className="!text-xs text-muted hover:text-accent">
+                隱私權政策
+              </Link>
+              <Link href="/terms" className="!text-xs text-muted hover:text-accent">
+                服務條款
+              </Link>
+            </Space>
             <Text className="!text-xs text-muted">v0.12.0 · 6 直轄市 + 26 縣市</Text>
           </div>
         </div>

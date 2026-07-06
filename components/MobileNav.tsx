@@ -210,6 +210,29 @@ export function MobileNav() {
               </Link>
             )
           })}
+          {/* v0.14.x：法律頁面（隱私 / 條款 / 關於我們）*/}
+          <div className="!mt-4 border-t border-border pt-4">
+            <Text type="secondary" className="!mb-2 !text-xs uppercase tracking-wider">
+              更多
+            </Text>
+            <Space direction="vertical" size="small" className="!w-full">
+              <Link href="/about" onClick={() => setOpen(false)} style={{ width: '100%' }}>
+                <Button type="text" block className="!justify-start" size="small">
+                  關於我們
+                </Button>
+              </Link>
+              <Link href="/privacy" onClick={() => setOpen(false)} style={{ width: '100%' }}>
+                <Button type="text" block className="!justify-start" size="small">
+                  隱私權政策
+                </Button>
+              </Link>
+              <Link href="/terms" onClick={() => setOpen(false)} style={{ width: '100%' }}>
+                <Button type="text" block className="!justify-start" size="small">
+                  服務條款
+                </Button>
+              </Link>
+            </Space>
+          </div>
           <div className="!mt-4 border-t border-border pt-4">
             <Text type="secondary" className="!text-xs">
               💡 加到主畫面變 app：iPhone 分享 → 加入主畫面 / Android Chrome 自動提示
@@ -232,9 +255,7 @@ function UserMenu() {
   const pathname = usePathname()
 
   if (loading) {
-    return (
-      <Button type="text" icon={<UserOutlined />} disabled data-testid="user-menu" />
-    )
+    return <Button type="text" icon={<UserOutlined />} disabled data-testid="user-menu" />
   }
 
   if (!user) {
