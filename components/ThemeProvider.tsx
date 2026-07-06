@@ -1,0 +1,119 @@
+'use client'
+
+/**
+ * ThemeProvider — AntD 主題動態切換（v0.13.x 規劃落實）
+ *
+ * 設計：
+ * - SSR：預設 light theme（避免 hydration mismatch）
+ * - mount 後讀 localStorage → 切換 algorithm
+ * - 與現有 .dark CSS class 同步（CSS variables + AntD 元件都跟著切）
+ *
+ * 不變量：
+ * - SSR 永遠渲染 light（dark 是 client-side 決定）
+ * - localStorage key: 'tw-car-claim-estimator:theme'（與 §23 一致）
+ */
+
+import { useEffect, useState } from 'react'
+import { App, ConfigProvider, theme as antdTheme } from 'antd'
+import zhTW from 'antd/locale/zh_TW'
+import { MobileNav } from '@/components/MobileNav'
+
+type ThemeMode = 'light' | 'dark'
+
+const STORAGE_KEY = 'tw-car-claim-estimator:theme'
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [mode, setMode] = useState<ThemeMode>('light')
+  const [mounted, setMounted] = useState(false)
+
+  // mount 後讀 localStorage（避免 SSR 拿到 window）
+  useEffect(() => {
+    try {
+      const pref = window.localStorage.getItem(STORAGE_KEY) || 'light'
+      setMode(pref as ThemeMode)
+      // 同步 .dark class（給 CSS variables 用）
+      if (pref === 'dark') {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+    } catch {
+      // ignore
+    }
+    setMounted(true)
+  }, [])
+
+  // 監聽 .dark class 變化（從 MobileNav 的 toggle 按鈕同步過來）
+  useEffect(() => {
+    if (!mounted) return
+    const observer = new MutationObserver(() => {
+      const isDark = document.documentElement.classList.contains('dark')
+      setMode(isDark ? 'dark' : 'light')
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    })
+    return () => observer.disconnect()
+  }, [mounted])
+
+  const algorithm =
+    mode === 'dark' ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm
+
+  return (
+    <ConfigProvider
+      locale={zhTW}
+      theme={{
+        algorithm,
+        token: {
+          // v0.12.0+ 從 tokens 引用（已含在 layout 內的 token）
+          colorPrimary: '#be123c', // ACCENT
+          colorInfo: '#0e7490',
+          colorSuccess: '#166534',
+          colorWarning: '#b45309',
+          colorError: '#991b1b',
+          colorText: '#18181b',
+          borderRadius: 8,
+          fontFamily: 'var(--font-body)',
+          fontSize: 14,
+        },
+        components: {
+          Card: {
+            borderRadiusLG: 12,
+            paddingLG: 24,
+          },
+          Tag: {
+            borderRadiusSM: 4,
+            fontSize: 12,
+          },
+          Button: {
+            borderRadius: 8,
+            controlHeight: 40,
+            fontWeight: 500,
+          },
+          Tabs: {
+            itemActiveColor: '#be123c',
+            itemHoverColor: '#be123c',
+            itemSelectedColor: '#be123c',
+            inkBarColor: '#be123c',
+          },
+          Alert: {
+            borderRadiusLG: 8,
+          },
+          Statistic: {
+            titleFontSize: 12,
+            contentFontSize: 24,
+          },
+          Tooltip: {
+            borderRadius: 6,
+          },
+        },
+      }}
+    >
+      <App>
+        <MobileNav />
+        {children}
+      </App>
+    </ConfigProvider>
+  )
+}

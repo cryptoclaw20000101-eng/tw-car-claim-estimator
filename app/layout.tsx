@@ -1,10 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
-import { App, ConfigProvider } from "antd";
-import zhTW from "antd/locale/zh_TW";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
-import { MobileNav } from "@/components/MobileNav";
-import { COLORS, ACCENT, FOREGROUND } from "@/lib/design/tokens";
+// v0.13.x：ThemeProvider 取代靜態 ConfigProvider（含 dark mode algorithm）
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { ACCENT } from "@/lib/design/tokens";
 import "./globals.css";
 
 /**
@@ -114,64 +113,11 @@ export default function RootLayout({
           }}
         />
         <AntdRegistry>
-          <ConfigProvider
-            locale={zhTW}
-            theme={{
-              token: {
-                // v0.12.0+：全部從 tokens 引用，不再硬編
-                colorPrimary: ACCENT, // rose-700
-                colorInfo: COLORS.antInfo, // cyan-700
-                colorSuccess: COLORS.positive, // green-800
-                colorWarning: COLORS.warning, // amber-700
-                colorError: COLORS.negative, // red-800
-                colorText: FOREGROUND, // zinc-900
-                borderRadius: 8,
-                fontFamily: "var(--font-body)",
-                fontSize: 14,
-              },
-              // v0.12.0+：AntD 元件層級 token 擴充
-              // 細部元件覆寫（與 taste-skill v1 視覺紀律對齊）
-              components: {
-                Card: {
-                  borderRadiusLG: 12,
-                  paddingLG: 24,
-                },
-                Tag: {
-                  borderRadiusSM: 4,
-                  fontSize: 12,
-                },
-                Button: {
-                  borderRadius: 8,
-                  controlHeight: 40,
-                  fontWeight: 500,
-                },
-                Tabs: {
-                  itemActiveColor: ACCENT,
-                  itemHoverColor: ACCENT,
-                  itemSelectedColor: ACCENT,
-                  inkBarColor: ACCENT,
-                },
-                Alert: {
-                  borderRadiusLG: 8,
-                },
-                Statistic: {
-                  titleFontSize: 12,
-                  contentFontSize: 24,
-                },
-                Tooltip: {
-                  borderRadius: 6,
-                },
-              },
-            }}
-          >
-            {/* v0.5.1 bugfix: AntD 6 的 message.error / message.success 是 static function，
-                在 dynamic theme 下抓不到 context，會跳警告。要包 <App> 才吃到 ConfigProvider theme。 */}
-            <App>
-              {/* v0.8.0+：手機 / 桌機導覽列 */}
-              <MobileNav />
-              {children}
-            </App>
-          </ConfigProvider>
+          {/* v0.13.x：ThemeProvider 取代靜態 ConfigProvider
+              支援 dark mode algorithm 動態切換（與 .dark CSS class 同步） */}
+          <ThemeProvider>
+            {children}
+          </ThemeProvider>
         </AntdRegistry>
         <ServiceWorkerRegistrar />
       </body>

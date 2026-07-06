@@ -20,16 +20,19 @@ const localStorageMock = (() => {
     setItem: (k: string, v: string) => { store[k] = v },
     removeItem: (k: string) => { delete store[k] },
     clear: () => { store = {} },
+    key: () => null,
+    get length() {
+      return Object.keys(store).length
+    },
     _store: store,
   }
 })()
 
 beforeEach(() => {
-  // @ts-expect-error - mock for test
   global.window = {
-    localStorage: localStorageMock,
-    location: { origin: 'https://example.com' },
-  }
+    localStorage: localStorageMock as unknown as Storage,
+    location: { origin: 'https://example.com' } as unknown as Location,
+  } as unknown as Window & typeof globalThis
 })
 
 afterEach(() => {
@@ -40,8 +43,7 @@ afterEach(() => {
 describe('estimate-history', () => {
   it('SSR 安全：hasStorage false 時 getEstimateHistory 回 []', async () => {
     const origWindow = global.window
-    // @ts-expect-error
-    delete global.window
+    delete (global as any).window
     const { getEstimateHistory, saveEstimateHistory } = await import('@/lib/estimate-history')
     expect(getEstimateHistory()).toEqual([])
     saveEstimateHistory({
@@ -166,7 +168,7 @@ describe('share-link', () => {
     expect(decoded).not.toBeNull()
     expect(decoded?.input.accidentDate).toBe('2026-07-03')
     expect(decoded?.input.selfFaultRatio).toBe(30)
-    expect(decoded?.result.c).toBe(50000)
+    expect((decoded?.result as any).c).toBe(50000)
   })
 
   it('空 hash 回 null', async () => {
@@ -186,8 +188,7 @@ describe('share-link', () => {
 
   it('restoreFromHash SSR 安全', async () => {
     const origWindow = global.window
-    // @ts-expect-error
-    delete global.window
+    delete (global as any).window
     const { restoreFromHash } = await import('@/lib/share-link')
     expect(restoreFromHash()).toBe(false)
     global.window = origWindow
@@ -195,16 +196,15 @@ describe('share-link', () => {
 
   it('restoreFromHash 從合法 hash 解碼並寫入 sessionStorage', async () => {
     const sessionStore: Record<string, string> = {}
-    // @ts-expect-error
     global.window = {
-      localStorage: localStorageMock,
+      localStorage: localStorageMock as unknown as Storage,
       sessionStorage: {
         setItem: (k: string, v: string) => { sessionStore[k] = v },
         getItem: (k: string) => sessionStore[k] ?? null,
-      },
+      } as unknown as Storage,
       // window.location.hash 會帶 # 前綴 → decodeShareHash 期待「r=」開頭，所以用 #r= 形式
-      location: { origin: 'https://example.com', hash: '#r=eyJ2IjoxLCJpIjp7ImFjY2lkZW50RGF0ZSI6IjIwMjYtMDctMDMifX0=' },
-    }
+      location: { origin: 'https://example.com', hash: '#r=eyJ2IjoxLCJpIjp7ImFjY2lkZW50RGF0ZSI6IjIwMjYtMDctMDMifX0=' } as unknown as Location,
+    } as unknown as Window & typeof globalThis
     // 改用 slice 移除 # 來測
     const hash = global.window.location.hash.slice(1)
     const { decodeShareHash } = await import('@/lib/share-link')
@@ -213,12 +213,11 @@ describe('share-link', () => {
   })
 
   it('restoreFromHash 從無效 hash 回 false', async () => {
-    // @ts-expect-error
     global.window = {
-      localStorage: localStorageMock,
-      sessionStorage: { setItem: () => {}, getItem: () => null },
-      location: { origin: 'https://example.com', hash: '' },
-    }
+      localStorage: localStorageMock as unknown as Storage,
+      sessionStorage: { setItem: () => {}, getItem: () => null } as unknown as Storage,
+      location: { origin: 'https://example.com', hash: '' } as unknown as Location,
+    } as unknown as Window & typeof globalThis
     const { restoreFromHash } = await import('@/lib/share-link')
     expect(restoreFromHash()).toBe(false)
   })
