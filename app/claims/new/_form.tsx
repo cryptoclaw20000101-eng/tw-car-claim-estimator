@@ -49,6 +49,8 @@ import { Step4KnnPreview } from '@/components/Step4KnnPreview'
 import { MobileStickyCTA } from '@/components/MobileStickyCTA'
 // v0.12.0+ Phase B2：自製進度條
 import { FormProgress } from '@/components/FormProgress'
+// v0.15.x Phase 4：Step 元件抽出
+import { Step1Basics } from './_steps/Step1Basics'
 import {
   LeftOutlined,
   RightOutlined,
@@ -348,7 +350,8 @@ const SCAR_PROCEDURE_OPTIONS: {
 
 // ============== 表單 Schema ==============
 
-interface FormSchema {
+// v0.15.x Phase 4：export FormSchema 給 _steps/ 子目錄用
+export interface FormSchema {
   basics: AccidentBasics
   fault: FaultInfo
   person: PersonalIncome
@@ -496,7 +499,15 @@ export default function NewClaimForm() {
           onValuesChange={(_, all) => setData((d) => ({ ...d, ...all }))}
         >
           {/* ====== Step 1：事故基本 ====== */}
-          {current === 0 && <Step1Basics form={form} onCityChange={handleCityChange} />}
+          {current === 0 && (
+            <Step1Basics
+              form={form}
+              onCityChange={handleCityChange}
+              cityOptions={CITY_OPTIONS.map((v) => ({ value: v, label: v }))}
+              accidentTypeOptions={ACCIDENT_TYPE_OPTIONS}
+              injuredRoleOptions={INJURED_ROLE_OPTIONS}
+            />
+          )}
           {/* ====== Step 2：肇責 ====== */}
           {current === 1 && <Step2Fault form={form} />}
           {/* ====== Step 3：人身 / 工作 ====== */}
@@ -543,157 +554,20 @@ export default function NewClaimForm() {
 
 // ============== 淺合併工具 ==============
 function mergeStep(prev: FormSchema, step: number, values: Partial<FormSchema>): FormSchema {
-  const stepKey = (['basics', 'fault', 'person', 'medical', 'receipts', 'property'] as const)[step]
-  return { ...prev, [stepKey]: { ...prev[stepKey], ...(values[stepKey] as object) } }
+  const STEP_KEYS = ['basics', 'fault', 'person', 'medical', 'receipts', 'property'] as const
+  const stepKey = STEP_KEYS[step] ?? 'basics'
+  const prevSection = prev[stepKey]
+  const newSection = values[stepKey]
+  return {
+    ...prev,
+    [stepKey]: {
+      ...(prevSection as object),
+      ...(newSection as object),
+    },
+  } as FormSchema
 }
 
 // ============== Step 1：事故基本 ==============
-function Step1Basics({
-  form,
-  onCityChange,
-}: {
-  form: ReturnType<typeof Form.useForm<FormSchema>>[0]
-  onCityChange: (v: string) => void
-}) {
-  // v0.5.1 bugfix: DatePicker 在 Form.Item 控制下不能同時用 defaultValue（會跳 .isValid）
-  // 改用 setFieldsValue 在 client 端注入 dayjs() 物件，避免 SSR 字串傳遞炸 picker
-  // （父層 useEffect 已處理，這裡保留當 fallback: 若父層 setFieldsValue 沒生效就補上）
-  useEffect(() => {
-    const cur = form.getFieldValue(['basics', 'accidentDate'])
-    if (!cur) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      form.setFieldsValue({ basics: { accidentDate: dayjs() } } as any)
-    }
-  }, [form])
-  return (
-    <StepShell
-      icon={<CarOutlined />}
-      title="事故基本資料"
-      alertType="info"
-      alertTitle="強制險採無過失主義，肇責比例只會影響第三人責任險的估算。"
-    >
-      <Row gutter={16}>
-        <Col xs={24} md={12}>
-          <Form.Item
-            label="事故日期 *"
-            name={['basics', 'accidentDate']}
-            rules={[{ required: true }]}
-            getValueProps={(value) => ({ value: value ? dayjs(value) : null })}
-          >
-            <DatePicker
-              style={{ width: '100%' }}
-              format="YYYY-MM-DD"
-              onChange={(d: Dayjs | null) => {
-                form.setFieldValue(['basics', 'accidentDate'], d?.format('YYYY-MM-DD') ?? '')
-              }}
-            />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={12}>
-          <Form.Item
-            label="事故地點 *"
-            name={['basics', 'accidentLocation']}
-            rules={[{ required: true }]}
-          >
-            <Input
-              placeholder="例：臺中市西區美村路與五權路口"
-              autoComplete="street-address"
-              inputMode="text"
-              enterKeyHint="next"
-            />
-          </Form.Item>
-        </Col>
-      </Row>
-      <Row gutter={16}>
-        <Col xs={24} md={12}>
-          <Form.Item
-            label="事故類型 *"
-            name={['basics', 'accidentType']}
-            rules={[{ required: true }]}
-          >
-            <Select options={ACCIDENT_TYPE_OPTIONS} />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={12}>
-          <Form.Item
-            label="受害人身分 *"
-            name={['basics', 'injuredRole']}
-            rules={[{ required: true }]}
-          >
-            <Select options={INJURED_ROLE_OPTIONS} />
-          </Form.Item>
-        </Col>
-      </Row>
-      <Row gutter={16}>
-        <Col xs={24} md={8}>
-          <Form.Item
-            label="是否為汽車交通事故 *"
-            name={['basics', 'isAutomobileAccident']}
-            valuePropName="checked"
-          >
-            <Switch checkedChildren="是" unCheckedChildren="否" />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={8}>
-          <Form.Item
-            label="警方初步研判表"
-            name={['basics', 'hasPolicePreliminaryReport']}
-            valuePropName="checked"
-          >
-            <Switch />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={8}>
-          <Form.Item
-            label="車輛事故鑑定"
-            name={['basics', 'hasAccidentAppraisal']}
-            valuePropName="checked"
-          >
-            <Switch />
-          </Form.Item>
-        </Col>
-      </Row>
-      <Row gutter={16}>
-        <Col xs={24} md={8}>
-          <Form.Item
-            label="有強制險 *"
-            name={['basics', 'hasCompulsoryInsurance']}
-            valuePropName="checked"
-          >
-            <Switch />
-          </Form.Item>
-        </Col>
-      </Row>
-
-      {/* v0.5.2: 拿掉「有第三人責任險」「已和解」+ 3 個保額欄位（永遠當有第三人險、無保額上限） */}
-
-      <Title level={5} className="!mt-4">
-        地區（自動帶入法院，可手改）
-      </Title>
-      <Row gutter={16}>
-        <Col xs={24} md={8}>
-          <Form.Item label="事故縣市" name={['basics', 'accidentCity']}>
-            <Select
-              options={CITY_OPTIONS.map((v) => ({ value: v, label: v }))}
-              onChange={onCityChange}
-            />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={8}>
-          <Form.Item label="事故鄉鎮市區" name={['basics', 'accidentDistrict']}>
-            <Input placeholder="例：西區" />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={8}>
-          <Form.Item label="管轄法院" name={['basics', 'courtJurisdiction']}>
-            <Input />
-          </Form.Item>
-        </Col>
-      </Row>
-    </StepShell>
-  )
-}
-
 // ============== Step 2：肇責 ==============
 function Step2Fault({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
   const selfRatio = Form.useWatch(['fault', 'selfFaultRatio'], form) as number | undefined
@@ -1200,9 +1074,7 @@ function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchem
                   <span style={{ color: '#999' }}>未選 → 預設雷射。蟹足腫自動改走注射治療</span>
                 )
               const opt = SCAR_PROCEDURE_OPTIONS.find((o) => o.value === proc)
-              return (
-                <span style={{ color: 'var(--data-info, #1677ff)' }}>{opt?.hint}</span>
-              )
+              return <span style={{ color: 'var(--data-info, #1677ff)' }}>{opt?.hint}</span>
             })()}
           >
             <Select
