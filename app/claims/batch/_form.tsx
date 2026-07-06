@@ -14,6 +14,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Alert, Button, Card, Space, Table, Typography } from 'antd'
 import { InfoAlert } from '@/components/InfoAlert'
+// v0.13.x：共用 PageBreadcrumb 元件
+import { PageBreadcrumb } from '@/components/PageBreadcrumb'
 import { FileTextOutlined, ThunderboltOutlined, CopyOutlined } from '@ant-design/icons'
 import {
   parseBatchCsv,
@@ -64,14 +66,9 @@ export default function BatchForm() {
       className="flex flex-1 flex-col items-center px-6 py-8 bg-surface-subtle"
     >
       <div className="w-full max-w-5xl">
-        <Space className="!mb-4">
-          <Link href="/claims/new">
-            <Button>← 回單筆估算</Button>
-          </Link>
-          <Link href="/">
-            <Button>回首頁</Button>
-          </Link>
-        </Space>
+        <PageBreadcrumb
+          back={{ kind: 'link', href: '/claims/new', label: '← 回單筆估算' }}
+        />
 
         <Title level={2} className="!mb-2">
           <ThunderboltOutlined className="mr-2 text-accent" />

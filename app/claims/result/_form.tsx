@@ -28,6 +28,8 @@ import { LawVersionBadge } from '@/components/LawVersionBadge'
 import { PainEnsembleCard } from '@/components/PainEnsembleCard'
 import { KnnDebugPanel } from '@/components/KnnDebugPanel'
 import { MobileStickyCTA } from '@/components/MobileStickyCTA'
+// v0.13.x：共用 PageBreadcrumb 元件
+import { PageBreadcrumb } from '@/components/PageBreadcrumb'
 // v0.12.0+ Phase B7：多肇責比例並排比較
 import { MultiFaultCompare } from '@/components/MultiFaultCompare'
 // v0.12.0+ Phase B5：分享連結
@@ -191,34 +193,38 @@ export default function ResultForm() {
       className="flex flex-1 flex-col items-center px-6 py-8 bg-surface-subtle"
     >
       <div className="w-full max-w-5xl">
-        <Space className="!mb-4">
-          <Link href="/claims/new">
-            <Button icon={<ArrowLeftOutlined />}>重新估算</Button>
-          </Link>
-          <Link href="/">
-            <Button>回首頁</Button>
-          </Link>
-          {/* v0.12.0+ Phase E2：下載 PDF 按鈕 — 觸發瀏覽器列印對話框（沿用 B4 列印樣式） */}
-          <Button
-            icon={<FilePdfOutlined />}
-            onClick={() => window.print()}
-            data-testid="download-pdf"
-          >
-            下載 PDF
-          </Button>
-          {/* v0.12.0+ Phase B5：分享連結 */}
-          <Button icon={<ShareAltOutlined />} onClick={handleShare} data-testid="share-link">
-            分享連結
-          </Button>
-          {/* v0.12.0+ Phase E3：客戶精簡模式 toggle */}
-          <Button
-            icon={compactMode ? <ExpandOutlined /> : <CompressOutlined />}
-            onClick={() => setCompactMode(!compactMode)}
-            data-testid="toggle-compact-mode"
-          >
-            {compactMode ? '展開技術細節' : '客戶精簡模式'}
-          </Button>
-        </Space>
+        <PageBreadcrumb
+          back={{
+            kind: 'link',
+            href: '/claims/new',
+            label: '重新估算',
+            icon: <ArrowLeftOutlined />,
+          }}
+          actions={[
+            {
+              kind: 'button',
+              onClick: () => window.print(),
+              label: '下載 PDF',
+              icon: <FilePdfOutlined />,
+              testId: 'download-pdf',
+            },
+            {
+              kind: 'button',
+              onClick: handleShare,
+              label: '分享連結',
+              icon: <ShareAltOutlined />,
+              testId: 'share-link',
+            },
+            {
+              kind: 'button',
+              onClick: () => setCompactMode(!compactMode),
+              label: compactMode ? '展開技術細節' : '客戶精簡模式',
+              icon: compactMode ? <ExpandOutlined /> : <CompressOutlined />,
+              testId: 'toggle-compact-mode',
+            },
+          ]}
+          showHome={true}
+        />
 
         <Title level={2} className="!mb-2">
           <BarChartOutlined className="mr-2 text-accent" />
