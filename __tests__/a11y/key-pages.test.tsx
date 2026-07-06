@@ -20,10 +20,15 @@ import { describe, it, expect } from 'vitest'
 import { renderToString } from 'react-dom/server'
 import { axe } from 'vitest-axe'
 import HomeClient from '@/app/_components/HomeClient'
+import { AuthProvider } from '@/components/AuthProvider'
 
 describe('首頁 a11y smoke test', () => {
   it('home page 沒有 critical / serious 違規', async () => {
-    const html = renderToString(<HomeClient />)
+    const html = renderToString(
+      <AuthProvider>
+        <HomeClient />
+      </AuthProvider>,
+    )
     // 把 SSR HTML 注入到 jsdom document
     document.body.innerHTML = html
 
