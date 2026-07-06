@@ -28,6 +28,7 @@
     "report:all": "node scripts/scrape-judgments.js --quiet && node scripts/report-precedents.js",
     "analyze": "ANALYZE=true pnpm build",
     "law-cutoff:build": "tsc -p scripts/law-cutoff.tsconfig.json",
+    "perf:audit": "tsx scripts/perf-audit.ts",
     "law-cutoff": "node .law-cutoff-build/scripts/law-cutoff.js",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
@@ -72,6 +73,7 @@
     "lint-staged": "^17.0.8",
     "prettier": "^3.9.4",
     "tailwindcss": "^4",
+    "tsx": "^4.23.0",
     "typescript": "^5",
     "vitest": "^4.1.8",
     "vitest-axe": "^0.1.0"
