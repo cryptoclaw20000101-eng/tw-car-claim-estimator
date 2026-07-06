@@ -79,7 +79,7 @@ describe('S1.5 PWA Service Worker', () => {
 
   it('離線時 navigate 請求 fallback 回 /', () => {
     expect(swSource).toMatch(/request\.mode === ['"]navigate['"]/)
-    expect(swSource).toMatch(/caches\.match\(['"]\/['"]\)/)
+    expect(swSource).toMatch(/(?:cache|caches)\.match\(['"]\/['"]\)/)
   })
 
   it('只處理同源請求（不代理第三方 CDN）', () => {

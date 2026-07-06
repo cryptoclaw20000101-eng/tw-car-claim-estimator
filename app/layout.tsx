@@ -3,6 +3,10 @@ import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 // v0.13.x：ThemeProvider 取代靜態 ConfigProvider（含 dark mode algorithm）
 import { ThemeProvider } from "@/components/ThemeProvider";
+// v0.13.x：Web Vitals 上報
+import { WebVitalsReporter } from "@/components/WebVitalsReporter";
+// v0.13.x：Sentry-style 錯誤追蹤 scaffold
+import { ErrorTracker } from "@/components/ErrorTracker";
 import { ACCENT } from "@/lib/design/tokens";
 import "./globals.css";
 
@@ -116,6 +120,10 @@ export default function RootLayout({
           {/* v0.13.x：ThemeProvider 取代靜態 ConfigProvider
               支援 dark mode algorithm 動態切換（與 .dark CSS class 同步） */}
           <ThemeProvider>
+            {/* v0.13.x：Web Vitals 上報（LCP/CLS/INP/FCP/TTFB）*/}
+            <WebVitalsReporter />
+            {/* v0.13.x：Sentry-style 錯誤追蹤 scaffold */}
+            <ErrorTracker />
             {children}
           </ThemeProvider>
         </AntdRegistry>
