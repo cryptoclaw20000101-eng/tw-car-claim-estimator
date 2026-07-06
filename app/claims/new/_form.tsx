@@ -1179,7 +1179,9 @@ function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchem
                   <span style={{ color: '#999' }}>未選 → 預設雷射。蟹足腫自動改走注射治療</span>
                 )
               const opt = SCAR_PROCEDURE_OPTIONS.find((o) => o.value === proc)
-              return <span style={{ color: '#1677ff' }}>{opt?.hint}</span>
+              return (
+                <span style={{ color: 'var(--data-info, #1677ff)' }}>{opt?.hint}</span>
+              )
             })()}
           >
             <Select
