@@ -36,6 +36,8 @@ import { Alert, Card, Empty, Space, Spin, Tag, Typography } from 'antd'
 import { motion, useReducedMotion } from 'framer-motion'
 import type { PracticeCaseWithKnn } from '@/lib/estimate/precedents'
 import { findRelatedPracticeCases } from '@/lib/estimate/precedents'
+// v0.15.x Phase 2：非同步 KNN 計算（避免 block UI thread）
+import { findRelatedPracticeCasesAsync } from '@/lib/estimate/knn-async'
 import { KnnDebugPanel } from '@/components/KnnDebugPanel'
 
 const { Text, Paragraph } = Typography
@@ -76,11 +78,38 @@ export function Step4KnnPreview({ disabilityLevel, accidentLocation }: Step4KnnP
   const debouncedLevel = useDebouncedValue(disabilityLevel, DEBOUNCE_MS)
   const debouncedLocation = useDebouncedValue(accidentLocation, DEBOUNCE_MS)
 
-  const cases: PracticeCaseWithKnn[] = useMemo(() => {
-    // 條件：失能等級必填才跑 KNN（無等級則無相似度可比）
-    if (debouncedLevel == null) return []
+  // v0.15.x Phase 2：KNN 同步計算（SSR 守護用）+ 非同步更新（client 避免 block UI）
+  // SSR：useState lazy initializer 跑同步 KNN → renderToString 有內容
+  // Client：useEffect 用非同步版本 → main thread yield 一次再算
+  const [cases, setCases] = useState<PracticeCaseWithKnn[]>(() => {
+    // 失能等級必填才跑 KNN
+    if (disabilityLevel == null) return []
+    return findRelatedPracticeCases(
+      accidentLocation ?? '',
+      disabilityLevel,
+      3,
+      true,
+    ) as PracticeCaseWithKnn[]
+  })
+
+  useEffect(() => {
+    let cancelled = false
+    // 條件：失能等級必填才跑 KNN
+    if (debouncedLevel == null) {
+      setCases([])
+      return () => {
+        cancelled = true
+      }
+    }
     const courtName = debouncedLocation ?? ''
-    return findRelatedPracticeCases(courtName, debouncedLevel, 3, true) as PracticeCaseWithKnn[]
+    // v0.15.x Phase 2：用非同步版本（先 await yield 再算）
+    void findRelatedPracticeCasesAsync(courtName, debouncedLevel, 3, true).then((result) => {
+      if (cancelled) return
+      setCases(result as PracticeCaseWithKnn[])
+    })
+    return () => {
+      cancelled = true
+    }
   }, [debouncedLevel, debouncedLocation])
 
   // 條件 1：失能等級未填 → 提示
