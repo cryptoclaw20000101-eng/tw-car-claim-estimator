@@ -138,7 +138,7 @@ export function computePainAndSuffering(
 
   const severityScore = scoreSeverity(breakdown)
   const idx = pickPasTableIndex(severityScore)
-  const baseRow = BASE_PAS_TABLE[idx]
+  const baseRow = BASE_PAS_TABLE[idx]!
   const region = getRegionAdjustment(courtName)
 
   // 治療期間加成（保守版，最多 +20%）— 用實際天數粗估

@@ -52,7 +52,7 @@ export function hoffmannCoefficient(n: number): number {
     const r = HOFFMANN_ANNUAL_RATE
     return (1 - Math.pow(1 + r, -n)) / r
   }
-  return HOFFMANN_COEFFICIENTS[n]
+  return HOFFMANN_COEFFICIENTS[n] ?? 0
 }
 
 /**
@@ -199,9 +199,9 @@ export function validateHoffmannTable(): {
   const mismatches: { n: number; expected: number; actual: number }[] = []
   for (let n = 1; n <= 40; n++) {
     const expected = (1 - Math.pow(1 + r, -n)) / r
-    const actual = HOFFMANN_COEFFICIENTS[n]
+    const actual = HOFFMANN_COEFFICIENTS[n] ?? 0
     if (Math.abs(expected - actual) > 1e-6) {
-      mismatches.push({ n, expected, actual })
+      mismatches.push({ n, expected, actual: actual ?? 0 })
     }
   }
   return { ok: mismatches.length === 0, mismatches }

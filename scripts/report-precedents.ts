@@ -15,73 +15,74 @@
  *   - 適合給 cron 跑完後看
  */
 
-import { writeFileSync, readFileSync, readdirSync, existsSync, mkdirSync } from "node:fs";
-import { join } from "node:path";
+import { writeFileSync, readFileSync, readdirSync, existsSync, mkdirSync } from 'node:fs'
+import { join } from 'node:path'
 import {
   computeEnsembleHealth,
   type EnsembleHealth,
   type PrecedentRow,
-} from "../lib/insurance/pain-ensemble-health";
+} from '../lib/insurance/pain-ensemble-health'
 
-const OUT_FILE = join(process.cwd(), "data", "precedents-report.html");
+const OUT_FILE = join(process.cwd(), 'data', 'precedents-report.html')
 
 /** 6 鏈檔名 → 標籤 */
 const CHAIN_FILE_TO_LABEL: Record<string, string> = {
-  "taipei-mental-distress.json": "精神慰撫金",
-  "labor-loss.json": "工作損失",
-  "car-damage.json": "車損",
-  "disability-merging.json": "失能慰撫金",
-  "mediation-procedures.json": "車禍調解",
-  "practice-cases.json": "理賠實務",
+  'taipei-mental-distress.json': '精神慰撫金',
+  'labor-loss.json': '工作損失',
+  'car-damage.json': '車損',
+  'disability-merging.json': '失能慰撫金',
+  'mediation-procedures.json': '車禍調解',
+  'practice-cases.json': '理賠實務',
   // v0.2.19+ 新鏈
-  "nursing-care.json": "看護費",
-  "medical-expense.json": "醫療費用",
+  'nursing-care.json': '看護費',
+  'medical-expense.json': '醫療費用',
   // v0.2.20+ 衝量 4 條
-  "death-case.json": "死亡案件",
-  "transport-fee.json": "交通費用",
-  "support-payment.json": "撫養費",
-  "overtime-loss.json": "加班損失",
-};
+  'death-case.json': '死亡案件',
+  'transport-fee.json': '交通費用',
+  'support-payment.json': '撫養費',
+  'overtime-loss.json': '加班損失',
+}
 
 /** Legacy / 補充檔（給整體健康度看） */
-const LEGACY_FILES = [
-  "labor-capacity.json",
-  "other-precedents.json",
-  "scar-revision.json",
-];
+const LEGACY_FILES = ['labor-capacity.json', 'other-precedents.json', 'scar-revision.json']
 
 // PrecedentRow 型別已從 lib/insurance/pain-ensemble-health import（v0.6.9 refactor）
 
 function loadAllPrecedents(): { chain: Map<string, PrecedentRow[]>; legacy: PrecedentRow[] } {
-  const chain = new Map<string, PrecedentRow[]>();
-  const legacy: PrecedentRow[] = [];
-  const dir = join(process.cwd(), "data", "precedents");
-  if (!existsSync(dir)) return { chain, legacy };
-  for (const f of readdirSync(dir).filter((x) => x.endsWith(".json"))) {
-    const arr = JSON.parse(readFileSync(join(dir, f), "utf-8")) as PrecedentRow[];
-    if (!Array.isArray(arr)) continue;
+  const chain = new Map<string, PrecedentRow[]>()
+  const legacy: PrecedentRow[] = []
+  const dir = join(process.cwd(), 'data', 'precedents')
+  if (!existsSync(dir)) return { chain, legacy }
+  for (const f of readdirSync(dir).filter((x) => x.endsWith('.json'))) {
+    const arr = JSON.parse(readFileSync(join(dir, f), 'utf-8')) as PrecedentRow[]
+    if (!Array.isArray(arr)) continue
     if (CHAIN_FILE_TO_LABEL[f]) {
-      chain.set(f, arr);
+      chain.set(f, arr)
     } else {
-      legacy.push(...arr);
+      legacy.push(...arr)
     }
   }
-  return { chain, legacy };
+  return { chain, legacy }
 }
 
 function median(nums: number[]): number {
-  if (nums.length === 0) return 0;
-  const sorted = [...nums].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 0
-    ? Math.round((sorted[mid - 1] + sorted[mid]) / 2)
-    : sorted[mid];
+  if (nums.length === 0) return 0
+  const sorted = [...nums].sort((a, b) => a - b)
+  const mid = Math.floor(sorted.length / 2)
+  return sorted.length % 2 === 0 ? Math.round((sorted[mid - 1] + sorted[mid]) / 2) : sorted[mid]
 }
 
-function stats(nums: number[]): { min: number; p25: number; med: number; p75: number; max: number; n: number } {
-  if (nums.length === 0) return { min: 0, p25: 0, med: 0, p75: 0, max: 0, n: 0 };
-  const sorted = [...nums].sort((a, b) => a - b);
-  const at = (p: number) => sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))];
+function stats(nums: number[]): {
+  min: number
+  p25: number
+  med: number
+  p75: number
+  max: number
+  n: number
+} {
+  if (nums.length === 0) return { min: 0, p25: 0, med: 0, p75: 0, max: 0, n: 0 }
+  const sorted = [...nums].sort((a, b) => a - b)
+  const at = (p: number) => sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))]
   return {
     min: sorted[0],
     p25: at(0.25),
@@ -89,34 +90,34 @@ function stats(nums: number[]): { min: number; p25: number; med: number; p75: nu
     p75: at(0.75),
     max: sorted[sorted.length - 1],
     n: nums.length,
-  };
+  }
 }
 
 function topCourts(rows: PrecedentRow[], k = 5): [string, number][] {
-  const m = new Map<string, number>();
+  const m = new Map<string, number>()
   for (const r of rows) {
-    const c = r.court || "(unknown)";
-    m.set(c, (m.get(c) ?? 0) + 1);
+    const c = r.court || '(unknown)'
+    m.set(c, (m.get(c) ?? 0) + 1)
   }
   return Array.from(m.entries())
     .sort((a, b) => b[1] - a[1])
-    .slice(0, k);
+    .slice(0, k)
 }
 
 function categoryDist(rows: PrecedentRow[]): [string, number][] {
-  const m = new Map<string, number>();
+  const m = new Map<string, number>()
   for (const r of rows) {
-    const c = String(r.category || "(none)");
-    m.set(c, (m.get(c) ?? 0) + 1);
+    const c = String(r.category || '(none)')
+    m.set(c, (m.get(c) ?? 0) + 1)
   }
-  return Array.from(m.entries()).sort((a, b) => b[1] - a[1]);
+  return Array.from(m.entries()).sort((a, b) => b[1] - a[1])
 }
 
 function recentTimeline(rows: PrecedentRow[], k = 30): PrecedentRow[] {
   return [...rows]
     .filter((r) => r.scrapedAt)
     .sort((a, b) => (b.scrapedAt! > a.scrapedAt! ? 1 : -1))
-    .slice(0, k);
+    .slice(0, k)
 }
 
 /**
@@ -135,29 +136,24 @@ function recentTimeline(rows: PrecedentRow[], k = 30): PrecedentRow[] {
  * （v0.6.9 refactor）：首頁 hero + 報表 + 未來 API route 共用，無 fs 依賴
  */
 const _CONFIDENCE_META_LEGACY = {
-  high: { label: "🟢 high", color: "#10b981" },
-  medium: { label: "🟡 medium", color: "#f59e0b" },
-  low: { label: "🔴 low", color: "#ef4444" },
-  none: { label: "⚪ none", color: "#9ca3af" },
-} as const;
+  high: { label: '🟢 high', color: '#10b981' },
+  medium: { label: '🟡 medium', color: '#f59e0b' },
+  low: { label: '🔴 low', color: '#ef4444' },
+  none: { label: '⚪ none', color: '#9ca3af' },
+} as const
 
 function renderEnsembleSection(h: EnsembleHealth): string {
   // 報表層用 emoji 版（與 buildHtml 風格一致）；hero 共用層是 emoji-free
-  const meta = _CONFIDENCE_META_LEGACY[h.confidenceLevel];
-  const bar = (
-    label: string,
-    n: number,
-    total: number,
-    color: string
-  ): string => {
-    const pct = total > 0 ? (n / total) * 100 : 0;
-    return `<div class="bar"><span class="bar-label">${esc(label)}</span><div class="bar-fill" style="width:${pct.toFixed(1)}%;background:${color}"></div><span class="bar-n">${n}</span></div>`;
-  };
+  const meta = _CONFIDENCE_META_LEGACY[h.confidenceLevel]
+  const bar = (label: string, n: number, total: number, color: string): string => {
+    const pct = total > 0 ? (n / total) * 100 : 0
+    return `<div class="bar"><span class="bar-label">${esc(label)}</span><div class="bar-fill" style="width:${pct.toFixed(1)}%;background:${color}"></div><span class="bar-n">${n}</span></div>`
+  }
 
-  const totalInj = h.injuryCoverage.reduce((s, x) => s + x.n, 0);
+  const totalInj = h.injuryCoverage.reduce((s, x) => s + x.n, 0)
   const gradientWarn = h.injuryGradientWarning
     ? `<div class="kpi" style="background:#fef3c7;border-color:#f59e0b"><div class="kpi-l" style="color:#92400e">⚠️ 傷勢梯度警示</div><div class="muted" style="font-size:0.8rem;color:#78350f">${esc(h.injuryGradientWarning)}</div></div>`
-    : "";
+    : ''
 
   return `
     <section class="chain" style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border:2px solid #f59e0b">
@@ -174,25 +170,26 @@ function renderEnsembleSection(h: EnsembleHealth): string {
       <table class="table">
         <thead><tr><th>法院</th><th>件數</th><th class="num">中位數</th><th class="num">相對 anchor 中位</th></tr></thead>
         <tbody>
-          ${h.courtMedians
-            .map((c) => {
-              const ratio = h.anchorMedian > 0 ? c.median / h.anchorMedian : 0;
-              const ratioColor =
-                ratio > 1.1 ? "#dc2626" : ratio < 0.9 ? "#2563eb" : "#6b7280";
-              return `<tr>
+          ${
+            h.courtMedians
+              .map((c) => {
+                const ratio = h.anchorMedian > 0 ? c.median / h.anchorMedian : 0
+                const ratioColor = ratio > 1.1 ? '#dc2626' : ratio < 0.9 ? '#2563eb' : '#6b7280'
+                return `<tr>
                 <td>${esc(c.court)}</td>
                 <td class="num">${c.n}</td>
                 <td class="num">${c.median.toLocaleString()}</td>
                 <td class="num" style="color:${ratioColor}">${ratio.toFixed(2)}×</td>
-              </tr>`;
-            })
-            .join("") || "<tr><td colspan='4' class='muted'>無資料</td></tr>"}
+              </tr>`
+              })
+              .join('') || "<tr><td colspan='4' class='muted'>無資料</td></tr>"
+          }
         </tbody>
       </table>
 
       <h3>傷勢覆蓋 (對應 KNN 第 4 維 injury_severity)</h3>
       <div class="bars">
-        ${h.injuryCoverage.map((c) => bar(c.category, c.n, totalInj, "#f59e0b")).join("") || "<p class='muted'>無資料</p>"}
+        ${h.injuryCoverage.map((c) => bar(c.category, c.n, totalInj, '#f59e0b')).join('') || "<p class='muted'>無資料</p>"}
       </div>
       ${gradientWarn}
 
@@ -200,50 +197,52 @@ function renderEnsembleSection(h: EnsembleHealth): string {
         📌 對應引擎：<code>lib/insurance/pain-ml.ts</code> (ML 票) + <code>lib/estimate/precedent-knn.ts</code> (KNN 票) + <code>lib/insurance/pain-ensemble.ts</code> (三票共識)
       </p>
     </section>
-  `;
+  `
 }
 
 function esc(s: string | number | undefined | null): string {
-  if (s == null) return "";
+  if (s == null) return ''
   return String(s)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
 }
 
 function fmtDate(iso: string | undefined): string {
-  if (!iso) return "";
-  return iso.replace("T", " ").slice(0, 16);
+  if (!iso) return ''
+  return iso.replace('T', ' ').slice(0, 16)
 }
 
 function buildHtml(args: {
-  chain: Map<string, PrecedentRow[]>;
-  legacy: PrecedentRow[];
-  generatedAt: string;
+  chain: Map<string, PrecedentRow[]>
+  legacy: PrecedentRow[]
+  generatedAt: string
 }): string {
-  const { chain, legacy, generatedAt } = args;
-  const totalChain = Array.from(chain.values()).reduce((s, r) => s + r.length, 0);
-  const grand = totalChain + legacy.length;
+  const { chain, legacy, generatedAt } = args
+  const totalChain = Array.from(chain.values()).reduce((s, r) => s + r.length, 0)
+  const grand = totalChain + legacy.length
 
   // Ensemble 健康度（v0.6.8+）— 插在 6 鏈 section 之前
   const ensembleSection = renderEnsembleSection(
-    computeEnsembleHealth(chain.get("taipei-mental-distress.json") ?? [])
-  );
+    computeEnsembleHealth(chain.get('taipei-mental-distress.json') ?? []),
+  )
 
   // 6 鏈摘要
-  const chainSections: string[] = [];
+  const chainSections: string[] = []
   for (const [file, label] of Object.entries(CHAIN_FILE_TO_LABEL)) {
-    const rows = chain.get(file) ?? [];
-    const amounts = rows.map((r) => Number(r.amount ?? r.mentalDistressAmount ?? 0)).filter((n) => n > 0);
-    const st = stats(amounts);
-    const courts = topCourts(rows, 5);
-    const cats = categoryDist(rows);
+    const rows = chain.get(file) ?? []
+    const amounts = rows
+      .map((r) => Number(r.amount ?? r.mentalDistressAmount ?? 0))
+      .filter((n) => n > 0)
+    const st = stats(amounts)
+    const courts = topCourts(rows, 5)
+    const cats = categoryDist(rows)
 
     const bar = (label: string, n: number, total: number, color: string): string => {
-      const pct = total > 0 ? (n / total) * 100 : 0;
-      return `<div class="bar"><span class="bar-label">${esc(label)}</span><div class="bar-fill" style="width:${pct.toFixed(1)}%;background:${color}"></div><span class="bar-n">${n}</span></div>`;
-    };
+      const pct = total > 0 ? (n / total) * 100 : 0
+      return `<div class="bar"><span class="bar-label">${esc(label)}</span><div class="bar-fill" style="width:${pct.toFixed(1)}%;background:${color}"></div><span class="bar-n">${n}</span></div>`
+    }
 
     chainSections.push(`
       <section class="chain">
@@ -258,38 +257,39 @@ function buildHtml(args: {
         <p class="muted">P25 ${st.p25.toLocaleString()} · 中位 ${st.med.toLocaleString()} · P75 ${st.p75.toLocaleString()}</p>
         <h3>法院分布 (Top 5)</h3>
         <div class="bars">
-          ${courts.map(([c, n]) => bar(c, n, rows.length, "#3b82f6")).join("") || "<p class='muted'>無資料</p>"}
+          ${courts.map(([c, n]) => bar(c, n, rows.length, '#3b82f6')).join('') || "<p class='muted'>無資料</p>"}
         </div>
         <h3>類別分布</h3>
         <div class="bars">
-          ${cats.map(([c, n]) => bar(c, n, rows.length, "#10b981")).join("") || "<p class='muted'>無資料</p>"}
+          ${cats.map(([c, n]) => bar(c, n, rows.length, '#10b981')).join('') || "<p class='muted'>無資料</p>"}
         </div>
       </section>
-    `);
+    `)
   }
 
   // 時間軸
-  const allChainRows: PrecedentRow[] = [];
-  for (const rows of chain.values()) allChainRows.push(...rows);
-  const recent = recentTimeline(allChainRows, 30);
-  const recentHtml = recent.length === 0
-    ? "<p class='muted'>無抓取紀錄</p>"
-    : `<table class="table">
+  const allChainRows: PrecedentRow[] = []
+  for (const rows of chain.values()) allChainRows.push(...rows)
+  const recent = recentTimeline(allChainRows, 30)
+  const recentHtml =
+    recent.length === 0
+      ? "<p class='muted'>無抓取紀錄</p>"
+      : `<table class="table">
         <thead><tr><th>抓取時間</th><th>鏈</th><th>法院</th><th>案號</th><th>金額</th></tr></thead>
         <tbody>
           ${recent
             .map(
               (r) => `<tr>
                 <td>${esc(fmtDate(r.scrapedAt))}</td>
-                <td>${esc(String(r.chain ?? r.category ?? ""))}</td>
-                <td>${esc(String(r.court ?? ""))}</td>
-                <td>${esc(String(r.caseNo ?? ""))}</td>
+                <td>${esc(String(r.chain ?? r.category ?? ''))}</td>
+                <td>${esc(String(r.court ?? ''))}</td>
+                <td>${esc(String(r.caseNo ?? ''))}</td>
                 <td class="num">${Number(r.amount ?? r.mentalDistressAmount ?? 0).toLocaleString()}</td>
               </tr>`,
             )
-            .join("")}
+            .join('')}
         </tbody>
-      </table>`;
+      </table>`
 
   // Legacy 摘要
   const legacySection = `
@@ -297,12 +297,12 @@ function buildHtml(args: {
       <h2>📚 Legacy / 補充檔 <span class="muted">(${legacy.length} 件)</span></h2>
       <ul class="muted">
         ${LEGACY_FILES.map((f) => {
-          const n = (chain.get(f)?.length ?? 0) + legacy.filter((r) => true).length;
-          return `<li>${esc(f)}：歸在 legacy 區段</li>`;
-        }).join("")}
+          const n = (chain.get(f)?.length ?? 0) + legacy.filter((r) => true).length
+          return `<li>${esc(f)}：歸在 legacy 區段</li>`
+        }).join('')}
       </ul>
     </section>
-  `;
+  `
 
   return `<!doctype html>
 <html lang="zh-Hant">
@@ -346,7 +346,7 @@ function buildHtml(args: {
 </header>
 <main>
   ${ensembleSection}
-  ${chainSections.join("")}
+  ${chainSections.join('')}
   ${legacySection}
   <section class="chain">
     <h2>🕐 最近 30 筆抓取</h2>
@@ -357,27 +357,27 @@ function buildHtml(args: {
   純 Node 內建 · 零 deps · 給 cron / 手機看
 </footer>
 </body>
-</html>`;
+</html>`
 }
 
 function main() {
-  console.log("[report] 讀全部 precedents...");
-  const { chain, legacy } = loadAllPrecedents();
-  const totalChain = Array.from(chain.values()).reduce((s, r) => s + r.length, 0);
-  const generatedAt = new Date().toISOString();
+  console.log('[report] 讀全部 precedents...')
+  const { chain, legacy } = loadAllPrecedents()
+  const totalChain = Array.from(chain.values()).reduce((s, r) => s + r.length, 0)
+  const generatedAt = new Date().toISOString()
 
-  console.log(`[report] 6 鏈合計 ${totalChain} 件、legacy ${legacy.length} 件`);
-  for (const [f, rows] of chain) console.log(`[report]   ${f}: ${rows.length} 件`);
+  console.log(`[report] 6 鏈合計 ${totalChain} 件、legacy ${legacy.length} 件`)
+  for (const [f, rows] of chain) console.log(`[report]   ${f}: ${rows.length} 件`)
 
-  const html = buildHtml({ chain, legacy, generatedAt });
-  const dir = join(process.cwd(), "data");
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-  writeFileSync(OUT_FILE, html, "utf-8");
-  console.log(`[report] ✅ 寫出 ${OUT_FILE} (${html.length} bytes)`);
+  const html = buildHtml({ chain, legacy, generatedAt })
+  const dir = join(process.cwd(), 'data')
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
+  writeFileSync(OUT_FILE, html, 'utf-8')
+  console.log(`[report] ✅ 寫出 ${OUT_FILE} (${html.length} bytes)`)
 }
 
-if (process.argv[1]?.endsWith("report-precedents.js")) {
-  main();
+if (process.argv[1]?.endsWith('report-precedents.js')) {
+  main()
 }
 
-export { main, buildHtml, loadAllPrecedents };
+export { main, buildHtml, loadAllPrecedents }

@@ -196,7 +196,7 @@ export function parseAdvisorResponse(raw: string): AdvisorOutput {
   // 嘗試從 markdown code block 抽出 JSON
   let jsonStr = raw
   const codeBlockMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/)
-  if (codeBlockMatch) {
+  if (codeBlockMatch && codeBlockMatch[1]) {
     jsonStr = codeBlockMatch[1].trim()
   }
 

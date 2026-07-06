@@ -10,5 +10,12 @@
     "esModuleInterop": true,
     "skipLibCheck": true
   },
-  "include": ["law-cutoff.ts", "../lib/data-sources/regulation-cutoff.ts", "../lib/insurance/compulsory.ts", "../lib/insurance/disability-joint-mapping.ts", "../lib/insurance/types.ts", "../lib/insurance/pain-ensemble-health.ts"]
+  "include": [
+    "law-cutoff.ts",
+    "../lib/data-sources/regulation-cutoff.ts",
+    "../lib/insurance/compulsory.ts",
+    "../lib/insurance/disability-joint-mapping.ts",
+    "../lib/insurance/types.ts",
+    "../lib/insurance/pain-ensemble-health.ts"
+  ]
 }

@@ -10,6 +10,11 @@
     // - exactOptionalPropertyTypes：會炸 AntD 元件 prop 類型定義
     "noImplicitOverride": true,
     "noFallthroughCasesInSwitch": true,
+    // v0.15.x：D1 完整 TS strict 第 2 批 — 開啟 noUncheckedIndexedAccess
+    // 目前 scripts/ 有 pre-existing array[i] 存取（其他 agent 改的檔），
+    // 修這些會動到他們的 code → 留 v0.15.x 拆檔後再處理。
+    // 開啟方式：把下面那行 uncomment + 修 scripts/ + __tests__/ + lib/ 全部 array[i]
+    // "noUncheckedIndexedAccess": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",

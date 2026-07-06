@@ -105,5 +105,5 @@ export const regionAdjustments: Record<string, RegionAdjustment> = {
  * 依法院名稱取得地區係數，找不到回 default
  */
 export function getRegionAdjustment(courtName: string): RegionAdjustment {
-  return regionAdjustments[courtName] ?? regionAdjustments.default
+  return (regionAdjustments[courtName] ?? regionAdjustments.default) as RegionAdjustment
 }

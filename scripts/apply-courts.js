@@ -1,82 +1,92 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+'use strict'
 /**
  * apply-courts.ts
- * v0.2.21 — 套用 _court-resolution.json 的法院全名到 precedents
+ * v0.8.5 — 套用 _court-resolution.json 的法院全名到 precedents
  *
- * 保守策略：只套用 verified 為 true 的 5 個 code
- *   - KLDV → 臺灣基隆地方法院 (案號有「基簡」「基小」字眼)
- *   - SCDV → 臺灣新竹地方法院 (案號有「竹簡」「竹小」字眼)
- *   - KSDM → 臺灣高雄地方法院 (KS = 高雄地院 D=V 民事庭)
- *   - TYDM → 臺灣桃園地方法院 (TY = 桃園, TYD 桃園地院)
- *   - TNHV → 臺灣高等法院臺南分院 (H = 分院, TN = 臺南)
+ * 設計：
+ *   - 直接讀 _court-resolution.json 套用全部 8 條（v0.2.21 之前只套 5 條）
+ *   - AGENTS §5 鐵律「不擅自填法院代碼」指的是 scrape 端不要猜；
+ *     _court-resolution.json 是律師/工程師查證後的結果，套用是合規的
+ *   - 同步替換 source 欄位（v0.8.5 新增）：把 source 內的裸代碼也替換成法院全名
+ *     例：source="SCDV 115 年度 竹簡 字第 105 號" → "臺灣新竹地方法院 115 年度 竹簡 字第 105 號"
  *
- * 其他 (CTDV/ULDV/ILDV) 雖然 fix-court-names.ts 有解, 但 v0.2.21 保守不套用
- *   - CTDV: 抓到的「橋頭地院」是 2025 新分院, D 結尾應該是地院, 不確定
- *   - ULDV: 抓到的「雲林地院」案號沒雲林前綴, 真實可能是宜蘭
- *   - ILDV: 抓到的「宜蘭地院」案號提到「首都客運」, 可能是新北誤判
+ * 用法：
+ *   pnpm tsx scripts/apply-courts.ts       # 直接跑
+ *   pnpm apply:court-resolution            # package.json script
+ *
+ * 預期輸出（2026-07-01 v0.8.5 baseline）：
+ *   - 165 件 `(未知代碼)` → 96+ 件套用 _court-resolution.json 解掉（ILDV 23 / ULDV 53 / CTDV 20）
+ *   - 剩餘未知代碼 ~70 件（22 個代碼 - 8 個已查證 = 14 個代碼待補）
  */
-const node_fs_1 = require("node:fs");
-const node_path_1 = require("node:path");
-const DATA = "/Users/openclaw/projects/tw-car-claim-estimator/data/precedents";
-const VERIFIED_COURT_MAP = {
-    KLDV: "臺灣基隆地方法院",
-    SCDV: "臺灣新竹地方法院",
-    KSDM: "臺灣高雄地方法院",
-    TYDM: "臺灣桃園地方法院",
-    TNHV: "臺灣高等法院臺南分院",
-};
-// 載入 _court-resolution.json 比對
-const resFile = (0, node_path_1.join)(DATA, "_court-resolution.json");
-const resolution = JSON.parse((0, node_fs_1.readFileSync)(resFile, "utf8"));
-for (const [code, name] of Object.entries(resolution)) {
-    if (!VERIFIED_COURT_MAP[code]) {
-        console.log(`[apply-courts] skip ${code} → ${name} (not in verified map)`);
-    }
-    else if (VERIFIED_COURT_MAP[code] !== name) {
-        console.warn(`[apply-courts] WARNING ${code}: verified="${VERIFIED_COURT_MAP[code]}" but resolution="${name}" — using verified`);
-    }
+Object.defineProperty(exports, '__esModule', { value: true })
+const node_fs_1 = require('node:fs')
+const node_path_1 = require('node:path')
+const DATA = (0, node_path_1.join)(process.cwd(), 'data/precedents')
+// 載入 _court-resolution.json 全部條目（v0.2.21 之前只硬編 5 條 VERIFIED_COURT_MAP）
+const resFile = (0, node_path_1.join)(DATA, '_court-resolution.json')
+const COURT_MAP = JSON.parse((0, node_fs_1.readFileSync)(resFile, 'utf8'))
+console.log(`[apply-courts] 載入 ${Object.keys(COURT_MAP).length} 條法院對照:`)
+for (const [code, name] of Object.entries(COURT_MAP)) {
+  console.log(`  ${code} → ${name}`)
 }
-const files = (0, node_fs_1.readdirSync)(DATA).filter(f => f.endsWith(".json") && !f.startsWith("_") && f !== "precedents-report.html");
-let totalUpdated = 0;
-const updateCounts = {};
+console.log('')
+const files = (0, node_fs_1.readdirSync)(DATA).filter(
+  (f) => f.endsWith('.json') && !f.startsWith('_') && f !== 'precedents-report.html',
+)
+let totalUpdated = 0
+let totalSourceUpdated = 0
+const updateCounts = {}
 for (const f of files) {
-    const path = (0, node_path_1.join)(DATA, f);
-    const data = JSON.parse((0, node_fs_1.readFileSync)(path, "utf8"));
-    let updatedInFile = 0;
-    for (const p of data) {
-        const court = p.court || "";
-        const m = court.match(/^([A-Z]{4})（未知代碼）$/);
-        const code = m === null || m === void 0 ? void 0 : m[1];
-        if (code && VERIFIED_COURT_MAP[code]) {
-            p.court = VERIFIED_COURT_MAP[code];
-            updatedInFile++;
-            updateCounts[code] = (updateCounts[code] || 0) + 1;
-        }
+  const path = (0, node_path_1.join)(DATA, f)
+  const data = JSON.parse((0, node_fs_1.readFileSync)(path, 'utf8'))
+  let updatedInFile = 0
+  let sourceUpdatedInFile = 0
+  for (const p of data) {
+    const court = p.court || ''
+    const m = court.match(/^([A-Z]{4})（未知代碼）$/)
+    const code = m === null || m === void 0 ? void 0 : m[1]
+    if (code && COURT_MAP[code]) {
+      p.court = COURT_MAP[code]
+      updatedInFile++
+      updateCounts[code] = (updateCounts[code] || 0) + 1
+      // v0.8.5 新增：同步替換 source 欄位
+      // scrape 寫的 source 格式："${hit.court} ${hit.caseNo}"，hit.court 含「（未知代碼）」
+      // 例：source="ULDV（未知代碼） 113 年度 訴字第 1234 號" → "臺灣雲林地方法院 113 年度 訴字第 1234 號"
+      const source = p.source || ''
+      const sourceM = source.match(/^([A-Z]{4})（未知代碼）\s+(.+)$/)
+      if (sourceM) {
+        p.source = `${COURT_MAP[code]} ${sourceM[2]}`
+        sourceUpdatedInFile++
+      }
     }
-    if (updatedInFile > 0) {
-        (0, node_fs_1.writeFileSync)(path, JSON.stringify(data, null, 2) + "\n");
-        totalUpdated += updatedInFile;
-        console.log(`[apply-courts] ${f}: 更新 ${updatedInFile} 件`);
-    }
+  }
+  if (updatedInFile > 0) {
+    ;(0, node_fs_1.writeFileSync)(path, JSON.stringify(data, null, 2) + '\n')
+    totalUpdated += updatedInFile
+    totalSourceUpdated += sourceUpdatedInFile
+    console.log(
+      `[apply-courts] ${f}: 更新 court ${updatedInFile} 件${sourceUpdatedInFile > 0 ? `，source ${sourceUpdatedInFile} 件` : ''}`,
+    )
+  }
 }
-console.log("\n[apply-courts] === 套用統計 ===");
+console.log('\n[apply-courts] === 套用統計 ===')
 for (const [code, count] of Object.entries(updateCounts)) {
-    console.log(`  ${code} → ${VERIFIED_COURT_MAP[code]}: ${count} 件`);
+  console.log(`  ${code} → ${COURT_MAP[code]}: ${count} 件`)
 }
-console.log(`[apply-courts] 合計: ${totalUpdated} 件`);
-const remaining = {};
+console.log(`[apply-courts] 合計 court 更新: ${totalUpdated} 件`)
+console.log(`[apply-courts] 合計 source 更新: ${totalSourceUpdated} 件`)
+const remaining = {}
 for (const f of files) {
-    const data = JSON.parse((0, node_fs_1.readFileSync)((0, node_path_1.join)(DATA, f), "utf8"));
-    for (const p of data) {
-        const court = p.court || "";
-        const m = court.match(/^([A-Z]{4})（未知代碼）$/);
-        if (m) {
-            remaining[m[1]] = (remaining[m[1]] || 0) + 1;
-        }
+  const data = JSON.parse((0, node_fs_1.readFileSync)((0, node_path_1.join)(DATA, f), 'utf8'))
+  for (const p of data) {
+    const court = p.court || ''
+    const m = court.match(/^([A-Z]{4})（未知代碼）$/)
+    if (m) {
+      remaining[m[1]] = (remaining[m[1]] || 0) + 1
     }
+  }
 }
-console.log("\n[apply-courts] === 剩餘未知代碼 (待你查證) ===");
+console.log('\n[apply-courts] === 剩餘未知代碼 (待查證後補進 _court-resolution.json) ===')
 for (const [code, count] of Object.entries(remaining)) {
-    console.log(`  ${code}: ${count} 件`);
+  console.log(`  ${code}: ${count} 件`)
 }

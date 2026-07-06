@@ -89,5 +89,5 @@ export function courtToCity(courtName: string): string | null {
   }
   if (matches.length === 0) return null
   // 優先回「臺」字版（標準化），沒有就回第一個
-  return matches.find((c) => c.startsWith('臺')) ?? matches[0]
+  return matches.find((c) => c.startsWith('臺')) ?? matches[0] ?? null
 }

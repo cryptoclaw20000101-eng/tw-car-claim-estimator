@@ -13,77 +13,73 @@
  * 不裝新套件：純 Node + @/lib/* 內部模組 + node:fs
  */
 
-import { computeCompulsoryMedicalByDate } from "../lib/insurance/compulsory";
-import { lookupDisabilityLevelByDate } from "../lib/insurance/disability-joint-mapping";
-import {
-  isNewLaw,
-  getLawVersionLabel,
-  NEW_LAW_CUTOFF,
-} from "../lib/data-sources/regulation-cutoff";
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { computeCompulsoryMedicalByDate } from '../lib/insurance/compulsory'
+import { lookupDisabilityLevelByDate } from '../lib/insurance/disability-joint-mapping'
+import { isNewLaw, getLawVersionLabel, NEW_LAW_CUTOFF } from '../lib/data-sources/regulation-cutoff'
+import { readdirSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 // 用 type-only import 守護型別（編譯後消除，nodenext 不會誤判檔案為 type-only）
-type CompulsoryMedicalInputs = import("../lib/insurance/types").CompulsoryMedicalInputs;
+type CompulsoryMedicalInputs = import('../lib/insurance/types').CompulsoryMedicalInputs
 
 // ─── CLI 參數解析 ───────────────────────────────────────────────
 
 interface CliArgs {
-  accidentDate: string | null;
-  showHelp: boolean;
-  jsonMode: boolean;
+  accidentDate: string | null
+  showHelp: boolean
+  jsonMode: boolean
   // 醫材費明細（選填，給醫材差異估算用）
-  specialMaterialFee: number;
-  medicalMaterialFee: number;
-  assistiveDeviceFee: number;
+  specialMaterialFee: number
+  medicalMaterialFee: number
+  assistiveDeviceFee: number
   // ROM 百分比 + 關節（給失能差異估算用）
-  romPercent: number | null;
-  joint: "upper" | "lower";
+  romPercent: number | null
+  joint: 'upper' | 'lower'
 }
 
 function parseArgs(argv: string[]): CliArgs {
   const args: CliArgs = {
     accidentDate: null,
-    showHelp: argv.includes("--help") || argv.includes("-h"),
-    jsonMode: argv.includes("--json"),
+    showHelp: argv.includes('--help') || argv.includes('-h'),
+    jsonMode: argv.includes('--json'),
     specialMaterialFee: 0,
     medicalMaterialFee: 0,
     assistiveDeviceFee: 0,
     romPercent: null,
-    joint: "lower",
-  };
+    joint: 'lower',
+  }
 
   // 第一個非旗標參數 = 事故日
   for (const a of argv.slice(2)) {
-    if (!a.startsWith("--") && args.accidentDate === null) {
-      args.accidentDate = a;
-      break;
+    if (!a.startsWith('--') && args.accidentDate === null) {
+      args.accidentDate = a
+      break
     }
   }
 
   // 旗標參數
   const getFlagValue = (flag: string): string | null => {
-    const idx = argv.indexOf(flag);
-    if (idx < 0) return null;
-    return argv[idx + 1] ?? null;
-  };
+    const idx = argv.indexOf(flag)
+    if (idx < 0) return null
+    return argv[idx + 1] ?? null
+  }
 
-  const special = getFlagValue("--special");
-  if (special) args.specialMaterialFee = parseInt(special, 10) || 0;
+  const special = getFlagValue('--special')
+  if (special) args.specialMaterialFee = parseInt(special, 10) || 0
 
-  const general = getFlagValue("--general");
-  if (general) args.medicalMaterialFee = parseInt(general, 10) || 0;
+  const general = getFlagValue('--general')
+  if (general) args.medicalMaterialFee = parseInt(general, 10) || 0
 
-  const assistive = getFlagValue("--assistive");
-  if (assistive) args.assistiveDeviceFee = parseInt(assistive, 10) || 0;
+  const assistive = getFlagValue('--assistive')
+  if (assistive) args.assistiveDeviceFee = parseInt(assistive, 10) || 0
 
-  const rom = getFlagValue("--rom");
-  if (rom) args.romPercent = parseInt(rom, 10) || 0;
+  const rom = getFlagValue('--rom')
+  if (rom) args.romPercent = parseInt(rom, 10) || 0
 
-  const joint = getFlagValue("--joint");
-  if (joint === "upper" || joint === "lower") args.joint = joint;
+  const joint = getFlagValue('--joint')
+  if (joint === 'upper' || joint === 'lower') args.joint = joint
 
-  return args;
+  return args
 }
 
 function showHelp(): void {
@@ -123,17 +119,17 @@ function showHelp(): void {
   事故日 >= ${NEW_LAW_CUTOFF}  → 新法（拆 subItems / 三分類查表）
   事故日 <  ${NEW_LAW_CUTOFF}  → 舊法（合併 3 項 / 百分比段 5/15/30/50/70%）
   null / undefined / ''        → 保守預設為新法
-`);
+`)
 }
 
 // ─── 醫材費差異估算 ────────────────────────────────────────────
 
 interface MedicalMaterialDiff {
-  oldLaw: number;
-  newLaw: number;
-  difference: number;
-  oldLawSubItems: number;
-  newLawSubItems: number;
+  oldLaw: number
+  newLaw: number
+  difference: number
+  oldLawSubItems: number
+  newLawSubItems: number
 }
 
 const EMPTY_MEDICAL_INPUT: CompulsoryMedicalInputs = {
@@ -158,25 +154,24 @@ const EMPTY_MEDICAL_INPUT: CompulsoryMedicalInputs = {
   nursingFee: 0,
   nursingDays: 0,
   otherNecessaryMedicalFee: 0,
-};
+}
 
 function computeMedicalDiff(args: CliArgs): MedicalMaterialDiff | null {
-  const subtotal =
-    args.specialMaterialFee + args.medicalMaterialFee + args.assistiveDeviceFee;
-  if (subtotal === 0) return null;
+  const subtotal = args.specialMaterialFee + args.medicalMaterialFee + args.assistiveDeviceFee
+  if (subtotal === 0) return null
 
   const input: CompulsoryMedicalInputs = {
     ...EMPTY_MEDICAL_INPUT,
     specialMaterialFee: args.specialMaterialFee,
     medicalMaterialFee: args.medicalMaterialFee,
     assistiveDeviceFee: args.assistiveDeviceFee,
-  };
+  }
 
-  const oldLawResult = computeCompulsoryMedicalByDate(input, "2020-01-01");
-  const newLawResult = computeCompulsoryMedicalByDate(input, "2027-01-01");
+  const oldLawResult = computeCompulsoryMedicalByDate(input, '2020-01-01')
+  const newLawResult = computeCompulsoryMedicalByDate(input, '2027-01-01')
 
-  const oldItem = oldLawResult.items.find((it) => it.key === "medicalMaterial");
-  const newItem = newLawResult.items.find((it) => it.key === "medicalMaterial");
+  const oldItem = oldLawResult.items.find((it) => it.key === 'medicalMaterial')
+  const newItem = newLawResult.items.find((it) => it.key === 'medicalMaterial')
 
   return {
     oldLaw: oldItem?.approved ?? 0,
@@ -184,71 +179,71 @@ function computeMedicalDiff(args: CliArgs): MedicalMaterialDiff | null {
     difference: (newItem?.approved ?? 0) - (oldItem?.approved ?? 0),
     oldLawSubItems: oldItem?.subItems?.length ?? 0,
     newLawSubItems: newItem?.subItems?.length ?? 0,
-  };
+  }
 }
 
 // ─── 失能等級差異估算 ──────────────────────────────────────────
 
 interface DisabilityDiff {
-  oldLaw: number;
-  newLaw: number;
-  difference: number;
-  changed: boolean;
+  oldLaw: number
+  newLaw: number
+  difference: number
+  changed: boolean
 }
 
 function computeDisabilityDiff(args: CliArgs): DisabilityDiff | null {
-  if (args.romPercent === null) return null;
+  if (args.romPercent === null) return null
 
-  const oldLaw = lookupDisabilityLevelByDate(args.joint, args.romPercent, "2020-01-01");
-  const newLaw = lookupDisabilityLevelByDate(args.joint, args.romPercent, "2027-01-01");
+  const oldLaw = lookupDisabilityLevelByDate(args.joint, args.romPercent, '2020-01-01')
+  const newLaw = lookupDisabilityLevelByDate(args.joint, args.romPercent, '2027-01-01')
 
   return {
     oldLaw,
     newLaw,
     difference: newLaw - oldLaw,
     changed: oldLaw !== newLaw,
-  };
+  }
 }
 
 // ─── Precedents 統計（切換日前/後案件數）─────────────────────
 
 interface PrecedentStats {
-  total: number;
-  beforeCutoff: number;
-  afterCutoff: number;
-  cutoffDate: string;
+  total: number
+  beforeCutoff: number
+  afterCutoff: number
+  cutoffDate: string
 }
 
 function loadPrecedentStats(): PrecedentStats {
-  const precedentsDir = join(process.cwd(), "data/precedents");
+  const precedentsDir = join(process.cwd(), 'data/precedents')
   const stats: PrecedentStats = {
     total: 0,
     beforeCutoff: 0,
     afterCutoff: 0,
     cutoffDate: NEW_LAW_CUTOFF,
-  };
+  }
 
-  let files: string[];
+  let files: string[]
   try {
-    files = readdirSync(precedentsDir).filter((f) => f.endsWith(".json"));
+    files = readdirSync(precedentsDir).filter((f) => f.endsWith('.json'))
   } catch {
-    return stats;
+    return stats
   }
 
   for (const file of files) {
     try {
-      const content = readFileSync(join(precedentsDir, file), "utf-8");
-      const data = JSON.parse(content);
-      if (!Array.isArray(data)) continue;
-      stats.total += data.length;
+      const content = readFileSync(join(precedentsDir, file), 'utf-8')
+      const data = JSON.parse(content)
+      if (!Array.isArray(data)) continue
+      stats.total += data.length
       for (const p of data) {
         // v0.2.18+ precedents 結構含 year（西元年）
-        if (typeof p.year === "number") {
-          if (p.year < 2026) stats.beforeCutoff++;
-          else stats.afterCutoff++;
+        if (typeof p.year === 'number') {
+          if (p.year < 2026) stats.beforeCutoff++
+          else stats.afterCutoff++
         } else {
           // 沒 year 欄位的舊資料，預設為切換前
-          stats.beforeCutoff++;
+          stats.beforeCutoff++
         }
       }
     } catch {
@@ -256,15 +251,15 @@ function loadPrecedentStats(): PrecedentStats {
     }
   }
 
-  return stats;
+  return stats
 }
 
 // ─── 切換日距離計算 ──────────────────────────────────────────
 
 function daysBetween(dateISO: string, targetISO: string): number {
-  const d1 = new Date(dateISO + "T00:00:00Z").getTime();
-  const d2 = new Date(targetISO + "T00:00:00Z").getTime();
-  return Math.round((d1 - d2) / (1000 * 60 * 60 * 24));
+  const d1 = new Date(dateISO + 'T00:00:00Z').getTime()
+  const d2 = new Date(targetISO + 'T00:00:00Z').getTime()
+  return Math.round((d1 - d2) / (1000 * 60 * 60 * 24))
 }
 
 // ─── 主輸出（人類可讀）─────────────────────────────────────────
@@ -275,109 +270,96 @@ function printHumanOutput(
   disabilityDiff: DisabilityDiff | null,
   precedentStats: PrecedentStats,
 ): void {
-  const isNew = isNewLaw(args.accidentDate);
-  const label = getLawVersionLabel(args.accidentDate);
-  const icon = isNew ? "🆕" : "📜";
+  const isNew = isNewLaw(args.accidentDate)
+  const label = getLawVersionLabel(args.accidentDate)
+  const icon = isNew ? '🆕' : '📜'
 
-  console.log("");
-  console.log("═══════════════════════════════════════════════════════════════");
-  console.log(`  ${icon} ${label}`);
-  console.log("═══════════════════════════════════════════════════════════════");
-  console.log("");
-  console.log(`事故日:        ${args.accidentDate ?? "（未填）"}`);
-  console.log(`切換日:        ${NEW_LAW_CUTOFF}`);
+  console.log('')
+  console.log('═══════════════════════════════════════════════════════════════')
+  console.log(`  ${icon} ${label}`)
+  console.log('═══════════════════════════════════════════════════════════════')
+  console.log('')
+  console.log(`事故日:        ${args.accidentDate ?? '（未填）'}`)
+  console.log(`切換日:        ${NEW_LAW_CUTOFF}`)
   console.log(
-    `距離切換日:    ${args.accidentDate ? daysBetween(args.accidentDate, NEW_LAW_CUTOFF) + " 天" : "（無）"}`,
-  );
-  console.log(`判定結果:      ${isNew ? "新法（拆 subItems）" : "舊法（合併 3 項）"}`);
-  console.log("");
+    `距離切換日:    ${args.accidentDate ? daysBetween(args.accidentDate, NEW_LAW_CUTOFF) + ' 天' : '（無）'}`,
+  )
+  console.log(`判定結果:      ${isNew ? '新法（拆 subItems）' : '舊法（合併 3 項）'}`)
+  console.log('')
 
   // 醫材費差異
   if (medicalDiff) {
-    console.log("───────────────────────────────────────────────────────────────");
-    console.log("📦 醫材費差異估算");
-    console.log("───────────────────────────────────────────────────────────────");
+    console.log('───────────────────────────────────────────────────────────────')
+    console.log('📦 醫材費差異估算')
+    console.log('───────────────────────────────────────────────────────────────')
+    console.log(`  特殊材料費:   ${args.specialMaterialFee.toLocaleString()} 元`)
+    console.log(`  一般醫材費:   ${args.medicalMaterialFee.toLocaleString()} 元`)
+    console.log(`  輔具費:       ${args.assistiveDeviceFee.toLocaleString()} 元`)
     console.log(
-      `  特殊材料費:   ${args.specialMaterialFee.toLocaleString()} 元`,
-    );
-    console.log(
-      `  一般醫材費:   ${args.medicalMaterialFee.toLocaleString()} 元`,
-    );
-    console.log(
-      `  輔具費:       ${args.assistiveDeviceFee.toLocaleString()} 元`,
-    );
-    console.log(`  小計:         ${(args.specialMaterialFee + args.medicalMaterialFee + args.assistiveDeviceFee).toLocaleString()} 元`);
-    console.log("");
+      `  小計:         ${(args.specialMaterialFee + args.medicalMaterialFee + args.assistiveDeviceFee).toLocaleString()} 元`,
+    )
+    console.log('')
     console.log(
       `  舊法 approved: ${medicalDiff.oldLaw.toLocaleString()} 元（${medicalDiff.oldLawSubItems} 項 subItems）`,
-    );
+    )
     console.log(
       `  新法 approved: ${medicalDiff.newLaw.toLocaleString()} 元（${medicalDiff.newLawSubItems} 項 subItems）`,
-    );
-    const diffSign = medicalDiff.difference > 0 ? "+" : "";
-    const diffEmoji =
-      medicalDiff.difference === 0
-        ? "✅"
-        : medicalDiff.difference > 0
-        ? "📈"
-        : "📉";
-    console.log(
-      `  ${diffEmoji} 差異: ${diffSign}${medicalDiff.difference.toLocaleString()} 元`,
-    );
-    console.log("");
+    )
+    const diffSign = medicalDiff.difference > 0 ? '+' : ''
+    const diffEmoji = medicalDiff.difference === 0 ? '✅' : medicalDiff.difference > 0 ? '📈' : '📉'
+    console.log(`  ${diffEmoji} 差異: ${diffSign}${medicalDiff.difference.toLocaleString()} 元`)
+    console.log('')
   }
 
   // 失能差異
   if (disabilityDiff) {
-    console.log("───────────────────────────────────────────────────────────────");
-    console.log("🦴 失能等級差異估算");
-    console.log("───────────────────────────────────────────────────────────────");
-    console.log(`  關節:         ${args.joint === "upper" ? "上肢" : "下肢"}`);
-    console.log(`  ROM 喪失:     ${args.romPercent}%`);
-    console.log("");
-    console.log(`  舊法等級:     第 ${disabilityDiff.oldLaw} 級`);
-    console.log(`  新法等級:     第 ${disabilityDiff.newLaw} 級`);
-    const changedEmoji = disabilityDiff.changed ? "🔄" : "✅";
+    console.log('───────────────────────────────────────────────────────────────')
+    console.log('🦴 失能等級差異估算')
+    console.log('───────────────────────────────────────────────────────────────')
+    console.log(`  關節:         ${args.joint === 'upper' ? '上肢' : '下肢'}`)
+    console.log(`  ROM 喪失:     ${args.romPercent}%`)
+    console.log('')
+    console.log(`  舊法等級:     第 ${disabilityDiff.oldLaw} 級`)
+    console.log(`  新法等級:     第 ${disabilityDiff.newLaw} 級`)
+    const changedEmoji = disabilityDiff.changed ? '🔄' : '✅'
     console.log(
-      `  ${changedEmoji} 差異:     ${disabilityDiff.changed ? "切換生效（" + (disabilityDiff.difference > 0 ? "新法 " + disabilityDiff.newLaw + " 級較高" : "新法 " + disabilityDiff.newLaw + " 級較低") + "）" : "新舊法結果相同"}`,
-    );
-    console.log("");
+      `  ${changedEmoji} 差異:     ${disabilityDiff.changed ? '切換生效（' + (disabilityDiff.difference > 0 ? '新法 ' + disabilityDiff.newLaw + ' 級較高' : '新法 ' + disabilityDiff.newLaw + ' 級較低') + '）' : '新舊法結果相同'}`,
+    )
+    console.log('')
   }
 
   // Precedents 統計
-  console.log("───────────────────────────────────────────────────────────────");
-  console.log("📚 司法院真實判例資料庫（按年度分組）");
-  console.log("───────────────────────────────────────────────────────────────");
-  console.log(`  總件數:       ${precedentStats.total} 件`);
+  console.log('───────────────────────────────────────────────────────────────')
+  console.log('📚 司法院真實判例資料庫（按年度分組）')
+  console.log('───────────────────────────────────────────────────────────────')
+  console.log(`  總件數:       ${precedentStats.total} 件`)
   console.log(
     `  切換日前:     ${precedentStats.beforeCutoff} 件（民國 ${2026 - 1911} 年以前，含 v0.2.18 前舊資料）`,
-  );
-  console.log(
-    `  切換日後:     ${precedentStats.afterCutoff} 件（民國 115 年起）`,
-  );
-  console.log("");
+  )
+  console.log(`  切換日後:     ${precedentStats.afterCutoff} 件（民國 115 年起）`)
+  console.log('')
 
-  console.log("───────────────────────────────────────────────────────────────");
-  console.log("📋 法源說明");
-  console.log("───────────────────────────────────────────────────────────────");
+  console.log('───────────────────────────────────────────────────────────────')
+  console.log('📋 法源說明')
+  console.log('───────────────────────────────────────────────────────────────')
   if (isNew) {
-    console.log("  強制汽車責任保險給付標準 §2.3.6（民國 115-05-29 修正、115-07-01 施行）");
-    console.log("  失能等級附表（同日施行）");
-    console.log("");
-    console.log("  新法重點：");
-    console.log("    - 特殊材料費 + 輔具費 各自 pro-rata 套 2 萬上限（拆 subItems）");
-    console.log("    - 一般醫材費歸入健保自付額 / 非健保必要，不算 2 萬上限範圍");
-    console.log("    - 失能採「先三分類（喪失/顯著/運動障害）→ 再查對照表」");
+    console.log('  強制汽車責任保險給付標準 §2.3.6（民國 115-05-29 修正、115-07-01 施行）')
+    console.log('  失能等級附表（同日施行）')
+    console.log('')
+    console.log('  新法重點：')
+    console.log('    - 特殊材料費 + 輔具費 各自 pro-rata 套 2 萬上限（拆 subItems）')
+    console.log('    - 一般醫材費歸入健保自付額 / 非健保必要，不算 2 萬上限範圍')
+    console.log('    - 失能採「先三分類（喪失/顯著/運動障害）→ 再查對照表」')
   } else {
-    console.log("  強制汽車責任保險給付標準 §2.3.6（民國 114 年以前適用版本）");
-    console.log("  失能等級附表（修法前版本）");
-    console.log("");
-    console.log("  舊法重點：");
-    console.log("    - 醫療材料費 + 特殊材料費 + 輔具費 合併計算，套 1 個 2 萬上限");
-    console.log("    - 失能採 ROM 百分比段 5/15/30/50/70% 對應單一等級（2/7/9/11/13/15）");
+    console.log('  強制汽車責任保險給付標準 §2.3.6（民國 114 年以前適用版本）')
+    console.log('  失能等級附表（修法前版本）')
+    console.log('')
+    console.log('  舊法重點：')
+    console.log('    - 醫療材料費 + 特殊材料費 + 輔具費 合併計算，套 1 個 2 萬上限')
+    console.log('    - 失能採 ROM 百分比段 5/15/30/50/70% 對應單一等級（2/7/9/11/13/15）')
   }
-  console.log("");
-  console.log("═══════════════════════════════════════════════════════════════");
+  console.log('')
+  console.log('═══════════════════════════════════════════════════════════════')
 }
 
 // ─── 主輸出（JSON 模式）────────────────────────────────────────
@@ -388,14 +370,12 @@ function printJsonOutput(
   disabilityDiff: DisabilityDiff | null,
   precedentStats: PrecedentStats,
 ): void {
-  const isNew = isNewLaw(args.accidentDate);
+  const isNew = isNewLaw(args.accidentDate)
   const output = {
     accidentDate: args.accidentDate,
     cutoffDate: NEW_LAW_CUTOFF,
-    daysFromCutoff: args.accidentDate
-      ? daysBetween(args.accidentDate, NEW_LAW_CUTOFF)
-      : null,
-    lawVersion: isNew ? "new" : "old",
+    daysFromCutoff: args.accidentDate ? daysBetween(args.accidentDate, NEW_LAW_CUTOFF) : null,
+    lawVersion: isNew ? 'new' : 'old',
     lawVersionLabel: getLawVersionLabel(args.accidentDate),
     medicalMaterial: medicalDiff
       ? {
@@ -403,10 +383,7 @@ function printJsonOutput(
             specialMaterialFee: args.specialMaterialFee,
             medicalMaterialFee: args.medicalMaterialFee,
             assistiveDeviceFee: args.assistiveDeviceFee,
-            subtotal:
-              args.specialMaterialFee +
-              args.medicalMaterialFee +
-              args.assistiveDeviceFee,
+            subtotal: args.specialMaterialFee + args.medicalMaterialFee + args.assistiveDeviceFee,
           },
           oldLaw: {
             approved: medicalDiff.oldLaw,
@@ -430,45 +407,45 @@ function printJsonOutput(
         }
       : null,
     precedents: precedentStats,
-  };
-  console.log(JSON.stringify(output, null, 2));
+  }
+  console.log(JSON.stringify(output, null, 2))
 }
 
 // ─── main ────────────────────────────────────────────────────
 
 function main(): void {
-  const args = parseArgs(process.argv);
+  const args = parseArgs(process.argv)
 
   if (args.showHelp) {
-    showHelp();
-    return;
+    showHelp()
+    return
   }
 
   if (!args.accidentDate) {
-    console.error("❌ 錯誤：請提供事故日（YYYY-MM-DD）");
-    console.error("   範例: pnpm law-cutoff 2024-03-15");
-    console.error("   查 help: pnpm law-cutoff --help");
-    process.exit(1);
+    console.error('❌ 錯誤：請提供事故日（YYYY-MM-DD）')
+    console.error('   範例: pnpm law-cutoff 2024-03-15')
+    console.error('   查 help: pnpm law-cutoff --help')
+    process.exit(1)
   }
 
   // 驗證日期格式
   if (!/^\d{4}-\d{2}-\d{2}$/.test(args.accidentDate)) {
-    console.error(`❌ 錯誤：事故日格式錯誤（需 YYYY-MM-DD）: ${args.accidentDate}`);
-    process.exit(1);
+    console.error(`❌ 錯誤：事故日格式錯誤（需 YYYY-MM-DD）: ${args.accidentDate}`)
+    process.exit(1)
   }
 
-  const medicalDiff = computeMedicalDiff(args);
-  const disabilityDiff = computeDisabilityDiff(args);
-  const precedentStats = loadPrecedentStats();
+  const medicalDiff = computeMedicalDiff(args)
+  const disabilityDiff = computeDisabilityDiff(args)
+  const precedentStats = loadPrecedentStats()
 
   if (args.jsonMode) {
-    printJsonOutput(args, medicalDiff, disabilityDiff, precedentStats);
+    printJsonOutput(args, medicalDiff, disabilityDiff, precedentStats)
   } else {
-    printHumanOutput(args, medicalDiff, disabilityDiff, precedentStats);
+    printHumanOutput(args, medicalDiff, disabilityDiff, precedentStats)
   }
 }
 
 // 直接跑 main 才執行（避免 import 時跑）
-if (process.argv[1]?.endsWith("law-cutoff.js")) {
-  main();
+if (process.argv[1]?.endsWith('law-cutoff.js')) {
+  main()
 }

@@ -213,12 +213,15 @@ function loadAnchorCases(): PainAnchorCase[] {
  */
 function percentile(sorted: number[], p: number): number {
   if (sorted.length === 0) return 0
-  if (sorted.length === 1) return sorted[0]
+  const first = sorted[0]
+  if (sorted.length === 1) return first ?? 0
   const idx = (sorted.length - 1) * p
   const lower = Math.floor(idx)
   const upper = Math.ceil(idx)
-  if (lower === upper) return sorted[lower]
-  return sorted[lower] + (sorted[upper] - sorted[lower]) * (idx - lower)
+  if (lower === upper) {
+    return sorted[lower] ?? 0
+  }
+  return (sorted[lower] ?? 0) + ((sorted[upper] ?? 0) - (sorted[lower] ?? 0)) * (idx - lower)
 }
 
 // --- 主入口：predictPainRange -----------------------------------------
@@ -240,7 +243,7 @@ export function predictPainRange(input: PainMLInput): PainMLOutput {
   }
   const severityScore = scoreSeverity(breakdown)
   const levelIdx = pickLevelIndex(severityScore)
-  const baseRow = BASE_PAS_TABLE[levelIdx]
+  const baseRow = BASE_PAS_TABLE[levelIdx]!
 
   // 地區係數（fallback 1.0 給未知法院）
   let regionMultiplier = 1.0

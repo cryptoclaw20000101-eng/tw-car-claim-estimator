@@ -124,9 +124,11 @@ function quantile(sorted: number[], q: number): number {
   const base = Math.floor(pos)
   const rest = pos - base
   if (base + 1 < sorted.length) {
-    return sorted[base] + (sorted[base + 1] - sorted[base]) * rest
+    const a = sorted[base] ?? 0
+    const b = sorted[base + 1] ?? 0
+    return a + (b - a) * rest
   }
-  return sorted[base]
+  return sorted[base] ?? 0
 }
 
 /** 計算 stdev（樣本標準差） */
@@ -147,12 +149,12 @@ export function computeStats(cases: DisabilityCase[]): DisabilityCaseStats {
     count: cases.length,
     median: quantile(amounts, 0.5),
     mean: Math.round(mean),
-    min: amounts[0],
-    max: amounts[amounts.length - 1],
+    min: amounts[0] ?? 0,
+    max: amounts[amounts.length - 1] ?? 0,
     stdev: Math.round(stdevSample(amounts, mean)),
-    q1: Math.round(quantile(amounts, 0.25)),
-    q3: Math.round(quantile(amounts, 0.75)),
-    range: amounts[amounts.length - 1] - amounts[0],
+    q1: Math.round(quantile(amounts, 0.25) ?? 0),
+    q3: Math.round(quantile(amounts, 0.75) ?? 0),
+    range: (amounts[amounts.length - 1] ?? 0) - (amounts[0] ?? 0),
   }
 }
 

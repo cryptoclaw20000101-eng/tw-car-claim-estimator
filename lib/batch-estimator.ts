@@ -51,7 +51,7 @@ export function parseBatchCsv(csv: string): BatchRow[] {
 
   const rows: BatchRow[] = []
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]
+    const line = lines[i] ?? ''
     // 跳過 header
     if (i === 0 && /accidentDate/i.test(line)) continue
 

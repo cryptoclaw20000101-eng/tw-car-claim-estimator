@@ -137,6 +137,7 @@ export function computeConsensus(
       for (let j = i + 1; j < allTickets.length; j++) {
         const a = allTickets[i]
         const b = allTickets[j]
+        if (!a || !b) continue
         const diff = Math.abs(a.val - b.val) / Math.max(a.val, b.val, 1)
         if (diff <= STRONG_THRESHOLD) {
           // 找到兩票聚集 → 第三票就是 outlier
