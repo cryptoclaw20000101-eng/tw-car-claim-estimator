@@ -1,43 +1,80 @@
 'use client'
 
 /**
- * EstimateHistory — localStorage 歷史估算列表（v0.12.0+ Phase B3）
+ * EstimateHistory — 歷史估算列表（v0.12.0+ Phase B3 + v0.14.x 雲端）
  *
  * 顯示位置：首頁（在 FAQ 區下方、Footer 上方）
- * 顯示條件：localStorage 有資料才 render，沒資料時不顯示（避免打擾首次訪問）
+ * 顯示條件：有資料才 render，沒資料時不顯示（避免打擾首次訪問）
+ *
+ * v0.14.x 升級：
+ * - 登入時優先用 Supabase 雲端資料（loadEstimates）
+ * - 未登入時 fallback 到 localStorage（v0.12.0+ Phase B3 行為）
+ * - 切換登入狀態時自動 re-fetch
  *
  * 安全：
  * - 完全 SSR safe（client-side only）
  * - 脫敏後資料（無姓名、身分證、車牌）
- * - 容量上限 10 筆（自動 FIFO 驅逐）
+ * - 容量上限：localStorage 10 筆 / 雲端 20 筆
  */
 
 import { useEffect, useState } from 'react'
-import { Button, Space, Typography } from 'antd'
-import { ClockCircleOutlined, DeleteOutlined } from '@ant-design/icons'
+import { Button, Space, Tag, Typography } from 'antd'
+import { ClockCircleOutlined, DeleteOutlined, CloudOutlined } from '@ant-design/icons'
 import { getEstimateHistory, clearEstimateHistory, type HistoryEntry } from '@/lib/estimate-history'
+import { loadEstimates, deleteCloudEstimate, type CloudEstimate } from '@/lib/estimate-storage'
+import { useAuth } from '@/components/AuthProvider'
 
 const { Text, Paragraph } = Typography
 
 export function EstimateHistory() {
-  const [history, setHistory] = useState<HistoryEntry[]>([])
+  const { user, configured } = useAuth()
+  const [items, setItems] = useState<HistoryEntry[]>([])
+  const [storage, setStorage] = useState<'cloud' | 'local'>('local')
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
-    setHistory(getEstimateHistory())
-  }, [])
+    void refresh()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])
+
+  async function refresh() {
+    const result = await loadEstimates(user?.id ?? null)
+    if (result.storage === 'cloud') {
+      // 雲端記錄 → 轉成 HistoryEntry 格式（手機用）
+      setItems(
+        (result.items as CloudEstimate[]).map((e) => ({
+          timestamp: e.createdAt,
+          compulsoryTotalEstimated: e.result?.compulsoryTotalEstimated ?? 0,
+          disabilityLevel: e.claimInput?.medical?.disabilityLevel ?? null,
+          courtName: e.result?.region?.courtName ?? '—',
+          selfFaultRatio: e.claimInput?.fault?.selfFaultRatio ?? 50,
+        })),
+      )
+    } else {
+      setItems(result.items as HistoryEntry[])
+    }
+    setStorage(result.storage)
+  }
 
   // SSR / 首次訪問：不要 render（避免打擾）
-  if (!mounted || history.length === 0) return null
+  if (!mounted || items.length === 0) return null
 
-  const handleClear = () => {
+  const handleClear = async () => {
     if (typeof window === 'undefined') return
     // 二次確認避免誤刪
-    if (window.confirm(`確定要清除全部 ${history.length} 筆估算記錄嗎？`)) {
-      clearEstimateHistory()
-      setHistory([])
+    if (!window.confirm(`確定要清除全部 ${items.length} 筆估算記錄嗎？`)) {
+      return
     }
+    if (storage === 'cloud' && user) {
+      // 雲端：逐筆刪除
+      for (const e of (await loadEstimates(user.id)).items as CloudEstimate[]) {
+        await deleteCloudEstimate(e.id, user.id)
+      }
+    } else {
+      clearEstimateHistory()
+    }
+    setItems([])
   }
 
   return (
@@ -53,6 +90,11 @@ export function EstimateHistory() {
             </Space>
             <h2 className="!mb-0 text-2xl font-semibold tracking-tight md:text-3xl">
               最近估算過的案件
+              {storage === 'cloud' && (
+                <Tag color="blue" icon={<CloudOutlined />} className="!ml-3">
+                  雲端同步
+                </Tag>
+              )}
             </h2>
             <Paragraph className="!mt-2 !mb-0 !text-sm text-muted">
               本機儲存最近 10 筆估算（不涉及個資）。清空資料不會影響估算結果。
@@ -82,7 +124,7 @@ export function EstimateHistory() {
               </tr>
             </thead>
             <tbody>
-              {history.map((entry, i) => (
+              {items.map((entry, i) => (
                 <tr
                   key={entry.timestamp}
                   className={i % 2 === 0 ? 'bg-surface' : 'bg-surface-subtle/40'}
@@ -104,7 +146,7 @@ export function EstimateHistory() {
 
         {/* 手機：卡片 */}
         <div className="space-y-2 md:hidden">
-          {history.map((entry) => (
+          {items.map((entry) => (
             <div key={entry.timestamp} className="rounded-lg border border-border bg-surface p-3">
               <div className="flex items-center justify-between">
                 <Text className="!text-xs text-muted">{formatTime(entry.timestamp)}</Text>
