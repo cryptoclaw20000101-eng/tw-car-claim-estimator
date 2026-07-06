@@ -35,18 +35,12 @@ jobs:
           NEXT_PUBLIC_SITE_URL: https://tw-car-claim-estimator.vercel.app
 
       - name: Run Lighthouse CI
+        id: lighthouse
         uses: treosh/lighthouse-ci-action@v11
         with:
           configPath: ./.lighthouserc.json
           uploadArtifacts: true
           temporaryPublicStorage: true
-          # 自動 PR comment
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
-          # 分數門檻
-          performance: 80
-          accessibility: 90
-          best-practices: 80
-          seo: 90
 
       - name: Fail if score dropped
         if: steps.lighthouse.outputs.manifest != ''

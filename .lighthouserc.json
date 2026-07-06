@@ -1,11 +1,8 @@
 {
   "ci": {
     "collect": {
-      "startServerCommand": "pnpm start",
-      "url": [
-        "http://localhost:3000/",
-        "http://localhost:3000/claims/new"
-      ],
+      "startServerCommand": "python3 -m http.server 3000 --directory out",
+      "url": ["http://localhost:3000/", "http://localhost:3000/claims/new"],
       "numberOfRuns": 1,
       "settings": {
         "preset": "desktop"
