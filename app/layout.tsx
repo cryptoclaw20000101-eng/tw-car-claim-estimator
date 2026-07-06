@@ -7,6 +7,8 @@ import { ThemeProvider } from '@/components/ThemeProvider'
 import { WebVitalsReporter } from '@/components/WebVitalsReporter'
 // v0.13.x：Sentry-style 錯誤追蹤 scaffold
 import { ErrorTracker } from '@/components/ErrorTracker'
+// v0.14.x：Supabase 認證 context
+import { AuthProvider } from '@/components/AuthProvider'
 import { ACCENT } from '@/lib/design/tokens'
 import './globals.css'
 
@@ -119,11 +121,14 @@ export default function RootLayout({
           {/* v0.13.x：ThemeProvider 取代靜態 ConfigProvider
               支援 dark mode algorithm 動態切換（與 .dark CSS class 同步） */}
           <ThemeProvider>
-            {/* v0.13.x：Web Vitals 上報（LCP/CLS/INP/FCP/TTFB）*/}
-            <WebVitalsReporter />
-            {/* v0.13.x：Sentry-style 錯誤追蹤 scaffold */}
-            <ErrorTracker />
-            {children}
+            {/* v0.14.x：AuthProvider — Supabase magic link 登入 */}
+            <AuthProvider>
+              {/* v0.13.x：Web Vitals 上報（LCP/CLS/INP/FCP/TTFB）*/}
+              <WebVitalsReporter />
+              {/* v0.13.x：Sentry-style 錯誤追蹤 scaffold */}
+              <ErrorTracker />
+              {children}
+            </AuthProvider>
           </ThemeProvider>
         </AntdRegistry>
         <ServiceWorkerRegistrar />

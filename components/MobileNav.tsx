@@ -35,8 +35,13 @@ import {
   // v0.12.0+ Phase B6：dark mode toggle icons
   SunOutlined,
   MoonOutlined,
+  // v0.14.x：user icon
+  UserOutlined,
+  LoginOutlined,
+  LogoutOutlined,
 } from '@ant-design/icons'
 import { motion, useReducedMotion } from 'framer-motion'
+import { useAuth } from '@/components/AuthProvider'
 
 const { Text } = Typography
 
@@ -159,6 +164,9 @@ export function MobileNav() {
           />
         </Tooltip>
 
+        {/* v0.14.x：用戶登入狀態 */}
+        <UserMenu />
+
         {/* 手機漢堡 */}
         {MobileBurger}
       </div>
@@ -215,3 +223,45 @@ export function MobileNav() {
 
 // 避免 unused warning
 const _experimentIcon = <ExperimentOutlined />
+
+/**
+ * v0.14.x：用戶登入選單（顯示登入狀態 + 切換）
+ */
+function UserMenu() {
+  const { user, signOut, configured, loading } = useAuth()
+  const pathname = usePathname()
+
+  if (loading) {
+    return (
+      <Button type="text" icon={<UserOutlined />} disabled data-testid="user-menu" />
+    )
+  }
+
+  if (!user) {
+    return (
+      <Tooltip title={configured ? '點擊登入' : 'Supabase 未設定'}>
+        <Link href="/login" passHref legacyBehavior>
+          <Button
+            type="text"
+            icon={<LoginOutlined />}
+            disabled={!configured}
+            data-testid="user-menu"
+            aria-label="登入"
+          />
+        </Link>
+      </Tooltip>
+    )
+  }
+
+  return (
+    <Tooltip title={`已登入：${user.email ?? '用戶'}（點擊登出）`}>
+      <Button
+        type="text"
+        icon={<LogoutOutlined />}
+        onClick={() => signOut()}
+        data-testid="user-menu"
+        aria-label="登出"
+      />
+    </Tooltip>
+  )
+}
