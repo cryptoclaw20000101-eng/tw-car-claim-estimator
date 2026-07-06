@@ -1,5 +1,26 @@
 'use client'
 
+/**
+ * 7 步驟估算表單（v0.14.x — 1518 lines）
+ *
+ * ⚠️ 此檔案過大，建議 v0.15.x 拆 Step 元件到 _steps/ 子目錄：
+ *   - _steps/Step1Basics.tsx
+ *   - _steps/Step2Fault.tsx
+ *   - _steps/Step3Person.tsx
+ *   - _steps/Step4Medical.tsx
+ *   - _steps/Step5Receipts.tsx
+ *   - _steps/Step6Property.tsx
+ *   - _steps/Step7Region.tsx
+ *
+ * 拆解風險：每 Step 都用 useForm / useState / useEffect 等 hook，
+ * 需要把 FormSchema type 抽到 _schema.ts 才不會有循環依賴。
+ *
+ * 為什麼現在不拆：
+ * - 760+ tests + 16 E2E 守護，跑得好好的
+ * - Step 內部互相引用（data state, setFieldValue, Form.useWatch）
+ * - 重構風險高於短期收益
+ */
+
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {

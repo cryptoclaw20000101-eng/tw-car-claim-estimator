@@ -1,5 +1,22 @@
 'use client'
 
+/**
+ * 結果頁（v0.14.x — 1269 lines）
+ *
+ * ⚠️ 此檔案過大，建議 v0.15.x 拆 Section 元件到 _sections/ 子目錄：
+ *   - _sections/CompulsorySection.tsx
+ *   - _sections/DisabilitySection.tsx
+ *   - _sections/PracticeCasesSection.tsx
+ *   - _sections/CivilSection.tsx
+ *   - _sections/ThirdPartySection.tsx
+ *   - _sections/SupplementSection.tsx
+ *   - _sections/RegionSection.tsx
+ *   - _sections/LegalSection.tsx
+ *
+ * 拆解風險：每 Section 都用 useState / useEffect / antd 元件，
+ * 內部互相引用（input / result 從 hydrated state 來）。
+ */
+
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
