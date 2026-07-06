@@ -1224,3 +1224,50 @@ AntD React 元件不能直接吃 CSS var（會破壞 inline style + 主題計算
 ### 跳過但記錄
 - `lib/insurance/disability-tables.ts:34` 的 `// TODO: 補入` 註解 — 是說明不是待辦，保留
 - `lib/estimate/precedents.ts:7` 的 `XXX 號` — 是 docstring 範例，保留
+
+---
+
+## §30 ThemeProvider 動態切換 AntD algorithm（v0.13.x）
+
+> **檔案**：`components/ThemeProvider.tsx`、`app/layout.tsx`
+
+### 為什麼做這個改動
+- v0.12.0+ Phase B6 加了 .dark CSS class 變數覆寫，但 AntD 元件本身還是淺色
+- 切換 dark mode 時 AntD 的 Card / Button / Form / Tag 都還是淺色（不一致）
+- ThemeProvider 用 MutationObserver 同步 .dark class → AntD algorithm
+- 動態切換 `defaultAlgorithm` ↔ `darkAlgorithm`
+
+### 設計
+
+**ThemeProvider**（`components/ThemeProvider.tsx`）：
+- 'use client' 元件，封裝 ConfigProvider + App + MobileNav
+- mount 後讀 localStorage → 同步 .dark class + AntD algorithm
+- MutationObserver 監聽 `<html>` class 變化（即時響應 toggle 按鈕）
+- SSR 預設 light（避免 hydration mismatch）
+- 從 tokens import 顏色（一致 §23 設計語言）
+- AntD 元件 token 同 v0.12.0（Card / Tag / Button / Tabs / Alert / Statistic / Tooltip）
+
+**layout.tsx 重構**：
+- 移除靜態 ConfigProvider + App + MobileNav
+- 改用 `<ThemeProvider>{children}</ThemeProvider>` 一行包覆
+- 簡化 imports（拿掉 COLORS / FOREGROUND / zhTW）
+
+### 與既有 dark mode（§23）整合
+
+| 層 | 機制 |
+|---|---|
+| **CSS variables** | `.dark` class 切換 globals.css tokens |
+| **AntD 元件** | `algorithm: darkAlgorithm` 切換 |
+| **localStorage** | 單一 key `tw-car-claim-estimator:theme` |
+| **DOM sync** | MutationObserver 同步雙向 |
+
+### verify
+- pnpm tsc 0 錯
+- pnpm test 791 tests 全綠
+- pnpm test --coverage 90.77% 過 thresholds（90/85/90/90）
+- pnpm build 16 routes 0 warning
+
+### 風險與緩解
+- 切換 dark mode 瞬間 AntD 元件會重新計算 token（可能 1 frame 閃爍）
+- 影響：極小（MutationObserver 同步觸發，< 16ms）
+- v0.13.x 之後可加 token transition CSS 平滑過場
