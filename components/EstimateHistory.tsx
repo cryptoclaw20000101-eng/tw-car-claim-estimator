@@ -18,17 +18,20 @@
  */
 
 import { useEffect, useState } from 'react'
-import { Button, Space, Tag, Typography } from 'antd'
-import { ClockCircleOutlined, DeleteOutlined, CloudOutlined } from '@ant-design/icons'
+import { Button, Space, Tag, Tooltip, Typography } from 'antd'
+import { ClockCircleOutlined, DeleteOutlined, CloudOutlined, ReloadOutlined } from '@ant-design/icons'
 import { getEstimateHistory, clearEstimateHistory, type HistoryEntry } from '@/lib/estimate-history'
 import { loadEstimates, deleteCloudEstimate, type CloudEstimate } from '@/lib/estimate-storage'
 import { useAuth } from '@/components/AuthProvider'
+// v0.14.x：載入舊案件
+import { saveForLoad } from '@/lib/estimate-loader'
 
 const { Text, Paragraph } = Typography
 
 export function EstimateHistory() {
   const { user, configured } = useAuth()
   const [items, setItems] = useState<HistoryEntry[]>([])
+  const [cloudItems, setCloudItems] = useState<CloudEstimate[]>([])
   const [storage, setStorage] = useState<'cloud' | 'local'>('local')
   const [mounted, setMounted] = useState(false)
 
@@ -41,9 +44,11 @@ export function EstimateHistory() {
   async function refresh() {
     const result = await loadEstimates(user?.id ?? null)
     if (result.storage === 'cloud') {
+      const cloud = result.items as CloudEstimate[]
+      setCloudItems(cloud)
       // 雲端記錄 → 轉成 HistoryEntry 格式（手機用）
       setItems(
-        (result.items as CloudEstimate[]).map((e) => ({
+        cloud.map((e) => ({
           timestamp: e.createdAt,
           compulsoryTotalEstimated: e.result?.compulsoryTotalEstimated ?? 0,
           disabilityLevel: e.claimInput?.medical?.disabilityLevel ?? null,
@@ -52,9 +57,44 @@ export function EstimateHistory() {
         })),
       )
     } else {
+      setCloudItems([])
       setItems(result.items as HistoryEntry[])
     }
     setStorage(result.storage)
+  }
+
+  /**
+   * 載入舊案件：寫入 sessionStorage + 跳轉到 /claims/new
+   * 表單會在 mount 時讀 sessionStorage 自動填入
+   */
+  const handleLoad = (entry: HistoryEntry | CloudEstimate, index: number) => {
+    if (storage === 'cloud' && 'claimInput' in entry) {
+      saveForLoad(entry.claimInput)
+    } else {
+      // 本地：只存簡化資料（沒有原始 ClaimInput），用最簡版本重建
+      const he = entry as HistoryEntry
+      saveForLoad({
+        basics: {
+          accidentDate: '',
+          accidentLocation: '',
+          accidentType: '',
+          injuredRole: '',
+          isAutomobileAccident: true,
+          courtJurisdiction: '',
+        },
+        fault: {
+          selfFaultRatio: he.selfFaultRatio,
+          otherFaultRatio: 100 - he.selfFaultRatio,
+          faultSource: '尚未確定',
+          isFaultDisputed: false,
+        },
+        person: { employmentType: '正職月薪' },
+        medical: { disabilityLevel: he.disabilityLevel },
+        medicalReceipts: {},
+        property: {},
+      } as any)
+    }
+    window.location.href = '/claims/new?load=true'
   }
 
   // SSR / 首次訪問：不要 render（避免打擾）
@@ -121,6 +161,7 @@ export function EstimateHistory() {
                 <th className="px-4 py-3 text-right">失能等級</th>
                 <th className="px-4 py-3 text-right">己方肇責</th>
                 <th className="px-4 py-3 text-right">強制險估算</th>
+                <th className="px-4 py-3 text-right">操作</th>
               </tr>
             </thead>
             <tbody>
@@ -138,6 +179,19 @@ export function EstimateHistory() {
                   <td className="px-4 py-3 text-right tabular-nums font-semibold">
                     ${entry.compulsoryTotalEstimated.toLocaleString()}
                   </td>
+                  <td className="px-4 py-3 text-right">
+                    <Tooltip title="把這個案件的欄位預填回估算表單">
+                      <Button
+                        type="link"
+                        size="small"
+                        icon={<ReloadOutlined />}
+                        onClick={() => handleLoad(entry, i)}
+                        data-testid="load-history"
+                      >
+                        載入
+                      </Button>
+                    </Tooltip>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -146,7 +200,7 @@ export function EstimateHistory() {
 
         {/* 手機：卡片 */}
         <div className="space-y-2 md:hidden">
-          {items.map((entry) => (
+          {items.map((entry, i) => (
             <div key={entry.timestamp} className="rounded-lg border border-border bg-surface p-3">
               <div className="flex items-center justify-between">
                 <Text className="!text-xs text-muted">{formatTime(entry.timestamp)}</Text>
@@ -159,6 +213,16 @@ export function EstimateHistory() {
                 {entry.disabilityLevel && <span>· 失能 {entry.disabilityLevel} 級</span>}
                 <span>· 肇責 {entry.selfFaultRatio}%</span>
               </div>
+              <Button
+                type="link"
+                size="small"
+                icon={<ReloadOutlined />}
+                onClick={() => handleLoad(entry, i)}
+                data-testid="load-history"
+                block
+              >
+                載入回表單
+              </Button>
             </div>
           ))}
         </div>

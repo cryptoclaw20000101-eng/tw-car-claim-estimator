@@ -61,6 +61,8 @@ import type {
 } from '@/lib/insurance/types'
 import { regionCourtMap } from '@/lib/insurance/region-court-map'
 import { estimateClaim } from '@/lib/insurance'
+// v0.14.x：載入舊案件
+import { consumeForLoad } from '@/lib/estimate-loader'
 import {
   DISABILITY_CATEGORIES,
   DISABILITY_LEVELS,
@@ -383,6 +385,33 @@ export default function NewClaimForm() {
       setData((d) => ({ ...d, basics: { ...d.basics, accidentCity: v } }))
     }
   }
+
+  // v0.14.x：從雲端歷史載入舊案件（?load=true → 讀 sessionStorage）
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!window.location.search.includes('load=true')) return
+    void (async () => {
+      const loaded = await consumeForLoad()
+      if (!loaded) return
+      // 把 ClaimInput 拆到 form data
+      const next = {
+        basics: { ...DEFAULT_BASICS, ...loaded.basics },
+        fault: { ...DEFAULT_FAULT, ...loaded.fault },
+        person: { ...DEFAULT_PERSON, ...loaded.person },
+        medical: { ...DEFAULT_MEDICAL, ...loaded.medical },
+        receipts: { ...DEFAULT_RECEIPTS, ...(loaded.medicalReceipts ?? {}) },
+        property: { ...DEFAULT_PROPERTY, ...(loaded.property ?? {}) },
+      }
+      setData(next as FormSchema)
+      // AntD Form 也填入
+      form.setFieldsValue(next as any)
+      // 顯示成功提示
+      message.success('已從歷史載入，請確認或修改後送出')
+      // 移除 ?load=true 避免重複載入
+      window.history.replaceState({}, '', '/claims/new')
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form])
 
   const next = async () => {
     try {
