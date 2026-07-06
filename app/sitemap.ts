@@ -12,8 +12,7 @@ import type { MetadataRoute } from 'next'
  * AGENTS §2.4：Next.js 16 native sitemap.ts (MetadataRoute.Sitemap)
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || 'https://tw-car-claim-estimator.vercel.app'
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tw-car-claim-estimator.vercel.app'
 
   // v0.9.0 發布日：scaffold-time stamp，後續 release 時手動更新
   const lastModified = new Date()

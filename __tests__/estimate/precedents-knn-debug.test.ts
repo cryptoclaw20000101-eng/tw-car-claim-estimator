@@ -50,8 +50,8 @@ describe('findRelatedPracticeCases KNN debug 模式', () => {
     const refs = findRelatedPracticeCases('臺灣臺中地方法院', 7, 3, true)
     expect(refs[0].knnQuery).toBeDefined()
     expect(refs[0].knnQuery!.disabilityLevel).toBe(7)
-    expect(refs[0].knnQuery!.city).toBe('臺中市')  // 法院→縣市
-    expect(refs[0].knnQuery!.hasDisabilityRecord).toBe(true)  // 有失能等級
+    expect(refs[0].knnQuery!.city).toBe('臺中市') // 法院→縣市
+    expect(refs[0].knnQuery!.hasDisabilityRecord).toBe(true) // 有失能等級
   })
 
   it('debug 模式：排序仍以 KNN distance 為主', () => {

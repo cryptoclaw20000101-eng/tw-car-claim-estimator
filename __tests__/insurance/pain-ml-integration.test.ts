@@ -160,7 +160,7 @@ describe('estimateClaim — painML 整合（v0.6.0）', () => {
           hasMuscleWeakness: false,
           hasSensoryLoss: false,
         },
-      })
+      }),
     )
     // 30 天住院 + 骨折 + 手術 + 復健 → severity 6 (嚴重)
     expect(result.painML.severityLevel).toBeGreaterThanOrEqual(5)

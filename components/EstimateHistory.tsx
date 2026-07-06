@@ -15,11 +15,7 @@
 import { useEffect, useState } from 'react'
 import { Button, Space, Typography } from 'antd'
 import { ClockCircleOutlined, DeleteOutlined } from '@ant-design/icons'
-import {
-  getEstimateHistory,
-  clearEstimateHistory,
-  type HistoryEntry,
-} from '@/lib/estimate-history'
+import { getEstimateHistory, clearEstimateHistory, type HistoryEntry } from '@/lib/estimate-history'
 
 const { Text, Paragraph } = Typography
 
@@ -91,16 +87,12 @@ export function EstimateHistory() {
                   key={entry.timestamp}
                   className={i % 2 === 0 ? 'bg-surface' : 'bg-surface-subtle/40'}
                 >
-                  <td className="px-4 py-3 text-muted">
-                    {formatTime(entry.timestamp)}
-                  </td>
+                  <td className="px-4 py-3 text-muted">{formatTime(entry.timestamp)}</td>
                   <td className="px-4 py-3">{entry.courtName}</td>
                   <td className="px-4 py-3 text-right tabular-nums">
                     {entry.disabilityLevel ? `第 ${entry.disabilityLevel} 級` : '—'}
                   </td>
-                  <td className="px-4 py-3 text-right tabular-nums">
-                    {entry.selfFaultRatio}%
-                  </td>
+                  <td className="px-4 py-3 text-right tabular-nums">{entry.selfFaultRatio}%</td>
                   <td className="px-4 py-3 text-right tabular-nums font-semibold">
                     ${entry.compulsoryTotalEstimated.toLocaleString()}
                   </td>
@@ -113,23 +105,16 @@ export function EstimateHistory() {
         {/* 手機：卡片 */}
         <div className="space-y-2 md:hidden">
           {history.map((entry) => (
-            <div
-              key={entry.timestamp}
-              className="rounded-lg border border-border bg-surface p-3"
-            >
+            <div key={entry.timestamp} className="rounded-lg border border-border bg-surface p-3">
               <div className="flex items-center justify-between">
-                <Text className="!text-xs text-muted">
-                  {formatTime(entry.timestamp)}
-                </Text>
+                <Text className="!text-xs text-muted">{formatTime(entry.timestamp)}</Text>
                 <Text strong className="!text-sm tabular-nums">
                   ${entry.compulsoryTotalEstimated.toLocaleString()}
                 </Text>
               </div>
               <div className="!mt-1 flex flex-wrap gap-2 !text-xs text-muted">
                 <span>{entry.courtName}</span>
-                {entry.disabilityLevel && (
-                  <span>· 失能 {entry.disabilityLevel} 級</span>
-                )}
+                {entry.disabilityLevel && <span>· 失能 {entry.disabilityLevel} 級</span>}
                 <span>· 肇責 {entry.selfFaultRatio}%</span>
               </div>
             </div>

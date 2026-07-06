@@ -23,7 +23,7 @@ import {
 import type { MedicalRecord } from '@/lib/insurance/types'
 
 const COURT_TAICHUNG = '臺灣臺中地方法院' // multiplier 1.0
-const COURT_TAIPEI = '臺灣臺北地方法院'   // multiplier 1.15
+const COURT_TAIPEI = '臺灣臺北地方法院' // multiplier 1.15
 const COURT_KAOHSIUNG = '臺灣高雄地方法院' // multiplier 0.95
 
 function medical(overrides: Partial<MedicalRecord> = {}): MedicalRecord {
@@ -85,7 +85,7 @@ describe('predictPainRange — 三層區間引擎', () => {
           hasRehabilitation: true,
           rehabilitationCount: 5,
         }),
-      })
+      }),
     )
     // severity level 2-3: 40K-200K 區間
     expect(out.lower).toBeGreaterThanOrEqual(40_000)
@@ -102,7 +102,7 @@ describe('predictPainRange — 三層區間引擎', () => {
           hasRehabilitation: true,
           rehabilitationCount: 20,
         }),
-      })
+      }),
     )
     // severity level 5: 150K-300K（臺中係數 1.0）
     expect(out.lower).toBeGreaterThanOrEqual(150_000)
@@ -132,7 +132,7 @@ describe('predictPainRange — 三層區間引擎', () => {
           hasRehabilitation: true,
           rehabilitationCount: 30,
         }),
-      })
+      }),
     )
     // severity level 7-8: 300K-1.5M（臺中係數 1.0）
     expect(out.upper).toBeGreaterThanOrEqual(800_000)
@@ -175,7 +175,7 @@ describe('reconcileWithRules — 規則 vs ML 校驗', () => {
   it('落差 > 30%：標記 "diverge" + 警告訊息', () => {
     // 輕傷案件：medical=空 → level 1 mid 50,000（無治療加成）
     const ml = predictPainRange(mlInput({ rulesRegionalMid: 50_000 }))
-    const result = reconcileWithRules(ml, 200_000)  // 規則 200K vs ML 50K
+    const result = reconcileWithRules(ml, 200_000) // 規則 200K vs ML 50K
     expect(result.status).toBe('diverge')
     expect(result.divergence).toBeGreaterThan(0.3)
     expect(result.warning).toBeTruthy()
@@ -193,7 +193,7 @@ describe('reconcileWithRules — 規則 vs ML 校驗', () => {
       rulesRegionalMid: 175_000,
     })
     const ml = predictPainRange(midCase)
-    const result = reconcileWithRules(ml, 220_000)  // 差 ~25%
+    const result = reconcileWithRules(ml, 220_000) // 差 ~25%
     expect(result.status).toBe('minor_diverge')
   })
 
@@ -211,7 +211,7 @@ describe('reconcileWithRules — 規則 vs ML 校驗', () => {
       severityLevel: 1,
       severityLabel: '極輕微',
     }
-    const result = reconcileWithRules(ml, 200_000)  // 落差 300%
+    const result = reconcileWithRules(ml, 200_000) // 落差 300%
     // confidence=low 時只給「注意」不給「強烈警告」
     expect(result.warning).toMatch(/資料不足|僅供參考/)
   })
@@ -238,7 +238,7 @@ describe('predictPainRange — 邊界條件', () => {
           rehabilitationCount: 50,
           scarLengthCm: 30,
         }),
-      })
+      }),
     )
     // severity level 8: 500K-1.5M（臺中係數 1.0）
     expect(out.upper).toBeLessThanOrEqual(2_000_000)

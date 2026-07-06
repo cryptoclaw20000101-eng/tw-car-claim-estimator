@@ -16,7 +16,13 @@
 // 重要：關節角度喪失 ≠ 失能！必須提醒補件。
 // =====================================================================
 
-import type { MedicalRecord, DisabilityScreeningResult, DisabilityLevel, JointName, DisabilityScreening } from './types'
+import type {
+  MedicalRecord,
+  DisabilityScreeningResult,
+  DisabilityLevel,
+  JointName,
+  DisabilityScreening,
+} from './types'
 import { jointLabelZh, resolveNormalRom, levelFromRomLoss } from './joint-rom'
 import { pickDisabilityTable, lookupDisabilityAmount } from './disability-tables'
 import {
@@ -28,9 +34,19 @@ import {
 
 // 失能給付初篩的觸發關鍵字（spec §六 Step 4）
 const DISABILITY_TRIGGER_KEYWORDS = [
-  '症狀固定', '永久', '不能恢復', '失能', '障害', '關節活動受限',
-  '角度喪失', '截肢', '神經損傷', '器官缺損', '明顯疤痕',
-  '肌力下降', '感覺喪失',
+  '症狀固定',
+  '永久',
+  '不能恢復',
+  '失能',
+  '障害',
+  '關節活動受限',
+  '角度喪失',
+  '截肢',
+  '神經損傷',
+  '器官缺損',
+  '明顯疤痕',
+  '肌力下降',
+  '感覺喪失',
 ]
 
 interface RuleEngineInput {
@@ -66,7 +82,7 @@ function scanKeywords(text: string): string[] {
 interface LevelAdjustment {
   trigger: boolean
   levelOverride?: DisabilityLevel
-  levelShift?: number  // 負數 = 等級降低（更嚴重）；正數 = 減輕
+  levelShift?: number // 負數 = 等級降低（更嚴重）；正數 = 減輕
   confidenceBoost: number
   note: string
 }
@@ -134,9 +150,9 @@ function applyAdjustments(
       if (shifted >= 1 && shifted <= 15) {
         level = shifted
       } else if (shifted < 1) {
-        level = 1  // clamp 1（最重）
+        level = 1 // clamp 1（最重）
       } else {
-        level = 15  // clamp 15（最輕）
+        level = 15 // clamp 15（最輕）
       }
     }
   }
@@ -175,7 +191,7 @@ export function runDisabilityRuleEngine(input: RuleEngineInput): RuleEngineOutpu
   let jointName: JointName | null = null
   let baseLevel: DisabilityLevel | null = null
   let baseConfidence = 0
-  let articleId: string | null = null  // v0.6.6 新增：條號追蹤
+  let articleId: string | null = null // v0.6.6 新增：條號追蹤
 
   if (medical.jointName && medical.hasRangeOfMotionLimitation && medical.romLossDegree > 0) {
     jointName = medical.jointName
@@ -201,7 +217,7 @@ export function runDisabilityRuleEngine(input: RuleEngineInput): RuleEngineOutpu
       // 簡化：只記錄單一關節障害，三大關節中 count='1'
       // （未來可擴充支援多關節輸入）
       const summary: LimbDisorderSummary = {
-        count: '1',  // 三大關節中有一大關節障害
+        count: '1', // 三大關節中有一大關節障害
         severity,
       }
       const otherLimb: LimbDisorderSummary = { count: '0', severity: 'none' }
@@ -209,7 +225,9 @@ export function runDisabilityRuleEngine(input: RuleEngineInput): RuleEngineOutpu
       if (matched) {
         baseLevel = matched.level
         articleId = matched.articleId
-        notes.push(`強制險附表 ${matched.articleId}：第 ${matched.level} 級（單一關節 ${severity}）`)
+        notes.push(
+          `強制險附表 ${matched.articleId}：第 ${matched.level} 級（單一關節 ${severity}）`,
+        )
       }
     } else if (LOWER_LIMB_JOINTS.includes(jointName)) {
       const summary: LimbDisorderSummary = {
@@ -221,7 +239,9 @@ export function runDisabilityRuleEngine(input: RuleEngineInput): RuleEngineOutpu
       if (matched) {
         baseLevel = matched.level
         articleId = matched.articleId
-        notes.push(`強制險附表 ${matched.articleId}：第 ${matched.level} 級（單一關節 ${severity}）`)
+        notes.push(
+          `強制險附表 ${matched.articleId}：第 ${matched.level} 級（單一關節 ${severity}）`,
+        )
       }
     } else {
       // 中軸或手指/腳趾：用舊的 levelFromRomLoss 結果
@@ -229,7 +249,9 @@ export function runDisabilityRuleEngine(input: RuleEngineInput): RuleEngineOutpu
     }
 
     if (baseLevel === null) {
-      notes.push(`ROM 規則引擎初判：第 ${result.level} 級（confidence ${(result.confidence * 100).toFixed(0)}%）`)
+      notes.push(
+        `ROM 規則引擎初判：第 ${result.level} 級（confidence ${(result.confidence * 100).toFixed(0)}%）`,
+      )
     }
 
     // ROM 缺資料提醒
@@ -252,10 +274,10 @@ export function runDisabilityRuleEngine(input: RuleEngineInput): RuleEngineOutpu
     adjNotes.push(...result.notes)
   } else {
     // 沒有 ROM 線索，純看其他標記
-    const triggered = adjustments.filter(a => a.trigger)
+    const triggered = adjustments.filter((a) => a.trigger)
     if (triggered.length > 0) {
       // 取最嚴重者
-      const firstOverride = triggered.find(a => a.levelOverride !== undefined)
+      const firstOverride = triggered.find((a) => a.levelOverride !== undefined)
       if (firstOverride) {
         finalLevel = firstOverride.levelOverride!
       } else {
@@ -265,9 +287,9 @@ export function runDisabilityRuleEngine(input: RuleEngineInput): RuleEngineOutpu
       }
       finalConfidence = Math.min(
         triggered.reduce((sum, a) => sum + a.confidenceBoost, 0),
-        0.6,  // 沒 ROM 資料 confidence 上限 0.6
+        0.6, // 沒 ROM 資料 confidence 上限 0.6
       )
-      adjNotes.push(...triggered.map(a => a.note))
+      adjNotes.push(...triggered.map((a) => a.note))
     }
   }
 
@@ -276,14 +298,17 @@ export function runDisabilityRuleEngine(input: RuleEngineInput): RuleEngineOutpu
   // 5) 4 級初篩判定
   let screening: DisabilityScreening = 'A'
   if (signals.length === 0 && !medical.hasAmputation && !medical.hasPermanentImpairment) {
-    screening = 'A'  // 無明顯失能線索
+    screening = 'A' // 無明顯失能線索
   } else if (
     medical.hasAmputation ||
     medical.hasPermanentImpairment ||
-    (medical.isSymptomFixed && medical.hasRangeOfMotionLimitation && romLossPercent !== null && romLossPercent >= 30) ||
+    (medical.isSymptomFixed &&
+      medical.hasRangeOfMotionLimitation &&
+      romLossPercent !== null &&
+      romLossPercent >= 30) ||
     (medical.hasDisabilityCertificate && finalLevel !== null)
   ) {
-    screening = 'D'  // 已具失能申請基礎
+    screening = 'D' // 已具失能申請基礎
   } else if (
     medical.isSymptomFixed ||
     medical.hasRangeOfMotionLimitation ||
@@ -291,17 +316,21 @@ export function runDisabilityRuleEngine(input: RuleEngineInput): RuleEngineOutpu
     medical.hasAmputation ||
     romLossPercent !== null
   ) {
-    screening = 'C'  // 高度可能
+    screening = 'C' // 高度可能
   } else {
-    screening = 'B'  // 有線索但資料不足
+    screening = 'B' // 有線索但資料不足
   }
 
   // 6) 補件建議
   if (medical.hasRangeOfMotionLimitation) {
-    if (!medical.isSymptomFixed) needsSupplement.push('補「症狀固定」證明（需 6 個月以上治療後由醫師評估）')
-    if (!medical.hasDisabilityCertificate) needsSupplement.push('補合格失能診斷書（由指定醫療機構開立）')
+    if (!medical.isSymptomFixed)
+      needsSupplement.push('補「症狀固定」證明（需 6 個月以上治療後由醫師評估）')
+    if (!medical.hasDisabilityCertificate)
+      needsSupplement.push('補合格失能診斷書（由指定醫療機構開立）')
     if (romLossPercent !== null && romLossPercent >= 5) {
-      needsSupplement.push(`補 ${jointLabelZh[medical.jointName!]} 關節活動度完整量測（被動 ROM、健側對比）`)
+      needsSupplement.push(
+        `補 ${jointLabelZh[medical.jointName!]} 關節活動度完整量測（被動 ROM、健側對比）`,
+      )
     }
   }
   if (medical.hasNerveDamage && !medical.hasDisabilityCertificate) {
@@ -316,16 +345,12 @@ export function runDisabilityRuleEngine(input: RuleEngineInput): RuleEngineOutpu
 
   // 重要提醒：ROM 喪失 ≠ 失能
   if (romLossPercent !== null && screening !== 'D') {
-    notes.push(
-      '⚠️ 關節角度喪失是失能初篩線索，但「角度喪失」≠「失能」',
-    )
-    notes.push(
-      '需確認：① 哪個關節 ② 正常活動範圍 ③ 喪失比例 ④ 是否症狀固定 ⑤ 是否有合格失能診斷書',
-    )
+    notes.push('⚠️ 關節角度喪失是失能初篩線索，但「角度喪失」≠「失能」')
+    notes.push('需確認：① 哪個關節 ② 正常活動範圍 ③ 喪失比例 ④ 是否症狀固定 ⑤ 是否有合格失能診斷書')
   }
 
   // 靜音未使用變數 warning 抑制
-  void accidentDate  // 用於金額表選擇，由 caller 處理
+  void accidentDate // 用於金額表選擇，由 caller 處理
 
   return {
     romLossPercent,

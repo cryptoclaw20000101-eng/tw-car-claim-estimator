@@ -128,7 +128,7 @@ describe('失能引擎 — 角度喪失 < 5% 視為不明顯', () => {
       diagnosisText: '右肩不適 5 度活動受限',
       jointName: 'shoulder',
       hasRangeOfMotionLimitation: true,
-      romLossDegree: 5,  // 5/180 = 2.78%
+      romLossDegree: 5, // 5/180 = 2.78%
     }
     const r = runDisabilityRuleEngine({ medical: m, accidentDate: '2026-08-01' })
     expect(r.romLossPercent).toBeCloseTo(2.78, 1)

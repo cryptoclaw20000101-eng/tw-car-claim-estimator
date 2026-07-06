@@ -62,10 +62,7 @@ export default function ResultLoading() {
           {[0, 1, 2, 3, 4, 5, 6].map((i) => (
             <div
               key={i}
-              className={[
-                '!h-8 rounded-md bg-gray-200/60',
-                i === 0 ? '!w-32' : '!w-24',
-              ].join(' ')}
+              className={['!h-8 rounded-md bg-gray-200/60', i === 0 ? '!w-32' : '!w-24'].join(' ')}
             />
           ))}
         </div>

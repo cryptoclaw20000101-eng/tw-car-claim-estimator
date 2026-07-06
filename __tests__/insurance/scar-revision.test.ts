@@ -5,10 +5,7 @@
 // =====================================================================
 
 import { describe, it, expect } from 'vitest'
-import {
-  computeScarRevisionCost,
-  REGIONAL_SCAR_MULTIPLIER,
-} from '@/lib/insurance/scar-revision'
+import { computeScarRevisionCost, REGIONAL_SCAR_MULTIPLIER } from '@/lib/insurance/scar-revision'
 import type { MedicalRecord } from '@/lib/insurance/types'
 
 const baseMedical: MedicalRecord = {
@@ -59,8 +56,8 @@ describe('computeScarRevisionCost', () => {
     })
     // 10 公分 × 6,000 元 (mid) × 1 次 = 60,000
     expect(r.amount).toBe(60_000)
-    expect(r.range.low).toBe(30_000)  // 3,000 × 10
-    expect(r.range.high).toBe(100_000)  // 10,000 × 10
+    expect(r.range.low).toBe(30_000) // 3,000 × 10
+    expect(r.range.high).toBe(100_000) // 10,000 × 10
     expect(r.regionalMultiplier).toBe(1.0)
   })
 
@@ -71,7 +68,7 @@ describe('computeScarRevisionCost', () => {
       procedure: 'revision_surgery',
     })
     expect(r.amount).toBe(72_000)
-    expect(r.regionalMultiplier).toBe(1.20)
+    expect(r.regionalMultiplier).toBe(1.2)
   })
 
   it('雷射除疤 50 cm² × 4 次療程（臺中基線）', () => {
@@ -90,7 +87,7 @@ describe('computeScarRevisionCost', () => {
     const r = computeScarRevisionCost({
       medical: { ...baseMedical, scarLengthCm: 15, scarSeverity: 'keloid' },
       courtName: '臺灣臺中地方法院',
-      procedure: 'revision_surgery',  // 即便選修疤，蟹足腫會強制改注射
+      procedure: 'revision_surgery', // 即便選修疤，蟹足腫會強制改注射
     })
     expect(r.procedure).toBe('injection')
     expect(r.hint).toContain('蟹足腫')
@@ -102,19 +99,24 @@ describe('computeScarRevisionCost', () => {
       courtName: '臺灣臺中地方法院',
       procedure: 'injection',
     })
-    expect(r.precedents.some(p => p.includes('中地院 110 簡 202'))).toBe(true)
-    expect(r.notes.some(n => n.includes('110 簡 202'))).toBe(true)
+    expect(r.precedents.some((p) => p.includes('中地院 110 簡 202'))).toBe(true)
+    expect(r.notes.some((n) => n.includes('110 簡 202'))).toBe(true)
   })
 
   it('拉皮手術 腹部 1 次', () => {
     const r = computeScarRevisionCost({
-      medical: { ...baseMedical, scarLengthCm: 5, scarLocation: 'abdomen', scarSeverity: 'moderate' },
+      medical: {
+        ...baseMedical,
+        scarLengthCm: 5,
+        scarLocation: 'abdomen',
+        scarSeverity: 'moderate',
+      },
       courtName: '臺灣臺中地方法院',
       procedure: 'facelift',
     })
     // 腹部 mid 210,000
     expect(r.amount).toBe(210_000)
-    expect(r.notes.some(n => n.includes('腹部'))).toBe(true)
+    expect(r.notes.some((n) => n.includes('腹部'))).toBe(true)
   })
 
   it('拉皮手術 嚴重疤痕 → 內視鏡全臉', () => {
@@ -125,7 +127,7 @@ describe('computeScarRevisionCost', () => {
     })
     // 內視鏡 mid 350,000
     expect(r.amount).toBe(350_000)
-    expect(r.notes.some(n => n.includes('內視鏡'))).toBe(true)
+    expect(r.notes.some((n) => n.includes('內視鏡'))).toBe(true)
   })
 
   it('PRP 注射（中等疤痕）4 次療程', () => {
@@ -140,9 +142,9 @@ describe('computeScarRevisionCost', () => {
   })
 
   it('REGIONAL_SCAR_MULTIPLIER 涵蓋北中南', () => {
-    expect(REGIONAL_SCAR_MULTIPLIER['臺北']).toBe(1.20)
-    expect(REGIONAL_SCAR_MULTIPLIER['臺中']).toBe(1.00)
+    expect(REGIONAL_SCAR_MULTIPLIER['臺北']).toBe(1.2)
+    expect(REGIONAL_SCAR_MULTIPLIER['臺中']).toBe(1.0)
     expect(REGIONAL_SCAR_MULTIPLIER['高雄']).toBe(0.95)
-    expect(REGIONAL_SCAR_MULTIPLIER['臺東']).toBe(0.90)
+    expect(REGIONAL_SCAR_MULTIPLIER['臺東']).toBe(0.9)
   })
 })

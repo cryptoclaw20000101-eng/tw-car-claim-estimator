@@ -169,7 +169,7 @@ describe('estimateClaim — painAdvisor 整合（v0.6.3）', () => {
           hasMuscleWeakness: false,
           hasSensoryLoss: false,
         } as ClaimInput['medical'],
-      })
+      }),
     )
     // 重大案件 + ML 信心度中等 + outlier → riskLevel 必為 medium 或 high
     expect(['medium', 'high']).toContain(result.painAdvisor.riskLevel)

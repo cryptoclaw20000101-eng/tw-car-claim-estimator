@@ -6,9 +6,8 @@ import { findRelatedPracticeCases, loadAllPrecedents } from '@/lib/estimate/prec
 
 const hasPracticeData = (() => {
   const all = loadAllPrecedents()
-  return (all as unknown as { category: string }[]).filter(
-    (p) => p.category === 'practice_case',
-  ).length
+  return (all as unknown as { category: string }[]).filter((p) => p.category === 'practice_case')
+    .length
 })()
 
 describe('findRelatedPracticeCases 配權（純算術）', () => {
@@ -55,9 +54,7 @@ describe('findRelatedPracticeCases 配權（純算術）', () => {
     // 若新北案例在內,等級 7 應存在(失能配對生效的證據)
     const newNorth = refs.find((r) => r.court.includes('新北'))
     if (newNorth) {
-      const hasLevel7 = (newNorth.disabilities ?? []).some(
-        (d) => parseInt(d.level, 10) === 7,
-      )
+      const hasLevel7 = (newNorth.disabilities ?? []).some((d) => parseInt(d.level, 10) === 7)
       expect(hasLevel7).toBe(true)
     }
   })

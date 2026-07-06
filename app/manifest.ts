@@ -1,4 +1,4 @@
-export const dynamic = "force-static";
+export const dynamic = 'force-static'
 
 import type { MetadataRoute } from 'next'
 import { ACCENT, BACKGROUND } from '@/lib/design/tokens'
@@ -24,8 +24,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: '台灣車禍理賠金額估算器',
     short_name: '車禍理賠',
-    description:
-      '依強制汽車責任保險法、民法侵權行為及 6 直轄市地方法院實務，快速估算體傷理賠金額',
+    description: '依強制汽車責任保險法、民法侵權行為及 6 直轄市地方法院實務，快速估算體傷理賠金額',
     lang: 'zh-Hant',
     start_url: '/',
     scope: '/',

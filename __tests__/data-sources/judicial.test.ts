@@ -20,7 +20,7 @@ describe('Court Compensation (司法院)', () => {
 
   it('getCourtCompensation returns null for unsupported combination', () => {
     const data = getCourtCompensation('臺灣臺北地方法院', 'vehicle_damage')
-    expect(data).toBeNull()  // 台北地院無 vehicle_damage 區間
+    expect(data).toBeNull() // 台北地院無 vehicle_damage 區間
   })
 
   it('listAllCompensationTable returns all records', () => {
@@ -73,8 +73,8 @@ describe('Court Compensation (司法院)', () => {
   it('getSupportedCourts returns unique court names', () => {
     const courts = getSupportedCourts()
     expect(courts.length).toBeGreaterThan(0)
-    expect(new Set(courts).size).toBe(courts.length)  // no duplicates
-    courts.forEach((c) => expect(c).toMatch(/^臺灣/))  // 法院名以「臺灣」開頭
+    expect(new Set(courts).size).toBe(courts.length) // no duplicates
+    courts.forEach((c) => expect(c).toMatch(/^臺灣/)) // 法院名以「臺灣」開頭
   })
 
   it('getCourtCaseCount returns total number of case references', () => {

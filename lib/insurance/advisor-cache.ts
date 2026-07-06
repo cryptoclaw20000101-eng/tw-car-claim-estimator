@@ -53,7 +53,7 @@ export interface AdvisorCacheStats {
 // --- 常數 ---------------------------------------------------------------
 
 const DEFAULT_MAX_ENTRIES = 100
-const DEFAULT_TTL_MS = 60 * 60 * 1000  // 1 小時
+const DEFAULT_TTL_MS = 60 * 60 * 1000 // 1 小時
 
 // --- 全域狀態 ------------------------------------------------------------
 

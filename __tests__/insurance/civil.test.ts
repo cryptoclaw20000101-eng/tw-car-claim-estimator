@@ -12,9 +12,21 @@ import {
   computeLaborCapacityLoss,
   scoreSeverity,
 } from '@/lib/insurance/civil-damages'
-import { computeThirdParty, computeVehicleDamage, computePropertyDamage } from '@/lib/insurance/third-party'
+import {
+  computeThirdParty,
+  computeVehicleDamage,
+  computePropertyDamage,
+} from '@/lib/insurance/third-party'
 import { estimateClaim } from '@/lib/insurance'
-import type { ClaimInput, MedicalRecord, PersonalIncome, CompulsoryMedicalInputs, PropertyDamageInputs, AccidentBasics, FaultInfo } from '@/lib/insurance/types'
+import type {
+  ClaimInput,
+  MedicalRecord,
+  PersonalIncome,
+  CompulsoryMedicalInputs,
+  PropertyDamageInputs,
+  AccidentBasics,
+  FaultInfo,
+} from '@/lib/insurance/types'
 
 // --- 測試案例 2：有請假損失（強制險不賠工作損失） ---
 
@@ -233,14 +245,14 @@ describe('測試案例 3：右踝 20 度 + 疤痕 10cm + 看護 10 日', () => {
     expect(['B', 'C', 'D']).toContain(r.disability.screening)
     expect(r.disability.romLossPercent).toBeCloseTo(40, 0)
     // 精神慰撫金放第三人險，不放強制險
-    expect(r.compulsoryItems.find(i => i.key.includes('pas'))).toBeUndefined()
+    expect(r.compulsoryItems.find((i) => i.key.includes('pas'))).toBeUndefined()
     // 第三人險有體傷金額
     expect(r.thirdParty.civilDamageTotalMid).toBeGreaterThan(0)
   })
 
   it('精神慰撫金 8 級評分（住院 2 + 復健 8 + 疤痕 10 + ROM 20°=B/C 級）', () => {
     const pas = computePainAndSuffering(med, '臺灣臺中地方法院')
-    expect(pas.severityScore).toBeGreaterThan(15)  // 至少中度
+    expect(pas.severityScore).toBeGreaterThan(15) // 至少中度
     expect(pas.regionalMid).toBeGreaterThanOrEqual(pas.baseMid)
   })
 })
@@ -342,7 +354,7 @@ describe('測試案例 5：看護 40 日 + 體傷 100 萬 / 財損 50 萬', () =
       medicalReceipts: {
         emergencyFee: 5_000,
         ambulanceFee: 2_000,
-        nhiCopayment: 243_000,  // 250,000 總收據，強制險上限 200,000
+        nhiCopayment: 243_000, // 250,000 總收據，強制險上限 200,000
         registrationFee: 500,
         diagnosisCertificateFee: 1_500,
         nonNhiNecessaryMedicalFee: 0,
@@ -357,7 +369,7 @@ describe('測試案例 5：看護 40 日 + 體傷 100 萬 / 財損 50 萬', () =
         medicalMaterialFee: 5_000,
         assistiveDeviceFee: 8_000,
         transportationFee: 5_000,
-        nursingFee: 48_000,  // 40 日 × 1,200
+        nursingFee: 48_000, // 40 日 × 1,200
         nursingDays: 40,
         otherNecessaryMedicalFee: 0,
       },
@@ -378,7 +390,7 @@ describe('測試案例 5：看護 40 日 + 體傷 100 萬 / 財損 50 萬', () =
     // 強制險總額上限 200,000
     expect(r.compulsoryMedicalApproved).toBe(200_000)
     // 看護 30 日被認可
-    const nursingItem = r.compulsoryItems.find(i => i.key === 'nursingFee')!
+    const nursingItem = r.compulsoryItems.find((i) => i.key === 'nursingFee')!
     expect(nursingItem.approved).toBe(36_000)
   })
 })
@@ -394,7 +406,7 @@ describe('測試案例 6：因果關係爭議', () => {
       medical: {
         diagnosisText: '腰椎疼痛，疑似舊疾惡化',
         hospitalName: '',
-        emergencyDate: '2026-01-10',  // 事故後 9 天
+        emergencyDate: '2026-01-10', // 事故後 9 天
         outpatientVisitCount: 3,
         hospitalizationDays: 0,
         hasSurgery: false,
@@ -461,10 +473,10 @@ describe('測試案例 6：因果關係爭議', () => {
     // 強制險先估
     expect(r.compulsoryMedicalApproved).toBe(50_000)
     // 因果關係提示必須出現
-    const hasCausalityRisk = r.riskNotes.some(n => n.includes('因果關係'))
+    const hasCausalityRisk = r.riskNotes.some((n) => n.includes('因果關係'))
     expect(hasCausalityRisk).toBe(true)
     // 補件建議必須有因果關係
-    const hasCausalitySupp = r.missingDocuments.some(n => n.includes('因果關係'))
+    const hasCausalitySupp = r.missingDocuments.some((n) => n.includes('因果關係'))
     expect(hasCausalitySupp).toBe(true)
   })
 })
@@ -473,33 +485,37 @@ describe('測試案例 6：因果關係爭議', () => {
 
 describe('scoreSeverity 評分函式', () => {
   it('全無 → 0 分', () => {
-    expect(scoreSeverity({
-      hospitalizationDays: 0,
-      rehabilitationCount: 0,
-      scarLengthCm: 0,
-      hasPermanentImpairment: false,
-      hasDisability: false,
-      hasSurgery: false,
-      hasFracture: false,
-      hasNerveDamage: false,
-      hasAmputation: false,
-      treatmentDurationDays: 0,
-    })).toBe(0)
+    expect(
+      scoreSeverity({
+        hospitalizationDays: 0,
+        rehabilitationCount: 0,
+        scarLengthCm: 0,
+        hasPermanentImpairment: false,
+        hasDisability: false,
+        hasSurgery: false,
+        hasFracture: false,
+        hasNerveDamage: false,
+        hasAmputation: false,
+        treatmentDurationDays: 0,
+      }),
+    ).toBe(0)
   })
 
   it('截肢 + 神經 → 至少 20 分', () => {
-    expect(scoreSeverity({
-      hospitalizationDays: 0,
-      rehabilitationCount: 0,
-      scarLengthCm: 0,
-      hasPermanentImpairment: false,
-      hasDisability: false,
-      hasSurgery: false,
-      hasFracture: false,
-      hasNerveDamage: true,
-      hasAmputation: true,
-      treatmentDurationDays: 0,
-    })).toBeGreaterThanOrEqual(20)
+    expect(
+      scoreSeverity({
+        hospitalizationDays: 0,
+        rehabilitationCount: 0,
+        scarLengthCm: 0,
+        hasPermanentImpairment: false,
+        hasDisability: false,
+        hasSurgery: false,
+        hasFracture: false,
+        hasNerveDamage: true,
+        hasAmputation: true,
+        treatmentDurationDays: 0,
+      }),
+    ).toBeGreaterThanOrEqual(20)
   })
 
   it('住院 15+ 復健 16+ 疤痕 10cm + 骨折 + 手術 → 重度', () => {
@@ -668,7 +684,7 @@ describe('computeLaborCapacityLoss', () => {
       retirementAge: 70,
     })
     expect(r.retirementAge).toBe(70)
-    expect(r.hoffmannYears).toBe(40)  // 上限
+    expect(r.hoffmannYears).toBe(40) // 上限
   })
 })
 

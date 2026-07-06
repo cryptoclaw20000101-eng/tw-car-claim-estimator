@@ -130,7 +130,8 @@ ${ADVISOR_DISCLAIMER}
     knnAmount === null ? '不可用' : `${knnAmount.toLocaleString()} 元（${knnCases.length} 件）`
   }${
     knnCases.length > 0 && knnCases.length <= 100
-      ? '\n' + knnCases.map((c) => `  - 案號 ${c.caseNo}：${c.amount.toLocaleString()} 元`).join('\n')
+      ? '\n' +
+        knnCases.map((c) => `  - 案號 ${c.caseNo}：${c.amount.toLocaleString()} 元`).join('\n')
       : ''
   }
 - Ensemble 共識：${ensembleConsensus}${
@@ -235,9 +236,7 @@ export function parseAdvisorResponse(raw: string): AdvisorOutput {
 
   // 驗證 requiresHumanReview
   const requiresHumanReview =
-    typeof obj.requiresHumanReview === 'boolean'
-      ? obj.requiresHumanReview
-      : true  // 預設 true（保守）
+    typeof obj.requiresHumanReview === 'boolean' ? obj.requiresHumanReview : true // 預設 true（保守）
 
   return {
     riskLevel,

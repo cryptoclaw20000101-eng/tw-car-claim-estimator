@@ -13,7 +13,14 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Button, Typography, Alert, message as antdMessage } from 'antd'
 import { InfoAlert } from '@/components/InfoAlert'
-import { ReloadOutlined, HomeOutlined, BugOutlined, AlertOutlined, CopyOutlined, CheckOutlined } from '@ant-design/icons'
+import {
+  ReloadOutlined,
+  HomeOutlined,
+  BugOutlined,
+  AlertOutlined,
+  CopyOutlined,
+  CheckOutlined,
+} from '@ant-design/icons'
 import { motion } from 'framer-motion'
 
 const { Title, Paragraph, Text } = Typography
@@ -66,7 +73,10 @@ export default function ErrorPage({
   }
 
   return (
-    <main id="main-content" className="dvh-screen flex flex-1 flex-col items-center px-6 py-16 md:py-24">
+    <main
+      id="main-content"
+      className="dvh-screen flex flex-1 flex-col items-center px-6 py-16 md:py-24"
+    >
       <div className="w-full max-w-5xl">
         {/* Bento 2fr+1fr（variance 8，不對稱） */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -82,12 +92,15 @@ export default function ErrorPage({
               <AlertOutlined />
               <span>Error · 系統錯誤</span>
             </div>
-            <Title level={1} className="!mb-3 !text-3xl !leading-tight !tracking-tight md:!text-5xl">
+            <Title
+              level={1}
+              className="!mb-3 !text-3xl !leading-tight !tracking-tight md:!text-5xl"
+            >
               出了點狀況
             </Title>
             <Paragraph className="!mb-6 !text-base text-muted md:!text-lg">
-              本頁在渲染時發生未預期錯誤。你可以試著 <Text strong>重試</Text>，
-              或 <Text strong>回到首頁</Text> 重新開始估算。
+              本頁在渲染時發生未預期錯誤。你可以試著 <Text strong>重試</Text>， 或{' '}
+              <Text strong>回到首頁</Text> 重新開始估算。
             </Paragraph>
             <div className="flex flex-wrap gap-3">
               <Button type="primary" size="large" icon={<ReloadOutlined />} onClick={reset}>
@@ -122,9 +135,7 @@ export default function ErrorPage({
             <Paragraph className="!mb-2 !text-sm text-foreground">
               <Text strong>訊息：</Text>
               <br />
-              <Text className="!text-xs text-muted">
-                {error.message || '（無訊息）'}
-              </Text>
+              <Text className="!text-xs text-muted">{error.message || '（無訊息）'}</Text>
             </Paragraph>
             {error.digest && (
               <Paragraph className="!mb-2 !text-sm text-foreground">
@@ -157,9 +168,9 @@ export default function ErrorPage({
             title="開發模式提示"
             body={
               <>
-                正式部署後此 Alert 與「Diagnostic」診斷卡都不會顯示，
-                只剩 <Text strong>重試 / 回到首頁</Text> 兩個按鈕。
-                完整 stack 請打開瀏覽器 DevTools console。
+                正式部署後此 Alert 與「Diagnostic」診斷卡都不會顯示， 只剩{' '}
+                <Text strong>重試 / 回到首頁</Text> 兩個按鈕。 完整 stack 請打開瀏覽器 DevTools
+                console。
               </>
             }
           />

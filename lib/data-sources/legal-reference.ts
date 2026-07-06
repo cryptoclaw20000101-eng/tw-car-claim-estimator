@@ -23,11 +23,12 @@ const REFERENCES: LegalReference[] = [
   {
     key: 'compulsory_payment_standard',
     title: '強制汽車責任保險給付標準',
-    effectiveDate: '2026-07-01',  // 新制生效日
+    effectiveDate: '2026-07-01', // 新制生效日
     // v0.6.6: pcode 待驗證（SPA 渲染，這環境無法直接抓到正確 pcode）
     // 失能等級附表內容已對齊 doc_48f88159057e_附表-強制汽車責任保險失能給付標準表.pdf
     sourceUrl: 'https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=G0390051',
-    sourceNote: 'pcode 待驗證；條文內容以 data/legal-sources/compulsory-disability-table-2026.pdf 為 ground truth',
+    sourceNote:
+      'pcode 待驗證；條文內容以 data/legal-sources/compulsory-disability-table-2026.pdf 為 ground truth',
     summary:
       '規範強制險醫療費用、失能給付、死亡給付之細項上限。新制 2026-07-01 生效，' +
       '失能等級 1 等由 200 萬調高為 300 萬，其餘等級依比例調升。',
@@ -55,7 +56,8 @@ const REFERENCES: LegalReference[] = [
     title: '強制汽車責任保險失能等級表（附表）— v0.6.6 與 compulsory_payment_standard 合併',
     effectiveDate: '2026-07-01',
     sourceUrl: 'https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=G0390051',
-    sourceNote: 'pcode 待驗證；條文內容以 data/legal-sources/compulsory-disability-table-2026.pdf 為 ground truth',
+    sourceNote:
+      'pcode 待驗證；條文內容以 data/legal-sources/compulsory-disability-table-2026.pdf 為 ground truth',
     summary:
       '失能等級 1-15 等對照給付金額 + 三大關節障害（喪失機能/顯著運動障害/運動障害）' +
       '對應條號（11-23 ~ 11-44 上肢，12-18 ~ 12-37 下肢）。' +
@@ -66,12 +68,12 @@ const REFERENCES: LegalReference[] = [
       '11-23 ~ 11-44 上肢三大關節障害對照',
       '12-18 ~ 12-37 下肢三大關節障害對照',
     ],
-    lastReviewed: '2026-06-12',  // v0.6.6 重新檢視
+    lastReviewed: '2026-06-12', // v0.6.6 重新檢視
   },
   {
     key: 'pain_and_suffering_guideline',
     title: '精神慰撫金估算規則（法院實務）',
-    effectiveDate: '2010-01-01',  // 民法 §195 修正後
+    effectiveDate: '2010-01-01', // 民法 §195 修正後
     sourceUrl: 'https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=B0000001',
     summary:
       '精神慰撫金無固定公式，由法院斟酌：兩造身分、地位、經濟狀況、傷勢程度、' +
@@ -82,7 +84,7 @@ const REFERENCES: LegalReference[] = [
   {
     key: 'foi_evaluation_principles',
     title: '金融消費評議中心評議原則',
-    effectiveDate: '2012-01-01',  // 評議中心成立
+    effectiveDate: '2012-01-01', // 評議中心成立
     sourceUrl: 'https://www.foi.org.tw/',
     summary:
       '金融消費評議中心處理金融消費爭議，評議結果對保險公司有拘束力（除訴訟外）。' +
@@ -117,8 +119,7 @@ export function getPrimaryLegalReferences(): LegalReference[] {
 /** 取得強制險相關法源（用於結果頁強制險區塊底下的法源引註） */
 export function getCompulsoryInsuranceReferences(): LegalReference[] {
   return REFERENCES.filter(
-    (r) =>
-      r.key === 'compulsory_insurance_act' || r.key === 'compulsory_payment_standard',
+    (r) => r.key === 'compulsory_insurance_act' || r.key === 'compulsory_payment_standard',
   )
 }
 
@@ -134,5 +135,5 @@ export function isLegalReferenceStale(ref: LegalReference): boolean {
   const lastReviewed = new Date(ref.lastReviewed)
   const now = new Date('2026-06-07')
   const ageInYears = (now.getTime() - lastReviewed.getTime()) / (1000 * 60 * 60 * 24 * 365)
-  return ageInYears > 1  // 1 年未檢視 = stale
+  return ageInYears > 1 // 1 年未檢視 = stale
 }

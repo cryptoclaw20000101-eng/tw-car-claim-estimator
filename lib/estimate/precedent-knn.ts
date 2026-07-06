@@ -44,7 +44,7 @@ const SEVERITY_VALUE: Record<InjurySeverity, number> = {
   disability: 3,
 }
 
-const SEVERITY_MAX = 4  // death
+const SEVERITY_MAX = 4 // death
 
 /**
  * 計算兩個特徵向量的 KNN 距離（純函式）
@@ -68,9 +68,9 @@ export function computePrecedentDistance(a: PrecedentFeatures, b: PrecedentFeatu
   if (a.city !== null && b.city !== null) {
     cityDist = a.city === b.city ? 0 : 1
   } else if (a.city !== null && b.city === null) {
-    cityDist = 0.5  // 一邊有、一邊 null → 中性（不懲罰未知）
+    cityDist = 0.5 // 一邊有、一邊 null → 中性（不懲罰未知）
   } else if (a.city === null && b.city !== null) {
-    cityDist = 0.5  // 同上（對稱）
+    cityDist = 0.5 // 同上（對稱）
   }
   // 兩邊 null → 0（不懲罰未知）
 
@@ -82,7 +82,7 @@ export function computePrecedentDistance(a: PrecedentFeatures, b: PrecedentFeatu
     (a.disabilityLevel !== null && b.disabilityLevel === null) ||
     (a.disabilityLevel === null && b.disabilityLevel !== null)
   ) {
-    levelDist = 0.5  // 一邊有、一邊無 → 中性
+    levelDist = 0.5 // 一邊有、一邊無 → 中性
   }
   // 兩邊 null → 0
 
@@ -92,12 +92,13 @@ export function computePrecedentDistance(a: PrecedentFeatures, b: PrecedentFeatu
   // 4. injury_severity 維度
   let severityDist = 0
   if (a.injurySeverity !== null && b.injurySeverity !== null) {
-    severityDist = Math.abs(SEVERITY_VALUE[a.injurySeverity] - SEVERITY_VALUE[b.injurySeverity]) / SEVERITY_MAX
+    severityDist =
+      Math.abs(SEVERITY_VALUE[a.injurySeverity] - SEVERITY_VALUE[b.injurySeverity]) / SEVERITY_MAX
   } else if (
     (a.injurySeverity !== null && b.injurySeverity === null) ||
     (a.injurySeverity === null && b.injurySeverity !== null)
   ) {
-    severityDist = 0.5  // 一邊 null → 中性
+    severityDist = 0.5 // 一邊 null → 中性
   }
   // 兩邊 null → 0
 
@@ -134,15 +135,15 @@ export interface KnnDimensionBreakdown {
   hasDisabilityRecord: number
 }
 
-export function computeDimensionDistances(a: PrecedentFeatures, b: PrecedentFeatures): KnnDimensionBreakdown {
+export function computeDimensionDistances(
+  a: PrecedentFeatures,
+  b: PrecedentFeatures,
+): KnnDimensionBreakdown {
   // 1. city 維度（重用 computePrecedentDistance 的邏輯）
   let city = 0
   if (a.city !== null && b.city !== null) {
     city = a.city === b.city ? 0 : 1
-  } else if (
-    (a.city !== null && b.city === null) ||
-    (a.city === null && b.city !== null)
-  ) {
+  } else if ((a.city !== null && b.city === null) || (a.city === null && b.city !== null)) {
     city = 0.5
   }
 
@@ -163,7 +164,8 @@ export function computeDimensionDistances(a: PrecedentFeatures, b: PrecedentFeat
   // 4. injury_severity 維度
   let injurySeverity = 0
   if (a.injurySeverity !== null && b.injurySeverity !== null) {
-    injurySeverity = Math.abs(SEVERITY_VALUE[a.injurySeverity] - SEVERITY_VALUE[b.injurySeverity]) / SEVERITY_MAX
+    injurySeverity =
+      Math.abs(SEVERITY_VALUE[a.injurySeverity] - SEVERITY_VALUE[b.injurySeverity]) / SEVERITY_MAX
   } else if (
     (a.injurySeverity !== null && b.injurySeverity === null) ||
     (a.injurySeverity === null && b.injurySeverity !== null)
@@ -197,7 +199,7 @@ export function extractFeatures(
   // 用動態 import 避免循環依賴（precedents.ts 已 import region-court-map）
   // 這裡延遲到 caller 處理（避免 SSR/client 雙環境 require）
   return {
-    city: null,  // 由 caller 從 courtToCity 注入
+    city: null, // 由 caller 從 courtToCity 注入
     disabilityLevel,
     year,
     injurySeverity,

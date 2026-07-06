@@ -64,10 +64,7 @@ describe('computePainAndSuffering — 8 段等級走訪', () => {
 
   it('中度（idx 2，分數 15-24）', () => {
     // 疤痕 5-10cm + 短期住院
-    const r = computePainAndSuffering(
-      medical({ scarLengthCm: 8, hospitalizationDays: 5 }),
-      COURT,
-    )
+    const r = computePainAndSuffering(medical({ scarLengthCm: 8, hospitalizationDays: 5 }), COURT)
     // 中度標籤或中重度，視實際分數
     expect(r.severityScore).toBeGreaterThanOrEqual(0)
   })

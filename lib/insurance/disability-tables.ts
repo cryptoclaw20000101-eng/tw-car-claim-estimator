@@ -65,6 +65,9 @@ export function pickDisabilityTable(accidentDate: string): Record<DisabilityLeve
 /**
  * 依等級查金額（找不到回 0）
  */
-export function lookupDisabilityAmount(level: DisabilityLevel, table: Record<DisabilityLevel, number>): number {
+export function lookupDisabilityAmount(
+  level: DisabilityLevel,
+  table: Record<DisabilityLevel, number>,
+): number {
   return table[level] ?? 0
 }

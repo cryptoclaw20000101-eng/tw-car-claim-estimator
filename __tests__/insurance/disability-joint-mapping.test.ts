@@ -28,7 +28,7 @@ describe('classifyJointDisorder — 法源 §3 / §6 三分類', () => {
 
   it('喪失 33-49% → motion（運動障害，最輕）', () => {
     expect(classifyJointDisorder(33)).toBe('motion')
-    expect(classifyJointDisorder(40)).toBe('motion')  // user 案例
+    expect(classifyJointDisorder(40)).toBe('motion') // user 案例
     expect(classifyJointDisorder(49.9)).toBe('motion')
   })
 
@@ -56,7 +56,7 @@ describe('lookupUpperLimbLevel — 上肢三大關節對照（肩/肘/腕）', (
   it('11-23 兩上肢均喪失機能 → 第 2 級', () => {
     const result = lookupUpperLimbLevel(
       { count: 'full', severity: 'lost' },
-      { count: 'full', severity: 'lost' }
+      { count: 'full', severity: 'lost' },
     )
     expect(result).toEqual({ articleId: '11-23', level: 2 })
   })
@@ -64,7 +64,7 @@ describe('lookupUpperLimbLevel — 上肢三大關節對照（肩/肘/腕）', (
   it('11-25 兩上肢三大關節各有一大關節喪失機能 → 第 6 級', () => {
     const result = lookupUpperLimbLevel(
       { count: '1', severity: 'lost' },
-      { count: '1', severity: 'lost' }
+      { count: '1', severity: 'lost' },
     )
     expect(result).toEqual({ articleId: '11-25', level: 6 })
   })
@@ -72,7 +72,7 @@ describe('lookupUpperLimbLevel — 上肢三大關節對照（肩/肘/腕）', (
   it('11-28 一上肢三大關節有一大關節喪失機能（另側正常）→ 第 9 級', () => {
     const result = lookupUpperLimbLevel(
       { count: '1', severity: 'lost' },
-      { count: '0', severity: 'none' }
+      { count: '0', severity: 'none' },
     )
     expect(result).toEqual({ articleId: '11-28', level: 9 })
   })
@@ -81,7 +81,7 @@ describe('lookupUpperLimbLevel — 上肢三大關節對照（肩/肘/腕）', (
     // 對應刺刺 user 案例的上肢版
     const result = lookupUpperLimbLevel(
       { count: '1', severity: 'motion' },
-      { count: '0', severity: 'none' }
+      { count: '0', severity: 'none' },
     )
     expect(result).toEqual({ articleId: '11-40', level: 13 })
   })
@@ -89,11 +89,11 @@ describe('lookupUpperLimbLevel — 上肢三大關節對照（肩/肘/腕）', (
   it('左/右對稱（順序不影響結果）', () => {
     const a = lookupUpperLimbLevel(
       { count: '1', severity: 'motion' },
-      { count: '0', severity: 'none' }
+      { count: '0', severity: 'none' },
     )
     const b = lookupUpperLimbLevel(
       { count: '0', severity: 'none' },
-      { count: '1', severity: 'motion' }
+      { count: '1', severity: 'motion' },
     )
     expect(a).toEqual(b)
   })
@@ -101,7 +101,7 @@ describe('lookupUpperLimbLevel — 上肢三大關節對照（肩/肘/腕）', (
   it('找不到對應條號 → null', () => {
     const result = lookupUpperLimbLevel(
       { count: 'full', severity: 'motion' },
-      { count: 'full', severity: 'none' }
+      { count: 'full', severity: 'none' },
     )
     expect(result).toBeNull()
   })
@@ -111,7 +111,7 @@ describe('lookupLowerLimbLevel — 下肢三大關節對照（髖/膝/踝）', (
   it('12-18 兩下肢均喪失機能 → 第 2 級', () => {
     const result = lookupLowerLimbLevel(
       { count: 'full', severity: 'lost' },
-      { count: 'full', severity: 'lost' }
+      { count: 'full', severity: 'lost' },
     )
     expect(result).toEqual({ articleId: '12-18', level: 2 })
   })
@@ -119,7 +119,7 @@ describe('lookupLowerLimbLevel — 下肢三大關節對照（髖/膝/踝）', (
   it('12-20 兩下肢三大關節各有一大關節喪失機能 → 第 6 級', () => {
     const result = lookupLowerLimbLevel(
       { count: '1', severity: 'lost' },
-      { count: '1', severity: 'lost' }
+      { count: '1', severity: 'lost' },
     )
     expect(result).toEqual({ articleId: '12-20', level: 6 })
   })
@@ -127,7 +127,7 @@ describe('lookupLowerLimbLevel — 下肢三大關節對照（髖/膝/踝）', (
   it('12-23 一下肢三大關節有一大關節喪失機能 → 第 9 級', () => {
     const result = lookupLowerLimbLevel(
       { count: '1', severity: 'lost' },
-      { count: '0', severity: 'none' }
+      { count: '0', severity: 'none' },
     )
     expect(result).toEqual({ articleId: '12-23', level: 9 })
   })
@@ -135,7 +135,7 @@ describe('lookupLowerLimbLevel — 下肢三大關節對照（髖/膝/踝）', (
   it('12-27 一下肢遺存顯著運動障害 → 第 7 級', () => {
     const result = lookupLowerLimbLevel(
       { count: 'full', severity: 'significant' },
-      { count: '0', severity: 'none' }
+      { count: '0', severity: 'none' },
     )
     expect(result).toEqual({ articleId: '12-27', level: 7 })
   })
@@ -143,7 +143,7 @@ describe('lookupLowerLimbLevel — 下肢三大關節對照（髖/膝/踝）', (
   it('12-29 一下肢三大關節有一大關節遺存顯著運動障害 → 第 11 級', () => {
     const result = lookupLowerLimbLevel(
       { count: '1', severity: 'significant' },
-      { count: '0', severity: 'none' }
+      { count: '0', severity: 'none' },
     )
     expect(result).toEqual({ articleId: '12-29', level: 11 })
   })
@@ -152,7 +152,7 @@ describe('lookupLowerLimbLevel — 下肢三大關節對照（髖/膝/踝）', (
     // 刺刺回報：踝關節 ROM 喪失 20° = 40% → motion → 一大關節 → 第 13 級
     const result = lookupLowerLimbLevel(
       { count: '1', severity: 'motion' },
-      { count: '0', severity: 'none' }
+      { count: '0', severity: 'none' },
     )
     expect(result).toEqual({ articleId: '12-35', level: 13 })
   })
@@ -160,7 +160,7 @@ describe('lookupLowerLimbLevel — 下肢三大關節對照（髖/膝/踝）', (
   it('12-34 一下肢三大關節有二大關節遺存運動障害 → 第 11 級', () => {
     const result = lookupLowerLimbLevel(
       { count: '2', severity: 'motion' },
-      { count: '0', severity: 'none' }
+      { count: '0', severity: 'none' },
     )
     expect(result).toEqual({ articleId: '12-34', level: 11 })
   })
@@ -168,7 +168,7 @@ describe('lookupLowerLimbLevel — 下肢三大關節對照（髖/膝/踝）', (
   it('12-33 一下肢遺存運動障害（三關節都 motion）→ 第 9 級', () => {
     const result = lookupLowerLimbLevel(
       { count: 'full', severity: 'motion' },
-      { count: '0', severity: 'none' }
+      { count: '0', severity: 'none' },
     )
     expect(result).toEqual({ articleId: '12-33', level: 9 })
   })
@@ -176,11 +176,11 @@ describe('lookupLowerLimbLevel — 下肢三大關節對照（髖/膝/踝）', (
   it('左/右對稱（順序不影響結果）', () => {
     const a = lookupLowerLimbLevel(
       { count: '1', severity: 'motion' },
-      { count: '0', severity: 'none' }
+      { count: '0', severity: 'none' },
     )
     const b = lookupLowerLimbLevel(
       { count: '0', severity: 'none' },
-      { count: '1', severity: 'motion' }
+      { count: '1', severity: 'motion' },
     )
     expect(a).toEqual(b)
     expect(a?.articleId).toBe('12-35')
@@ -190,7 +190,7 @@ describe('lookupLowerLimbLevel — 下肢三大關節對照（髖/膝/踝）', (
   it('兩下肢三大關節各有一大關節遺存運動障害（12-32）→ 第 11 級', () => {
     const result = lookupLowerLimbLevel(
       { count: '1', severity: 'motion' },
-      { count: '1', severity: 'motion' }
+      { count: '1', severity: 'motion' },
     )
     expect(result).toEqual({ articleId: '12-32', level: 11 })
   })

@@ -72,8 +72,8 @@ export interface EnsembleOutput {
 
 // --- 共識度判定（純函式） -----------------------------------------------
 
-const STRONG_THRESHOLD = 0.2  // 20% 內視為「接近」
-const OUTLIER_THRESHOLD = 0.5  // 50% 以上視為 outlier
+const STRONG_THRESHOLD = 0.2 // 20% 內視為「接近」
+const OUTLIER_THRESHOLD = 0.5 // 50% 以上視為 outlier
 
 /**
  * 判斷三票共識度 + 找出 outlier
@@ -89,9 +89,8 @@ export function computeConsensus(
   knnAmounts: number[],
 ): { consensus: 'strong' | 'partial' | 'weak'; outlier?: 'rules' | 'ml' | 'knn' } {
   // 計算 KNN 平均
-  const knnAvg = knnAmounts.length > 0
-    ? knnAmounts.reduce((s, a) => s + a, 0) / knnAmounts.length
-    : 0
+  const knnAvg =
+    knnAmounts.length > 0 ? knnAmounts.reduce((s, a) => s + a, 0) / knnAmounts.length : 0
 
   // 票可用性
   const hasRules = rulesMid > 0
@@ -102,19 +101,25 @@ export function computeConsensus(
 
   // 票數 < 2 → 不可能判共識
   if (availableCount < 2) {
-    return { consensus: 'weak' }  // 由 ensembleEstimate 進一步判 insufficient
+    return { consensus: 'weak' } // 由 ensembleEstimate 進一步判 insufficient
   }
 
   // 計算每對票的差距
-  const pairs: Array<{ a: number; b: number; srcA: 'rules' | 'ml' | 'knn'; srcB: 'rules' | 'ml' | 'knn' }> = []
+  const pairs: Array<{
+    a: number
+    b: number
+    srcA: 'rules' | 'ml' | 'knn'
+    srcB: 'rules' | 'ml' | 'knn'
+  }> = []
   if (hasRules && hasMl) pairs.push({ a: rulesMid, b: mlP50, srcA: 'rules', srcB: 'ml' })
   if (hasRules && hasKnn) pairs.push({ a: rulesMid, b: knnAvg, srcA: 'rules', srcB: 'knn' })
   if (hasMl && hasKnn) pairs.push({ a: mlP50, b: knnAvg, srcA: 'ml', srcB: 'knn' })
 
   // 計算整體平均差距
-  const avgDivergence = pairs.reduce((s, p) => {
-    return s + Math.abs(p.a - p.b) / Math.max(p.a, p.b, 1)
-  }, 0) / pairs.length
+  const avgDivergence =
+    pairs.reduce((s, p) => {
+      return s + Math.abs(p.a - p.b) / Math.max(p.a, p.b, 1)
+    }, 0) / pairs.length
 
   if (avgDivergence <= STRONG_THRESHOLD) {
     return { consensus: 'strong' }
@@ -166,15 +171,20 @@ export function ensembleEstimate(input: EnsembleInput): EnsembleOutput {
   // 票可用性
   const hasRules = rulesMid > 0
   const hasMl = mlP50 > 0
-  const knnAmount = knnAvailable && knnCases.length > 0
-    ? Math.round(knnCases.reduce((s, c) => s + c.amount, 0) / knnCases.length)
-    : 0
+  const knnAmount =
+    knnAvailable && knnCases.length > 0
+      ? Math.round(knnCases.reduce((s, c) => s + c.amount, 0) / knnCases.length)
+      : 0
   const hasKnn = knnAmount > 0
 
   // 權重
   const rulesWeight = hasRules ? 1.0 : 0
   const mlWeight = hasMl
-    ? (mlConfidence === 'high' ? 1.0 : mlConfidence === 'medium' ? 0.7 : 0.4)
+    ? mlConfidence === 'high'
+      ? 1.0
+      : mlConfidence === 'medium'
+        ? 0.7
+        : 0.4
     : 0
   const knnWeight = hasKnn ? 1.0 : 0
 
@@ -219,7 +229,8 @@ export function ensembleEstimate(input: EnsembleInput): EnsembleOutput {
 
     let warning: string | undefined
     if (consensus === 'partial') {
-      const outlierLabel = outlier === 'rules' ? '規則引擎' : outlier === 'ml' ? '歷史中位數' : '相似案件'
+      const outlierLabel =
+        outlier === 'rules' ? '規則引擎' : outlier === 'ml' ? '歷史中位數' : '相似案件'
       warning = `三票共識中「${outlierLabel}」與其他兩票差距 >50%，已排除；建議複核 outlier 數據來源`
     }
 
@@ -240,9 +251,8 @@ export function ensembleEstimate(input: EnsembleInput): EnsembleOutput {
 
   // weak：顯示區間
   const allAmounts = [rulesMid, mlP50, knnAmount].filter((a) => a > 0)
-  const suggestedRange = allAmounts.length > 0
-    ? { low: Math.min(...allAmounts), high: Math.max(...allAmounts) }
-    : null
+  const suggestedRange =
+    allAmounts.length > 0 ? { low: Math.min(...allAmounts), high: Math.max(...allAmounts) } : null
 
   return {
     consensus: 'weak',

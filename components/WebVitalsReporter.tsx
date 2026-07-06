@@ -34,9 +34,7 @@ const defaultReporter: Reporter = (metric) => {
   })
   // 也發 custom event 方便外部監聽
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(
-      new CustomEvent('web-vitals', { detail: metric }),
-    )
+    window.dispatchEvent(new CustomEvent('web-vitals', { detail: metric }))
   }
 }
 

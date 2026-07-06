@@ -114,7 +114,7 @@ describe('POST /api/advisor', () => {
   })
 
   it('有 ANTHROPIC_API_KEY → live mode + 打到 fetch', async () => {
-    process.env.ANTHROPIC_API_KEY='***'
+    process.env.ANTHROPIC_API_KEY = '***'
     const llmResponse = JSON.stringify({
       riskLevel: 'medium',
       riskFactors: ['ML 信心度中等'],
@@ -145,7 +145,7 @@ describe('POST /api/advisor', () => {
   })
 
   it('live mode + fetch 失敗 → 200 + mode=fallback', async () => {
-    process.env.ANTHROPIC_API_KEY='***'
+    process.env.ANTHROPIC_API_KEY = '***'
     mockFetch.mockRejectedValue(new TypeError('fetch failed'))
 
     const req = new Request('http://localhost/api/advisor', {

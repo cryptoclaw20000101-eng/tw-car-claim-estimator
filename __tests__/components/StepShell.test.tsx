@@ -43,9 +43,27 @@ describe('StepShell props 介面契約', () => {
   })
 
   it('alertType 可傳 warning/success/error', () => {
-    const warn: StepShellProps = { icon: null, title: 't', alertTitle: 'a', alertType: 'warning', children: null }
-    const success: StepShellProps = { icon: null, title: 't', alertTitle: 'a', alertType: 'success', children: null }
-    const error: StepShellProps = { icon: null, title: 't', alertTitle: 'a', alertType: 'error', children: null }
+    const warn: StepShellProps = {
+      icon: null,
+      title: 't',
+      alertTitle: 'a',
+      alertType: 'warning',
+      children: null,
+    }
+    const success: StepShellProps = {
+      icon: null,
+      title: 't',
+      alertTitle: 'a',
+      alertType: 'success',
+      children: null,
+    }
+    const error: StepShellProps = {
+      icon: null,
+      title: 't',
+      alertTitle: 'a',
+      alertType: 'error',
+      children: null,
+    }
     expect(warn.alertType).toBe('warning')
     expect(success.alertType).toBe('success')
     expect(error.alertType).toBe('error')
@@ -53,7 +71,13 @@ describe('StepShell props 介面契約', () => {
 
   it('alertBody 為可選欄位 (undefined 時不渲染第二段)', () => {
     const withoutBody: StepShellProps = { icon: null, title: 't', alertTitle: 'a', children: null }
-    const withBody: StepShellProps = { icon: null, title: 't', alertTitle: 'a', alertBody: 'body text', children: null }
+    const withBody: StepShellProps = {
+      icon: null,
+      title: 't',
+      alertTitle: 'a',
+      alertBody: 'body text',
+      children: null,
+    }
     expect(withoutBody.alertBody).toBeUndefined()
     expect(withBody.alertBody).toBe('body text')
   })

@@ -41,7 +41,9 @@ describe('findRelatedPracticeCases 配對邏輯', () => {
     const r = refs[0]
     expect(r.facts).toBeTruthy()
     expect(r.injuries).toBeTruthy()
-    expect(Array.isArray(r.disabilities) || r.disabilities === undefined || r.disabilities === null).toBe(true)
+    expect(
+      Array.isArray(r.disabilities) || r.disabilities === undefined || r.disabilities === null,
+    ).toBe(true)
     expect(Array.isArray(r.keyHoldings)).toBe(true)
   })
 
@@ -60,9 +62,9 @@ describe('findRelatedPracticeCases 配對邏輯', () => {
     // 差 = 1 (lv=6 或 8) → 應得 8+4+1=13（因為 ≤1 觸發額外 +4）
     // 差 = 2 (lv=5 或 9) → 應得 8+1=9
     // 用同縣市同分情境下，差 ≤1 必須排前
-    const refs0 = findRelatedPracticeCases('臺灣新北地方法院', 7, 5)  // diff=0
-    const refs1 = findRelatedPracticeCases('臺灣新北地方法院', 6, 5)  // diff=1
-    const refs2 = findRelatedPracticeCases('臺灣新北地方法院', 5, 5)  // diff=2
+    const refs0 = findRelatedPracticeCases('臺灣新北地方法院', 7, 5) // diff=0
+    const refs1 = findRelatedPracticeCases('臺灣新北地方法院', 6, 5) // diff=1
+    const refs2 = findRelatedPracticeCases('臺灣新北地方法院', 5, 5) // diff=2
     // 差=0 跟差=1 的第一名 caseNo 應該是同一件（板橋案例，差 0 或 1 都觸發 ≤1 額外 +4）
     expect(refs0[0].id).toBe(refs1[0].id)
     // 差=2 的第一件可能不是板橋（無額外 +4）
@@ -73,7 +75,7 @@ describe('findRelatedPracticeCases 配對邏輯', () => {
   it('新權重：fallback — 全 0 分時回最近 3 筆，不會空陣列', () => {
     // 用一個不可能匹配的參數組合：完全不存在的法院 + 不可能存在的失能等級
     const refs = findRelatedPracticeCases('完全不存在的法院XYZ', null, 3)
-    expect(refs.length).toBe(3)  // fallback 應回 3 筆
+    expect(refs.length).toBe(3) // fallback 應回 3 筆
   })
 
   it('新權重：完全無失能資料 → 不會爆，能給空陣列或 fallback', () => {

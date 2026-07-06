@@ -22,7 +22,8 @@ export const WORK_LOSS_SHORT_TERM_MONTHS = 6
 export const RETIRE_AGE = 65
 
 export interface WorkLossExtendedInput {
-  person: Pick<PersonalIncome,
+  person: Pick<
+    PersonalIncome,
     | 'age'
     | 'sixMonthAverageSalary'
     | 'monthlySalary'
@@ -67,9 +68,7 @@ export interface WorkLossExtendedResult {
   hint: string | null
 }
 
-export function computeWorkLossExtended(
-  input: WorkLossExtendedInput,
-): WorkLossExtendedResult {
+export function computeWorkLossExtended(input: WorkLossExtendedInput): WorkLossExtendedResult {
   const { person, courtName, isSymptomFixed = false } = input
   const region = getRegionAdjustment(courtName)
   const notes: string[] = []
@@ -98,7 +97,7 @@ export function computeWorkLossExtended(
   }
 
   // 休養月數
-  const restMonths = Math.round(reasonableRestDays / 30 * 10) / 10  // 取小數 1 位
+  const restMonths = Math.round((reasonableRestDays / 30) * 10) / 10 // 取小數 1 位
   const restYears = restMonths / 12
 
   // 每日收入：日領者用日薪、受僱者用 6 月均薪 / 30
@@ -111,9 +110,7 @@ export function computeWorkLossExtended(
 
   // 年收入（撫養費式計算用）
   const annualIncome =
-    person.sixMonthAverageSalary > 0
-      ? person.sixMonthAverageSalary * 12
-      : person.monthlySalary * 12
+    person.sixMonthAverageSalary > 0 ? person.sixMonthAverageSalary * 12 : person.monthlySalary * 12
 
   const regionalMultiplier = region.painAndSufferingMultiplier
 
@@ -168,9 +165,8 @@ export function computeWorkLossExtended(
 
     // 休養 < 1 年：用霍夫曼比例係數（與短期同公式）
     // 休養 >= 1 年：用整年霍夫曼係數
-    const coefficient = restYears < 1
-      ? hoffmannFraction(restYears)
-      : hoffmannCoefficient(Math.min(hoffmannYears, 40))
+    const coefficient =
+      restYears < 1 ? hoffmannFraction(restYears) : hoffmannCoefficient(Math.min(hoffmannYears, 40))
     const baseTotal = Math.round(annualIncome * coefficient)
     const amount = Math.round(baseTotal * regionalMultiplier)
 
@@ -181,7 +177,9 @@ export function computeWorkLossExtended(
     notes.push(`地區係數 ${regionalMultiplier} → 最終 ${amount.toLocaleString()} 元`)
 
     if (region.workLossEvidenceStrictness === 'high') {
-      notes.push(`${region.courtName} 對長期工作損失證據要求嚴格，建議齊備：薪轉、扣薪、報稅所得、醫囑休養期間`)
+      notes.push(
+        `${region.courtName} 對長期工作損失證據要求嚴格，建議齊備：薪轉、扣薪、報稅所得、醫囑休養期間`,
+      )
     }
 
     return {
@@ -228,7 +226,7 @@ export function computeWorkLossExtended(
     calculationType: 'short_term',
     restMonths,
     restYears: Math.round(restYears * 100) / 100,
-    hoffmannYears: 0,  // 短期不適用
+    hoffmannYears: 0, // 短期不適用
     hoffmannFactor: Math.round(coefficient * 10_000) / 10_000,
     annualIncome,
     regionalMultiplier,
@@ -239,8 +237,9 @@ export function computeWorkLossExtended(
     },
     evidenceStrength,
     notes,
-    hint: restMonths > 3
-      ? `接近長期門檻（${WORK_LOSS_SHORT_TERM_MONTHS} 月），若症狀固定可改採撫養費式`
-      : null,
+    hint:
+      restMonths > 3
+        ? `接近長期門檻（${WORK_LOSS_SHORT_TERM_MONTHS} 月），若症狀固定可改採撫養費式`
+        : null,
   }
 }

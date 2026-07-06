@@ -124,7 +124,7 @@ describe('estimateClaim — painEnsemble 整合（v0.6.2）', () => {
       const maxTicket = Math.max(
         result.painEnsemble.rulesAmount,
         result.painEnsemble.mlAmount,
-        result.painEnsemble.knnAmount ?? 0
+        result.painEnsemble.knnAmount ?? 0,
       )
       expect(result.painEnsemble.consensusAmount).toBeLessThanOrEqual(maxTicket)
       expect(result.painEnsemble.consensusAmount).toBeGreaterThan(0)
@@ -184,7 +184,7 @@ describe('estimateClaim — painEnsemble 整合（v0.6.2）', () => {
           hasMuscleWeakness: false,
           hasSensoryLoss: false,
         } as ClaimInput['medical'],
-      })
+      }),
     )
     // 不具體斷定 consensus，但必須是合法值
     expect(['strong', 'partial', 'weak']).toContain(result.painEnsemble.consensus)

@@ -59,7 +59,10 @@ export default function BatchForm() {
   }
 
   return (
-    <main id="main-content" className="flex flex-1 flex-col items-center px-6 py-8 bg-surface-subtle">
+    <main
+      id="main-content"
+      className="flex flex-1 flex-col items-center px-6 py-8 bg-surface-subtle"
+    >
       <div className="w-full max-w-5xl">
         <Space className="!mb-4">
           <Link href="/claims/new">
@@ -77,8 +80,8 @@ export default function BatchForm() {
         <Paragraph type="secondary" className="!mb-4">
           貼上 CSV 一次估算多個車禍理賠案件。業務員一天處理多案件不必逐筆填表。
           <br />
-          <Text strong>注意：</Text>本工具以 SAMPLE_INPUT 模板為基底（保戶資料 / 醫療細節用預設值），
-          只調整「事故日 + 事故地點 + 失能等級 + 肇責比例」四個變數。
+          <Text strong>注意：</Text>本工具以 SAMPLE_INPUT 模板為基底（保戶資料 /
+          醫療細節用預設值）， 只調整「事故日 + 事故地點 + 失能等級 + 肇責比例」四個變數。
         </Paragraph>
 
         <InfoAlert
@@ -89,17 +92,13 @@ export default function BatchForm() {
           body={
             <div className="!text-xs">
               <p className="!mb-1">
-                每行一個案件，逗號分隔，4 欄順序：<code>accidentDate, accidentLocation, disabilityLevel, faultRatio</code>
+                每行一個案件，逗號分隔，4 欄順序：
+                <code>accidentDate, accidentLocation, disabilityLevel, faultRatio</code>
               </p>
               <p className="!mb-1">
                 faultRatio 是己方肇責 0-100，otherFaultRatio 自動推算 = 100 - faultRatio
               </p>
-              <Button
-                type="link"
-                size="small"
-                onClick={handleLoadExample}
-                className="!p-0"
-              >
+              <Button type="link" size="small" onClick={handleLoadExample} className="!p-0">
                 📋 載入範例 CSV
               </Button>
             </div>
@@ -107,7 +106,14 @@ export default function BatchForm() {
         />
 
         {/* CSV 輸入區 */}
-        <Card className="!mb-4" title={<><FileTextOutlined /> 貼上 CSV</>}>
+        <Card
+          className="!mb-4"
+          title={
+            <>
+              <FileTextOutlined /> 貼上 CSV
+            </>
+          }
+        >
           <textarea
             value={csv}
             onChange={(e) => setCsv(e.target.value)}
@@ -138,11 +144,7 @@ export default function BatchForm() {
           <Card
             title={`估算結果（${rows.length} 筆，${rows.filter((r) => r.result).length} 成功 / ${rows.filter((r) => r.error).length} 失敗）`}
             extra={
-              <Button
-                icon={<CopyOutlined />}
-                onClick={handleCopy}
-                data-testid="batch-copy-csv"
-              >
+              <Button icon={<CopyOutlined />} onClick={handleCopy} data-testid="batch-copy-csv">
                 複製結果 CSV
               </Button>
             }

@@ -13,23 +13,23 @@ export type DisabilityLevel = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 |
 
 // 關節名稱（規則引擎用）
 export type JointName =
-  | 'shoulder'   // 肩
-  | 'elbow'      // 肘
-  | 'wrist'      // 腕
-  | 'hip'        // 髖
-  | 'knee'       // 膝
-  | 'ankle'      // 踝
-  | 'finger'     // 指
-  | 'toe'        // 趾
-  | 'cervical'   // 頸椎
-  | 'lumbar'     // 腰椎
+  | 'shoulder' // 肩
+  | 'elbow' // 肘
+  | 'wrist' // 腕
+  | 'hip' // 髖
+  | 'knee' // 膝
+  | 'ankle' // 踝
+  | 'finger' // 指
+  | 'toe' // 趾
+  | 'cervical' // 頸椎
+  | 'lumbar' // 腰椎
 
 // 失能初篩分級（spec §四 4 級）
 export type DisabilityScreening =
-  | 'A'  // 無明顯失能線索
-  | 'B'  // 有失能線索，但資料不足
-  | 'C'  // 高度可能需要申請失能診斷
-  | 'D'  // 已具失能申請基礎
+  | 'A' // 無明顯失能線索
+  | 'B' // 有失能線索，但資料不足
+  | 'C' // 高度可能需要申請失能診斷
+  | 'D' // 已具失能申請基礎
 
 // 車禍類型
 export type AccidentType =
@@ -54,11 +54,11 @@ export type InjuredRole =
 
 // 肇責來源
 export type FaultSource =
-  | 'police_preliminary'   // 警方初步研判表
-  | 'accident_appraisal'   // 車輛行車事故鑑定
-  | 'court_judgment'       // 法院判決
-  | 'both_sides_agreed'    // 雙方和解
-  | 'unclear'              // 不明
+  | 'police_preliminary' // 警方初步研判表
+  | 'accident_appraisal' // 車輛行車事故鑑定
+  | 'court_judgment' // 法院判決
+  | 'both_sides_agreed' // 雙方和解
+  | 'unclear' // 不明
 
 // 受僱類型
 export type EmploymentType =
@@ -74,7 +74,7 @@ export type EmploymentType =
 // --- 輸入資料：Step 1-6 表單彙整 -------------------------------------
 
 export interface AccidentBasics {
-  accidentDate: string  // ISO yyyy-mm-dd
+  accidentDate: string // ISO yyyy-mm-dd
   accidentLocation: string
   accidentType: AccidentType
   injuredRole: InjuredRole
@@ -94,13 +94,13 @@ export interface AccidentBasics {
   claimantResidenceDistrict: string
   defendantResidenceCity: string
   defendantResidenceDistrict: string
-  courtJurisdiction: string       // 自動帶入，可手改
+  courtJurisdiction: string // 自動帶入，可手改
   insuranceCompanyBranchRegion: string
 }
 
 export interface FaultInfo {
-  selfFaultRatio: number      // 0-100
-  otherFaultRatio: number     // 0-100
+  selfFaultRatio: number // 0-100
+  otherFaultRatio: number // 0-100
   faultSource: FaultSource
   isFaultDisputed: boolean
 }
@@ -111,18 +111,18 @@ export interface PersonalIncome {
   occupation: string
   employmentType: EmploymentType
 
-  sixMonthAverageSalary: number  // 事故前 6 個月平均月薪
-  monthlySalary: number          // 現職月薪
-  dailyWage: number              // 日薪（按件/日領者）
-  lastYearTaxableIncome: number  // 去年報稅所得
+  sixMonthAverageSalary: number // 事故前 6 個月平均月薪
+  monthlySalary: number // 現職月薪
+  dailyWage: number // 日薪（按件/日領者）
+  lastYearTaxableIncome: number // 去年報稅所得
 
-  hasPropertyList: boolean       // 財產清單
+  hasPropertyList: boolean // 財產清單
   hasSalaryTransferRecord: boolean // 薪轉證明
-  hasLeaveCertificate: boolean   // 請假證明
+  hasLeaveCertificate: boolean // 請假證明
   hasSalaryDeductionProof: boolean // 扣薪證明
 
-  actualLeaveDays: number        // 實際請假日數
-  doctorOrderedRestDays: number  // 醫囑休養日數
+  actualLeaveDays: number // 實際請假日數
+  doctorOrderedRestDays: number // 醫囑休養日數
 }
 
 // --- 診斷書 + 醫療資料 -----------------------------------------------
@@ -143,11 +143,11 @@ export interface MedicalRecord {
 
   isSymptomFixed: boolean
   hasDisabilityCertificate: boolean
-  hasClassADiagnosisCertificate: boolean  // 甲種診斷書
+  hasClassADiagnosisCertificate: boolean // 甲種診斷書
   /** 12 大類失能種類（失能保典 + 強制險失能給付標準附表） */
-  disabilityCategory?: string  // e.g. '01_mental' | '07_thoracic_organ' | '11_upper_limb' ...
+  disabilityCategory?: string // e.g. '01_mental' | '07_thoracic_organ' | '11_upper_limb' ...
   /** 失能等級 1-15（使用者自選；選大類時自動帶出該類常見等級，可手改） */
-  disabilityLevel?: number     // 1-15
+  disabilityLevel?: number // 1-15
 
   // 傷勢細節（失能規則引擎用）
   hasFracture: boolean
@@ -159,10 +159,10 @@ export interface MedicalRecord {
 
   hasScar?: boolean
   scarLengthCm?: number
-  scarAreaCm2?: number           // 疤痕面積（雷射除疤用）
+  scarAreaCm2?: number // 疤痕面積（雷射除疤用）
   scarLocation?: string
-  scarSeverity?: 'mild' | 'moderate' | 'severe' | 'keloid'  // 蟹足腫
-  isKeloid?: boolean             // 是否為肥厚性疤痕 / 蟹足腫
+  scarSeverity?: 'mild' | 'moderate' | 'severe' | 'keloid' // 蟹足腫
+  isKeloid?: boolean // 是否為肥厚性疤痕 / 蟹足腫
   /** 採用的除疤術式（laser / revision_surgery / facelift / injection）— UI 選擇器 */
   scarProcedure?: 'laser' | 'revision_surgery' | 'facelift' | 'injection'
   /** 醫囑建議的療程次數（覆寫預設）— 雷射/注射常用 */
@@ -171,8 +171,8 @@ export interface MedicalRecord {
   // 關節（規則引擎用）
   jointName: JointName | null
   hasRangeOfMotionLimitation: boolean
-  romLossDegree: number        // 角度喪失（度）
-  romNormalDegree: number      // 該關節正常活動度（度）
+  romLossDegree: number // 角度喪失（度）
+  romNormalDegree: number // 該關節正常活動度（度）
   hasMuscleWeakness: boolean
   hasSensoryLoss: boolean
   hasPermanentImpairment: boolean
@@ -184,7 +184,7 @@ export interface CompulsoryMedicalInputs {
   emergencyFee: number
   ambulanceFee: number
 
-  nhiCopayment: number           // 健保自付額
+  nhiCopayment: number // 健保自付額
   registrationFee: number
   diagnosisCertificateFee: number
   nonNhiNecessaryMedicalFee: number
@@ -195,19 +195,19 @@ export interface CompulsoryMedicalInputs {
   mealFee: number
   mealDays: number
 
-  prosthesisFee: number          // 義肢費
+  prosthesisFee: number // 義肢費
 
   dentureFee: number
   missingTeethCount: number
 
   artificialEyeFee: number
 
-  medicalMaterialFee?: number    // 一般醫材費（紗布、縫線、注射耗材等）— v0.2.5 起不再套 2 萬上限，改歸入「健保自付額」/「非健保必要醫療」；保留為向後相容舊資料
-  specialMaterialFee?: number    // 特殊材料費（骨材、鋼板、人工關節等特材；v0.2.5+ 新增，與輔具共套 2 萬上限）
-  assistiveDeviceFee: number     // 輔具費（拐杖、輪椅、支架等，與特殊材料共套 2 萬上限）
-  transportationFee: number      // 接送費
+  medicalMaterialFee?: number // 一般醫材費（紗布、縫線、注射耗材等）— v0.2.5 起不再套 2 萬上限，改歸入「健保自付額」/「非健保必要醫療」；保留為向後相容舊資料
+  specialMaterialFee?: number // 特殊材料費（骨材、鋼板、人工關節等特材；v0.2.5+ 新增，與輔具共套 2 萬上限）
+  assistiveDeviceFee: number // 輔具費（拐杖、輪椅、支架等，與特殊材料共套 2 萬上限）
+  transportationFee: number // 接送費
 
-  nursingFee: number             // 看護費
+  nursingFee: number // 看護費
   nursingDays: number
 
   otherNecessaryMedicalFee: number
@@ -216,10 +216,10 @@ export interface CompulsoryMedicalInputs {
 // --- 車損財損（Step 6） -----------------------------------------------
 
 export interface PropertyDamageInputs {
-  vehicleRepairEstimate: number   // 估價單
-  vehicleRepairInvoice: number    // 發票
-  vehicleMarketValueBeforeAccident: number  // 事故前車價
-  salvageValue: number            // 殘值
+  vehicleRepairEstimate: number // 估價單
+  vehicleRepairInvoice: number // 發票
+  vehicleMarketValueBeforeAccident: number // 事故前車價
+  salvageValue: number // 殘值
 
   towingFee: number
   rentalCarFee: number
@@ -246,13 +246,13 @@ export interface ClaimInput {
 
 // 強制險單一細項（含刪減原因 + 補件建議）
 export interface CompulsoryItemResult {
-  key: string               // 'emergencyFee' | 'wardFee' | ...
+  key: string // 'emergencyFee' | 'wardFee' | ...
   label: string
-  applied: number           // 申請金額
-  approved: number          // 預估可認金額
-  legalCap: number | null   // 法定上限
-  reductionReason: string | null  // 刪減原因
-  supplementHint: string | null   // 補件建議
+  applied: number // 申請金額
+  approved: number // 預估可認金額
+  legalCap: number | null // 法定上限
+  reductionReason: string | null // 刪減原因
+  supplementHint: string | null // 補件建議
   /** v0.2.5+：當一項內含多個子項時列出（例如醫材拆「一般/特殊/輔具」三項共套一個 2 萬上限） */
   subItems?: Array<{
     key: string
@@ -266,14 +266,14 @@ export interface CompulsoryItemResult {
 // 失能初篩輸出
 export interface DisabilityScreeningResult {
   screening: DisabilityScreening
-  signals: string[]                              // 觸發的關鍵字
-  possibleLevel: DisabilityLevel | null          // 規則引擎推估等級
-  possibleAmount: number                         // 依等級推估金額
-  confidenceScore: number                        // 0-1
-  romLossPercent: number | null                  // 關節活動度喪失比例
+  signals: string[] // 觸發的關鍵字
+  possibleLevel: DisabilityLevel | null // 規則引擎推估等級
+  possibleAmount: number // 依等級推估金額
+  confidenceScore: number // 0-1
+  romLossPercent: number | null // 關節活動度喪失比例
   jointName: JointName | null
-  notes: string[]                                // 缺資料 / 提示
-  needsSupplement: string[]                      // 需補件
+  notes: string[] // 缺資料 / 提示
+  needsSupplement: string[] // 需補件
 }
 
 // 精神慰撫金多級評分
@@ -285,8 +285,8 @@ export interface PainAndSufferingResult {
   regionalLow: number
   regionalMid: number
   regionalHigh: number
-  severityLevel: string    // 'minor' | 'moderate' | 'serious' | ...
-  severityScore: number    // 0-100
+  severityLevel: string // 'minor' | 'moderate' | 'serious' | ...
+  severityScore: number // 0-100
   breakdown: {
     hospitalizationDays: number
     rehabilitationCount: number
@@ -451,8 +451,22 @@ export interface EstimationResult {
     estimateLow: number
     estimateHigh: number
     range: { low: number; mid: number; high: number }
-    procedure: 'surgical' | 'laser' | 'facelift' | 'dermabrasion' | 'injection' | 'unknown' | 'revision_surgery'
-    primaryProcedure: 'surgical' | 'laser' | 'facelift' | 'dermabrasion' | 'injection' | 'unknown' | 'revision_surgery'
+    procedure:
+      | 'surgical'
+      | 'laser'
+      | 'facelift'
+      | 'dermabrasion'
+      | 'injection'
+      | 'unknown'
+      | 'revision_surgery'
+    primaryProcedure:
+      | 'surgical'
+      | 'laser'
+      | 'facelift'
+      | 'dermabrasion'
+      | 'injection'
+      | 'unknown'
+      | 'revision_surgery'
     totalSessions: number
     regionalMultiplier: number
     breakdown: {

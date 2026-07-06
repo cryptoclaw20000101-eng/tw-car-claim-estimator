@@ -6,8 +6,7 @@ import BatchForm from './_form'
  */
 export const metadata: Metadata = {
   title: '批次估算 — 多案件一鍵試算 | 車禍理賠估算器',
-  description:
-    '貼上 CSV 一次估算多個車禍理賠案件。業務員一天處理多案件不必逐筆填表，回傳結果表。',
+  description: '貼上 CSV 一次估算多個車禍理賠案件。業務員一天處理多案件不必逐筆填表，回傳結果表。',
   openGraph: {
     title: '批次估算 — 多案件一鍵試算 | 車禍理賠估算器',
     description: '貼上 CSV 一次估算多個車禍理賠案件。',

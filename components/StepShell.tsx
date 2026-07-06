@@ -63,10 +63,7 @@ export function StepShell({
       className="relative"
     >
       {/* v0.10.0+：accent 左邊條（4px rose-700） */}
-      <span
-        aria-hidden
-        className="absolute left-0 top-0 h-full w-1 rounded-l-lg bg-accent"
-      />
+      <span aria-hidden className="absolute left-0 top-0 h-full w-1 rounded-l-lg bg-accent" />
       <Card
         className="!pl-3"
         title={
@@ -79,9 +76,7 @@ export function StepShell({
               <span className="text-xs uppercase tracking-[0.18em] text-muted">
                 Step {stepNumber ?? '·'}
               </span>
-              <span className="!text-lg !font-semibold tracking-tight">
-                {title}
-              </span>
+              <span className="!text-lg !font-semibold tracking-tight">{title}</span>
             </div>
           </div>
         }

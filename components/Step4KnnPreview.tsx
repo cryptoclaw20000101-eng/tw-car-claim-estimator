@@ -133,7 +133,8 @@ export function Step4KnnPreview({ disabilityLevel, accidentLocation }: Step4KnnP
         extra={<Tag color="blue">client-side · 0 網路成本</Tag>}
       >
         <Paragraph type="secondary" className="!text-xs !mt-0 !mb-3">
-          從 {cases.length > 0 ? '200+' : '0'} 筆真實判例中，依 5 維特徵（縣市/失能等級/年份/傷勢/失能紀錄）找出最相似的 {cases.length} 筆。
+          從 {cases.length > 0 ? '200+' : '0'} 筆真實判例中，依 5
+          維特徵（縣市/失能等級/年份/傷勢/失能紀錄）找出最相似的 {cases.length} 筆。
           距離越小越相似。
         </Paragraph>
 

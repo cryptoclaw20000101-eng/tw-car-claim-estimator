@@ -105,9 +105,7 @@ export function MobileNav() {
                 layoutId="nav-underline"
                 className="absolute -bottom-1 left-1/2 h-[2px] w-8 -translate-x-1/2 rounded-full bg-accent"
                 transition={
-                  reduce
-                    ? { duration: 0 }
-                    : { type: 'spring', stiffness: 380, damping: 30 }
+                  reduce ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 30 }
                 }
                 aria-hidden
               />

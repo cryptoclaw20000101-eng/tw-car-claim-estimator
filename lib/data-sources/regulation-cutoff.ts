@@ -44,7 +44,7 @@ export const NEW_LAW_CUTOFF = '2026-07-01'
  * isNewLaw('invalid-date')          // false（無法解析走舊法，避免誤判）
  */
 export function isNewLaw(accidentDate: string | null | undefined): boolean {
-  if (!accidentDate) return true  // null / undefined / '' → 保守預設為新法
+  if (!accidentDate) return true // null / undefined / '' → 保守預設為新法
   // 純字串前 10 碼比對 YYYY-MM-DD，避免 dayjs 物件 / Date 物件轉換的時區差
   const normalized = String(accidentDate).slice(0, 10)
   // YYYY-MM-DD 格式驗證
@@ -60,7 +60,5 @@ export function isNewLaw(accidentDate: string | null | undefined): boolean {
  * @returns '新法 (2026-07-01 起)' | '舊法 (2026-07-01 前)'
  */
 export function getLawVersionLabel(accidentDate: string | null | undefined): string {
-  return isNewLaw(accidentDate)
-    ? `新法 (${NEW_LAW_CUTOFF} 起)`
-    : `舊法 (${NEW_LAW_CUTOFF} 前)`
+  return isNewLaw(accidentDate) ? `新法 (${NEW_LAW_CUTOFF} 起)` : `舊法 (${NEW_LAW_CUTOFF} 前)`
 }

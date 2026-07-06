@@ -14,9 +14,9 @@
 //       本模組只取 amount > 0 的 8 件作統計,排除 5 件「保險實務」規則 (amount=0)
 // =====================================================================
 
-import { readFileSync } from "node:fs"
-import { join } from "node:path"
-import { hoffmannCoefficient, laborLossPct } from "./hoffmann"
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { hoffmannCoefficient, laborLossPct } from './hoffmann'
 
 // --- 案例 schema（從 disability-merging.json 抽出） ---------------------------
 
@@ -27,8 +27,8 @@ export interface DisabilityCase {
   year: number
   category: string
   chain: string
-  amount: number        // 判決金額（元）
-  totalAward: number    // 總額（含慰撫金等）
+  amount: number // 判決金額（元）
+  totalAward: number // 總額（含慰撫金等）
   ratio: { plaintiff: number; defendant: number }
   facts?: string
   source?: string
@@ -44,26 +44,26 @@ export interface DisabilityCaseStats {
   min: number
   max: number
   stdev: number
-  q1: number        // 25% 分位
-  q3: number        // 75% 分位
-  range: number     // max - min
+  q1: number // 25% 分位
+  q3: number // 75% 分位
+  range: number // max - min
 }
 
 // --- 霍夫曼計算結果 ---------------------------------------------------------
 
 export interface HoffmannDisabilityInput {
-  annualIncome: number   // 年收入（元）
-  years: number          // 霍夫曼年數
+  annualIncome: number // 年收入（元）
+  years: number // 霍夫曼年數
   disabilityLevel: number // 失能等級 (1-15)
   regionalMultiplier?: number // 地區係數（預設 1.0）
 }
 
 export interface HoffmannDisabilityResult {
   coefficient: number
-  lossPercent: number       // 0-1
-  baseTotal: number         // 年金額 × 係數
-  adjustedTotal: number     // × 減損比例
-  finalTotal: number        // × 地區係數
+  lossPercent: number // 0-1
+  baseTotal: number // 年金額 × 係數
+  adjustedTotal: number // × 減損比例
+  finalTotal: number // × 地區係數
   annualIncome: number
   years: number
   disabilityLevel: number
@@ -78,15 +78,15 @@ function loadCases(): DisabilityCase[] {
   if (_casesCache) return _casesCache
   // 從 cwd 找 data/precedents/disability-merging.json（給 scrape script 跟 vitest 都通用）
   const candidates = [
-    join(process.cwd(), "data", "precedents", "disability-merging.json"),
-    join(process.cwd(), "tw-car-claim-estimator", "data", "precedents", "disability-merging.json"),
+    join(process.cwd(), 'data', 'precedents', 'disability-merging.json'),
+    join(process.cwd(), 'tw-car-claim-estimator', 'data', 'precedents', 'disability-merging.json'),
   ]
   for (const p of candidates) {
     try {
-      const raw = readFileSync(p, "utf-8")
+      const raw = readFileSync(p, 'utf-8')
       const arr = JSON.parse(raw) as Array<Record<string, unknown>>
       _casesCache = arr
-        .filter((it) => (it.amount as number) > 0)  // 排除 5 件「保險實務」規則 (amount=0)
+        .filter((it) => (it.amount as number) > 0) // 排除 5 件「保險實務」規則 (amount=0)
         .map((it) => ({
           id: it.id as string,
           caseNo: it.caseNo as string,
@@ -96,7 +96,10 @@ function loadCases(): DisabilityCase[] {
           chain: it.chain as string,
           amount: it.amount as number,
           totalAward: (it.totalAward as number) ?? 0,
-          ratio: (it.ratio as { plaintiff: number; defendant: number }) ?? { plaintiff: 0, defendant: 100 },
+          ratio: (it.ratio as { plaintiff: number; defendant: number }) ?? {
+            plaintiff: 0,
+            defendant: 100,
+          },
           facts: it.facts as string | undefined,
           source: it.source as string | undefined,
           scrapedAt: it.scrapedAt as string | undefined,
@@ -223,17 +226,18 @@ export function compareEstimateWithCases(input: HoffmannDisabilityInput): {
   estimate: HoffmannDisabilityResult
   caseStats: DisabilityCaseStats
   diff: {
-    delta: number           // 估算 - 中位數
-    diffPercent: number     // (估算 - 中位數) / 中位數 × 100
-    withinRange: boolean    // 估算是否落在 [q1, q3] 內
+    delta: number // 估算 - 中位數
+    diffPercent: number // (估算 - 中位數) / 中位數 × 100
+    withinRange: boolean // 估算是否落在 [q1, q3] 內
   }
 } {
   const estimate = disabilityByHoffmann(input)
   const caseStats = getAllDisabilityCaseStats()
   const delta = estimate.finalTotal - caseStats.median
-  const diffPercent = caseStats.median > 0
-    ? Math.round((delta / caseStats.median) * 10_000) / 100  // 2 位小數
-    : 0
+  const diffPercent =
+    caseStats.median > 0
+      ? Math.round((delta / caseStats.median) * 10_000) / 100 // 2 位小數
+      : 0
   const withinRange = estimate.finalTotal >= caseStats.q1 && estimate.finalTotal <= caseStats.q3
   return { estimate, caseStats, diff: { delta, diffPercent, withinRange } }
 }

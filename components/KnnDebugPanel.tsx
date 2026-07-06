@@ -69,12 +69,14 @@ function explainDimension(
     case 'city': {
       if (query.city === null && caseFeatures.city === null) return ''
       if (value === 0) return `同縣市 ${query.city ?? caseFeatures.city}（+0 完全相符）`
-      if (value === 1) return `不同縣市：query=${query.city ?? '?'} vs 案例=${caseFeatures.city ?? '?'}`
+      if (value === 1)
+        return `不同縣市：query=${query.city ?? '?'} vs 案例=${caseFeatures.city ?? '?'}`
       return `一邊未知：query=${query.city ?? '?'} vs 案例=${caseFeatures.city ?? '?'}（中性 0.5）`
     }
     case 'disabilityLevel': {
       if (query.disabilityLevel === null && caseFeatures.disabilityLevel === null) return ''
-      if (value === 0) return `同失能等級 第 ${query.disabilityLevel ?? caseFeatures.disabilityLevel} 級`
+      if (value === 0)
+        return `同失能等級 第 ${query.disabilityLevel ?? caseFeatures.disabilityLevel} 級`
       const qLv = query.disabilityLevel ?? '?'
       const cLv = caseFeatures.disabilityLevel ?? '?'
       if (value === 0.5) return `一邊無失能：query=${qLv} vs 案例=${cLv}（中性 0.5）`
@@ -92,9 +94,7 @@ function explainDimension(
       return `傷勢嚴重度 ordinal 差 ${(value * 4).toFixed(1)} 級`
     }
     case 'hasDisabilityRecord': {
-      return value === 0
-        ? '失能紀錄一致'
-        : '失能紀錄不一致（query 有 vs 案例無 或反之）'
+      return value === 0 ? '失能紀錄一致' : '失能紀錄不一致（query 有 vs 案例無 或反之）'
     }
   }
 }
@@ -109,7 +109,13 @@ function similarityLevel(distance: number): { label: string; color: string } {
 
 function caseFeatures(p: PracticeCaseWithKnn): PrecedentFeatures {
   if (!p.knnBreakdown) {
-    return { city: null, disabilityLevel: null, year: 0, injurySeverity: null, hasDisabilityRecord: false }
+    return {
+      city: null,
+      disabilityLevel: null,
+      year: 0,
+      injurySeverity: null,
+      hasDisabilityRecord: false,
+    }
   }
   // knnBreakdown 沒存 case 端 city/level，要從 PracticeCase 重算
   let caseLevel: number | null = null
@@ -133,7 +139,9 @@ export function KnnDebugPanel({ cases, title = '🔍 KNN 推薦理由（debug）
   const reduce = useReducedMotion()
   // 過濾掉沒附 KNN 距離的（callers 沒傳 withKnnDebug=true）
   const debuggable = cases.filter(
-    (c): c is PracticeCaseWithKnn & {
+    (
+      c,
+    ): c is PracticeCaseWithKnn & {
       knnDistance: number
       knnBreakdown: KnnDimensionBreakdown
       knnQuery: PrecedentFeatures
@@ -188,7 +196,12 @@ export function KnnDebugPanel({ cases, title = '🔍 KNN 推薦理由（debug）
               label: '失能紀錄',
               emoji: '📋',
               value: breakdown.hasDisabilityRecord,
-              tip: explainDimension('hasDisabilityRecord', breakdown.hasDisabilityRecord, query, cf),
+              tip: explainDimension(
+                'hasDisabilityRecord',
+                breakdown.hasDisabilityRecord,
+                query,
+                cf,
+              ),
             },
           ]
 

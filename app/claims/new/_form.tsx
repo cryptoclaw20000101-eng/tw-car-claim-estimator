@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation'
 import {
   Button,
   Card,
@@ -12,7 +12,7 @@ import {
   Select,
   Space,
   Steps,
-// v0.12.0+ Phase B2：自製進度條（取代 AntD Steps）
+  // v0.12.0+ Phase B2：自製進度條（取代 AntD Steps）
   Switch,
   message,
   Alert,
@@ -172,8 +172,8 @@ const DEFAULT_RECEIPTS: CompulsoryMedicalInputs = {
   dentureFee: 0,
   missingTeethCount: 0,
   artificialEyeFee: 0,
-  specialMaterialFee: 0,        // v0.2.5+：特殊材料費（骨材/鋼板/特材），與輔具共套 2 萬上限
-  medicalMaterialFee: 0,        // v0.2.5+：一般醫材（紗布/縫線），不再套 2 萬上限（向後相容）
+  specialMaterialFee: 0, // v0.2.5+：特殊材料費（骨材/鋼板/特材），與輔具共套 2 萬上限
+  medicalMaterialFee: 0, // v0.2.5+：一般醫材（紗布/縫線），不再套 2 萬上限（向後相容）
   assistiveDeviceFee: 0,
   transportationFee: 0,
   nursingFee: 0,
@@ -198,10 +198,28 @@ const DEFAULT_PROPERTY: PropertyDamageInputs = {
 // ============== 選項常數 ==============
 
 const CITY_OPTIONS = [
-  '臺北市', '新北市', '桃園市', '臺中市', '臺南市', '高雄市',
-  '基隆市', '新竹市', '新竹縣', '苗栗縣', '彰化縣', '南投縣',
-  '雲林縣', '嘉義市', '嘉義縣', '屏東縣', '宜蘭縣', '花蓮縣',
-  '臺東縣', '澎湖縣', '金門縣', '連江縣',
+  '臺北市',
+  '新北市',
+  '桃園市',
+  '臺中市',
+  '臺南市',
+  '高雄市',
+  '基隆市',
+  '新竹市',
+  '新竹縣',
+  '苗栗縣',
+  '彰化縣',
+  '南投縣',
+  '雲林縣',
+  '嘉義市',
+  '嘉義縣',
+  '屏東縣',
+  '宜蘭縣',
+  '花蓮縣',
+  '臺東縣',
+  '澎湖縣',
+  '金門縣',
+  '連江縣',
 ]
 
 const ACCIDENT_TYPE_OPTIONS: { value: AccidentType; label: string }[] = [
@@ -258,23 +276,51 @@ const JOINT_OPTIONS: { value: JointName; label: string }[] = [
 ]
 
 const ROM_NORMAL: Record<JointName, number> = {
-  shoulder: 180, elbow: 150, wrist: 150, hip: 130,
-  knee: 135, ankle: 70, finger: 90, toe: 50,
-  cervical: 60, lumbar: 60,
+  shoulder: 180,
+  elbow: 150,
+  wrist: 150,
+  hip: 130,
+  knee: 135,
+  ankle: 70,
+  finger: 90,
+  toe: 50,
+  cervical: 60,
+  lumbar: 60,
 }
 
-const SCAR_SEVERITY_OPTIONS: { value: 'mild' | 'moderate' | 'severe' | 'keloid'; label: string }[] = [
-  { value: 'mild', label: '輕度（淺疤、不影響外觀）' },
-  { value: 'moderate', label: '中度（明顯疤痕，可能需 1 次雷射）' },
-  { value: 'severe', label: '嚴重（肥厚性 / 大面積 / 攣縮）' },
-  { value: 'keloid', label: '蟹足腫（會持續長大）' },
-]
+const SCAR_SEVERITY_OPTIONS: { value: 'mild' | 'moderate' | 'severe' | 'keloid'; label: string }[] =
+  [
+    { value: 'mild', label: '輕度（淺疤、不影響外觀）' },
+    { value: 'moderate', label: '中度（明顯疤痕，可能需 1 次雷射）' },
+    { value: 'severe', label: '嚴重（肥厚性 / 大面積 / 攣縮）' },
+    { value: 'keloid', label: '蟹足腫（會持續長大）' },
+  ]
 
-const SCAR_PROCEDURE_OPTIONS: { value: 'laser' | 'revision_surgery' | 'facelift' | 'injection'; label: string; hint: string }[] = [
-  { value: 'laser', label: '雷射（染料 / CO2 / 飛梭）', hint: '紅寶石雷射 3-5 次療程；基本費 + 每 cm²' },
-  { value: 'revision_surgery', label: '修疤手術（Z 形整形 / W 形整形）', hint: '外科切除，每公分 3,000-10,000 元' },
-  { value: 'facelift', label: '拉皮手術（全臉 / 腹部）', hint: '大面積疤痕或合併臉部鬆弛；20-40 萬' },
-  { value: 'injection', label: '注射治療（蟹足腫 / PRP）', hint: '蟹足腫注射 + 血小板生長因子（中地院 110 簡 202 判例 80 萬）' },
+const SCAR_PROCEDURE_OPTIONS: {
+  value: 'laser' | 'revision_surgery' | 'facelift' | 'injection'
+  label: string
+  hint: string
+}[] = [
+  {
+    value: 'laser',
+    label: '雷射（染料 / CO2 / 飛梭）',
+    hint: '紅寶石雷射 3-5 次療程；基本費 + 每 cm²',
+  },
+  {
+    value: 'revision_surgery',
+    label: '修疤手術（Z 形整形 / W 形整形）',
+    hint: '外科切除，每公分 3,000-10,000 元',
+  },
+  {
+    value: 'facelift',
+    label: '拉皮手術（全臉 / 腹部）',
+    hint: '大面積疤痕或合併臉部鬆弛；20-40 萬',
+  },
+  {
+    value: 'injection',
+    label: '注射治療（蟹足腫 / PRP）',
+    hint: '蟹足腫注射 + 血小板生長因子（中地院 110 簡 202 判例 80 萬）',
+  },
 ]
 
 // ============== 表單 Schema ==============
@@ -377,7 +423,10 @@ export default function NewClaimForm() {
   }
 
   return (
-    <main id="main-content" className="flex flex-1 flex-col items-center px-6 py-8 bg-surface-subtle">
+    <main
+      id="main-content"
+      className="flex flex-1 flex-col items-center px-6 py-8 bg-surface-subtle"
+    >
       <div className="w-full max-w-3xl">
         <Title level={2} className="!mb-2">
           <FileAddOutlined className="mr-2" />
@@ -421,7 +470,13 @@ export default function NewClaimForm() {
           }
           right={
             current < STEPS.length - 1 ? (
-              <Button block type="primary" onClick={next} icon={<RightOutlined />} iconPlacement="end">
+              <Button
+                block
+                type="primary"
+                onClick={next}
+                icon={<RightOutlined />}
+                iconPlacement="end"
+              >
                 下一步
               </Button>
             ) : (
@@ -438,12 +493,18 @@ export default function NewClaimForm() {
 
 // ============== 淺合併工具 ==============
 function mergeStep(prev: FormSchema, step: number, values: Partial<FormSchema>): FormSchema {
-  const stepKey = (['basics','fault','person','medical','receipts','property'] as const)[step]
+  const stepKey = (['basics', 'fault', 'person', 'medical', 'receipts', 'property'] as const)[step]
   return { ...prev, [stepKey]: { ...prev[stepKey], ...(values[stepKey] as object) } }
 }
 
 // ============== Step 1：事故基本 ==============
-function Step1Basics({ form, onCityChange }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0]; onCityChange: (v: string) => void }) {
+function Step1Basics({
+  form,
+  onCityChange,
+}: {
+  form: ReturnType<typeof Form.useForm<FormSchema>>[0]
+  onCityChange: (v: string) => void
+}) {
   // v0.5.1 bugfix: DatePicker 在 Form.Item 控制下不能同時用 defaultValue（會跳 .isValid）
   // 改用 setFieldsValue 在 client 端注入 dayjs() 物件，避免 SSR 字串傳遞炸 picker
   // （父層 useEffect 已處理，這裡保留當 fallback: 若父層 setFieldsValue 沒生效就補上）
@@ -463,7 +524,12 @@ function Step1Basics({ form, onCityChange }: { form: ReturnType<typeof Form.useF
     >
       <Row gutter={16}>
         <Col xs={24} md={12}>
-          <Form.Item label="事故日期 *" name={['basics', 'accidentDate']} rules={[{ required: true }]} getValueProps={(value) => ({ value: value ? dayjs(value) : null })}>
+          <Form.Item
+            label="事故日期 *"
+            name={['basics', 'accidentDate']}
+            rules={[{ required: true }]}
+            getValueProps={(value) => ({ value: value ? dayjs(value) : null })}
+          >
             <DatePicker
               style={{ width: '100%' }}
               format="YYYY-MM-DD"
@@ -474,7 +540,11 @@ function Step1Basics({ form, onCityChange }: { form: ReturnType<typeof Form.useF
           </Form.Item>
         </Col>
         <Col xs={24} md={12}>
-          <Form.Item label="事故地點 *" name={['basics', 'accidentLocation']} rules={[{ required: true }]}>
+          <Form.Item
+            label="事故地點 *"
+            name={['basics', 'accidentLocation']}
+            rules={[{ required: true }]}
+          >
             <Input
               placeholder="例：臺中市西區美村路與五權路口"
               autoComplete="street-address"
@@ -486,36 +556,60 @@ function Step1Basics({ form, onCityChange }: { form: ReturnType<typeof Form.useF
       </Row>
       <Row gutter={16}>
         <Col xs={24} md={12}>
-          <Form.Item label="事故類型 *" name={['basics', 'accidentType']} rules={[{ required: true }]}>
+          <Form.Item
+            label="事故類型 *"
+            name={['basics', 'accidentType']}
+            rules={[{ required: true }]}
+          >
             <Select options={ACCIDENT_TYPE_OPTIONS} />
           </Form.Item>
         </Col>
         <Col xs={24} md={12}>
-          <Form.Item label="受害人身分 *" name={['basics', 'injuredRole']} rules={[{ required: true }]}>
+          <Form.Item
+            label="受害人身分 *"
+            name={['basics', 'injuredRole']}
+            rules={[{ required: true }]}
+          >
             <Select options={INJURED_ROLE_OPTIONS} />
           </Form.Item>
         </Col>
       </Row>
       <Row gutter={16}>
         <Col xs={24} md={8}>
-          <Form.Item label="是否為汽車交通事故 *" name={['basics', 'isAutomobileAccident']} valuePropName="checked">
+          <Form.Item
+            label="是否為汽車交通事故 *"
+            name={['basics', 'isAutomobileAccident']}
+            valuePropName="checked"
+          >
             <Switch checkedChildren="是" unCheckedChildren="否" />
           </Form.Item>
         </Col>
         <Col xs={24} md={8}>
-          <Form.Item label="警方初步研判表" name={['basics', 'hasPolicePreliminaryReport']} valuePropName="checked">
+          <Form.Item
+            label="警方初步研判表"
+            name={['basics', 'hasPolicePreliminaryReport']}
+            valuePropName="checked"
+          >
             <Switch />
           </Form.Item>
         </Col>
         <Col xs={24} md={8}>
-          <Form.Item label="車輛事故鑑定" name={['basics', 'hasAccidentAppraisal']} valuePropName="checked">
+          <Form.Item
+            label="車輛事故鑑定"
+            name={['basics', 'hasAccidentAppraisal']}
+            valuePropName="checked"
+          >
             <Switch />
           </Form.Item>
         </Col>
       </Row>
       <Row gutter={16}>
         <Col xs={24} md={8}>
-          <Form.Item label="有強制險 *" name={['basics', 'hasCompulsoryInsurance']} valuePropName="checked">
+          <Form.Item
+            label="有強制險 *"
+            name={['basics', 'hasCompulsoryInsurance']}
+            valuePropName="checked"
+          >
             <Switch />
           </Form.Item>
         </Col>
@@ -523,7 +617,9 @@ function Step1Basics({ form, onCityChange }: { form: ReturnType<typeof Form.useF
 
       {/* v0.5.2: 拿掉「有第三人責任險」「已和解」+ 3 個保額欄位（永遠當有第三人險、無保額上限） */}
 
-      <Title level={5} className="!mt-4">地區（自動帶入法院，可手改）</Title>
+      <Title level={5} className="!mt-4">
+        地區（自動帶入法院，可手改）
+      </Title>
       <Row gutter={16}>
         <Col xs={24} md={8}>
           <Form.Item label="事故縣市" name={['basics', 'accidentCity']}>
@@ -573,7 +669,9 @@ function Step2Fault({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>
           >
             <InputNumber
               style={{ width: '100%' }}
-              min={0} max={100} step={5}
+              min={0}
+              max={100}
+              step={5}
               onChange={(v) => {
                 const n = Number(v) || 0
                 form.setFieldValue(['fault', 'otherFaultRatio'], 100 - n)
@@ -586,7 +684,8 @@ function Step2Fault({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>
             label="對方肇責 (%)"
             name={['fault', 'otherFaultRatio']}
             tooltip={{
-              title: '自動計算（=100 − 己方肇責）。若未確定，可暫時填 50/50 後再勾「肇責仍有爭議」。',
+              title:
+                '自動計算（=100 − 己方肇責）。若未確定，可暫時填 50/50 後再勾「肇責仍有爭議」。',
               icon: <InfoCircleOutlined />,
             }}
           >
@@ -598,7 +697,8 @@ function Step2Fault({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>
         label="肇責來源"
         name={['fault', 'faultSource']}
         tooltip={{
-          title: '若由警方初判、調委會調解、或法院判決決定，請選對應來源；尚未確定可選「尚未確定」。',
+          title:
+            '若由警方初判、調委會調解、或法院判決決定，請選對應來源；尚未確定可選「尚未確定」。',
           icon: <InfoCircleOutlined />,
         }}
       >
@@ -626,10 +726,21 @@ function Step3Person({ form }: { form: ReturnType<typeof Form.useForm<FormSchema
     }
   }, [form])
   return (
-    <Card title={<><UserOutlined className="mr-2" />受害人身分與工作</>}>
+    <Card
+      title={
+        <>
+          <UserOutlined className="mr-2" />
+          受害人身分與工作
+        </>
+      }
+    >
       <Row gutter={16}>
         <Col xs={24} md={8}>
-          <Form.Item label="出生年月日" name={['person', 'birthDate']} getValueProps={(value) => ({ value: value ? dayjs(value) : null })}>
+          <Form.Item
+            label="出生年月日"
+            name={['person', 'birthDate']}
+            getValueProps={(value) => ({ value: value ? dayjs(value) : null })}
+          >
             <DatePicker
               style={{ width: '100%' }}
               format="YYYY-MM-DD"
@@ -655,7 +766,11 @@ function Step3Person({ form }: { form: ReturnType<typeof Form.useForm<FormSchema
           </Form.Item>
         </Col>
       </Row>
-      <Form.Item label="受僱類型 *" name={['person', 'employmentType']} rules={[{ required: true }]}>
+      <Form.Item
+        label="受僱類型 *"
+        name={['person', 'employmentType']}
+        rules={[{ required: true }]}
+      >
         <Select options={EMPLOYMENT_OPTIONS} />
       </Form.Item>
       <Row gutter={16}>
@@ -670,33 +785,83 @@ function Step3Person({ form }: { form: ReturnType<typeof Form.useForm<FormSchema
               icon: <InfoCircleOutlined />,
             }}
           >
-            <InputNumber style={{ width: '100%' }} min={0} step={1000} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
+            <InputNumber
+              style={{ width: '100%' }}
+              min={0}
+              step={1000}
+              formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+            />
           </Form.Item>
         </Col>
         <Col xs={24} md={12}>
           <Form.Item label="現職月薪（元）" name={['person', 'monthlySalary']}>
-            <InputNumber style={{ width: '100%' }} min={0} step={1000} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
+            <InputNumber
+              style={{ width: '100%' }}
+              min={0}
+              step={1000}
+              formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+            />
           </Form.Item>
         </Col>
       </Row>
       <Row gutter={16}>
         <Col xs={24} md={12}>
           <Form.Item label="日薪（按件/日領者）" name={['person', 'dailyWage']}>
-            <InputNumber style={{ width: '100%' }} min={0} step={500} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
+            <InputNumber
+              style={{ width: '100%' }}
+              min={0}
+              step={500}
+              formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+            />
           </Form.Item>
         </Col>
         <Col xs={24} md={12}>
           <Form.Item label="去年報稅所得（元）" name={['person', 'lastYearTaxableIncome']}>
-            <InputNumber style={{ width: '100%' }} min={0} step={10_000} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
+            <InputNumber
+              style={{ width: '100%' }}
+              min={0}
+              step={10_000}
+              formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+            />
           </Form.Item>
         </Col>
       </Row>
-      <Title level={5} className="!mt-4">工作損失佐證</Title>
+      <Title level={5} className="!mt-4">
+        工作損失佐證
+      </Title>
       <Row gutter={16}>
-        <Col xs={12} md={6}><Form.Item label="財產清單" name={['person', 'hasPropertyList']} valuePropName="checked"><Switch /></Form.Item></Col>
-        <Col xs={12} md={6}><Form.Item label="薪轉證明" name={['person', 'hasSalaryTransferRecord']} valuePropName="checked"><Switch /></Form.Item></Col>
-        <Col xs={12} md={6}><Form.Item label="請假證明" name={['person', 'hasLeaveCertificate']} valuePropName="checked"><Switch /></Form.Item></Col>
-        <Col xs={12} md={6}><Form.Item label="扣薪證明" name={['person', 'hasSalaryDeductionProof']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={12} md={6}>
+          <Form.Item label="財產清單" name={['person', 'hasPropertyList']} valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Col>
+        <Col xs={12} md={6}>
+          <Form.Item
+            label="薪轉證明"
+            name={['person', 'hasSalaryTransferRecord']}
+            valuePropName="checked"
+          >
+            <Switch />
+          </Form.Item>
+        </Col>
+        <Col xs={12} md={6}>
+          <Form.Item
+            label="請假證明"
+            name={['person', 'hasLeaveCertificate']}
+            valuePropName="checked"
+          >
+            <Switch />
+          </Form.Item>
+        </Col>
+        <Col xs={12} md={6}>
+          <Form.Item
+            label="扣薪證明"
+            name={['person', 'hasSalaryDeductionProof']}
+            valuePropName="checked"
+          >
+            <Switch />
+          </Form.Item>
+        </Col>
       </Row>
       <Row gutter={16}>
         <Col xs={24} md={12}>
@@ -718,8 +883,10 @@ function Step3Person({ form }: { form: ReturnType<typeof Form.useForm<FormSchema
 function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
   const jointName = Form.useWatch(['medical', 'jointName'], form) as JointName | null
   // v0.7.6+：KNN 即時預視 — 監聽失能等級 + 事故地點
-  const disabilityLevelForKnn = Form.useWatch(['medical', 'disabilityLevel'], form) as number | undefined
-  const accidentLocationForKnn = Form.useWatch(['basics', 'accidentLocation'], form) as string | undefined
+  const disabilityLevelForKnn = Form.useWatch(['medical', 'disabilityLevel'], form) as
+    number | undefined
+  const accidentLocationForKnn = Form.useWatch(['basics', 'accidentLocation'], form) as
+    string | undefined
   // v0.5.3 bugfix: emergencyDate DatePicker 跟 birthDate 同症狀 — 收到空字串炸
   useEffect(() => {
     const cur = form.getFieldValue(['medical', 'emergencyDate'])
@@ -729,7 +896,14 @@ function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchem
     }
   }, [form])
   return (
-    <Card title={<><MedicineBoxOutlined className="mr-2" />診斷書 / 傷勢資料</>}>
+    <Card
+      title={
+        <>
+          <MedicineBoxOutlined className="mr-2" />
+          診斷書 / 傷勢資料
+        </>
+      }
+    >
       <Row gutter={16}>
         <Col xs={24}>
           <Form.Item label="診斷說明（自由填）" name={['medical', 'diagnosisText']}>
@@ -744,54 +918,152 @@ function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchem
           </Form.Item>
         </Col>
         <Col xs={24} md={12}>
-          <Form.Item label="急診日期" name={['medical', 'emergencyDate']} getValueProps={(value) => ({ value: value ? dayjs(value) : null })}>
+          <Form.Item
+            label="急診日期"
+            name={['medical', 'emergencyDate']}
+            getValueProps={(value) => ({ value: value ? dayjs(value) : null })}
+          >
             <DatePicker
               style={{ width: '100%' }}
               format="YYYY-MM-DD"
-              onChange={(d: Dayjs | null) => form.setFieldValue(['medical', 'emergencyDate'], d?.format('YYYY-MM-DD') ?? '')}
+              onChange={(d: Dayjs | null) =>
+                form.setFieldValue(['medical', 'emergencyDate'], d?.format('YYYY-MM-DD') ?? '')
+              }
             />
           </Form.Item>
         </Col>
       </Row>
       <Row gutter={16}>
-        <Col xs={12} md={6}><Form.Item label="門診次數" name={['medical', 'outpatientVisitCount']}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item></Col>
-        <Col xs={12} md={6}><Form.Item label="住院天數" name={['medical', 'hospitalizationDays']}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item></Col>
-        <Col xs={12} md={6}><Form.Item label="手術" name={['medical', 'hasSurgery']} valuePropName="checked"><Switch /></Form.Item></Col>
-        <Col xs={12} md={6}><Form.Item label="症狀固定" name={['medical', 'isSymptomFixed']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={12} md={6}>
+          <Form.Item label="門診次數" name={['medical', 'outpatientVisitCount']}>
+            <InputNumber style={{ width: '100%' }} min={0} />
+          </Form.Item>
+        </Col>
+        <Col xs={12} md={6}>
+          <Form.Item label="住院天數" name={['medical', 'hospitalizationDays']}>
+            <InputNumber style={{ width: '100%' }} min={0} />
+          </Form.Item>
+        </Col>
+        <Col xs={12} md={6}>
+          <Form.Item label="手術" name={['medical', 'hasSurgery']} valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Col>
+        <Col xs={12} md={6}>
+          <Form.Item label="症狀固定" name={['medical', 'isSymptomFixed']} valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Col>
       </Row>
       <Row gutter={16}>
-        <Col xs={12} md={6}><Form.Item label="復健" name={['medical', 'hasRehabilitation']} valuePropName="checked"><Switch /></Form.Item></Col>
-        <Col xs={12} md={6}><Form.Item label="復健次數" name={['medical', 'rehabilitationCount']}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item></Col>
-        <Col xs={12} md={6}><Form.Item label="需看護" name={['medical', 'requiresNursingCare']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={12} md={6}>
+          <Form.Item label="復健" name={['medical', 'hasRehabilitation']} valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Col>
+        <Col xs={12} md={6}>
+          <Form.Item label="復健次數" name={['medical', 'rehabilitationCount']}>
+            <InputNumber style={{ width: '100%' }} min={0} />
+          </Form.Item>
+        </Col>
+        <Col xs={12} md={6}>
+          <Form.Item
+            label="需看護"
+            name={['medical', 'requiresNursingCare']}
+            valuePropName="checked"
+          >
+            <Switch />
+          </Form.Item>
+        </Col>
         <Col xs={12} md={6}>
           {/* v0.12.0+ Phase B1：看護日數加 30 日硬上限驗證（強制險 §2.4） */}
           <Form.Item
             label="看護日數"
             name={['medical', 'nursingDays']}
             rules={[
-              { type: 'number', max: 30, message: '強制險看護每日 1,200 元 × 上限 30 日 = 36,000 元' },
+              {
+                type: 'number',
+                max: 30,
+                message: '強制險看護每日 1,200 元 × 上限 30 日 = 36,000 元',
+              },
             ]}
           >
             <InputNumber style={{ width: '100%' }} min={0} max={30} />
           </Form.Item>
         </Col>
       </Row>
-      <Title level={5} className="!mt-2">傷勢細節（失能規則引擎用）</Title>
+      <Title level={5} className="!mt-2">
+        傷勢細節（失能規則引擎用）
+      </Title>
       <Row gutter={16}>
-        <Col xs={8} md={4}><Form.Item label="骨折" name={['medical', 'hasFracture']} valuePropName="checked"><Switch /></Form.Item></Col>
-        <Col xs={8} md={4}><Form.Item label="脫臼" name={['medical', 'hasDislocation']} valuePropName="checked"><Switch /></Form.Item></Col>
-        <Col xs={8} md={4}><Form.Item label="韌帶傷" name={['medical', 'hasLigamentInjury']} valuePropName="checked"><Switch /></Form.Item></Col>
-        <Col xs={8} md={4}><Form.Item label="神經傷" name={['medical', 'hasNerveDamage']} valuePropName="checked"><Switch /></Form.Item></Col>
-        <Col xs={8} md={4}><Form.Item label="截肢" name={['medical', 'hasAmputation']} valuePropName="checked"><Switch /></Form.Item></Col>
-        <Col xs={8} md={4}><Form.Item label="器官損傷" name={['medical', 'hasOrganDamage']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={8} md={4}>
+          <Form.Item label="骨折" name={['medical', 'hasFracture']} valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Col>
+        <Col xs={8} md={4}>
+          <Form.Item label="脫臼" name={['medical', 'hasDislocation']} valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Col>
+        <Col xs={8} md={4}>
+          <Form.Item label="韌帶傷" name={['medical', 'hasLigamentInjury']} valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Col>
+        <Col xs={8} md={4}>
+          <Form.Item label="神經傷" name={['medical', 'hasNerveDamage']} valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Col>
+        <Col xs={8} md={4}>
+          <Form.Item label="截肢" name={['medical', 'hasAmputation']} valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Col>
+        <Col xs={8} md={4}>
+          <Form.Item label="器官損傷" name={['medical', 'hasOrganDamage']} valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Col>
       </Row>
       <Row gutter={16}>
-        <Col xs={12} md={6}><Form.Item label="失能鑑定" name={['medical', 'hasDisabilityCertificate']} valuePropName="checked"><Switch /></Form.Item></Col>
-        <Col xs={12} md={6}><Form.Item label="甲種診斷書" name={['medical', 'hasClassADiagnosisCertificate']} valuePropName="checked"><Switch /></Form.Item></Col>
-        <Col xs={12} md={6}><Form.Item label="永久性障害" name={['medical', 'hasPermanentImpairment']} valuePropName="checked"><Switch /></Form.Item></Col>
-        <Col xs={12} md={6}><Form.Item label="疤痕" name={['medical', 'hasScar']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={12} md={6}>
+          <Form.Item
+            label="失能鑑定"
+            name={['medical', 'hasDisabilityCertificate']}
+            valuePropName="checked"
+          >
+            <Switch />
+          </Form.Item>
+        </Col>
+        <Col xs={12} md={6}>
+          <Form.Item
+            label="甲種診斷書"
+            name={['medical', 'hasClassADiagnosisCertificate']}
+            valuePropName="checked"
+          >
+            <Switch />
+          </Form.Item>
+        </Col>
+        <Col xs={12} md={6}>
+          <Form.Item
+            label="永久性障害"
+            name={['medical', 'hasPermanentImpairment']}
+            valuePropName="checked"
+          >
+            <Switch />
+          </Form.Item>
+        </Col>
+        <Col xs={12} md={6}>
+          <Form.Item label="疤痕" name={['medical', 'hasScar']} valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Col>
       </Row>
-      <Title level={5} className="!mt-4">失能部位與等級（失能保典 12 大類）</Title>
+      <Title level={5} className="!mt-4">
+        失能部位與等級（失能保典 12 大類）
+      </Title>
       <InfoAlert
         type="info"
         showIcon
@@ -841,7 +1113,9 @@ function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchem
         </Col>
       </Row>
       <DisabilityCategoryHint />
-      <Title level={5} className="!mt-2">疤痕 / 除疤術式</Title>
+      <Title level={5} className="!mt-2">
+        疤痕 / 除疤術式
+      </Title>
       <Row gutter={16}>
         <Col xs={12} md={6}>
           <Form.Item label="疤痕長度 (cm)" name={['medical', 'scarLengthCm']}>
@@ -871,7 +1145,10 @@ function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchem
             name={['medical', 'scarProcedure']}
             extra={(() => {
               const proc = form.getFieldValue(['medical', 'scarProcedure']) as string | undefined
-              if (!proc) return <span style={{ color: '#999' }}>未選 → 預設雷射。蟹足腫自動改走注射治療</span>
+              if (!proc)
+                return (
+                  <span style={{ color: '#999' }}>未選 → 預設雷射。蟹足腫自動改走注射治療</span>
+                )
               const opt = SCAR_PROCEDURE_OPTIONS.find((o) => o.value === proc)
               return <span style={{ color: '#1677ff' }}>{opt?.hint}</span>
             })()}
@@ -895,7 +1172,9 @@ function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchem
         </Col>
       </Row>
 
-      <Title level={5} className="!mt-2">關節活動度（關節角度喪失只進失能初篩，不直判失能）</Title>
+      <Title level={5} className="!mt-2">
+        關節活動度（關節角度喪失只進失能初篩，不直判失能）
+      </Title>
       <Row gutter={16}>
         <Col xs={24} md={8}>
           <Form.Item label="受影響關節" name={['medical', 'jointName']}>
@@ -913,7 +1192,15 @@ function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchem
             />
           </Form.Item>
         </Col>
-        <Col xs={12} md={4}><Form.Item label="有受限" name={['medical', 'hasRangeOfMotionLimitation']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={12} md={4}>
+          <Form.Item
+            label="有受限"
+            name={['medical', 'hasRangeOfMotionLimitation']}
+            valuePropName="checked"
+          >
+            <Switch />
+          </Form.Item>
+        </Col>
         <Col xs={12} md={6}>
           <Form.Item
             label="角度喪失 (度)"
@@ -928,11 +1215,27 @@ function Step4Medical({ form }: { form: ReturnType<typeof Form.useForm<FormSchem
             <InputNumber style={{ width: '100%' }} min={0} />
           </Form.Item>
         </Col>
-        <Col xs={12} md={6}><Form.Item label="正常活動度 (度)" name={['medical', 'romNormalDegree']}><InputNumber style={{ width: '100%' }} min={0} disabled /></Form.Item></Col>
+        <Col xs={12} md={6}>
+          <Form.Item label="正常活動度 (度)" name={['medical', 'romNormalDegree']}>
+            <InputNumber style={{ width: '100%' }} min={0} disabled />
+          </Form.Item>
+        </Col>
       </Row>
       <Row gutter={16}>
-        <Col xs={12} md={8}><Form.Item label="肌力減退" name={['medical', 'hasMuscleWeakness']} valuePropName="checked"><Switch /></Form.Item></Col>
-        <Col xs={12} md={8}><Form.Item label="感覺喪失" name={['medical', 'hasSensoryLoss']} valuePropName="checked"><Switch /></Form.Item></Col>
+        <Col xs={12} md={8}>
+          <Form.Item
+            label="肌力減退"
+            name={['medical', 'hasMuscleWeakness']}
+            valuePropName="checked"
+          >
+            <Switch />
+          </Form.Item>
+        </Col>
+        <Col xs={12} md={8}>
+          <Form.Item label="感覺喪失" name={['medical', 'hasSensoryLoss']} valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Col>
       </Row>
       {jointName && (
         <InfoAlert
@@ -1000,7 +1303,9 @@ function Step5Receipts({ form }: { form: ReturnType<typeof Form.useForm<FormSche
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="!mb-4">
-      <Title level={5} className="!mb-2">{title}</Title>
+      <Title level={5} className="!mb-2">
+        {title}
+      </Title>
       <Row gutter={16}>{children}</Row>
     </div>
   )
@@ -1023,7 +1328,14 @@ function R2C({ name, label }: { name: [string, string]; label: string }) {
 // ============== Step 6：車損 / 財損 ==============
 function Step6Property({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
   return (
-    <Card title={<><ToolOutlined className="mr-2" />車損 / 財損</>}>
+    <Card
+      title={
+        <>
+          <ToolOutlined className="mr-2" />
+          車損 / 財損
+        </>
+      }
+    >
       <Title level={5}>車輛</Title>
       <Row gutter={16}>
         <R2C name={['property', 'vehicleRepairEstimate']} label="估價單金額" />
@@ -1035,7 +1347,9 @@ function Step6Property({ form }: { form: ReturnType<typeof Form.useForm<FormSche
         <R2C name={['property', 'towingFee']} label="拖吊費" />
         <R2C name={['property', 'rentalCarFee']} label="代步費" />
       </Row>
-      <Title level={5} className="!mt-4">其他財損</Title>
+      <Title level={5} className="!mt-4">
+        其他財損
+      </Title>
       <Row gutter={16}>
         <R2C name={['property', 'phoneDamage']} label="手機損壞" />
         <R2C name={['property', 'helmetDamage']} label="安全帽損壞" />
@@ -1052,9 +1366,17 @@ function Step7Region({ form }: { form: ReturnType<typeof Form.useForm<FormSchema
   // Step 1 已填過「事故縣市 → 自動帶入管轄法院」三件組
   // Step 7 只留「聲請人/對方居住地」（必要 → 影響法院管轄 + 強制險理賠窗口）
   // 並提供查看「管轄法院最終結果」唯讀確認區塊
-  const courtJurisdiction = Form.useWatch(['basics', 'courtJurisdiction'], form) as string | undefined
+  const courtJurisdiction = Form.useWatch(['basics', 'courtJurisdiction'], form) as
+    string | undefined
   return (
-    <Card title={<><EnvironmentOutlined className="mr-2" />居住地與管轄法院確認</>}>
+    <Card
+      title={
+        <>
+          <EnvironmentOutlined className="mr-2" />
+          居住地與管轄法院確認
+        </>
+      }
+    >
       <InfoAlert
         type="info"
         showIcon
@@ -1063,14 +1385,32 @@ function Step7Region({ form }: { form: ReturnType<typeof Form.useForm<FormSchema
         body="聲請人 / 對方居住地會送進第三人責任險估算（保險公司窗口歸屬）以及民事訴訟管轄參考。"
       />
 
-      <Title level={5} className="!mt-2">當事人居住地（強制險/第三人責任險理賠窗口）</Title>
+      <Title level={5} className="!mt-2">
+        當事人居住地（強制險/第三人責任險理賠窗口）
+      </Title>
       <Row gutter={16}>
-        <Col xs={24} md={12}><Form.Item label="聲請人居住縣市" name={['basics', 'claimantResidenceCity']}><Select options={CITY_OPTIONS.map((v) => ({ value: v, label: v }))} /></Form.Item></Col>
-        <Col xs={24} md={12}><Form.Item label="聲請人居住鄉鎮" name={['basics', 'claimantResidenceDistrict']}><Input /></Form.Item></Col>
+        <Col xs={24} md={12}>
+          <Form.Item label="聲請人居住縣市" name={['basics', 'claimantResidenceCity']}>
+            <Select options={CITY_OPTIONS.map((v) => ({ value: v, label: v }))} />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={12}>
+          <Form.Item label="聲請人居住鄉鎮" name={['basics', 'claimantResidenceDistrict']}>
+            <Input />
+          </Form.Item>
+        </Col>
       </Row>
       <Row gutter={16}>
-        <Col xs={24} md={12}><Form.Item label="對方居住縣市" name={['basics', 'defendantResidenceCity']}><Select options={CITY_OPTIONS.map((v) => ({ value: v, label: v }))} /></Form.Item></Col>
-        <Col xs={24} md={12}><Form.Item label="對方居住鄉鎮" name={['basics', 'defendantResidenceDistrict']}><Input /></Form.Item></Col>
+        <Col xs={24} md={12}>
+          <Form.Item label="對方居住縣市" name={['basics', 'defendantResidenceCity']}>
+            <Select options={CITY_OPTIONS.map((v) => ({ value: v, label: v }))} />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={12}>
+          <Form.Item label="對方居住鄉鎮" name={['basics', 'defendantResidenceDistrict']}>
+            <Input />
+          </Form.Item>
+        </Col>
       </Row>
 
       <Divider className="!my-3" />
@@ -1103,7 +1443,8 @@ function Step7Region({ form }: { form: ReturnType<typeof Form.useForm<FormSchema
 /** 即時顯示「失能等級 → 勞減比例」對照（依 DISABILITY_LABOR_LOSS_PCT 公式） */
 function DisabilityLevelTag() {
   const form = Form.useFormInstance<FormSchema>()
-  const level = Form.useWatch(['medical', 'disabilityLevel'], form) as DisabilityLevelValue | undefined
+  const level = Form.useWatch(['medical', 'disabilityLevel'], form) as
+    DisabilityLevelValue | undefined
   if (!level) return <Tag>未選</Tag>
   const pct = DISABILITY_LABOR_LOSS_PCT[level] ?? 0
   const color = level <= 3 ? 'red' : level <= 7 ? 'orange' : level <= 11 ? 'gold' : 'default'
@@ -1117,7 +1458,8 @@ function DisabilityLevelTag() {
 /** 即時顯示「12 大類」相關警示（黃底強制險排除 / 心理衡鑑） */
 function DisabilityCategoryHint() {
   const form = Form.useFormInstance<FormSchema>()
-  const cat = Form.useWatch(['medical', 'disabilityCategory'], form) as DisabilityCategory | undefined
+  const cat = Form.useWatch(['medical', 'disabilityCategory'], form) as
+    DisabilityCategory | undefined
   if (!cat) return null
   if (isCompulsoryExclusion(cat)) {
     return (

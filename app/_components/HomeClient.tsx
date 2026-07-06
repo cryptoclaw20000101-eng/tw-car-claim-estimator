@@ -1,12 +1,12 @@
 'use client'
 
-import Link from "next/link"
-import { Button, Typography, Space, Alert } from "antd"
+import Link from 'next/link'
+import { Button, Typography, Space, Alert } from 'antd'
 import { InfoAlert } from '@/components/InfoAlert'
-import { motion, useReducedMotion } from "framer-motion"
-import { EnsembleHealthHeroCard } from "@/components/EnsembleHealthHeroCard"
-import { InstallPWAButton, PWAHintCard } from "@/components/InstallPWAButton"
-import { EstimateHistory } from "@/components/EstimateHistory"
+import { motion, useReducedMotion } from 'framer-motion'
+import { EnsembleHealthHeroCard } from '@/components/EnsembleHealthHeroCard'
+import { InstallPWAButton, PWAHintCard } from '@/components/InstallPWAButton'
+import { EstimateHistory } from '@/components/EstimateHistory'
 import {
   CalculatorOutlined,
   SafetyCertificateOutlined,
@@ -18,7 +18,7 @@ import {
   ReadOutlined,
   // v0.12.0+ Phase A6：FAQ 區 icon
   QuestionCircleOutlined,
-} from "@ant-design/icons"
+} from '@ant-design/icons'
 
 const { Title, Paragraph, Text } = Typography
 
@@ -46,9 +46,7 @@ export default function HomeClient() {
         <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-12 px-6 py-16 md:grid-cols-12 md:py-24">
           <div className="md:col-span-7 md:pr-8">
             <Space size={6} className="!mb-4">
-              <Text className="text-xs uppercase tracking-[0.18em] text-muted">
-                v0.1 MVP
-              </Text>
+              <Text className="text-xs uppercase tracking-[0.18em] text-muted">v0.1 MVP</Text>
               <span className="text-muted">·</span>
               <Text className="text-xs uppercase tracking-[0.18em] text-muted">
                 Taiwan Car-Claim Estimator
@@ -70,7 +68,12 @@ export default function HomeClient() {
             </Paragraph>
             <Space size={12} wrap>
               <Link href="/claims/new">
-                <Button type="primary" size="large" icon={<ArrowRightOutlined />} iconPlacement="end">
+                <Button
+                  type="primary"
+                  size="large"
+                  icon={<ArrowRightOutlined />}
+                  iconPlacement="end"
+                >
                   開始估算（7 步表單）
                 </Button>
               </Link>
@@ -110,17 +113,23 @@ export default function HomeClient() {
                   <li>
                     <span className="text-foreground">強制汽車責任保險法 §27</span>
                     <br />
-                    <span className="text-[11px] text-muted">國家立法保障所有用路人，基本醫療與失能必賠</span>
+                    <span className="text-[11px] text-muted">
+                      國家立法保障所有用路人，基本醫療與失能必賠
+                    </span>
                   </li>
                   <li>
                     <span className="text-foreground">強制險給付標準 §2-§4</span>
                     <br />
-                    <span className="text-[11px] text-muted">15 細項法定上限（如醫療 20 萬、看護每日 1,200 元）</span>
+                    <span className="text-[11px] text-muted">
+                      15 細項法定上限（如醫療 20 萬、看護每日 1,200 元）
+                    </span>
                   </li>
                   <li>
                     <span className="text-foreground">民法 §184 / §193-§195</span>
                     <br />
-                    <span className="text-[11px] text-muted">侵權行為 + 醫療 / 工作 / 精神慰撫金請求權</span>
+                    <span className="text-[11px] text-muted">
+                      侵權行為 + 醫療 / 工作 / 精神慰撫金請求權
+                    </span>
                   </li>
                   <li className="text-foreground">
                     6 直轄市地院慰撫金區間
@@ -132,9 +141,7 @@ export default function HomeClient() {
               <div className="rounded-lg border border-border bg-surface-subtle p-4">
                 <Space size={6} className="!mb-2">
                   <EnvironmentOutlined />
-                  <Text className="!text-xs uppercase tracking-wider text-muted">
-                    地區覆蓋
-                  </Text>
+                  <Text className="!text-xs uppercase tracking-wider text-muted">地區覆蓋</Text>
                 </Space>
                 <Text className="!text-xs text-foreground">
                   6 直轄市地院 + 26 縣市自動對應
@@ -276,9 +283,7 @@ export default function HomeClient() {
         <div className="mx-auto w-full max-w-6xl px-6 py-16 md:py-20">
           <Space size={6} className="!mb-2">
             <QuestionCircleOutlined />
-            <Text className="!text-xs uppercase tracking-[0.18em] text-muted">
-              FAQ
-            </Text>
+            <Text className="!text-xs uppercase tracking-[0.18em] text-muted">FAQ</Text>
           </Space>
           <Title level={2} className="!mb-3 !text-2xl !tracking-tight md:!text-3xl">
             常見問題
@@ -340,13 +345,13 @@ export default function HomeClient() {
             body={
               <>
                 <p className="!mb-3">
-                  本工具依你輸入的資料 + 強制汽車責任保險給付標準 + 民法 §184-196 +
-                  6 直轄市地方法院實務區間，做<strong>初步金額估算</strong>。
+                  本工具依你輸入的資料 + 強制汽車責任保險給付標準 + 民法 §184-196 + 6
+                  直轄市地方法院實務區間，做<strong>初步金額估算</strong>。
                   這不是保險公司的最終理賠，也不是律師 / 法院的判決。
                 </p>
                 <p className="!mb-3">
-                  <strong>實際理賠金額</strong>還要看：保險公司審核 · 醫療單據齊全度 ·
-                  肇事責任認定 · 保單條款 · 金融評議結果 · 法院判決 · 雙方和解。
+                  <strong>實際理賠金額</strong>還要看：保險公司審核 · 醫療單據齊全度 · 肇事責任認定
+                  · 保單條款 · 金融評議結果 · 法院判決 · 雙方和解。
                 </p>
                 <p className="!mb-0">
                   <strong>本工具不保證金額，亦不構成法律意見。</strong>
@@ -386,9 +391,7 @@ export default function HomeClient() {
             <Text className="!text-xs text-muted">
               © 2026 tw-car-claim-estimator · Built with Next.js 16 + AntD 6
             </Text>
-            <Text className="!text-xs text-muted">
-              v0.12.0 · 6 直轄市 + 26 縣市
-            </Text>
+            <Text className="!text-xs text-muted">v0.12.0 · 6 直轄市 + 26 縣市</Text>
           </div>
         </div>
       </motion.footer>
@@ -431,10 +434,10 @@ function BentoCell({
   return (
     <div
       className={[
-        "group rounded-lg border bg-surface p-6 transition-colors",
-        "border-border hover:border-border-strong",
-        featured ? "md:col-span-2 md:row-span-2" : "",
-      ].join(" ")}
+        'group rounded-lg border bg-surface p-6 transition-colors',
+        'border-border hover:border-border-strong',
+        featured ? 'md:col-span-2 md:row-span-2' : '',
+      ].join(' ')}
     >
       <Space size={8} className="!mb-3">
         <span className="text-lg text-accent">{icon}</span>
@@ -445,14 +448,9 @@ function BentoCell({
       <Title level={3} className="!mb-1 !text-xl !tracking-tight">
         {title}
       </Title>
-      <Text className="!mb-3 !text-xs uppercase tracking-wider text-muted">
-        {subtitle}
-      </Text>
+      <Text className="!mb-3 !text-xs uppercase tracking-wider text-muted">{subtitle}</Text>
       <Paragraph
-        className={[
-          "!mb-0 !text-sm text-muted",
-          featured ? "md:!text-base" : "",
-        ].join(" ")}
+        className={['!mb-0 !text-sm text-muted', featured ? 'md:!text-base' : ''].join(' ')}
       >
         {description}
       </Paragraph>
@@ -469,9 +467,7 @@ function IronRow({ label, desc, reason }: { label: string; desc: string; reason?
       </Space>
       <Text className="!text-sm text-muted">{desc}</Text>
       {reason && (
-        <Text className="!mt-2 !text-xs italic text-muted opacity-80">
-          為什麼：{reason}
-        </Text>
+        <Text className="!mt-2 !text-xs italic text-muted opacity-80">為什麼：{reason}</Text>
       )}
     </div>
   )
@@ -487,9 +483,7 @@ function FaqCard({ q, a }: { q: string; a: string }) {
       <Text strong className="!text-sm text-foreground">
         Q · {q}
       </Text>
-      <Paragraph className="!mt-2 !mb-0 !text-sm text-muted">
-        {a}
-      </Paragraph>
+      <Paragraph className="!mt-2 !mb-0 !text-sm text-muted">{a}</Paragraph>
     </div>
   )
 }

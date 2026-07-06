@@ -16,31 +16,36 @@
  *   - 篩選：依 法院 + 嚴重度區間（金額區間）找最相關 1-3 件
  */
 
-import type { CourtCaseReference } from "@/lib/data-sources/types";
-import { courtToCity } from "@/lib/insurance/region-court-map";
-import { precedentDistance, computeDimensionDistances, type KnnDimensionBreakdown, type PrecedentFeatures } from "./precedent-knn";
+import type { CourtCaseReference } from '@/lib/data-sources/types'
+import { courtToCity } from '@/lib/insurance/region-court-map'
+import {
+  precedentDistance,
+  computeDimensionDistances,
+  type KnnDimensionBreakdown,
+  type PrecedentFeatures,
+} from './precedent-knn'
 
 interface ScrapedPrecedent {
-  id: string;
-  caseNo: string;
-  court: string;
-  year: number;
-  category: "death" | "severe_injury" | "minor_injury" | "disability";
+  id: string
+  caseNo: string
+  court: string
+  year: number
+  category: 'death' | 'severe_injury' | 'minor_injury' | 'disability'
   /** 4 鏈欄位（v0.2.3+ 新增；舊資料沒有） */
-  chain?: "mental_distress" | "labor_loss" | "car_damage" | "disability_payout";
+  chain?: 'mental_distress' | 'labor_loss' | 'car_damage' | 'disability_payout'
   /** 該鏈關鍵金額（v0.2.3+ 用 amount 取代 mentalDistressAmount） */
-  amount?: number;
-  facts: string;
+  amount?: number
+  facts: string
   /** 舊 schema 欄位（向後相容） */
-  mentalDistressAmount?: number;
-  totalAward: number;
-  ratio: { plaintiff: number; defendant: number };
-  gist: string;
-  source: string;
-  scrapedAt: string;
+  mentalDistressAmount?: number
+  totalAward: number
+  ratio: { plaintiff: number; defendant: number }
+  gist: string
+  source: string
+  scrapedAt: string
 }
 
-let _cache: ScrapedPrecedent[] | null = null;
+let _cache: ScrapedPrecedent[] | null = null
 
 /**
  * 載入真實判決（惰性 + 快取）
@@ -50,55 +55,53 @@ let _cache: ScrapedPrecedent[] | null = null;
  * 改用 require 在第一次呼叫時同步讀取
  */
 function loadPrecedentsSync(): ScrapedPrecedent[] {
-  if (_cache !== null) return _cache;
+  if (_cache !== null) return _cache
   try {
-    const { readdirSync, readFileSync, existsSync } = require("node:fs") as typeof import("node:fs");
-    const { join } = require("node:path") as typeof import("node:path");
+    const { readdirSync, readFileSync, existsSync } = require('node:fs') as typeof import('node:fs')
+    const { join } = require('node:path') as typeof import('node:path')
     // 嘗試多個路徑（cwd 在不同 context 不一樣）
     const candidates = [
-      join(process.cwd(), "data/precedents/taipei-mental-distress.json"),
-      join(process.cwd(), "..", "data/precedents/taipei-mental-distress.json"),
-    ];
+      join(process.cwd(), 'data/precedents/taipei-mental-distress.json'),
+      join(process.cwd(), '..', 'data/precedents/taipei-mental-distress.json'),
+    ]
     for (const p of candidates) {
       if (existsSync(p)) {
-        const raw = readFileSync(p, "utf-8");
-        _cache = JSON.parse(raw) as ScrapedPrecedent[];
+        const raw = readFileSync(p, 'utf-8')
+        _cache = JSON.parse(raw) as ScrapedPrecedent[]
         // v0.12.0+ 移除 dev console.log（生產環境不應輸出 debug）
-        return _cache;
+        return _cache
       }
     }
-    _cache = [];
-    return _cache;
+    _cache = []
+    return _cache
   } catch (e) {
-    console.warn(`[precedents] 載入失敗：${(e as Error).message}`);
-    _cache = [];
-    return _cache;
+    console.warn(`[precedents] 載入失敗：${(e as Error).message}`)
+    _cache = []
+    return _cache
   }
 }
 
 /**
  * 把 ScrapedPrecedent 轉成 CourtCaseReference（給 UI 既有 component 用）
  */
-function toCourtCaseReference(
-  p: ScrapedPrecedent,
-): CourtCaseReference {
+function toCourtCaseReference(p: ScrapedPrecedent): CourtCaseReference {
   // 案號整理成 "111年度訴字第4523號" 格式（UI 既有顯示用）
-  const caseId = p.caseNo.replace(/\s+/g, "");
+  const caseId = p.caseNo.replace(/\s+/g, '')
   // 兼容 2 種 schema：新鏈用 amount，舊鏈用 mentalDistressAmount
-  const amt = p.amount ?? p.mentalDistressAmount ?? 0;
-  const label = p.chain === "mental_distress" || !p.chain ? "精神慰撫金" : "判賠金額";
+  const amt = p.amount ?? p.mentalDistressAmount ?? 0
+  const label = p.chain === 'mental_distress' || !p.chain ? '精神慰撫金' : '判賠金額'
   return {
     caseId,
     courtName: p.court,
     caseYear: p.year,
-    category: "pain_and_suffering",
+    category: 'pain_and_suffering',
     amount: amt,
     amountLow: Math.round(amt * 0.6),
     amountHigh: Math.round(amt * 1.5),
     summary: p.facts,
     keyReasoning: p.gist + `（真實司法院判決 · ${p.scrapedAt.slice(0, 10)} 抓取）`,
     referenceNote: `依據：${p.court} ${p.caseNo}（${label} ${amt.toLocaleString()} 元）`,
-  };
+  }
 }
 
 /**
@@ -111,35 +114,34 @@ export function findRelatedPrecedents(
   estimatedAmount: number,
   limit = 3,
 ): CourtCaseReference[] {
-  const all = loadPrecedentsSync();
-  if (all.length === 0) return [];
+  const all = loadPrecedentsSync()
+  if (all.length === 0) return []
 
   // 算分：同法院 + 0 分（最優先），每差 1 倍 → +10 分，金額差 → +1/萬元
   const scored = all.map((p) => {
-    const courtMatch =
-      courtName && p.court.includes(courtName.slice(0, 2)) ? 0 : 100;
-    const amt = p.amount ?? p.mentalDistressAmount ?? 0;
-    const amountDiff = Math.abs(amt - estimatedAmount) / 10_000;
-    return { p, score: courtMatch + amountDiff };
-  });
+    const courtMatch = courtName && p.court.includes(courtName.slice(0, 2)) ? 0 : 100
+    const amt = p.amount ?? p.mentalDistressAmount ?? 0
+    const amountDiff = Math.abs(amt - estimatedAmount) / 10_000
+    return { p, score: courtMatch + amountDiff }
+  })
 
-  scored.sort((a, b) => a.score - b.score);
-  return scored.slice(0, limit).map((s) => toCourtCaseReference(s.p));
+  scored.sort((a, b) => a.score - b.score)
+  return scored.slice(0, limit).map((s) => toCourtCaseReference(s.p))
 }
 
 /**
  * 取得所有真實判決的 CourtCaseReference list（給結果頁「司法院同類判決中位數」section 用）
  */
 export function listAllPrecedents(): CourtCaseReference[] {
-  const all = loadPrecedentsSync();
-  return all.map(toCourtCaseReference);
+  const all = loadPrecedentsSync()
+  return all.map(toCourtCaseReference)
 }
 
 /**
  * 取得真實判決數量
  */
 export function getPrecedentCount(): number {
-  return loadPrecedentsSync().length;
+  return loadPrecedentsSync().length
 }
 
 // =================================================================
@@ -172,20 +174,20 @@ let _generalCache: GeneralPrecedent[] | null = null
 export function loadAllPrecedents(): GeneralPrecedent[] {
   if (_generalCache !== null) return _generalCache
   try {
-    const { readdirSync, readFileSync, existsSync } = require("node:fs") as typeof import("node:fs")
-    const { join } = require("node:path") as typeof import("node:path")
+    const { readdirSync, readFileSync, existsSync } = require('node:fs') as typeof import('node:fs')
+    const { join } = require('node:path') as typeof import('node:path')
     const dirs = [
-      join(process.cwd(), "data", "precedents"),
-      join(process.cwd(), "..", "data", "precedents"),
+      join(process.cwd(), 'data', 'precedents'),
+      join(process.cwd(), '..', 'data', 'precedents'),
     ]
     for (const dir of dirs) {
       if (!existsSync(dir)) continue
       const files = readdirSync(dir).filter(
-        (f: string) => f.endsWith(".json") && f !== "taipei-mental-distress.json",
+        (f: string) => f.endsWith('.json') && f !== 'taipei-mental-distress.json',
       )
       const all: GeneralPrecedent[] = []
       for (const f of files) {
-        const raw = readFileSync(join(dir, f), "utf-8")
+        const raw = readFileSync(join(dir, f), 'utf-8')
         const arr = JSON.parse(raw) as GeneralPrecedent[]
         if (Array.isArray(arr)) {
           all.push(...arr)
@@ -208,33 +210,27 @@ export function loadAllPrecedents(): GeneralPrecedent[] {
  * 找「失能合併」相關判例（給勞動能力減損 section 用）
  * 從 disability-merging.json 撈出合併升等規則
  */
-export function findDisabilityMergingPrecedents(
-  limit = 2,
-): GeneralPrecedent[] {
+export function findDisabilityMergingPrecedents(limit = 2): GeneralPrecedent[] {
   return loadAllPrecedents()
-    .filter((p) => p.category === "disability_merging_rule")
+    .filter((p) => p.category === 'disability_merging_rule')
     .slice(0, limit)
 }
 
 /**
  * 找「治療觀察期」相關判例（給勞動能力減損 / 強制險失能 section 用）
  */
-export function findTreatmentPeriodPrecedents(
-  limit = 1,
-): GeneralPrecedent[] {
+export function findTreatmentPeriodPrecedents(limit = 1): GeneralPrecedent[] {
   return loadAllPrecedents()
-    .filter((p) => p.category === "disability_treatment_period")
+    .filter((p) => p.category === 'disability_treatment_period')
     .slice(0, limit)
 }
 
 /**
  * 找「強制險不給付」相關判例（給強制險失能 section 用）
  */
-export function findCompulsoryExclusionPrecedents(
-  limit = 1,
-): GeneralPrecedent[] {
+export function findCompulsoryExclusionPrecedents(limit = 1): GeneralPrecedent[] {
   return loadAllPrecedents()
-    .filter((p) => p.category === "compulsory_exclusion")
+    .filter((p) => p.category === 'compulsory_exclusion')
     .slice(0, limit)
 }
 
@@ -242,10 +238,7 @@ export function findCompulsoryExclusionPrecedents(
  * 取得所有 12 大類失能種類的分類資訊（給 UI「失能部位」下拉選單用）
  */
 export function getDisabilityTaxonomy(): GeneralPrecedent | null {
-  return (
-    loadAllPrecedents().find((p) => p.category === "disability_taxonomy") ??
-    null
-  )
+  return loadAllPrecedents().find((p) => p.category === 'disability_taxonomy') ?? null
 }
 
 /** 取得所有通用判例總數 */
@@ -317,9 +310,11 @@ export function findRelatedPracticeCases<T extends boolean = false>(
   withKnnDebug?: T,
 ): T extends true ? PracticeCaseWithKnn[] : PracticeCase[] {
   const all = loadAllPrecedents() as unknown as PracticeCaseWithKnn[]
-  if (all.length === 0) return [] as unknown as T extends true ? PracticeCaseWithKnn[] : PracticeCase[]
+  if (all.length === 0)
+    return [] as unknown as T extends true ? PracticeCaseWithKnn[] : PracticeCase[]
   const practiceCases = all.filter((p) => p.category === 'practice_case')
-  if (practiceCases.length === 0) return [] as unknown as T extends true ? PracticeCaseWithKnn[] : PracticeCase[]
+  if (practiceCases.length === 0)
+    return [] as unknown as T extends true ? PracticeCaseWithKnn[] : PracticeCase[]
 
   // v0.6.1+ — 改用 KNN 距離取代硬編配權
   // 每維正規化到 [0, 1]，加總即距離，越小越相似
@@ -337,7 +332,9 @@ export function findRelatedPracticeCases<T extends boolean = false>(
     hasDisabilityRecord: queryHasDisability,
   }
 
-  const score = (p: PracticeCaseWithKnn): { distance: number; scrapedAt: string; breakdown: KnnDimensionBreakdown } => {
+  const score = (
+    p: PracticeCaseWithKnn,
+  ): { distance: number; scrapedAt: string; breakdown: KnnDimensionBreakdown } => {
     // 從案例 disabilityLevel 萃取（取第一筆有效值）
     let caseDisabilityLevel: number | null = null
     for (const d of p.disabilities ?? []) {

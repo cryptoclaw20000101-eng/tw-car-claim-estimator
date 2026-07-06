@@ -66,7 +66,7 @@ describe('Legal References (法源常數)', () => {
 
   it('isLegalReferenceStale returns false for recently reviewed', () => {
     const ref = getLegalReference('compulsory_insurance_act')!
-    expect(isLegalReferenceStale(ref)).toBe(false)  // lastReviewed 2026-06-07
+    expect(isLegalReferenceStale(ref)).toBe(false) // lastReviewed 2026-06-07
   })
 
   it('isLegalReferenceStale returns true for old review', () => {
@@ -77,7 +77,7 @@ describe('Legal References (法源常數)', () => {
       sourceUrl: 'https://example.com',
       summary: 'Test',
       relevantArticles: ['§1'],
-      lastReviewed: '2020-01-01',  // 6+ 年前
+      lastReviewed: '2020-01-01', // 6+ 年前
     }
     expect(isLegalReferenceStale(staleRef)).toBe(true)
   })

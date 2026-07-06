@@ -22,9 +22,9 @@ export type RegionAdjustment = {
 }
 
 export const regionAdjustments: Record<string, RegionAdjustment> = {
-  '臺灣臺北地方法院': {
+  臺灣臺北地方法院: {
     courtName: '臺灣臺北地方法院',
-    painAndSufferingMultiplier: 1.10,
+    painAndSufferingMultiplier: 1.1,
     nursingDailyRateLow: 2_200,
     nursingDailyRateMid: 2_400,
     nursingDailyRateHigh: 2_800,
@@ -33,7 +33,7 @@ export const regionAdjustments: Record<string, RegionAdjustment> = {
     notes: '都會區薪資、醫療與看護行情較高，但證據要求通常較嚴格。',
     confidenceLevel: 'medium',
   },
-  '臺灣新北地方法院': {
+  臺灣新北地方法院: {
     courtName: '臺灣新北地方法院',
     painAndSufferingMultiplier: 1.05,
     nursingDailyRateLow: 2_200,
@@ -44,9 +44,9 @@ export const regionAdjustments: Record<string, RegionAdjustment> = {
     notes: '與大台北生活圈接近，慰撫金與看護行情可接近台北，但仍需依判決資料校正。',
     confidenceLevel: 'medium',
   },
-  '臺灣臺中地方法院': {
+  臺灣臺中地方法院: {
     courtName: '臺灣臺中地方法院',
-    painAndSufferingMultiplier: 1.00,
+    painAndSufferingMultiplier: 1.0,
     nursingDailyRateLow: 2_000,
     nursingDailyRateMid: 2_400,
     nursingDailyRateHigh: 2_600,
@@ -55,7 +55,7 @@ export const regionAdjustments: Record<string, RegionAdjustment> = {
     notes: '中部地區基準，可作為一般車禍案件估算基準。',
     confidenceLevel: 'medium',
   },
-  '臺灣高雄地方法院': {
+  臺灣高雄地方法院: {
     courtName: '臺灣高雄地方法院',
     painAndSufferingMultiplier: 0.95,
     nursingDailyRateLow: 2_000,
@@ -66,9 +66,9 @@ export const regionAdjustments: Record<string, RegionAdjustment> = {
     notes: '南部都會區基準，須以實際判決資料修正。',
     confidenceLevel: 'medium',
   },
-  '臺灣桃園地方法院': {
+  臺灣桃園地方法院: {
     courtName: '臺灣桃園地方法院',
-    painAndSufferingMultiplier: 1.00,
+    painAndSufferingMultiplier: 1.0,
     nursingDailyRateLow: 2_000,
     nursingDailyRateMid: 2_300,
     nursingDailyRateHigh: 2_500,
@@ -77,7 +77,7 @@ export const regionAdjustments: Record<string, RegionAdjustment> = {
     notes: '北桃園都會區，行情接近台北但略低。',
     confidenceLevel: 'medium',
   },
-  '臺灣臺南地方法院': {
+  臺灣臺南地方法院: {
     courtName: '臺灣臺南地方法院',
     painAndSufferingMultiplier: 0.95,
     nursingDailyRateLow: 1_900,
@@ -90,7 +90,7 @@ export const regionAdjustments: Record<string, RegionAdjustment> = {
   },
   default: {
     courtName: '預設地區',
-    painAndSufferingMultiplier: 1.00,
+    painAndSufferingMultiplier: 1.0,
     nursingDailyRateLow: 2_000,
     nursingDailyRateMid: 2_400,
     nursingDailyRateHigh: 2_600,

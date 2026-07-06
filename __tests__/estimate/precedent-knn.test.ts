@@ -145,14 +145,16 @@ describe('computePrecedentDistance — 純函式 KNN 距離', () => {
     const sameCity = features({ city: '臺中市', disabilityLevel: 7 })
     const diffCity = features({ city: '臺北市', disabilityLevel: 7 })
     const base = features({ city: '臺中市', disabilityLevel: 7 })
-    expect(computePrecedentDistance(base, diffCity)).toBeGreaterThan(computePrecedentDistance(base, sameCity))
+    expect(computePrecedentDistance(base, diffCity)).toBeGreaterThan(
+      computePrecedentDistance(base, sameCity),
+    )
   })
 
   it('失能等級差異越大 → 距離越大', () => {
     const base = features({ disabilityLevel: 7 })
     const same = features({ disabilityLevel: 7 })
-    const close = features({ disabilityLevel: 8 })  // 差 1
-    const far = features({ disabilityLevel: 14 })   // 差 7
+    const close = features({ disabilityLevel: 8 }) // 差 1
+    const far = features({ disabilityLevel: 14 }) // 差 7
     const dSame = computePrecedentDistance(base, same)
     const dClose = computePrecedentDistance(base, close)
     const dFar = computePrecedentDistance(base, far)
@@ -163,8 +165,8 @@ describe('computePrecedentDistance — 純函式 KNN 距離', () => {
   it('年份差異越大 → 距離越大', () => {
     const base = features({ year: 2025 })
     const same = features({ year: 2025 })
-    const close = features({ year: 2024 })  // 差 1
-    const far = features({ year: 2015 })    // 差 10
+    const close = features({ year: 2024 }) // 差 1
+    const far = features({ year: 2015 }) // 差 10
     const dSame = computePrecedentDistance(base, same)
     const dClose = computePrecedentDistance(base, close)
     const dFar = computePrecedentDistance(base, far)

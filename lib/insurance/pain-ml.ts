@@ -67,7 +67,7 @@ export interface PainMLOutput {
 
 export interface ReconcileResult {
   status: 'agree' | 'minor_diverge' | 'diverge'
-  divergence: number  // 0-1，|rulesMid - mlMid| / mlMid
+  divergence: number // 0-1，|rulesMid - mlMid| / mlMid
   warning?: string
 }
 
@@ -89,7 +89,13 @@ const BASE_PAS_TABLE: PasLevelRow[] = [
   { level: 5, label: '重度（骨折 + 手術 + 長期復健）', low: 150_000, mid: 220_000, high: 300_000 },
   { level: 6, label: '嚴重（多處骨折 + 多次手術）', low: 200_000, mid: 300_000, high: 400_000 },
   { level: 7, label: '極嚴重（永久障害 + 持續治療）', low: 300_000, mid: 500_000, high: 800_000 },
-  { level: 8, label: '重大（失能 / 截肢 / 神經重大損傷）', low: 500_000, mid: 800_000, high: 1_500_000 },
+  {
+    level: 8,
+    label: '重大（失能 / 截肢 / 神經重大損傷）',
+    low: 500_000,
+    mid: 800_000,
+    high: 1_500_000,
+  },
 ]
 
 // --- 嚴重度評分（簡化版，與 civil-damages.ts 同步邏輯）----------------
@@ -247,8 +253,7 @@ export function predictPainRange(input: PainMLInput): PainMLOutput {
 
   // 治療期間加成（與規則引擎同步：保守版，最多 +20%）
   // 規則公式：treatmentDays = hospitalizationDays × 2 + rehabilitationCount × 3
-  const treatmentDays =
-    medical.hospitalizationDays * 2 + medical.rehabilitationCount * 3
+  const treatmentDays = medical.hospitalizationDays * 2 + medical.rehabilitationCount * 3
   const treatmentBoost = Math.min(treatmentDays / 180, 0.2)
 
   const baseLow = Math.round(baseRow.low * (1 + treatmentBoost))

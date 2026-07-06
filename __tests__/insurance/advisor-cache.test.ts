@@ -105,13 +105,13 @@ describe('advisor-cache 基本', () => {
 describe('advisor-cache TTL', () => {
   it('未過期 → 命中', () => {
     setCachedAdvisor(mockInput, liveResult, { ttlMs: 60_000 })
-    vi.advanceTimersByTime(30_000)  // 30 秒後
+    vi.advanceTimersByTime(30_000) // 30 秒後
     expect(getCachedAdvisor(mockInput, { ttlMs: 60_000 })).toEqual(liveResult)
   })
 
   it('剛好過期 → 視同 miss', () => {
     setCachedAdvisor(mockInput, liveResult, { ttlMs: 60_000 })
-    vi.advanceTimersByTime(60_001)  // 60.001 秒後（過期）
+    vi.advanceTimersByTime(60_001) // 60.001 秒後（過期）
     expect(getCachedAdvisor(mockInput, { ttlMs: 60_000 })).toBeNull()
   })
 })
@@ -149,11 +149,7 @@ describe('advisor-cache LRU 驅逐', () => {
     // touch inputs[0]（重新插入 LRU 尾端 — Map 順序：1,2,3,4,0）
     getCachedAdvisor(inputs[0], { maxEntries: 5 })
     // 再塞 1 個 → 觸發驅逐現在最舊的 inputs[1]
-    setCachedAdvisor(
-      { ...mockInput, courtName: '新進法院' },
-      liveResult,
-      { maxEntries: 5 },
-    )
+    setCachedAdvisor({ ...mockInput, courtName: '新進法院' }, liveResult, { maxEntries: 5 })
     // inputs[1] 應被驅逐
     expect(getCachedAdvisor(inputs[1], { maxEntries: 5 })).toBeNull()
     // inputs[0] 仍命中（被 touch 過）
@@ -181,9 +177,9 @@ describe('advisor-cache 隱私與停用', () => {
 describe('advisor-cache 統計', () => {
   it('hits/misses 正確累計', () => {
     setCachedAdvisor(mockInput, liveResult)
-    getCachedAdvisor(mockInput)  // hit
-    getCachedAdvisor(mockInput)  // hit
-    getCachedAdvisor({ ...mockInput, courtName: '其他' })  // miss
+    getCachedAdvisor(mockInput) // hit
+    getCachedAdvisor(mockInput) // hit
+    getCachedAdvisor({ ...mockInput, courtName: '其他' }) // miss
 
     const stats = getAdvisorCacheStats()
     expect(stats.hits).toBe(2)
@@ -194,7 +190,7 @@ describe('advisor-cache 統計', () => {
   it('過期 → expirations++', () => {
     setCachedAdvisor(mockInput, liveResult, { ttlMs: 1000 })
     vi.advanceTimersByTime(2000)
-    getCachedAdvisor(mockInput, { ttlMs: 1000 })  // 過期 miss
+    getCachedAdvisor(mockInput, { ttlMs: 1000 }) // 過期 miss
     expect(getAdvisorCacheStats().expirations).toBe(1)
   })
 
@@ -206,7 +202,7 @@ describe('advisor-cache 統計', () => {
     for (const input of inputs) {
       setCachedAdvisor(input, liveResult, { maxEntries: 3 })
     }
-    expect(getAdvisorCacheStats().evictions).toBe(2)  // 5 - 3 = 2 驅逐
+    expect(getAdvisorCacheStats().evictions).toBe(2) // 5 - 3 = 2 驅逐
   })
 
   it('getAdvisorCacheHitRate 沒請求 → null', () => {
@@ -215,9 +211,9 @@ describe('advisor-cache 統計', () => {
 
   it('getAdvisorCacheHitRate 有請求 → 比例', () => {
     setCachedAdvisor(mockInput, liveResult)
-    getCachedAdvisor(mockInput)  // hit
-    getCachedAdvisor(mockInput)  // hit
-    getCachedAdvisor({ ...mockInput, courtName: '其他' })  // miss
+    getCachedAdvisor(mockInput) // hit
+    getCachedAdvisor(mockInput) // hit
+    getCachedAdvisor({ ...mockInput, courtName: '其他' }) // miss
     expect(getAdvisorCacheHitRate()).toBeCloseTo(0.6667, 3)
   })
 })

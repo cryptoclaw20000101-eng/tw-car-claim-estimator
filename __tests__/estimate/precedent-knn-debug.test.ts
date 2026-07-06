@@ -44,7 +44,12 @@ describe('computeDimensionDistances 不變量', () => {
       hasDisabilityRecord: false,
     }
     const breakdown = computeDimensionDistances(F_A, F_B)
-    const sum = breakdown.city + breakdown.disabilityLevel + breakdown.year + breakdown.injurySeverity + breakdown.hasDisabilityRecord
+    const sum =
+      breakdown.city +
+      breakdown.disabilityLevel +
+      breakdown.year +
+      breakdown.injurySeverity +
+      breakdown.hasDisabilityRecord
     const total = computePrecedentDistance(F_A, F_B)
     // 浮點容忍 1e-9
     expect(Math.abs(sum - total)).toBeLessThan(1e-9)

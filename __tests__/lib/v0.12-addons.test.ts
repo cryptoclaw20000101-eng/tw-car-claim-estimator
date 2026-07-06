@@ -17,9 +17,15 @@ const localStorageMock = (() => {
   let store: Record<string, string> = {}
   return {
     getItem: (k: string) => store[k] ?? null,
-    setItem: (k: string, v: string) => { store[k] = v },
-    removeItem: (k: string) => { delete store[k] },
-    clear: () => { store = {} },
+    setItem: (k: string, v: string) => {
+      store[k] = v
+    },
+    removeItem: (k: string) => {
+      delete store[k]
+    },
+    clear: () => {
+      store = {}
+    },
     key: () => null,
     get length() {
       return Object.keys(store).length
@@ -57,7 +63,8 @@ describe('estimate-history', () => {
   })
 
   it('save + get 正常運作', async () => {
-    const { saveEstimateHistory, getEstimateHistory, buildHistoryEntry } = await import('@/lib/estimate-history')
+    const { saveEstimateHistory, getEstimateHistory, buildHistoryEntry } =
+      await import('@/lib/estimate-history')
     const entry = {
       timestamp: '2026-07-03T00:00:00.000Z',
       compulsoryTotalEstimated: 80000,
@@ -87,7 +94,8 @@ describe('estimate-history', () => {
   })
 
   it('clearEstimateHistory 清空', async () => {
-    const { saveEstimateHistory, getEstimateHistory, clearEstimateHistory } = await import('@/lib/estimate-history')
+    const { saveEstimateHistory, getEstimateHistory, clearEstimateHistory } =
+      await import('@/lib/estimate-history')
     saveEstimateHistory({
       timestamp: '2026-07-03T00:00:00.000Z',
       compulsoryTotalEstimated: 1000,
@@ -199,11 +207,16 @@ describe('share-link', () => {
     global.window = {
       localStorage: localStorageMock as unknown as Storage,
       sessionStorage: {
-        setItem: (k: string, v: string) => { sessionStore[k] = v },
+        setItem: (k: string, v: string) => {
+          sessionStore[k] = v
+        },
         getItem: (k: string) => sessionStore[k] ?? null,
       } as unknown as Storage,
       // window.location.hash 會帶 # 前綴 → decodeShareHash 期待「r=」開頭，所以用 #r= 形式
-      location: { origin: 'https://example.com', hash: '#r=eyJ2IjoxLCJpIjp7ImFjY2lkZW50RGF0ZSI6IjIwMjYtMDctMDMifX0=' } as unknown as Location,
+      location: {
+        origin: 'https://example.com',
+        hash: '#r=eyJ2IjoxLCJpIjp7ImFjY2lkZW50RGF0ZSI6IjIwMjYtMDctMDMifX0=',
+      } as unknown as Location,
     } as unknown as Window & typeof globalThis
     // 改用 slice 移除 # 來測
     const hash = global.window.location.hash.slice(1)
@@ -236,19 +249,25 @@ describe('batch-estimator', () => {
 
   it('parseBatchCsv 欄位不足標 error', async () => {
     const { parseBatchCsv } = await import('@/lib/batch-estimator')
-    const rows = parseBatchCsv('accidentDate,accidentLocation,disabilityLevel,faultRatio\n2026-03-15,臺中')
+    const rows = parseBatchCsv(
+      'accidentDate,accidentLocation,disabilityLevel,faultRatio\n2026-03-15,臺中',
+    )
     expect(rows[0].error).toContain('欄位不足')
   })
 
   it('parseBatchCsv 失能等級超出範圍標 error', async () => {
     const { parseBatchCsv } = await import('@/lib/batch-estimator')
-    const rows = parseBatchCsv('accidentDate,accidentLocation,disabilityLevel,faultRatio\n2026-03-15,臺中,99,50')
+    const rows = parseBatchCsv(
+      'accidentDate,accidentLocation,disabilityLevel,faultRatio\n2026-03-15,臺中,99,50',
+    )
     expect(rows[0].error).toContain('失能等級')
   })
 
   it('parseBatchCsv 肇責超出範圍標 error', async () => {
     const { parseBatchCsv } = await import('@/lib/batch-estimator')
-    const rows = parseBatchCsv('accidentDate,accidentLocation,disabilityLevel,faultRatio\n2026-03-15,臺中,7,150')
+    const rows = parseBatchCsv(
+      'accidentDate,accidentLocation,disabilityLevel,faultRatio\n2026-03-15,臺中,7,150',
+    )
     expect(rows[0].error).toContain('肇責')
   })
 
@@ -260,7 +279,9 @@ describe('batch-estimator', () => {
 
   it('estimateBatch 跑 SAMPLE_INPUT 模板', async () => {
     const { parseBatchCsv, estimateBatch } = await import('@/lib/batch-estimator')
-    const rows = parseBatchCsv('accidentDate,accidentLocation,disabilityLevel,faultRatio\n2026-03-15,臺中市西區,7,30')
+    const rows = parseBatchCsv(
+      'accidentDate,accidentLocation,disabilityLevel,faultRatio\n2026-03-15,臺中市西區,7,30',
+    )
     const computed = estimateBatch(rows)
     expect(computed[0].result).toBeDefined()
     expect(computed[0].result?.compulsoryTotalEstimated).toBeGreaterThan(0)
@@ -268,7 +289,9 @@ describe('batch-estimator', () => {
 
   it('batchToCsv 輸出含 header + 資料列', async () => {
     const { parseBatchCsv, estimateBatch, batchToCsv } = await import('@/lib/batch-estimator')
-    const rows = parseBatchCsv('accidentDate,accidentLocation,disabilityLevel,faultRatio\n2026-03-15,臺中市西區,7,30\n2026-04-01,臺北市大安區,12,50')
+    const rows = parseBatchCsv(
+      'accidentDate,accidentLocation,disabilityLevel,faultRatio\n2026-03-15,臺中市西區,7,30\n2026-04-01,臺北市大安區,12,50',
+    )
     const computed = estimateBatch(rows)
     const csv = batchToCsv(computed)
     expect(csv).toContain('rowNumber,accidentDate')

@@ -54,7 +54,7 @@ describe('getRegionAdjustment — 法院地區係數', () => {
 
   it('臺北 multiplier 1.10（最高）', () => {
     const r = getRegionAdjustment('臺灣臺北地方法院')
-    expect(r.painAndSufferingMultiplier).toBe(1.10)
+    expect(r.painAndSufferingMultiplier).toBe(1.1)
   })
 
   it('高雄 multiplier 0.95（南部略低）', () => {

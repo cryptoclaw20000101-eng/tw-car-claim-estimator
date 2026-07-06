@@ -46,9 +46,7 @@ function median(nums: number[]): number {
   if (nums.length === 0) return 0
   const sorted = [...nums].sort((a, b) => a - b)
   const mid = Math.floor(sorted.length / 2)
-  return sorted.length % 2 === 0
-    ? Math.round((sorted[mid - 1] + sorted[mid]) / 2)
-    : sorted[mid]
+  return sorted.length % 2 === 0 ? Math.round((sorted[mid - 1] + sorted[mid]) / 2) : sorted[mid]
 }
 
 /**
@@ -57,17 +55,14 @@ function median(nums: number[]): number {
  * @param anchorRows 通常 = JSON.parse(readFileSync('data/precedents/taipei-mental-distress.json'))
  * @returns 4 組指標：anchor / court / confidence / injury
  */
-export function computeEnsembleHealth(
-  anchorRows: PrecedentRow[]
-): EnsembleHealth {
+export function computeEnsembleHealth(anchorRows: PrecedentRow[]): EnsembleHealth {
   const amounts = anchorRows
     .map((r) => Number(r.amount ?? r.mentalDistressAmount ?? 0))
     .filter((n) => n > 0)
 
   const n = amounts.length
   const sorted = [...amounts].sort((a, b) => a - b)
-  const at = (p: number) =>
-    sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))]
+  const at = (p: number) => sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))]
 
   // 信心度分級（沿用 pain-ml.ts §8 規則）
   let confidenceLevel: ConfidenceLevel

@@ -41,9 +41,7 @@ export function EnsembleHealthHeroCard() {
     <div className="!mt-3 rounded-lg border border-border bg-surface p-4 shadow-[0_1px_0_rgba(0,0,0,0.02)]">
       <Space size={6} className="!mb-2">
         <ExperimentOutlined />
-        <Text className="!text-xs uppercase tracking-wider text-muted">
-          Ensemble 健康度
-        </Text>
+        <Text className="!text-xs uppercase tracking-wider text-muted">Ensemble 健康度</Text>
       </Space>
       <div className="grid grid-cols-3 gap-3">
         {/* v0.10.0+：3 KPI 加 staggered fade-in */}
@@ -69,12 +67,7 @@ export function EnsembleHealthHeroCard() {
           </div>
         </KpiCell>
 
-        <KpiCell
-          index={2}
-          reduce={reduce}
-          tooltip={health.confidenceTip}
-          label="信心度"
-        >
+        <KpiCell index={2} reduce={reduce} tooltip={health.confidenceTip} label="信心度">
           <div className={`tabular-nums text-2xl font-semibold tracking-tight ${meta.color}`}>
             {meta.label}
           </div>
@@ -92,9 +85,7 @@ export function EnsembleHealthHeroCard() {
         >
           <Space size={6} align="start">
             <WarningOutlined className="text-accent" />
-            <Text className="!text-xs text-foreground">
-              {health.injuryGradientWarning}
-            </Text>
+            <Text className="!text-xs text-foreground">{health.injuryGradientWarning}</Text>
           </Space>
         </motion.div>
       )}

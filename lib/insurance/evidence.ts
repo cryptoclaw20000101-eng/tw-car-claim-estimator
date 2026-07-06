@@ -64,10 +64,17 @@ export function generateEvidence(
   if (input.property.vehicleRepairInvoice === 0 && input.property.vehicleRepairEstimate > 0) {
     missing.push('車損已有估價單，建議補修車發票（實際修復費）')
   }
-  if (input.property.vehicleRepairEstimate > 0 && input.property.vehicleMarketValueBeforeAccident === 0) {
+  if (
+    input.property.vehicleRepairEstimate > 0 &&
+    input.property.vehicleMarketValueBeforeAccident === 0
+  ) {
     risks.push('車損估算需事故前車價以避免超估，建議補車輛殘值或市場行情資料')
   }
-  if (input.property.vehicleRepairEstimate === 0 && input.property.vehicleRepairInvoice === 0 && input.property.towingFee > 0) {
+  if (
+    input.property.vehicleRepairEstimate === 0 &&
+    input.property.vehicleRepairInvoice === 0 &&
+    input.property.towingFee > 0
+  ) {
     missing.push('已有拖吊費，建議補車損估價單或照片')
   }
 

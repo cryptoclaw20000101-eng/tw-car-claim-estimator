@@ -50,9 +50,7 @@ export function FormProgress({ steps, current, className = '' }: FormProgressPro
         <div className="relative grid grid-cols-7 gap-2">
           {steps.map((step, i) => {
             const status = i < current ? 'done' : i === current ? 'current' : 'pending'
-            return (
-              <StepDot key={step.title} index={i} status={status} title={step.title} />
-            )
+            return <StepDot key={step.title} index={i} status={status} title={step.title} />
           })}
         </div>
       </div>

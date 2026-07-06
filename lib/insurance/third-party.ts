@@ -7,7 +7,12 @@
 //   最終估算 = 第三人險可賠  （v0.5.2: 無保額上限）
 // =====================================================================
 
-import type { PropertyDamageInputs, AccidentBasics, ThirdPartyEstimate, PainAndSufferingResult } from './types'
+import type {
+  PropertyDamageInputs,
+  AccidentBasics,
+  ThirdPartyEstimate,
+  PainAndSufferingResult,
+} from './types'
 import { getRegionAdjustment } from './region-adjustments'
 
 export interface CivilDamageInput {
@@ -33,16 +38,20 @@ export interface ThirdPartyInput {
 // --- 體傷 / 財損 分項打包 --------------------------------------------
 
 function packBodilyCivil(c: CivilDamageInput, pas: 'Low' | 'Mid' | 'High') {
-  const nursing = c.civilNursingFeeLow  // 中性取 low 入體傷（保守）
+  const nursing = c.civilNursingFeeLow // 中性取 low 入體傷（保守）
   return {
     medical: c.civilMedicalExpense,
-    nursing: pas === 'High' ? c.civilNursingFeeHigh : pas === 'Mid' ? c.civilNursingFeeMid : nursing,
+    nursing:
+      pas === 'High' ? c.civilNursingFeeHigh : pas === 'Mid' ? c.civilNursingFeeMid : nursing,
     transportation: c.civilTransportationFee,
     workLoss: c.workLoss,
     laborCapacity: c.laborCapacityLossEstimate,
-    pas: pas === 'High' ? c.painAndSuffering.regionalHigh
-       : pas === 'Mid' ? c.painAndSuffering.regionalMid
-       : c.painAndSuffering.regionalLow,
+    pas:
+      pas === 'High'
+        ? c.painAndSuffering.regionalHigh
+        : pas === 'Mid'
+          ? c.painAndSuffering.regionalMid
+          : c.painAndSuffering.regionalLow,
   }
 }
 
@@ -132,13 +141,13 @@ export function computeVehicleDamage(input: PropertyDamageInputs): number {
 
 export function computePropertyDamage(input: PropertyDamageInputs): number {
   return (
-    input.towingFee
-    + input.rentalCarFee
-    + input.phoneDamage
-    + input.helmetDamage
-    + input.clothingDamage
-    + input.glassesDamage
-    + input.otherPropertyDamage
+    input.towingFee +
+    input.rentalCarFee +
+    input.phoneDamage +
+    input.helmetDamage +
+    input.clothingDamage +
+    input.glassesDamage +
+    input.otherPropertyDamage
   )
 }
 

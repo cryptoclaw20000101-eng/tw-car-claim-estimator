@@ -80,10 +80,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   // --- 3. 驗證欄位 ---
   const validation = validateAdvisorInput(input)
   if (!validation.ok) {
-    return NextResponse.json(
-      { error: validation.error },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: validation.error }, { status: 400 })
   }
 
   // --- 4. 呼叫 LLM advisor（永遠不會 throw，內部已 fallback） ---
@@ -159,11 +156,7 @@ function validateAdvisorInput(input: unknown): ValidationOk | ValidationErr {
   }
 
   // mlConfidence — 列舉
-  if (
-    obj.mlConfidence !== 'high' &&
-    obj.mlConfidence !== 'medium' &&
-    obj.mlConfidence !== 'low'
-  ) {
+  if (obj.mlConfidence !== 'high' && obj.mlConfidence !== 'medium' && obj.mlConfidence !== 'low') {
     return { ok: false, error: "mlConfidence 必須是 'high' | 'medium' | 'low'" }
   }
 

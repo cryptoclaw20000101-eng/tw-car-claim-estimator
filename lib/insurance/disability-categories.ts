@@ -27,7 +27,12 @@ export const DISABILITY_CATEGORIES = [
   { value: '04_ear', label: '04 耳（聽力/前庭）', defaultLevel: 13 },
   { value: '05_nose', label: '05 鼻（嗅覺/外觀）', defaultLevel: 13 },
   { value: '06_mouth', label: '06 口（咀嚼/言語）', defaultLevel: 13 },
-  { value: '07_thoracic_organ', label: '07 胸腹部臟器（心/肝/腎/肺）', defaultLevel: 13, compulsoryExclusion: true },
+  {
+    value: '07_thoracic_organ',
+    label: '07 胸腹部臟器（心/肝/腎/肺）',
+    defaultLevel: 13,
+    compulsoryExclusion: true,
+  },
   { value: '08_trunk', label: '08 軀幹（脊柱/骨盆/胸部）', defaultLevel: 13 },
   { value: '09_head_face_neck', label: '09 頭臉頸（外觀/疤痕）', defaultLevel: 13 },
   { value: '10_skin', label: '10 皮膚（含疤痕/燒燙）', defaultLevel: 13 },

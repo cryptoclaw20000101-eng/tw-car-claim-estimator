@@ -11,7 +11,13 @@ import type { PersonalIncome } from '@/lib/insurance/types'
 
 const basePerson: Pick<
   PersonalIncome,
-  'age' | 'sixMonthAverageSalary' | 'monthlySalary' | 'dailyWage' | 'lastYearTaxableIncome' | 'actualLeaveDays' | 'doctorOrderedRestDays'
+  | 'age'
+  | 'sixMonthAverageSalary'
+  | 'monthlySalary'
+  | 'dailyWage'
+  | 'lastYearTaxableIncome'
+  | 'actualLeaveDays'
+  | 'doctorOrderedRestDays'
 > = {
   age: 35,
   sixMonthAverageSalary: 40_000,
@@ -53,9 +59,9 @@ describe('computeWorkLossExtended', () => {
     expect(r.calculationType).toBe('long_term')
     // 休養 8 月、35 歲 → 霍夫曼年數 min(65-35=30, max(0.66, 1)=1) = 1
     // 但休養 < 1 年 → 走 hoffmannFraction(0.66) ≈ 0.66/0.05 × ...（按公式）
-    expect(r.hoffmannYears).toBe(1)  // min(30, max(0.66, 1))
+    expect(r.hoffmannYears).toBe(1) // min(30, max(0.66, 1))
     expect(r.hoffmannFactor).toBeGreaterThan(0)
-    expect(r.amount).toBeGreaterThan(50_000)  // 至少有年損失 × 比例
+    expect(r.amount).toBeGreaterThan(50_000) // 至少有年損失 × 比例
   })
 
   it('症狀固定 → 強制長期計算', () => {
@@ -88,7 +94,7 @@ describe('computeWorkLossExtended', () => {
       person: basePerson,
       courtName: '臺灣臺北地方法院',
     })
-    expect(r.regionalMultiplier).toBe(1.10)
+    expect(r.regionalMultiplier).toBe(1.1)
     // 80000 × 1.10 = 88,000
     expect(r.amount).toBe(88_000)
   })
@@ -99,7 +105,7 @@ describe('computeWorkLossExtended', () => {
       courtName: '臺灣臺中地方法院',
     })
     expect(r.amount).toBe(0)
-    expect(r.notes.some(n => n.includes('退休') || n.includes('慰撫金'))).toBe(true)
+    expect(r.notes.some((n) => n.includes('退休') || n.includes('慰撫金'))).toBe(true)
     expect(r.hint).toContain('退休')
   })
 

@@ -32,7 +32,7 @@ interface SeverityScoreBreakdown {
   hasFracture: boolean
   hasNerveDamage: boolean
   hasAmputation: boolean
-  treatmentDurationDays: number  // 保留供 scoreSeverity 內部使用（測試可注入）
+  treatmentDurationDays: number // 保留供 scoreSeverity 內部使用（測試可注入）
 }
 
 // 8 級區間表（元），基本值
@@ -44,7 +44,13 @@ const BASE_PAS_TABLE: { level: number; label: string; low: number; mid: number; 
   { level: 5, label: '重度（骨折 + 手術 + 長期復健）', low: 150_000, mid: 220_000, high: 300_000 },
   { level: 6, label: '嚴重（多處骨折 + 多次手術）', low: 200_000, mid: 300_000, high: 400_000 },
   { level: 7, label: '極嚴重（永久障害 + 持續治療）', low: 300_000, mid: 500_000, high: 800_000 },
-  { level: 8, label: '重大（失能 / 截肢 / 神經重大損傷）', low: 500_000, mid: 800_000, high: 1_500_000 },
+  {
+    level: 8,
+    label: '重大（失能 / 截肢 / 神經重大損傷）',
+    low: 500_000,
+    mid: 800_000,
+    high: 1_500_000,
+  },
 ]
 
 /**
@@ -75,7 +81,8 @@ export function scoreSeverity(b: SeverityScoreBreakdown): number {
   else if (b.rehabilitationCount >= 1) score += 5
 
   // 疤痕（0-15）
-  if (b.hasAmputation) score += 15  // 截肢疤痕極重
+  if (b.hasAmputation)
+    score += 15 // 截肢疤痕極重
   else if (b.scarLengthCm >= 10) score += 15
   else if (b.scarLengthCm >= 5) score += 10
   else if (b.scarLengthCm > 0) score += 5
@@ -99,14 +106,14 @@ export function scoreSeverity(b: SeverityScoreBreakdown): number {
 }
 
 function pickPasTableIndex(score: number): number {
-  if (score >= 75) return 7  // 重大
-  if (score >= 60) return 6  // 極嚴重
-  if (score >= 45) return 5  // 嚴重
-  if (score >= 35) return 4  // 重度
-  if (score >= 25) return 3  // 中重度
-  if (score >= 15) return 2  // 中度
-  if (score >= 5) return 1   // 輕傷
-  return 0                  // 極輕微
+  if (score >= 75) return 7 // 重大
+  if (score >= 60) return 6 // 極嚴重
+  if (score >= 45) return 5 // 嚴重
+  if (score >= 35) return 4 // 重度
+  if (score >= 25) return 3 // 中重度
+  if (score >= 15) return 2 // 中度
+  if (score >= 5) return 1 // 輕傷
+  return 0 // 極輕微
 }
 
 /**
@@ -198,15 +205,22 @@ export function computeCivilNursingFee(
   const compulsoryNursingApproved = Math.min(receipts.nursingFee, 1_200 * eligibleDays)
 
   // 醫囑看護日數優先用 receipts.nursingDays，否則 medical.nursingDays
-  const doctorOrderedDays = receipts.nursingDays > 0
-    ? receipts.nursingDays
-    : medical.nursingDays
+  const doctorOrderedDays = receipts.nursingDays > 0 ? receipts.nursingDays : medical.nursingDays
 
   const region = getRegionAdjustment(courtName)
 
-  const low = Math.max(region.nursingDailyRateLow * doctorOrderedDays - compulsoryNursingApproved, 0)
-  const mid = Math.max(region.nursingDailyRateMid * doctorOrderedDays - compulsoryNursingApproved, 0)
-  const high = Math.max(region.nursingDailyRateHigh * doctorOrderedDays - compulsoryNursingApproved, 0)
+  const low = Math.max(
+    region.nursingDailyRateLow * doctorOrderedDays - compulsoryNursingApproved,
+    0,
+  )
+  const mid = Math.max(
+    region.nursingDailyRateMid * doctorOrderedDays - compulsoryNursingApproved,
+    0,
+  )
+  const high = Math.max(
+    region.nursingDailyRateHigh * doctorOrderedDays - compulsoryNursingApproved,
+    0,
+  )
 
   return {
     low,
@@ -230,10 +244,7 @@ export interface WorkLossResult {
   notes: string[]
 }
 
-export function computeWorkLoss(
-  person: PersonalIncome,
-  courtName: string,
-): WorkLossResult {
+export function computeWorkLoss(person: PersonalIncome, courtName: string): WorkLossResult {
   const notes: string[] = []
   const region = getRegionAdjustment(courtName)
 
@@ -278,7 +289,9 @@ export function computeWorkLoss(
 
   // 地區嚴格度提示
   if (region.workLossEvidenceStrictness === 'high') {
-    notes.push(`${region.courtName} 對工作損失證據要求較嚴，建議齊備：薪轉、扣薪、報稅所得、醫囑休養期間`)
+    notes.push(
+      `${region.courtName} 對工作損失證據要求較嚴，建議齊備：薪轉、扣薪、報稅所得、醫囑休養期間`,
+    )
   } else if (region.workLossEvidenceStrictness === 'medium') {
     notes.push('建議補：薪資證明、請假單、扣薪證明、醫囑休養期間')
   }
@@ -323,7 +336,15 @@ export interface LaborCapacityLossInput {
    * 職業類型：用於自動建議 retirementAge 與 notes 提示。
    * 選填，不影響計算。
    */
-  occupation?: 'labor' | 'farmer' | 'self_employed' | 'professional' | 'service' | 'student' | 'unemployed' | 'retired'
+  occupation?:
+    | 'labor'
+    | 'farmer'
+    | 'self_employed'
+    | 'professional'
+    | 'service'
+    | 'student'
+    | 'unemployed'
+    | 'retired'
 }
 
 export interface LaborCapacityLossResult {
@@ -341,9 +362,7 @@ export interface LaborCapacityLossResult {
   notes: string[]
 }
 
-export function computeLaborCapacityLoss(
-  input: LaborCapacityLossInput,
-): LaborCapacityLossResult {
+export function computeLaborCapacityLoss(input: LaborCapacityLossInput): LaborCapacityLossResult {
   const { medical, person, courtName, disabilityLevel } = input
   const region = getRegionAdjustment(courtName)
   const notes: string[] = []
@@ -394,9 +413,7 @@ export function computeLaborCapacityLoss(
 
   // 年收入：以 6 月平均薪資 × 12 推估；六個月未填則用月薪 × 12
   const annualIncome =
-    person.sixMonthAverageSalary > 0
-      ? person.sixMonthAverageSalary * 12
-      : person.monthlySalary * 12
+    person.sixMonthAverageSalary > 0 ? person.sixMonthAverageSalary * 12 : person.monthlySalary * 12
 
   if (annualIncome === 0) {
     return {
@@ -447,12 +464,18 @@ export function computeLaborCapacityLoss(
 
   // 低/高估算：低 = 不含地區加成、高 = 1.2 倍地區加成（容許 ±20% 區間）
   const estimateLow = Math.round(annualIncome * coefficient * lossPercent * 1.0)
-  const estimateHigh = Math.round(annualIncome * coefficient * lossPercent * regionalMultiplier * 1.2)
+  const estimateHigh = Math.round(
+    annualIncome * coefficient * lossPercent * regionalMultiplier * 1.2,
+  )
 
   // 提示
-  notes.push(`年齡 ${person.age} 歲 → 霍夫曼年數 ${hoffmannYears} 年（係數 ${coefficient.toFixed(4)}）`)
+  notes.push(
+    `年齡 ${person.age} 歲 → 霍夫曼年數 ${hoffmannYears} 年（係數 ${coefficient.toFixed(4)}）`,
+  )
   notes.push(`失能等級 ${disabilityLevel} 等 → 勞減比例 ${(lossPercent * 100).toFixed(0)}%`)
-  notes.push(`年收入 ${annualIncome.toLocaleString()} 元 → 勞減估算約 ${estimate.toLocaleString()} 元`)
+  notes.push(
+    `年收入 ${annualIncome.toLocaleString()} 元 → 勞減估算約 ${estimate.toLocaleString()} 元`,
+  )
 
   if (region.confidenceLevel === 'low') {
     notes.push(`⚠️ ${region.courtName} 地區資料信心度低，實際判賠可能與估算有 ±20% 落差`)

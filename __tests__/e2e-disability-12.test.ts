@@ -50,8 +50,20 @@ describe('12 大類 → 勞減引擎 E2E：吃 disabilityLevel', () => {
   it('輸入 disabilityCategory=11_upper_limb + disabilityLevel=9 → 勞減 60%', () => {
     const input = {
       basics: { ...defaultBasics },
-      fault: { selfFaultRatio: 0, otherFaultRatio: 100, faultSource: 'police_preliminary', isFaultDisputed: false },
-      person: { ...defaultPerson, age: 35, monthlySalary: 50000, sixMonthAverageSalary: 50000, employmentType: 'full_time_salary', retirementAge: 65 },
+      fault: {
+        selfFaultRatio: 0,
+        otherFaultRatio: 100,
+        faultSource: 'police_preliminary',
+        isFaultDisputed: false,
+      },
+      person: {
+        ...defaultPerson,
+        age: 35,
+        monthlySalary: 50000,
+        sixMonthAverageSalary: 50000,
+        employmentType: 'full_time_salary',
+        retirementAge: 65,
+      },
       medical: {
         ...defaultMedical,
         disabilityCategory: '11_upper_limb',
@@ -73,8 +85,20 @@ describe('12 大類 → 勞減引擎 E2E：吃 disabilityLevel', () => {
   it('輸入 disabilityLevel=1（最重）→ 勞減金額遠大於 15 等（最輕）', () => {
     const baseInput = {
       basics: { ...defaultBasics },
-      fault: { selfFaultRatio: 0, otherFaultRatio: 100, faultSource: 'police_preliminary', isFaultDisputed: false },
-      person: { ...defaultPerson, age: 35, monthlySalary: 50000, sixMonthAverageSalary: 50000, employmentType: 'full_time_salary', retirementAge: 65 },
+      fault: {
+        selfFaultRatio: 0,
+        otherFaultRatio: 100,
+        faultSource: 'police_preliminary',
+        isFaultDisputed: false,
+      },
+      person: {
+        ...defaultPerson,
+        age: 35,
+        monthlySalary: 50000,
+        sixMonthAverageSalary: 50000,
+        employmentType: 'full_time_salary',
+        retirementAge: 65,
+      },
       medicalReceipts: defaultReceipts,
       property: defaultProperty,
     }
@@ -94,7 +118,9 @@ describe('12 大類 → 勞減引擎 E2E：吃 disabilityLevel', () => {
 })
 
 // ============== 共用 default（與表單同步）==============
-function today(): string { return new Date().toISOString().slice(0, 10) }
+function today(): string {
+  return new Date().toISOString().slice(0, 10)
+}
 const defaultBasics = {
   accidentDate: today(),
   accidentLocation: '臺中市',
@@ -161,16 +187,37 @@ const defaultMedical = {
   hasPermanentImpairment: false,
 }
 const defaultReceipts = {
-  emergencyFee: 0, ambulanceFee: 0, nhiCopayment: 0, registrationFee: 0,
-  diagnosisCertificateFee: 0, nonNhiNecessaryMedicalFee: 0, wardFeeDifference: 0,
-  wardFeeDays: 0, mealFee: 0, mealDays: 0, prosthesisFee: 0, dentureFee: 0,
-  missingTeethCount: 0, artificialEyeFee: 0, medicalMaterialFee: 0,
-  assistiveDeviceFee: 0, transportationFee: 0, nursingFee: 0, nursingDays: 0,
+  emergencyFee: 0,
+  ambulanceFee: 0,
+  nhiCopayment: 0,
+  registrationFee: 0,
+  diagnosisCertificateFee: 0,
+  nonNhiNecessaryMedicalFee: 0,
+  wardFeeDifference: 0,
+  wardFeeDays: 0,
+  mealFee: 0,
+  mealDays: 0,
+  prosthesisFee: 0,
+  dentureFee: 0,
+  missingTeethCount: 0,
+  artificialEyeFee: 0,
+  medicalMaterialFee: 0,
+  assistiveDeviceFee: 0,
+  transportationFee: 0,
+  nursingFee: 0,
+  nursingDays: 0,
   otherNecessaryMedicalFee: 0,
 }
 const defaultProperty = {
-  vehicleRepairEstimate: 0, vehicleRepairInvoice: 0,
-  vehicleMarketValueBeforeAccident: 0, salvageValue: 0, towingFee: 0,
-  rentalCarFee: 0, phoneDamage: 0, helmetDamage: 0, clothingDamage: 0,
-  glassesDamage: 0, otherPropertyDamage: 0,
+  vehicleRepairEstimate: 0,
+  vehicleRepairInvoice: 0,
+  vehicleMarketValueBeforeAccident: 0,
+  salvageValue: 0,
+  towingFee: 0,
+  rentalCarFee: 0,
+  phoneDamage: 0,
+  helmetDamage: 0,
+  clothingDamage: 0,
+  glassesDamage: 0,
+  otherPropertyDamage: 0,
 }

@@ -78,10 +78,7 @@ export function getEstimateHistory(): HistoryEntry[] {
 /**
  * 從 EstimationResult 抽出脫敏欄位
  */
-export function buildHistoryEntry(
-  result: EstimationResult,
-  selfFaultRatio: number,
-): HistoryEntry {
+export function buildHistoryEntry(result: EstimationResult, selfFaultRatio: number): HistoryEntry {
   return {
     timestamp: new Date().toISOString(),
     compulsoryTotalEstimated: result.compulsoryTotalEstimated,

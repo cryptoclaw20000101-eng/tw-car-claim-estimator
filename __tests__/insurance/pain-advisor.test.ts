@@ -61,10 +61,12 @@ describe('buildAdvisorPrompt — 純函式 prompt 建構', () => {
   })
 
   it('prompt 包含 outlier 票別', () => {
-    const prompt = buildAdvisorPrompt(input({
-      ensembleConsensus: 'partial',
-      outlier: 'knn',
-    }))
+    const prompt = buildAdvisorPrompt(
+      input({
+        ensembleConsensus: 'partial',
+        outlier: 'knn',
+      }),
+    )
     expect(prompt).toContain('knn')
   })
 
@@ -100,7 +102,7 @@ describe('parseAdvisorResponse — JSON 解析器', () => {
     const result = parseAdvisorResponse('not valid JSON {')
     expect(result.riskLevel).toBe('medium')
     expect(result.riskFactors.some((f) => f.includes('LLM 回應解析失敗'))).toBe(true)
-    expect(result.requiresHumanReview).toBe(true)  // 解析失敗時一律標 true
+    expect(result.requiresHumanReview).toBe(true) // 解析失敗時一律標 true
   })
 
   it('空字串 → fallback', () => {
@@ -119,7 +121,7 @@ describe('parseAdvisorResponse — JSON 解析器', () => {
 
   it('不合法 riskLevel → fallback medium', () => {
     const json = JSON.stringify({
-      riskLevel: 'extreme',  // 不合法
+      riskLevel: 'extreme', // 不合法
       riskFactors: [],
       recommendations: [],
       consensusInterpretation: 'test',
@@ -160,28 +162,34 @@ describe('mockLLMAdvisor — Mock LLM 介面（v0.6.3 sync）', () => {
   })
 
   it('weak consensus → riskLevel=high', () => {
-    const out = mockLLMAdvisor(input({
-      ensembleConsensus: 'weak',
-      isDivergent: true,
-    }))
+    const out = mockLLMAdvisor(
+      input({
+        ensembleConsensus: 'weak',
+        isDivergent: true,
+      }),
+    )
     expect(out.riskLevel).toBe('high')
     expect(out.requiresHumanReview).toBe(true)
   })
 
   it('strong consensus + ML high → riskLevel=low', () => {
-    const out = mockLLMAdvisor(input({
-      ensembleConsensus: 'strong',
-      mlConfidence: 'high',
-    }))
+    const out = mockLLMAdvisor(
+      input({
+        ensembleConsensus: 'strong',
+        mlConfidence: 'high',
+      }),
+    )
     expect(out.riskLevel).toBe('low')
     expect(out.requiresHumanReview).toBe(false)
   })
 
   it('outlier=knn → recommendations 含「複核 KNN」', () => {
-    const out = mockLLMAdvisor(input({
-      ensembleConsensus: 'partial',
-      outlier: 'knn',
-    }))
+    const out = mockLLMAdvisor(
+      input({
+        ensembleConsensus: 'partial',
+        outlier: 'knn',
+      }),
+    )
     // 測試用 KNN 字樣（不分大小寫）
     const hasKnn = out.recommendations.some((r) => r.toLowerCase().includes('knn'))
     expect(hasKnn).toBe(true)

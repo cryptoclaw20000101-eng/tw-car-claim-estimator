@@ -104,9 +104,9 @@ export const SAMPLE_INPUT: ClaimInput = {
     dentureFee: 0,
     missingTeethCount: 0,
     artificialEyeFee: 0,
-    specialMaterialFee: 30_000,  // v0.2.5+ demo：骨材/鋼板/特材 30,000（與輔具共套 2 萬上限）
-    medicalMaterialFee: 8_000,    // v0.2.5+ demo：一般醫材（紗布/縫線）8,000（不再套 2 萬上限）
-    assistiveDeviceFee: 8_500,    // 拐杖/輪椅/支架（與特殊材料共套 2 萬上限）
+    specialMaterialFee: 30_000, // v0.2.5+ demo：骨材/鋼板/特材 30,000（與輔具共套 2 萬上限）
+    medicalMaterialFee: 8_000, // v0.2.5+ demo：一般醫材（紗布/縫線）8,000（不再套 2 萬上限）
+    assistiveDeviceFee: 8_500, // 拐杖/輪椅/支架（與特殊材料共套 2 萬上限）
     // 強制險算式：special 30,000 + assistive 8,500 = 38,500 超出 2 萬 → pro-rata 0.519
     //   特殊材料 approved ≈ 15,584, 輔具 approved ≈ 4,416, 合計 20,000
     transportationFee: 4_200,

@@ -6,11 +6,7 @@
 // 重點：focus 在「區間參考」，不預測單一判決金額
 // =====================================================================
 
-import type {
-  CourtCaseReference,
-  CourtCompensationCase,
-  CourtCaseCategory,
-} from './types'
+import type { CourtCaseReference, CourtCompensationCase, CourtCaseCategory } from './types'
 
 // --- 6 個直轄市/分院下肢傷害判決區間（mock，彙整自常見民事判決）-------
 // 注意：金額為示意，依實際法院統計可能 ±20% 波動
@@ -169,7 +165,8 @@ const CASE_REFERENCES: CourtCaseReference[] = [
     amountLow: 60_000,
     amountHigh: 120_000,
     summary: '住院 35 日，需全日看護',
-    keyReasoning: '強制險 30 日上限 36,000 元，餘 5 日 2,400 元/日 走第三人險 = 12,000 元，合計 48,000 元 → 法院再調升為 84,000 元（家屬看護折半）',
+    keyReasoning:
+      '強制險 30 日上限 36,000 元，餘 5 日 2,400 元/日 走第三人險 = 12,000 元，合計 48,000 元 → 法院再調升為 84,000 元（家屬看護折半）',
     referenceNote: '看護費計算：強制險 30 日 cap + 第三人險補差額',
   },
   {
@@ -206,9 +203,7 @@ export function getCourtCompensation(
   category: CourtCaseCategory,
 ): CourtCompensationCase | null {
   return (
-    COMPENSATION_TABLE.find(
-      (c) => c.courtName === courtName && c.category === category,
-    ) ?? null
+    COMPENSATION_TABLE.find((c) => c.courtName === courtName && c.category === category) ?? null
   )
 }
 
@@ -218,9 +213,7 @@ export function listAllCompensationTable(): CourtCompensationCase[] {
 }
 
 /** 取得代表性案件參考 */
-export function getCaseReferencesByCategory(
-  category: CourtCaseCategory,
-): CourtCaseReference[] {
+export function getCaseReferencesByCategory(category: CourtCaseCategory): CourtCaseReference[] {
   return CASE_REFERENCES.filter((c) => c.category === category)
 }
 

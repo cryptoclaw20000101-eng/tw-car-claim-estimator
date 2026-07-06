@@ -150,7 +150,8 @@ export function estimateBatch(rows: BatchRow[]): BatchRow[] {
  * 從 BatchRow[] 產出 CSV 字串（給「複製 CSV」按鈕用）
  */
 export function batchToCsv(rows: BatchRow[]): string {
-  const header = 'rowNumber,accidentDate,accidentLocation,disabilityLevel,faultRatio,compulsoryTotal,thirdPartyMid,error'
+  const header =
+    'rowNumber,accidentDate,accidentLocation,disabilityLevel,faultRatio,compulsoryTotal,thirdPartyMid,error'
   const lines = rows.map((row) => {
     const cols = [
       String(row.rowNumber),

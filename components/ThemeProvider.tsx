@@ -57,8 +57,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return () => observer.disconnect()
   }, [mounted])
 
-  const algorithm =
-    mode === 'dark' ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm
+  const algorithm = mode === 'dark' ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm
 
   return (
     <ConfigProvider

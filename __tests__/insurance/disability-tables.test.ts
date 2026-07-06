@@ -35,9 +35,7 @@ describe('disabilityBenefitTable — 常數表', () => {
   it('新制金額 ≥ 舊制（修法提高）', () => {
     for (let level = 1; level <= 15; level++) {
       const key = level as DisabilityLevel
-      expect(disabilityBenefitTableNew[key]).toBeGreaterThanOrEqual(
-        disabilityBenefitTableOld[key],
-      )
+      expect(disabilityBenefitTableNew[key]).toBeGreaterThanOrEqual(disabilityBenefitTableOld[key])
     }
   })
 
@@ -94,6 +92,8 @@ describe('lookupDisabilityAmount — 等級查金額', () => {
 
   it('無效等級（undefined）回傳 0（防呆）', () => {
     expect(lookupDisabilityAmount(99 as DisabilityLevel, disabilityBenefitTableNew)).toBe(0)
-    expect(lookupDisabilityAmount(undefined as unknown as DisabilityLevel, disabilityBenefitTableNew)).toBe(0)
+    expect(
+      lookupDisabilityAmount(undefined as unknown as DisabilityLevel, disabilityBenefitTableNew),
+    ).toBe(0)
   })
 })

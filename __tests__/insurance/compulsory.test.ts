@@ -70,20 +70,20 @@ describe('測試案例 5：強制險 + 第三人險混合', () => {
       nhiCopayment: 250_000,
     }
     const r = computeCompulsoryMedical(input)
-    expect(r.approved).toBe(200_000)  // 上限截斷
+    expect(r.approved).toBe(200_000) // 上限截斷
     expect(r.approved).toBe(COMPULSORY_LIMITS.TOTAL_MEDICAL_CAP)
   })
 
   it('看護 40 日 → 強制險看護只認 30 日（1,200 × 30 = 36,000）', () => {
     const input: CompulsoryMedicalInputs = {
       ...zero,
-      nursingFee: 48_000,  // 申請 40 日 × 1,200
+      nursingFee: 48_000, // 申請 40 日 × 1,200
       nursingDays: 40,
     }
     const r = computeCompulsoryMedical(input)
-    const nursingItem = r.items.find(i => i.key === 'nursingFee')!
+    const nursingItem = r.items.find((i) => i.key === 'nursingFee')!
     expect(nursingItem.applied).toBe(48_000)
-    expect(nursingItem.approved).toBe(36_000)  // 1,200 × 30
+    expect(nursingItem.approved).toBe(36_000) // 1,200 × 30
     expect(nursingItem.legalCap).toBe(36_000)
     expect(nursingItem.reductionReason).toContain('30')
   })
@@ -93,12 +93,12 @@ describe('細項上限規則（spec §六 Step 5）', () => {
   it('病房費差額單日超 1,500 → 刪減', () => {
     const input: CompulsoryMedicalInputs = {
       ...zero,
-      wardFeeDifference: 2_000 * 3,  // 申請 6,000
+      wardFeeDifference: 2_000 * 3, // 申請 6,000
       wardFeeDays: 3,
     }
     const r = computeCompulsoryMedical(input)
-    const ward = r.items.find(i => i.key === 'wardFee')!
-    expect(ward.legalCap).toBe(1_500 * 3)  // 4,500
+    const ward = r.items.find((i) => i.key === 'wardFee')!
+    expect(ward.legalCap).toBe(1_500 * 3) // 4,500
     expect(ward.approved).toBe(4_500)
     expect(ward.reductionReason).toContain('1,500')
   })
@@ -110,7 +110,7 @@ describe('細項上限規則（spec §六 Step 5）', () => {
       mealDays: 5,
     }
     const r = computeCompulsoryMedical(input)
-    const meal = r.items.find(i => i.key === 'mealFee')!
+    const meal = r.items.find((i) => i.key === 'mealFee')!
     expect(meal.legalCap).toBe(180 * 5)
     expect(meal.approved).toBe(900)
   })
@@ -122,7 +122,7 @@ describe('細項上限規則（spec §六 Step 5）', () => {
       missingTeethCount: 6,
     }
     const r = computeCompulsoryMedical(input)
-    const dent = r.items.find(i => i.key === 'dentureFee')!
+    const dent = r.items.find((i) => i.key === 'dentureFee')!
     expect(dent.legalCap).toBe(50_000)
     expect(dent.approved).toBe(50_000)
     expect(dent.reductionReason).toBeTruthy()
@@ -133,17 +133,17 @@ describe('細項上限規則（spec §六 Step 5）', () => {
     // 一般醫材（紗布等）改歸「健保自付額」/「非健保必要」，無 2 萬上限
     const input: CompulsoryMedicalInputs = {
       ...zero,
-      specialMaterialFee: 15_000,  // 骨材/鋼板/特材
-      assistiveDeviceFee: 10_000,  // 拐杖/輪椅
+      specialMaterialFee: 15_000, // 骨材/鋼板/特材
+      assistiveDeviceFee: 10_000, // 拐杖/輪椅
     }
     const r = computeCompulsoryMedical(input)
-    const med = r.items.find(i => i.key === 'medicalMaterial')!
+    const med = r.items.find((i) => i.key === 'medicalMaterial')!
     expect(med.applied).toBe(25_000)
     expect(med.approved).toBe(20_000)
     // 驗 subItems 也正確
     expect(med.subItems).toBeDefined()
-    const special = med.subItems!.find(s => s.key === 'specialMaterial')!
-    const assistive = med.subItems!.find(s => s.key === 'assistiveDevice')!
+    const special = med.subItems!.find((s) => s.key === 'specialMaterial')!
+    const assistive = med.subItems!.find((s) => s.key === 'assistiveDevice')!
     expect(special.applied).toBe(15_000)
     expect(assistive.applied).toBe(10_000)
     // 15_000 + 10_000 = 25_000 超出 20_000，按比例 0.8
@@ -157,11 +157,11 @@ describe('細項上限規則（spec §六 Step 5）', () => {
     // 應歸入「健保自付額」/「非健保必要醫療」邏輯
     const input: CompulsoryMedicalInputs = {
       ...zero,
-      medicalMaterialFee: 30_000,  // 大量一般醫材
+      medicalMaterialFee: 30_000, // 大量一般醫材
     }
     const r = computeCompulsoryMedical(input)
     // 應出現在 medicalMaterial 項但 approved = applied（不截）
-    const med = r.items.find(i => i.key === 'medicalMaterial')
+    const med = r.items.find((i) => i.key === 'medicalMaterial')
     // 預期：medicalMaterial 項仍存在（向後相容）但因 specialMaterialFee=0+assistiveDeviceFee=0 → subtotal=0
     // 一般醫材改歸「健保自付額」/「非健保必要」，這裡的 medicalMaterial 項不計入
     expect(med?.applied).toBe(0)
@@ -173,7 +173,7 @@ describe('細項上限規則（spec §六 Step 5）', () => {
       transportationFee: 25_000,
     }
     const r = computeCompulsoryMedical(input)
-    const trans = r.items.find(i => i.key === 'transportationFee')!
+    const trans = r.items.find((i) => i.key === 'transportationFee')!
     expect(trans.legalCap).toBe(20_000)
     expect(trans.approved).toBe(20_000)
   })
@@ -184,7 +184,7 @@ describe('細項上限規則（spec §六 Step 5）', () => {
       artificialEyeFee: 15_000,
     }
     const r = computeCompulsoryMedical(input)
-    const eye = r.items.find(i => i.key === 'artificialEyeFee')!
+    const eye = r.items.find((i) => i.key === 'artificialEyeFee')!
     expect(eye.legalCap).toBe(10_000)
     expect(eye.approved).toBe(10_000)
   })
@@ -198,7 +198,7 @@ describe('spec §十四 輸出範例：健保自付 18,600 + 診斷書 1,000 + �
       diagnosisCertificateFee: 1_000,
       transportationFee: 3_000,
       nursingFee: 12_000,
-      nursingDays: 10,  // 1,200 × 10 = 12,000
+      nursingDays: 10, // 1,200 × 10 = 12,000
     }
     const r = computeCompulsoryMedical(input)
     expect(r.approved).toBe(34_600)

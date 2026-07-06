@@ -42,7 +42,7 @@ describe('computeThirdParty Bug A 修復：不重複扣減強制險', () => {
         ...case2Basics,
       },
       civil: {
-        civilMedicalExpense: 500_000,  // 已是差額（已扣 20 萬強制險）
+        civilMedicalExpense: 500_000, // 已是差額（已扣 20 萬強制險）
         civilNursingFeeLow: 0,
         civilNursingFeeMid: 0,
         civilNursingFeeHigh: 0,
@@ -50,14 +50,21 @@ describe('computeThirdParty Bug A 修復：不重複扣減強制險', () => {
         workLoss: 0,
         laborCapacityLossEstimate: 0,
         painAndSuffering: {
-          regionalLow: 0, regionalMid: 0, regionalHigh: 0,
-          baseLow: 0, baseMid: 0, baseHigh: 0,
-          regionalMultiplier: 1, severityLevel: '', severityScore: 0, breakdown: {} as any,
+          regionalLow: 0,
+          regionalMid: 0,
+          regionalHigh: 0,
+          baseLow: 0,
+          baseMid: 0,
+          baseHigh: 0,
+          regionalMultiplier: 1,
+          severityLevel: '',
+          severityScore: 0,
+          breakdown: {} as any,
         },
         vehicleDamage: 0,
         propertyDamage: 0,
       },
-      compulsoryTotalApproved: 200_000,  // 已在 civilMedicalExpense 內扣過
+      compulsoryTotalApproved: 200_000, // 已在 civilMedicalExpense 內扣過
       otherFaultRatio: 70,
     })
     // 第三人體傷低 = 50 萬 × 0.7 = 35 萬（修 Bug A 之前會被扣 20 萬 * (50/50) = 20 萬 → 15 萬）

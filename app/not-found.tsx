@@ -11,7 +11,10 @@ import { Compass, House, PenLine, Search } from 'lucide-react'
 
 export default function NotFound() {
   return (
-    <main id="main-content" className="flex min-h-[100dvh] flex-1 flex-col items-center px-6 py-16 md:py-24">
+    <main
+      id="main-content"
+      className="flex min-h-[100dvh] flex-1 flex-col items-center px-6 py-16 md:py-24"
+    >
       <div className="w-full max-w-6xl">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-4 md:grid-rows-2">
           {/* 404 主格（2fr × 2fr） — v0.11.0+ 加 accent decoration */}
@@ -84,8 +87,8 @@ export default function NotFound() {
           <div className="rounded-lg border border-border bg-surface-subtle p-6">
             <p className="mb-2 text-xs uppercase tracking-wider text-muted">免責聲明</p>
             <p className="text-sm text-foreground">
-              本系統依使用者輸入、強制汽車責任保險給付標準、民法侵權行為、
-              金融評議中心案例、6 直轄市地方法院實務區間做初步估算，
+              本系統依使用者輸入、強制汽車責任保險給付標準、民法侵權行為、 金融評議中心案例、6
+              直轄市地方法院實務區間做初步估算，
               <strong>非最終理賠金額</strong>。
             </p>
           </div>

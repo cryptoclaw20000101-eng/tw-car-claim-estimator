@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* ============================================================
    台灣車禍理賠金額估算器 — 設計 Token
@@ -11,29 +11,32 @@
 
 :root {
   /* 中性色階 — 走 Zinc，避開 AI 預設的 slate 紫 */
-  --background: #fafaf9;          /* stone-50 微暖，避開冷色 AI 預設 */
-  --foreground: #18181b;          /* zinc-900 */
-  --muted: #71717a;               /* zinc-500，body secondary */
-  --surface: #ffffff;             /* 卡片底色 */
-  --surface-subtle: #f4f4f5;      /* zinc-100，區塊分隔 */
-  --border: #e4e4e7;              /* zinc-200 */
-  --border-strong: #d4d4d8;       /* zinc-300 */
+  --background: #fafaf9; /* stone-50 微暖，避開冷色 AI 預設 */
+  --foreground: #18181b; /* zinc-900 */
+  --muted: #71717a; /* zinc-500，body secondary */
+  --surface: #ffffff; /* 卡片底色 */
+  --surface-subtle: #f4f4f5; /* zinc-100，區塊分隔 */
+  --border: #e4e4e7; /* zinc-200 */
+  --border-strong: #d4d4d8; /* zinc-300 */
 
   /* 強調色 — 避開 AntD 預設 #1677ff AI 藍紫，改用 deeper neutral + 單一 accent */
-  --accent: #be123c;              /* rose-700，飽和 < 80%，單一 */
-  --accent-soft: #ffe4e6;         /* rose-100 */
+  --accent: #be123c; /* rose-700，飽和 < 80%，單一 */
+  --accent-soft: #ffe4e6; /* rose-100 */
   --accent-foreground: #ffffff;
 
   /* 數據色（Stat 用）— 三色分明，不用彩虹 */
-  --data-positive: #166534;       /* green-800，深綠 */
-  --data-warning: #b45309;        /* amber-700，深橘 */
-  --data-negative: #991b1b;       /* red-800，深紅 */
-  --data-neutral: #1f2937;        /* gray-800 */
+  --data-positive: #166534; /* green-800，深綠 */
+  --data-warning: #b45309; /* amber-700，深橘 */
+  --data-negative: #991b1b; /* red-800，深紅 */
+  --data-neutral: #1f2937; /* gray-800 */
 
   /* 字體階梯 — CI build 不依賴 Google Fonts 下載 */
-  --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
-  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
-  --font-mono: "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", Menlo, ui-monospace, monospace;
+  --font-display:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+  --font-body:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+  --font-mono:
+    'SFMono-Regular', 'SF Mono', Consolas, 'Liberation Mono', Menlo, ui-monospace, monospace;
 
   /* v0.8.0+：手機專用 token */
   --safe-top: env(safe-area-inset-top, 0);
@@ -72,27 +75,33 @@
 
 /* v0.12.0+ Phase B6：dark mode opt-in（手動 toggle） */
 .dark {
-  --background: #0a0a0a;          /* zinc-950 */
-  --foreground: #fafaf9;          /* stone-50 */
-  --muted: #a1a1aa;               /* zinc-400 */
-  --surface: #18181b;             /* zinc-900 */
-  --surface-subtle: #27272a;      /* zinc-800 */
-  --border: #3f3f46;              /* zinc-700 */
-  --border-strong: #52525b;       /* zinc-600 */
-  --accent: #fb7185;              /* rose-400（暗色模式降低飽和） */
-  --accent-soft: #4c0519;         /* rose-950 */
+  --background: #0a0a0a; /* zinc-950 */
+  --foreground: #fafaf9; /* stone-50 */
+  --muted: #a1a1aa; /* zinc-400 */
+  --surface: #18181b; /* zinc-900 */
+  --surface-subtle: #27272a; /* zinc-800 */
+  --border: #3f3f46; /* zinc-700 */
+  --border-strong: #52525b; /* zinc-600 */
+  --accent: #fb7185; /* rose-400（暗色模式降低飽和） */
+  --accent-soft: #4c0519; /* rose-950 */
   --accent-foreground: #ffffff;
-  --data-positive: #4ade80;        /* green-400 */
-  --data-warning: #fbbf24;        /* amber-400 */
-  --data-negative: #f87171;       /* red-400 */
-  --data-neutral: #d4d4d8;        /* zinc-300 */
+  --data-positive: #4ade80; /* green-400 */
+  --data-warning: #fbbf24; /* amber-400 */
+  --data-negative: #f87171; /* red-400 */
+  --data-neutral: #d4d4d8; /* zinc-300 */
 }
 
-html, body {
+html,
+body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-body), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-feature-settings: "tnum";
+  font-family:
+    var(--font-body),
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  font-feature-settings: 'tnum';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -132,10 +141,14 @@ html, body {
 
 /* 卡片陰影 — Flowbite 特色：極輕但有層次 */
 .card-shadow {
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.06);
+  box-shadow:
+    0 1px 2px 0 rgb(0 0 0 / 0.04),
+    0 1px 3px 0 rgb(0 0 0 / 0.06);
 }
 .card-shadow-md {
-  box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.05), 0 4px 6px -1px rgb(0 0 0 / 0.06);
+  box-shadow:
+    0 2px 4px -1px rgb(0 0 0 / 0.05),
+    0 4px 6px -1px rgb(0 0 0 / 0.06);
 }
 
 /* AntD 按鈕 / Input 統一加強 focus ring（Flowbite 風格：玫瑰色 2px） */
@@ -170,7 +183,9 @@ html, body {
 .ant-card {
   background-color: #ffffff !important;
   border: 1px solid var(--border) !important;
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.06) !important;
+  box-shadow:
+    0 1px 2px 0 rgb(0 0 0 / 0.04),
+    0 1px 3px 0 rgb(0 0 0 / 0.06) !important;
 }
 
 .ant-card-head {
@@ -217,7 +232,7 @@ html, body {
 /* 手機字體微調（桌機 14px、手機 16px 防止 iOS Safari 自動放大 input） */
 @media (max-width: 768px) {
   html {
-    font-size: 16px;  /* iOS Safari focus on input 不放大 */
+    font-size: 16px; /* iOS Safari focus on input 不放大 */
   }
   body {
     /* 手機 padding-x 加大，避免內容貼邊 */
@@ -227,8 +242,8 @@ html, body {
 }
 
 /* 表單輸入 inputmode 提示（行動裝置鍵盤類型） */
-input[type="tel"],
-input[type="number"] {
+input[type='tel'],
+input[type='number'] {
   -webkit-appearance: none;
   appearance: none;
 }
@@ -269,23 +284,23 @@ input[type="number"] {
 */
 @media print {
   /* 隱藏導覽列 */
-  [data-testid="mobile-nav"],
-  header[class*="sticky"] {
+  [data-testid='mobile-nav'],
+  header[class*='sticky'] {
     display: none !important;
   }
 
   /* 隱藏 sticky CTA 與浮動按鈕 */
   .mobile-sticky-cta,
-  [data-testid="install-pwa-button-ios"],
-  [data-testid="install-pwa-button-android"],
+  [data-testid='install-pwa-button-ios'],
+  [data-testid='install-pwa-button-android'],
   .ant-back-top,
   .ant-float-btn {
     display: none !important;
   }
 
   /* 隱藏 PWA 安裝提示卡 */
-  [data-testid="pwa-hint-card"],
-  [class*="pwa-hint"] {
+  [data-testid='pwa-hint-card'],
+  [class*='pwa-hint'] {
     display: none !important;
   }
 
@@ -306,7 +321,7 @@ input[type="number"] {
 
   /* accent 強調色改深灰（黑白印刷下仍可辨識） */
   .text-accent,
-  [style*="--accent"] {
+  [style*='--accent'] {
     color: #333 !important;
   }
 
@@ -344,7 +359,7 @@ input[type="number"] {
 
   /* 結果頁 Hero Stat 4 欄強制單欄列印（避免數字擠在一起） */
   .grid-cols-4,
-  [class*="md:grid-cols-4"] {
+  [class*='md:grid-cols-4'] {
     grid-template-columns: 1fr !important;
   }
 
@@ -354,13 +369,17 @@ input[type="number"] {
     line-height: 1.4 !important;
   }
 
-  h1, h2, h3, h4, h5 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
     page-break-after: avoid;
   }
 
   /* 隱藏 link URL（除非要印出） */
   a[href]::after {
-    content: "" !important;
+    content: '' !important;
   }
 
   /* 結果頁頂部「免責聲明」強制顯示（即便 print 也要提醒） */
@@ -374,7 +393,7 @@ input[type="number"] {
     margin: 2cm 1.5cm;
     /* 頁尾加版本號與 URL（v0.12.0+） */
     @bottom-right {
-      content: "tw-car-claim-estimator v0.12.0 · " counter(page) " / " counter(pages);
+      content: 'tw-car-claim-estimator v0.12.0 · ' counter(page) ' / ' counter(pages);
       font-size: 9pt;
       color: #666;
     }

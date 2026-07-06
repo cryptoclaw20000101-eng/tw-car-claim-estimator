@@ -221,7 +221,12 @@ describe('callClaudeAdvisor API 請求格式', () => {
       ok: true,
       status: 200,
       json: async () => ({
-        content: [{ type: 'text', text: '{"riskLevel":"low","riskFactors":[],"recommendations":[],"consensusInterpretation":"ok","requiresHumanReview":false}' }],
+        content: [
+          {
+            type: 'text',
+            text: '{"riskLevel":"low","riskFactors":[],"recommendations":[],"consensusInterpretation":"ok","requiresHumanReview":false}',
+          },
+        ],
         usage: { input_tokens: 100, output_tokens: 30 },
       }),
     })
@@ -241,7 +246,12 @@ describe('callClaudeAdvisor API 請求格式', () => {
       ok: true,
       status: 200,
       json: async () => ({
-        content: [{ type: 'text', text: '{"riskLevel":"low","riskFactors":[],"recommendations":[],"consensusInterpretation":"ok","requiresHumanReview":false}' }],
+        content: [
+          {
+            type: 'text',
+            text: '{"riskLevel":"low","riskFactors":[],"recommendations":[],"consensusInterpretation":"ok","requiresHumanReview":false}',
+          },
+        ],
         usage: { input_tokens: 100, output_tokens: 30 },
       }),
     })
@@ -271,7 +281,12 @@ describe('callClaudeAdvisor v0.7.7+ 快取', () => {
       ok: true,
       status: 200,
       json: async () => ({
-        content: [{ type: 'text', text: '{"riskLevel":"low","riskFactors":[],"recommendations":[],"consensusInterpretation":"ok","requiresHumanReview":false}' }],
+        content: [
+          {
+            type: 'text',
+            text: '{"riskLevel":"low","riskFactors":[],"recommendations":[],"consensusInterpretation":"ok","requiresHumanReview":false}',
+          },
+        ],
         usage: { input_tokens: 100, output_tokens: 30 },
       }),
     })
@@ -286,7 +301,12 @@ describe('callClaudeAdvisor v0.7.7+ 快取', () => {
       ok: true,
       status: 200,
       json: async () => ({
-        content: [{ type: 'text', text: '{"riskLevel":"low","riskFactors":[],"recommendations":[],"consensusInterpretation":"ok","requiresHumanReview":false}' }],
+        content: [
+          {
+            type: 'text',
+            text: '{"riskLevel":"low","riskFactors":[],"recommendations":[],"consensusInterpretation":"ok","requiresHumanReview":false}',
+          },
+        ],
         usage: { input_tokens: 100, output_tokens: 30 },
       }),
     })
@@ -295,6 +315,6 @@ describe('callClaudeAdvisor v0.7.7+ 快取', () => {
     const result2 = await callClaudeAdvisor(mockInput, liveConfigCacheEnabled)
     expect(result1.mode).toBe('live')
     expect(result2.mode).toBe('live')
-    expect(mockFetch).toHaveBeenCalledTimes(1)  // 第二次命中快取，不打
+    expect(mockFetch).toHaveBeenCalledTimes(1) // 第二次命中快取，不打
   })
 })

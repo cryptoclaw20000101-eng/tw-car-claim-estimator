@@ -45,9 +45,9 @@ const HIGH_INPUT: CompulsoryMedicalInputs = {
 const DIFF_INPUT: CompulsoryMedicalInputs = {
   ...HIGH_INPUT,
   // 讓新舊法 approved 不同：舊法 3 項加總壓更緊，新法只算 2 項壓鬆
-  specialMaterialFee: 8_000,    // 新法算
-  medicalMaterialFee: 15_000,   // 舊法算 / 新法不計入 2 萬上限
-  assistiveDeviceFee: 7_000,    // 新法算
+  specialMaterialFee: 8_000, // 新法算
+  medicalMaterialFee: 15_000, // 舊法算 / 新法不計入 2 萬上限
+  assistiveDeviceFee: 7_000, // 新法算
   // 新法：special + assistive = 15000 → 全額（沒超過 2 萬）→ approved = 15000
   // 舊法：3 項加總 = 30000 → 套 2 萬上限 → approved = 20000
 }

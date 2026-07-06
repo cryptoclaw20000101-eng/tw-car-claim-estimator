@@ -51,10 +51,7 @@ describe('computeWorkLoss — 證據強度邊界', () => {
   })
 
   it('5 個 flags → strength = high（>= 5 邊界）', () => {
-    const result = computeWorkLoss(
-      makePerson({ hasPropertyList: false }),
-      '臺灣臺中地方法院',
-    )
+    const result = computeWorkLoss(makePerson({ hasPropertyList: false }), '臺灣臺中地方法院')
     expect(result.evidenceStrength).toBe('high')
   })
 
@@ -112,7 +109,9 @@ describe('computeWorkLoss — 證據強度邊界', () => {
 describe('computeWorkLoss — 地區嚴格度提示', () => {
   it('高嚴格度地區（臺北地院）→ 補額外提示', () => {
     const result = computeWorkLoss(makePerson(), '臺灣臺北地方法院')
-    expect(result.notes.some((n) => n.includes('臺灣臺北地方法院') && n.includes('要求較嚴'))).toBe(true)
+    expect(result.notes.some((n) => n.includes('臺灣臺北地方法院') && n.includes('要求較嚴'))).toBe(
+      true,
+    )
   })
 
   it('中嚴格度地區（高雄地院）→ 補中等提示', () => {

@@ -20,7 +20,8 @@ const CASES: FoiDisputeCase[] = [
     caseDate: '2021-08-15',
     courtName: '臺灣臺北地方法院',
     summary: '被保人主張車禍後 3 個月出現頸椎椎間盤突出，疑與事故因果關係存疑',
-    keyReasoning: '事故當日就醫病歷雖未記載頸椎不適，但 2 週內持續回診，影像學顯示 C5-C6 椎間盤突出為新發生，認定與事故具相當因果關係',
+    keyReasoning:
+      '事故當日就醫病歷雖未記載頸椎不適，但 2 週內持續回診，影像學顯示 C5-C6 椎間盤突出為新發生，認定與事故具相當因果關係',
     outcome: 'consumer_favor',
     compensationAmount: 380_000,
     referenceNote: '因果關係爭議：事故後 2 週內有就醫記錄 + 影像學佐證 → 較易認定因果',
@@ -32,7 +33,8 @@ const CASES: FoiDisputeCase[] = [
     caseDate: '2022-11-20',
     courtName: null,
     summary: '車禍後 6 個月才就醫，無法證明腰傷與事故相關',
-    keyReasoning: '事故後均無就醫紀錄，6 個月後始因腰痛就醫，期間另有搬家負重紀錄，難認事故為唯一肇因',
+    keyReasoning:
+      '事故後均無就醫紀錄，6 個月後始因腰痛就醫，期間另有搬家負重紀錄，難認事故為唯一肇因',
     outcome: 'insurer_favor',
     compensationAmount: 0,
     referenceNote: '因果關係爭議：事故後超過 3 個月才就醫 + 期間有其他外力介入 → 難認定因果',
@@ -58,10 +60,12 @@ const CASES: FoiDisputeCase[] = [
     caseDate: '2022-12-05',
     courtName: null,
     summary: '爭議：自費推拿、整脊、PRP 注射是否屬必要醫療',
-    keyReasoning: '中醫推拿有醫師診斷證明且屬常規復健 → 認列；PRP 注射為高端自費療程，無實證支持為必要 → 不認列',
+    keyReasoning:
+      '中醫推拿有醫師診斷證明且屬常規復健 → 認列；PRP 注射為高端自費療程，無實證支持為必要 → 不認列',
     outcome: 'partial',
     compensationAmount: 45_000,
-    referenceNote: '自費項目認定：以「是否有醫師診斷 + 是否為常規醫療」為標準，高端自費療程通常不認列',
+    referenceNote:
+      '自費項目認定：以「是否有醫師診斷 + 是否為常規醫療」為標準，高端自費療程通常不認列',
   },
   {
     caseId: '110-評字第1578號',
@@ -113,7 +117,8 @@ const CASES: FoiDisputeCase[] = [
     keyReasoning: '強制險看護上限 30 日 1,200 元/日，餘 15 日由第三人險按地區行情 2,400 元/日 認列',
     outcome: 'partial',
     compensationAmount: 72_000,
-    referenceNote: '看護費：強制險只認 30 日 1,200 元/日；超過部分走第三人險，按地區 2,000-2,800 元/日',
+    referenceNote:
+      '看護費：強制險只認 30 日 1,200 元/日；超過部分走第三人險，按地區 2,000-2,800 元/日',
   },
   {
     caseId: '110-評字第2001號',
@@ -193,9 +198,7 @@ export function getFoiCaseById(caseId: string): FoiDisputeCase | null {
 
 /** 計算某類別的平均評議金額（供估算參考用） */
 export function getAverageFoiCompensation(category: FoiDisputeCategory): number | null {
-  const filtered = CASES.filter(
-    (c) => c.category === category && c.compensationAmount !== null,
-  )
+  const filtered = CASES.filter((c) => c.category === category && c.compensationAmount !== null)
   if (filtered.length === 0) return null
   const sum = filtered.reduce((acc, c) => acc + (c.compensationAmount ?? 0), 0)
   return Math.round(sum / filtered.length)

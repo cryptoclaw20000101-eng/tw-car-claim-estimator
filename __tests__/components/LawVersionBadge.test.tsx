@@ -75,9 +75,7 @@ describe('LawVersionBadge — SSR-safe 結果頁切換標籤（v0.8.3+）', () =
       // AntD Tooltip 在 SSR 渲染時 title 屬性不會 inline 在 HTML 中（Tooltip 是 client-only）
       // 這裡只驗證：自訂 tooltip 被傳入 + Tag 仍正常 render
       const customTip = '我的自訂說明文字'
-      const html = renderToString(
-        <LawVersionBadge accidentDate="2026-07-01" tooltip={customTip} />
-      )
+      const html = renderToString(<LawVersionBadge accidentDate="2026-07-01" tooltip={customTip} />)
       expect(html).toContain('law-version-badge')
       expect(html).toContain('data-law-version="new"')
       expect(html).toContain('新法')
@@ -86,9 +84,7 @@ describe('LawVersionBadge — SSR-safe 結果頁切換標籤（v0.8.3+）', () =
 
   describe('顯示選項', () => {
     it('showIcon={false} → 不顯示 emoji 圖示', () => {
-      const html = renderToString(
-        <LawVersionBadge accidentDate="2026-07-01" showIcon={false} />
-      )
+      const html = renderToString(<LawVersionBadge accidentDate="2026-07-01" showIcon={false} />)
       expect(html).not.toContain('🆕')
       expect(html).not.toContain('📜')
     })

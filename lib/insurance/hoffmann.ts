@@ -66,8 +66,11 @@ export function hoffmannFraction(years: number): number {
     throw new Error(`hoffmannFraction: years 必須 >= 0，收到 ${years}`)
   }
   if (years === 0) return 0
-  if (years >= 1) return hoffmannCoefficient(Math.floor(years)) +
-    (years - Math.floor(years)) * (1 / HOFFMANN_ANNUAL_RATE)
+  if (years >= 1)
+    return (
+      hoffmannCoefficient(Math.floor(years)) +
+      (years - Math.floor(years)) * (1 / HOFFMANN_ANNUAL_RATE)
+    )
   // years < 1：以月為單位近似
   // 6 個月 → 0.5 年 → 0.5 / 0.05 = 10（含首年 1 + 0.5/0.05 = 11？）
   // 保守版：直接用 (1 - (1+r)^-years) / r
@@ -81,9 +84,21 @@ export function hoffmannFraction(years: number): number {
 // 注意：此為「完全勞動能力減損」比例，實務上會再依職業、性質調整
 
 export const DISABILITY_LABOR_LOSS_PCT: Readonly<Record<number, number>> = Object.freeze({
-  1: 100, 2: 95, 3: 90, 4: 85, 5: 80,
-  6: 75, 7: 70, 8: 65, 9: 60, 10: 55,
-  11: 45, 12: 35, 13: 25, 14: 15, 15: 5,
+  1: 100,
+  2: 95,
+  3: 90,
+  4: 85,
+  5: 80,
+  6: 75,
+  7: 70,
+  8: 65,
+  9: 60,
+  10: 55,
+  11: 45,
+  12: 35,
+  13: 25,
+  14: 15,
+  15: 5,
 })
 
 /** 失能等級對應的勞動能力減損百分比（0-1 之間） */
@@ -98,10 +113,10 @@ export function laborLossPct(level: number): number {
 // --- 霍夫曼計算結果型別 -----------------------------------------------
 
 export interface HoffmannCalculationInput {
-  annualAmount: number      // 每年金額（元）
-  years: number             // 年數（正整數）
-  lossPercent: number       // 勞動能力減損比例（0-1）
-  annualIncome: number      // 受傷前年收入（元）
+  annualAmount: number // 每年金額（元）
+  years: number // 年數（正整數）
+  lossPercent: number // 勞動能力減損比例（0-1）
+  annualIncome: number // 受傷前年收入（元）
   regionalMultiplier: number // 地區係數（精神慰撫金係數，沿用以反映物價）
 }
 
@@ -139,9 +154,7 @@ export interface HoffmannCalculationResult {
  *   })
  *   // → 480000 × 15.37 × 0.5 × 1.0 ≈ 3,689,280
  */
-export function hoffmannCalculation(
-  input: HoffmannCalculationInput,
-): HoffmannCalculationResult {
+export function hoffmannCalculation(input: HoffmannCalculationInput): HoffmannCalculationResult {
   const coefficient = hoffmannCoefficient(input.years)
   const baseTotal = Math.round(input.annualAmount * coefficient)
   const adjustedTotal = Math.round(baseTotal * input.lossPercent)
@@ -168,10 +181,7 @@ export function hoffmannCalculation(
  * 從「開始工作年齡 + 退休年齡」推算霍夫曼年數
  * 預設退休年齡 = 65 歲
  */
-export function hoffmannYearsFromAge(
-  startAge: number,
-  retireAge: number = 65,
-): number {
+export function hoffmannYearsFromAge(startAge: number, retireAge: number = 65): number {
   if (startAge < 0 || retireAge < 0) {
     throw new Error('hoffmannYearsFromAge: 年齡不可為負')
   }

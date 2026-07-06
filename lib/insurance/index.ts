@@ -15,11 +15,7 @@ import {
 } from './civil-damages'
 import { computeWorkLossExtended } from './work-loss-extended'
 import { computeScarRevisionCost, type ScarProcedure } from './scar-revision'
-import {
-  computeThirdParty,
-  computeVehicleDamage,
-  computePropertyDamage,
-} from './third-party'
+import { computeThirdParty, computeVehicleDamage, computePropertyDamage } from './third-party'
 import { generateEvidence } from './evidence'
 import { lookupCourt } from './region-court-map'
 import { getRegionAdjustment } from './region-adjustments'
@@ -64,23 +60,23 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
 
   // 4) 民事醫療差額
   const totalMedicalReceipts =
-    medicalReceipts.emergencyFee
-    + medicalReceipts.ambulanceFee
-    + medicalReceipts.nhiCopayment
-    + medicalReceipts.registrationFee
-    + medicalReceipts.diagnosisCertificateFee
-    + medicalReceipts.nonNhiNecessaryMedicalFee
-    + medicalReceipts.wardFeeDifference
-    + medicalReceipts.mealFee
-    + medicalReceipts.prosthesisFee
-    + medicalReceipts.dentureFee
-    + medicalReceipts.artificialEyeFee
-    + (medicalReceipts.medicalMaterialFee ?? 0)
-    + (medicalReceipts.specialMaterialFee ?? 0)  // v0.2.5+：特殊材料費也算醫療單據總額
-    + medicalReceipts.assistiveDeviceFee
-    + medicalReceipts.transportationFee
-    + medicalReceipts.nursingFee
-    + medicalReceipts.otherNecessaryMedicalFee
+    medicalReceipts.emergencyFee +
+    medicalReceipts.ambulanceFee +
+    medicalReceipts.nhiCopayment +
+    medicalReceipts.registrationFee +
+    medicalReceipts.diagnosisCertificateFee +
+    medicalReceipts.nonNhiNecessaryMedicalFee +
+    medicalReceipts.wardFeeDifference +
+    medicalReceipts.mealFee +
+    medicalReceipts.prosthesisFee +
+    medicalReceipts.dentureFee +
+    medicalReceipts.artificialEyeFee +
+    (medicalReceipts.medicalMaterialFee ?? 0) +
+    (medicalReceipts.specialMaterialFee ?? 0) + // v0.2.5+：特殊材料費也算醫療單據總額
+    medicalReceipts.assistiveDeviceFee +
+    medicalReceipts.transportationFee +
+    medicalReceipts.nursingFee +
+    medicalReceipts.otherNecessaryMedicalFee
 
   const civilMedicalExpense = computeCivilMedicalExpense(totalMedicalReceipts, compulsory.approved)
 
@@ -122,9 +118,9 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
   //   3. null（都沒資料）
   //
   // 型別收斂：number → 1-15 literal union（執行期已在 form 驗證）
-  const rawLevel: number | null =
-    disability.possibleLevel ?? medical.disabilityLevel ?? null
-  const finalDisabilityLevel: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | null =
+  const rawLevel: number | null = disability.possibleLevel ?? medical.disabilityLevel ?? null
+  const finalDisabilityLevel:
+    1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | null =
     rawLevel !== null && rawLevel >= 1 && rawLevel <= 15
       ? (rawLevel as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15)
       : null
@@ -136,8 +132,7 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
   const knnCases: Array<{ caseNo: string; amount: number }> = []
   for (const c of practiceCases) {
     const settlement = c.settlement as
-      | { totalInsurerPayout?: number; civilSettlement?: number }
-      | undefined
+      { totalInsurerPayout?: number; civilSettlement?: number } | undefined
     if (!settlement) continue
     const amount = settlement.civilSettlement ?? settlement.totalInsurerPayout ?? 0
     if (amount > 0) knnCases.push({ caseNo: c.caseNo, amount })
@@ -223,7 +218,7 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
     compulsoryMedicalSubtotal: compulsory.subtotal,
     compulsoryMedicalApproved: compulsory.approved,
     compulsoryDisabilityAmount: disability.possibleAmount,
-    compulsoryDeathAmount: 0,  // MVP 不處理死亡
+    compulsoryDeathAmount: 0, // MVP 不處理死亡
     compulsoryTotalEstimated,
 
     disability,
@@ -238,7 +233,8 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
     workLossExtended: {
       amount: workLossExtended.amount,
       calculationType: workLossExtended.calculationType,
-      isRetired: workLossExtended.calculationType === 'long_term' && workLossExtended.hoffmannYears === 0,
+      isRetired:
+        workLossExtended.calculationType === 'long_term' && workLossExtended.hoffmannYears === 0,
       hoffmannYears: workLossExtended.hoffmannYears,
       hoffmannFactor: workLossExtended.hoffmannFactor,
       restMonths: workLossExtended.restMonths,

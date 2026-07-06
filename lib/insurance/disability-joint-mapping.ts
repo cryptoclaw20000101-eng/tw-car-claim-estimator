@@ -198,7 +198,7 @@ export interface LimbDisorderSummary {
  */
 export function lookupUpperLimbLevel(
   left: LimbDisorderSummary,
-  right: LimbDisorderSummary
+  right: LimbDisorderSummary,
 ): { articleId: string; level: DisabilityLevel } | null {
   const key = `${left.severity}|${left.count}|${right.severity}|${right.count}`
   return UPPER_LIMB_TABLE[key] ?? null
@@ -213,7 +213,7 @@ export function lookupUpperLimbLevel(
  */
 export function lookupLowerLimbLevel(
   left: LimbDisorderSummary,
-  right: LimbDisorderSummary
+  right: LimbDisorderSummary,
 ): { articleId: string; level: DisabilityLevel } | null {
   const key = `${left.severity}|${left.count}|${right.severity}|${right.count}`
   return LOWER_LIMB_TABLE[key] ?? null
@@ -268,7 +268,7 @@ export function levelFromRomLossOldLaw(percent: number): DisabilityLevel {
 export function lookupDisabilityLevelByDate(
   joint: 'upper' | 'lower',
   percent: number,
-  accidentDate?: string | null
+  accidentDate?: string | null,
 ): DisabilityLevel {
   if (!isNewLaw(accidentDate)) {
     // 舊法：百分比段直接對應單一等級
@@ -279,8 +279,7 @@ export function lookupDisabilityLevelByDate(
   // 預設單關節障害：summary.count = '1'，對側無障害
   const left: LimbDisorderSummary = { count: '1', severity }
   const right: LimbDisorderSummary = { count: '0', severity: 'none' }
-  const result = joint === 'upper'
-    ? lookupUpperLimbLevel(left, right)
-    : lookupLowerLimbLevel(left, right)
+  const result =
+    joint === 'upper' ? lookupUpperLimbLevel(left, right) : lookupLowerLimbLevel(left, right)
   return result?.level ?? 15
 }

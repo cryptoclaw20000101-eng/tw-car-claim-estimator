@@ -52,31 +52,23 @@ describe('Step4KnnPreview — SSR HTML 結構', () => {
   })
 
   it('展開 KNN 5 維 → 顯示 details + summary', () => {
-    const html = renderToString(
-      <Step4KnnPreview disabilityLevel={7} accidentLocation="臺中市" />,
-    )
+    const html = renderToString(<Step4KnnPreview disabilityLevel={7} accidentLocation="臺中市" />)
     expect(html).toContain('展開 KNN 5 維拆解')
   })
 
   it('卡片 data-testid 存在（至少 1 張）', () => {
-    const html = renderToString(
-      <Step4KnnPreview disabilityLevel={7} accidentLocation="臺中市" />,
-    )
+    const html = renderToString(<Step4KnnPreview disabilityLevel={7} accidentLocation="臺中市" />)
     const cardCount = (html.match(/knn-preview-card/g) ?? []).length
     expect(cardCount).toBeGreaterThanOrEqual(1)
   })
 
   it('兩欄齊全時顯示「即時 KNN 預視」標題', () => {
-    const html = renderToString(
-      <Step4KnnPreview disabilityLevel={7} accidentLocation="臺中市" />,
-    )
+    const html = renderToString(<Step4KnnPreview disabilityLevel={7} accidentLocation="臺中市" />)
     expect(html).toContain('即時 KNN 預視')
   })
 
   it('city 為空字串 → 不報錯', () => {
-    const html = renderToString(
-      <Step4KnnPreview disabilityLevel={7} accidentLocation="" />,
-    )
+    const html = renderToString(<Step4KnnPreview disabilityLevel={7} accidentLocation="" />)
     expect(html).toContain('即時 KNN 預視')
   })
 
@@ -88,9 +80,7 @@ describe('Step4KnnPreview — SSR HTML 結構', () => {
   })
 
   it('卡片顯示「距離」+ 相似度標籤', () => {
-    const html = renderToString(
-      <Step4KnnPreview disabilityLevel={7} accidentLocation="臺中市" />,
-    )
+    const html = renderToString(<Step4KnnPreview disabilityLevel={7} accidentLocation="臺中市" />)
     // SSR 注入 <!-- --> 拆開文字 → 用寬鬆匹配：「距離 ... 相似度」
     // 相似度 5 級：極相似/相似/普通/偏遠/極遠
     expect(html).toMatch(/距離.*?(極相似|相似|普通|偏遠|極遠)/)

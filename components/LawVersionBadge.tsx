@@ -33,11 +33,7 @@ const DEFAULT_OLD_LAW_TOOLTIP =
  * @example
  * <LawVersionBadge accidentDate={input.basics.accidentDate} />
  */
-export function LawVersionBadge({
-  accidentDate,
-  tooltip,
-  showIcon = true,
-}: LawVersionBadgeProps) {
+export function LawVersionBadge({ accidentDate, tooltip, showIcon = true }: LawVersionBadgeProps) {
   const isNew = isNewLaw(accidentDate ?? null)
   const label = getLawVersionLabel(accidentDate ?? null)
   const fullLabel = isNew
@@ -49,7 +45,12 @@ export function LawVersionBadge({
 
   return (
     <Tooltip title={tipText} placement="top">
-      <Tag color={color} className="!m-0" data-testid="law-version-badge" data-law-version={isNew ? 'new' : 'old'}>
+      <Tag
+        color={color}
+        className="!m-0"
+        data-testid="law-version-badge"
+        data-law-version={isNew ? 'new' : 'old'}
+      >
         {showIcon && (
           <span aria-hidden="true" className="mr-1">
             {isNew ? '🆕' : '📜'}

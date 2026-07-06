@@ -24,22 +24,18 @@ import {
   MAX_PROMPT_TOKENS,
   type AdvisorConfig,
 } from './advisor-config'
-import {
-  getCachedAdvisor,
-  setCachedAdvisor,
-  type AdvisorCacheConfig,
-} from './advisor-cache'
+import { getCachedAdvisor, setCachedAdvisor, type AdvisorCacheConfig } from './advisor-cache'
 
 // --- 型別 ---------------------------------------------------------------
 
 export type FallbackReason =
-  | 'auth'         // 401/403
-  | 'server'       // 500+
-  | 'network'      // fetch TypeError / timeout
-  | 'token_limit'  // prompt > MAX_PROMPT_TOKENS
-  | 'privacy'      // 偵測到個資
-  | 'parse_error'  // LLM 回 malformed JSON
-  | 'unknown'      // 其他
+  | 'auth' // 401/403
+  | 'server' // 500+
+  | 'network' // fetch TypeError / timeout
+  | 'token_limit' // prompt > MAX_PROMPT_TOKENS
+  | 'privacy' // 偵測到個資
+  | 'parse_error' // LLM 回 malformed JSON
+  | 'unknown' // 其他
 
 export type ResultMode = 'live' | 'mock' | 'fallback'
 
@@ -76,7 +72,7 @@ export interface AdvisorApiResult {
  */
 export async function callClaudeAdvisor(
   input: AdvisorInput,
-  config?: AdvisorConfig
+  config?: AdvisorConfig,
 ): Promise<AdvisorApiResult> {
   const cfg = config ?? loadAdvisorConfig()
 
@@ -105,7 +101,7 @@ export async function callClaudeAdvisor(
   if (!piiCheck.clean) {
     console.warn(
       `[advisor-api] Prompt 偵測到 ${piiCheck.detections.length} 個個資，已拒絕送出：` +
-        piiCheck.detections.map((d) => `${d.type}=${d.match}`).join(', ')
+        piiCheck.detections.map((d) => `${d.type}=${d.match}`).join(', '),
     )
     return {
       mode: 'fallback',
@@ -131,11 +127,7 @@ export async function callClaudeAdvisor(
   let lastError: string = 'unknown'
   for (let attempt = 0; attempt <= cfg.maxRetries; attempt++) {
     try {
-      const response = await fetchWithTimeout(
-        `${cfg.baseUrl}/v1/messages`,
-        cfg,
-        prompt
-      )
+      const response = await fetchWithTimeout(`${cfg.baseUrl}/v1/messages`, cfg, prompt)
 
       if (response.ok) {
         const data = (await response.json()) as ClaudeMessagesResponse
@@ -207,7 +199,7 @@ export async function callClaudeAdvisor(
 async function fetchWithTimeout(
   url: string,
   cfg: AdvisorConfig,
-  prompt: string
+  prompt: string,
 ): Promise<Response> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), cfg.timeoutMs)

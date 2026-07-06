@@ -179,7 +179,7 @@ describe('不變量', () => {
   it('lookupUpperLimbLevel / lookupLowerLimbLevel 仍可單獨呼叫（新法三分類 API 向後相容）', () => {
     const result = lookupLowerLimbLevel(
       { count: '1', severity: 'motion' },
-      { count: '0', severity: 'none' }
+      { count: '0', severity: 'none' },
     )
     expect(result?.level).toBe(13)
     expect(result?.articleId).toBe('12-35')

@@ -3,11 +3,7 @@
 // =====================================================================
 
 import { describe, expect, it } from 'vitest'
-import {
-  isNewLaw,
-  getLawVersionLabel,
-  NEW_LAW_CUTOFF,
-} from '@/lib/data-sources/regulation-cutoff'
+import { isNewLaw, getLawVersionLabel, NEW_LAW_CUTOFF } from '@/lib/data-sources/regulation-cutoff'
 import { computeCompulsoryMedicalByDate } from '@/lib/insurance/compulsory'
 import { lookupDisabilityLevelByDate } from '@/lib/insurance/disability-joint-mapping'
 import type { CompulsoryMedicalInputs } from '@/lib/insurance/types'
@@ -40,7 +36,7 @@ describe('CLI 串接計算引擎 — v0.8.4', () => {
     const makeMedicalInput = (
       special: number,
       general: number,
-      assistive: number
+      assistive: number,
     ): CompulsoryMedicalInputs => ({
       emergencyFee: 0,
       ambulanceFee: 0,
@@ -115,7 +111,10 @@ describe('CLI 串接計算引擎 — v0.8.4', () => {
       expect(lookupDisabilityLevelByDate('lower', 40, '2024-01-01')).toBe(9)
       expect(lookupDisabilityLevelByDate('lower', 40, '2026-07-01')).toBe(13)
       // CLI 會輸出「差異: 切換生效（新法 13 級較高）」
-      expect(lookupDisabilityLevelByDate('lower', 40, '2026-07-01') - lookupDisabilityLevelByDate('lower', 40, '2024-01-01')).toBe(4)
+      expect(
+        lookupDisabilityLevelByDate('lower', 40, '2026-07-01') -
+          lookupDisabilityLevelByDate('lower', 40, '2024-01-01'),
+      ).toBe(4)
     })
 
     it('上肢 ROM 40% → 同樣新舊法切換差異', () => {

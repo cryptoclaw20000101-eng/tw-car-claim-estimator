@@ -20,21 +20,34 @@ import { getRegionAdjustment } from './region-adjustments'
 
 /** 術式 */
 export type ScarProcedure =
-  | 'revision_surgery'   // 修疤手術（外科切除 + Z 形整形 / W 形整形）
-  | 'laser'              // 雷射除疤（紅寶石/染料/CO2/Er:YAG/飛梭）
-  | 'facelift'           // 拉皮（用於大面積疤痕或合併臉部鬆弛）
-  | 'injection'          // 蟹足腫注射 / PRP 血小板生長因子
+  | 'revision_surgery' // 修疤手術（外科切除 + Z 形整形 / W 形整形）
+  | 'laser' // 雷射除疤（紅寶石/染料/CO2/Er:YAG/飛梭）
+  | 'facelift' // 拉皮（用於大面積疤痕或合併臉部鬆弛）
+  | 'injection' // 蟹足腫注射 / PRP 血小板生長因子
 
 /** 地區差異（北中南加成）— 依臺中市收費表為基線（1.0） */
 export const REGIONAL_SCAR_MULTIPLIER: Record<string, number> = {
   // 北
-  臺北: 1.20, 新北: 1.15, 基隆: 1.10, 桃園: 1.10, 新竹: 1.10,
+  臺北: 1.2,
+  新北: 1.15,
+  基隆: 1.1,
+  桃園: 1.1,
+  新竹: 1.1,
   // 中（基線）
-  苗栗: 0.95, 臺中: 1.00, 彰化: 0.95, 南投: 0.95,
+  苗栗: 0.95,
+  臺中: 1.0,
+  彰化: 0.95,
+  南投: 0.95,
   // 南
-  雲林: 0.90, 嘉義: 0.90, 臺南: 0.95, 高雄: 0.95, 屏東: 0.90,
+  雲林: 0.9,
+  嘉義: 0.9,
+  臺南: 0.95,
+  高雄: 0.95,
+  屏東: 0.9,
   // 東
-  宜蘭: 0.95, 花蓮: 0.90, 臺東: 0.90,
+  宜蘭: 0.95,
+  花蓮: 0.9,
+  臺東: 0.9,
 }
 
 /** 術式單價表（臺中市基線；單位：新臺幣） */
@@ -77,18 +90,16 @@ export const SCAR_PROCEDURE_BASE = {
 
 /** 治療部位（用於 facelift 與雷射） */
 export type ScarLocation =
-  | 'face'      // 臉部（全臉 / 雙頰）
-  | 'abdomen'   // 腹部
-  | 'limb'      // 四肢（手臂 / 腿部）
-  | 'neck'      // 頸部
-  | 'multiple'  // 多處
+  | 'face' // 臉部（全臉 / 雙頰）
+  | 'abdomen' // 腹部
+  | 'limb' // 四肢（手臂 / 腿部）
+  | 'neck' // 頸部
+  | 'multiple' // 多處
 
 export interface ScarRevisionInput {
-  medical: Pick<MedicalRecord,
-    | 'scarLengthCm'
-    | 'scarAreaCm2'
-    | 'scarLocation'
-    | 'scarSeverity'        // 'mild' | 'moderate' | 'severe' | 'keloid'
+  medical: Pick<
+    MedicalRecord,
+    'scarLengthCm' | 'scarAreaCm2' | 'scarLocation' | 'scarSeverity' // 'mild' | 'moderate' | 'severe' | 'keloid'
   >
   courtName: string
   /** 採用的術式 */
@@ -128,7 +139,7 @@ function inferRegionMultiplier(courtName: string): number {
   for (const [key, mult] of Object.entries(REGIONAL_SCAR_MULTIPLIER)) {
     if (courtName.includes(key)) return mult
   }
-  return 1.00  // 預設 = 臺中市基線
+  return 1.0 // 預設 = 臺中市基線
 }
 
 export function computeScarRevisionCost(input: ScarRevisionInput): ScarRevisionResult {
@@ -158,9 +169,11 @@ export function computeScarRevisionCost(input: ScarRevisionInput): ScarRevisionR
 
   // 蟹足腫 → 強制走注射治療
   const effectiveProcedure: ScarProcedure =
-    (isKeloid || severity === 'keloid') ? 'injection' : procedure
+    isKeloid || severity === 'keloid' ? 'injection' : procedure
 
-  let low = 0, mid = 0, high = 0
+  let low = 0,
+    mid = 0,
+    high = 0
   let perUnitCost = 0
   let units = 0
   let sessions = prescribedSessions || 0
@@ -176,8 +189,12 @@ export function computeScarRevisionCost(input: ScarRevisionInput): ScarRevisionR
       high = cfg.perCm.max * units * sessions
       perUnitCost = cfg.perCm.mid
       baseFee = 0
-      precedents.push('臺中市美容醫學醫療機構收費標準表 111.03.30（修疤手術每公分 3,000~10,000 元）')
-      notes.push(`疤痕 ${scarLength} 公分 × 修疤手術每公分 ${perUnitCost.toLocaleString()} 元 × ${sessions} 次`)
+      precedents.push(
+        '臺中市美容醫學醫療機構收費標準表 111.03.30（修疤手術每公分 3,000~10,000 元）',
+      )
+      notes.push(
+        `疤痕 ${scarLength} 公分 × 修疤手術每公分 ${perUnitCost.toLocaleString()} 元 × ${sessions} 次`,
+      )
       break
     }
     case 'laser': {
@@ -191,9 +208,13 @@ export function computeScarRevisionCost(input: ScarRevisionInput): ScarRevisionR
       perUnitCost = cfg.perCm2.mid
       units = area
       baseFee = cfg.base.mid
-      precedents.push('臺中市美容醫學醫療機構收費標準表 111.03.30（紅寶石/染料/CO2/Er:YAG 雷射基本費 + 每 cm²）')
+      precedents.push(
+        '臺中市美容醫學醫療機構收費標準表 111.03.30（紅寶石/染料/CO2/Er:YAG 雷射基本費 + 每 cm²）',
+      )
       precedents.push('飛梭雷射全臉 10,000~30,000 元 / 雙頰 5,000~15,000 元（同表）')
-      notes.push(`疤痕面積 ${area} cm² × 雷射基本費 ${cfg.base.mid} + 每 cm² ${cfg.perCm2.mid} 元 × ${sessions} 次療程`)
+      notes.push(
+        `疤痕面積 ${area} cm² × 雷射基本費 ${cfg.base.mid} + 每 cm² ${cfg.perCm2.mid} 元 × ${sessions} 次療程`,
+      )
       break
     }
     case 'facelift': {
@@ -201,7 +222,8 @@ export function computeScarRevisionCost(input: ScarRevisionInput): ScarRevisionR
       sessions = sessions || 1
       // 拉皮：依部位
       const loc: ScarLocation = (medical.scarLocation as ScarLocation) || 'multiple'
-      let cfgPart: { readonly min: number; readonly mid: number; readonly max: number } = cfg.fullFace
+      let cfgPart: { readonly min: number; readonly mid: number; readonly max: number } =
+        cfg.fullFace
       let partName = '全臉（傳統式）'
       if (loc === 'abdomen') {
         cfgPart = cfg.abdomen
@@ -216,7 +238,9 @@ export function computeScarRevisionCost(input: ScarRevisionInput): ScarRevisionR
       perUnitCost = cfgPart.mid
       units = 1
       baseFee = 0
-      precedents.push('臺中市美容醫學醫療機構收費標準表 111.03.30（傳統式全臉 200,000~300,000 / 內視鏡全臉 300,000~400,000 / 腹部 180,000~240,000）')
+      precedents.push(
+        '臺中市美容醫學醫療機構收費標準表 111.03.30（傳統式全臉 200,000~300,000 / 內視鏡全臉 300,000~400,000 / 腹部 180,000~240,000）',
+      )
       notes.push(`拉皮手術：${partName}，單價 ${perUnitCost.toLocaleString()} 元`)
       break
     }
@@ -228,7 +252,7 @@ export function computeScarRevisionCost(input: ScarRevisionInput): ScarRevisionR
       if (severity === 'keloid') {
         // 蟹足腫：每 2-4 週一次，估 6 次
         perUnitCost = cfg.perInjection.mid
-        units = scarLength * 2  // 每公分約 2 針
+        units = scarLength * 2 // 每公分約 2 針
         low = cfg.perInjection.min * units * sessions
         mid = cfg.perInjection.mid * units * sessions
         high = cfg.perInjection.max * units * sessions
@@ -240,13 +264,21 @@ export function computeScarRevisionCost(input: ScarRevisionInput): ScarRevisionR
         low = cfg.perSession.min * sessions
         mid = cfg.perSession.mid * sessions
         high = cfg.perSession.max * sessions
-        notes.push(`PRP 血小板生長因子：每次 ${perUnitCost.toLocaleString()} 元 × ${sessions} 次療程`)
+        notes.push(
+          `PRP 血小板生長因子：每次 ${perUnitCost.toLocaleString()} 元 × ${sessions} 次療程`,
+        )
       }
       baseFee = 0
-      precedents.push('中地院 110 簡 202 判決：蟹足腫注射 + 血小板生長因子 + 雷射除疤 80 萬元全額准許')
-      precedents.push('臺中市美容醫學醫療機構收費標準表 111.03.30（無注射單價，引用美容整外診所市場行情）')
+      precedents.push(
+        '中地院 110 簡 202 判決：蟹足腫注射 + 血小板生長因子 + 雷射除疤 80 萬元全額准許',
+      )
+      precedents.push(
+        '臺中市美容醫學醫療機構收費標準表 111.03.30（無注射單價，引用美容整外診所市場行情）',
+      )
       if (scarLength > 20) {
-        notes.push(`⚠️ 疤痕長度 ${scarLength} 公分（中地院 110 簡 202 為多處肥厚性疤痕 80 萬），建議參照該判例請求`)
+        notes.push(
+          `⚠️ 疤痕長度 ${scarLength} 公分（中地院 110 簡 202 為多處肥厚性疤痕 80 萬），建議參照該判例請求`,
+        )
       }
       break
     }
@@ -259,12 +291,16 @@ export function computeScarRevisionCost(input: ScarRevisionInput): ScarRevisionR
 
   // 地區提示
   if (regionalMultiplier !== 1.0) {
-    notes.push(`地區係數 ${regionalMultiplier}（${courtName.match(/(臺北|新北|桃園|臺中|彰化|高雄|臺南)/)?.[0] || '基線'}）`)
+    notes.push(
+      `地區係數 ${regionalMultiplier}（${courtName.match(/(臺北|新北|桃園|臺中|彰化|高雄|臺南)/)?.[0] || '基線'}）`,
+    )
   }
 
   // 證據強度提示
   if (region.workLossEvidenceStrictness === 'high') {
-    notes.push(`${region.courtName} 對醫美單據、診斷證明書嚴格審查，建議齊備：醫美診所收據、醫囑建議、術前術後照片`)
+    notes.push(
+      `${region.courtName} 對醫美單據、診斷證明書嚴格審查，建議齊備：醫美診所收據、醫囑建議、術前術後照片`,
+    )
   }
 
   return {
@@ -280,8 +316,7 @@ export function computeScarRevisionCost(input: ScarRevisionInput): ScarRevisionR
     },
     precedents,
     notes,
-    hint: severity === 'keloid'
-      ? '蟹足腫建議走「注射治療 + 雷射」複合療程，單次雷射效果有限'
-      : null,
+    hint:
+      severity === 'keloid' ? '蟹足腫建議走「注射治療 + 雷射」複合療程，單次雷射效果有限' : null,
   }
 }

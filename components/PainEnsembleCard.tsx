@@ -113,8 +113,7 @@ export function PainEnsembleCard({
 
   // 區間顯示
   const showSuggestedRange =
-    painEnsemble.consensus === 'weak' &&
-    painEnsemble.suggestedRange !== null
+    painEnsemble.consensus === 'weak' && painEnsemble.suggestedRange !== null
 
   return (
     <div className="!mt-3">
@@ -168,12 +167,7 @@ export function PainEnsembleCard({
 
       {/* 警告訊息（diverge 等） */}
       {painEnsemble.warning && (
-        <InfoAlert
-          type="warning"
-          showIcon
-          className="!mt-2"
-          title={painEnsemble.warning}
-        />
+        <InfoAlert type="warning" showIcon className="!mt-2" title={painEnsemble.warning} />
       )}
 
       {/* 三票展開 */}
@@ -264,7 +258,8 @@ export function PainEnsembleCard({
               引擎判定此案件需保經業務員 / 律師親自 review，請以實際會客面談為準。
               <br />
               <Text type="secondary" className="!text-xs">
-                計算成本：{painAdvisor.promptTokens} prompt + {painAdvisor.completionTokens} completion tokens
+                計算成本：{painAdvisor.promptTokens} prompt + {painAdvisor.completionTokens}{' '}
+                completion tokens
               </Text>
             </>
           }
@@ -299,7 +294,11 @@ function TicketTile({ label, amount, weight, outlier, note, dim, dollar }: Ticke
       <div className="tabular-nums text-lg font-semibold">{dollar(amount)}</div>
       <div className="!text-xs text-muted">
         權重 {weight.toFixed(2)}
-        {note && <Tag color={outlier ? 'red' : 'default'} className="!ml-1 !text-xs">{note}</Tag>}
+        {note && (
+          <Tag color={outlier ? 'red' : 'default'} className="!ml-1 !text-xs">
+            {note}
+          </Tag>
+        )}
       </div>
     </div>
   )

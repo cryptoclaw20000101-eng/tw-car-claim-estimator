@@ -19,8 +19,16 @@ import type { JointName } from '@/lib/insurance/types'
 describe('jointNormalRom / jointLabelZh — 常數表', () => {
   it('jointNormalRom 涵蓋全部 10 種關節', () => {
     const joints: JointName[] = [
-      'shoulder', 'elbow', 'wrist', 'hip', 'knee',
-      'ankle', 'finger', 'toe', 'cervical', 'lumbar',
+      'shoulder',
+      'elbow',
+      'wrist',
+      'hip',
+      'knee',
+      'ankle',
+      'finger',
+      'toe',
+      'cervical',
+      'lumbar',
     ]
     for (const j of joints) {
       expect(jointNormalRom[j]).toBeGreaterThan(0)

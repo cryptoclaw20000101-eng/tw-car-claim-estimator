@@ -17,45 +17,44 @@ export const contentType = 'image/png'
 
 export default async function TwitterImage() {
   return new ImageResponse(
-    (
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: BACKGROUND,
+        padding: 80,
+        fontFamily:
+          '-apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif',
+      }}
+    >
       <div
         style={{
-          width: '100%',
-          height: '100%',
           display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: BACKGROUND,
-          padding: 80,
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif',
+          fontSize: 80,
+          fontWeight: 700,
+          color: '#18181b',
+          letterSpacing: '-0.02em',
+          marginBottom: 24,
+          textAlign: 'center',
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            fontSize: 80,
-            fontWeight: 700,
-            color: '#18181b',
-            letterSpacing: '-0.02em',
-            marginBottom: 24,
-            textAlign: 'center',
-          }}
-        >
-          車禍理賠金額估算器
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            fontSize: 40,
-            color: ACCENT,
-            fontWeight: 600,
-          }}
-        >
-          5 分鐘算給你看
-        </div>
+        車禍理賠金額估算器
       </div>
-    ),
-    { ...size }
+      <div
+        style={{
+          display: 'flex',
+          fontSize: 40,
+          color: ACCENT,
+          fontWeight: 600,
+        }}
+      >
+        5 分鐘算給你看
+      </div>
+    </div>,
+    { ...size },
   )
 }

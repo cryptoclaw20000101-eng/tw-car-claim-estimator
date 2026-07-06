@@ -15,16 +15,16 @@ import type { JointName } from './types'
 // 關節正常 ROM（度），採用「主動屈曲 + 伸展 + 旋轉」常見上限
 // 註：精確 ROM 量測須由骨科/復健科執行，這裡是 MVP 預設值
 export const jointNormalRom: Record<JointName, number> = {
-  shoulder: 180,  // 肩：屈曲 + 伸展
-  elbow: 145,     // 肘：屈曲
-  wrist: 150,     // 腕：屈曲 + 伸展
-  hip: 120,       // 髖：屈曲 + 伸展
-  knee: 135,      // 膝：屈曲
-  ankle: 50,      // 踝：背屈 + 蹠屈
-  finger: 90,     // 指：屈曲（每指）
-  toe: 30,        // 趾：屈曲
-  cervical: 50,   // 頸椎：屈曲 + 伸展 + 側彎
-  lumbar: 60,     // 腰椎：屈曲 + 伸展
+  shoulder: 180, // 肩：屈曲 + 伸展
+  elbow: 145, // 肘：屈曲
+  wrist: 150, // 腕：屈曲 + 伸展
+  hip: 120, // 髖：屈曲 + 伸展
+  knee: 135, // 膝：屈曲
+  ankle: 50, // 踝：背屈 + 蹠屈
+  finger: 90, // 指：屈曲（每指）
+  toe: 30, // 趾：屈曲
+  cervical: 50, // 頸椎：屈曲 + 伸展 + 側彎
+  lumbar: 60, // 腰椎：屈曲 + 伸展
 }
 
 export const jointLabelZh: Record<JointName, string> = {

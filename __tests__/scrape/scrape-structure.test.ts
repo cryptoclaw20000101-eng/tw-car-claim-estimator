@@ -18,14 +18,8 @@ import { resolve } from 'node:path'
  * - 缺點：regex 寫太嚴反而誤報，所以盡量用 toContain 配簡單 regex
  */
 
-const scrapeSource = readFileSync(
-  resolve(__dirname, '../../scripts/scrape-judgments.ts'),
-  'utf-8',
-)
-const reportSource = readFileSync(
-  resolve(__dirname, '../../scripts/report-precedents.ts'),
-  'utf-8',
-)
+const scrapeSource = readFileSync(resolve(__dirname, '../../scripts/scrape-judgments.ts'), 'utf-8')
+const reportSource = readFileSync(resolve(__dirname, '../../scripts/report-precedents.ts'), 'utf-8')
 
 describe('S8 4 個 Record 對齊', () => {
   // 抓出每個 chain 對應的所有 keys
@@ -40,18 +34,10 @@ describe('S8 4 個 Record 對齊', () => {
   }
 
   it('KEYWORDS / CHAIN_REGEX / CHAIN_FILE / CHAIN_LABEL 的 keys 對齊', () => {
-    const k = new Set(
-      getKeysInRecord('const KEYWORDS', 'type ChainKey'),
-    )
-    const r = new Set(
-      getKeysInRecord('const CHAIN_REGEX', 'const CHAIN_FILE'),
-    )
-    const f = new Set(
-      getKeysInRecord('const CHAIN_FILE', 'const CHAIN_LABEL'),
-    )
-    const l = new Set(
-      getKeysInRecord('const CHAIN_LABEL', 'const COURT_CODE'),
-    )
+    const k = new Set(getKeysInRecord('const KEYWORDS', 'type ChainKey'))
+    const r = new Set(getKeysInRecord('const CHAIN_REGEX', 'const CHAIN_FILE'))
+    const f = new Set(getKeysInRecord('const CHAIN_FILE', 'const CHAIN_LABEL'))
+    const l = new Set(getKeysInRecord('const CHAIN_LABEL', 'const COURT_CODE'))
 
     // 全部至少 13 個 key（6 v1 + 5 v2 + 2 v0.2.19）
     expect(k.size).toBeGreaterThanOrEqual(13)
@@ -125,9 +111,7 @@ describe('S8 既有的 6+5 chain 還在（沒被改爛）', () => {
     ]
     for (const c of v1Chains) {
       // m flag 是必要的（^ 配 m 才認 line 開頭）
-      expect(scrapeSource).toMatch(
-        new RegExp(`^\\s{2}${c}(?=\\s*[:\\[])`, 'm'),
-      )
+      expect(scrapeSource).toMatch(new RegExp(`^\\s{2}${c}(?=\\s*[:\\[])`, 'm'))
     }
   })
 
@@ -141,9 +125,7 @@ describe('S8 既有的 6+5 chain 還在（沒被改爛）', () => {
     ]
     for (const c of v2Chains) {
       // m flag 是必要的（^ 配 m 才認 line 開頭）
-      expect(scrapeSource).toMatch(
-        new RegExp(`^\\s{2}${c}(?=\\s*[:\\[])`, 'm'),
-      )
+      expect(scrapeSource).toMatch(new RegExp(`^\\s{2}${c}(?=\\s*[:\\[])`, 'm'))
     }
   })
 })
@@ -173,9 +155,24 @@ describe('S8 isCivilCase 行為（從 source 靜態掃）', () => {
 describe('S8 COURT_CODE 對照表（v0.2.11 鐵律：不要擅自填代碼）', () => {
   it('19 個 baseline 法院代碼都還在', () => {
     const baseline = [
-      'TPDV', 'PCDV', 'SLDV', 'TYDV', 'KSDV', 'TCDV', 'TNDV',
-      'CYDV', 'CHDV', 'YLDV', 'HLDV', 'TTDV', 'MLDV', 'NTDV',
-      'YDV', 'PHDV', 'KMOV', 'LCDV',
+      'TPDV',
+      'PCDV',
+      'SLDV',
+      'TYDV',
+      'KSDV',
+      'TCDV',
+      'TNDV',
+      'CYDV',
+      'CHDV',
+      'YLDV',
+      'HLDV',
+      'TTDV',
+      'MLDV',
+      'NTDV',
+      'YDV',
+      'PHDV',
+      'KMOV',
+      'LCDV',
     ]
     for (const code of baseline) {
       expect(scrapeSource, `缺 baseline 代碼: ${code}`).toContain(`${code}:`)
@@ -262,7 +259,9 @@ describe('報表 Ensemble 健康度區塊（v0.6.8 → v0.6.9 refactor）', () =
   it('report-precedents.ts 從共用函式 import computeEnsembleHealth', () => {
     // v0.6.9 refactor: 函式搬到 lib/insurance/pain-ensemble-health.ts，
     // report 改 import 共用，避免雙重實作
-    expect(reportSource).toMatch(/import\s*\{[^}]*computeEnsembleHealth[^}]*\}\s*from\s*["']\.\.\/lib\/insurance\/pain-ensemble-health["']/)
+    expect(reportSource).toMatch(
+      /import\s*\{[^}]*computeEnsembleHealth[^}]*\}\s*from\s*["']\.\.\/lib\/insurance\/pain-ensemble-health["']/,
+    )
   })
 
   it('report-precedents.ts 含 renderEnsembleSection 函式', () => {
@@ -341,7 +340,7 @@ describe('首頁 hero Ensemble 健康度卡（v0.6.9）', () => {
     )
     // Next 16 turbopack JSON import（內嵌 bundle 不需 runtime fetch）
     expect(cardSource).toContain(
-      "import anchorData from '@/data/precedents/taipei-mental-distress.json'"
+      "import anchorData from '@/data/precedents/taipei-mental-distress.json'",
     )
   })
 
@@ -377,14 +376,8 @@ describe('首頁 hero Ensemble 健康度卡（v0.6.9）', () => {
  * 確保未來重構不會意外打斷 scrape → hero 自動化流程。
  */
 describe('Hero rebuild 自動化（v0.7.0）', () => {
-  const scriptSource = readFileSync(
-    resolve(__dirname, '../../scripts/rebuild-hero.sh'),
-    'utf-8',
-  )
-  const packageJson = readFileSync(
-    resolve(__dirname, '../../package.json'),
-    'utf-8',
-  )
+  const scriptSource = readFileSync(resolve(__dirname, '../../scripts/rebuild-hero.sh'), 'utf-8')
+  const packageJson = readFileSync(resolve(__dirname, '../../package.json'), 'utf-8')
 
   it('rebuild-hero.sh 存在 + 可執行', () => {
     expect(scriptSource.length).toBeGreaterThan(0)

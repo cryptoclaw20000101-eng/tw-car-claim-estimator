@@ -1,14 +1,14 @@
-import type { Metadata, Viewport } from "next";
-import { AntdRegistry } from "@ant-design/nextjs-registry";
-import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
+import type { Metadata, Viewport } from 'next'
+import { AntdRegistry } from '@ant-design/nextjs-registry'
+import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar'
 // v0.13.x：ThemeProvider 取代靜態 ConfigProvider（含 dark mode algorithm）
-import { ThemeProvider } from "@/components/ThemeProvider";
+import { ThemeProvider } from '@/components/ThemeProvider'
 // v0.13.x：Web Vitals 上報
-import { WebVitalsReporter } from "@/components/WebVitalsReporter";
+import { WebVitalsReporter } from '@/components/WebVitalsReporter'
 // v0.13.x：Sentry-style 錯誤追蹤 scaffold
-import { ErrorTracker } from "@/components/ErrorTracker";
-import { ACCENT } from "@/lib/design/tokens";
-import "./globals.css";
+import { ErrorTracker } from '@/components/ErrorTracker'
+import { ACCENT } from '@/lib/design/tokens'
+import './globals.css'
 
 /**
  * S1.5 PWA 補強 — themeColor 必須用 viewport export（metadata.themeColor 在
@@ -20,20 +20,20 @@ import "./globals.css";
  */
 export const viewport: Viewport = {
   themeColor: ACCENT, // 對齊 ConfigProvider colorPrimary
-  colorScheme: "light",
-  width: "device-width",
+  colorScheme: 'light',
+  width: 'device-width',
   initialScale: 1,
   // v0.8.0+：手機優化
-  maximumScale: 5,              // 允許放大（accessibility）
-  viewportFit: "cover",        // iOS safe-area 必填
-};
+  maximumScale: 5, // 允許放大（accessibility）
+  viewportFit: 'cover', // iOS safe-area 必填
+}
 
 export const metadata: Metadata = {
   // v0.9.0+：metadataBase 必須設定，否則 OG / Twitter image 解析會 fallback 到 localhost
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://tw-car-claim-estimator.vercel.app",
+    process.env.NEXT_PUBLIC_SITE_URL || 'https://tw-car-claim-estimator.vercel.app',
   ),
-  title: "台灣車禍理賠金額估算器",
+  title: '台灣車禍理賠金額估算器',
   // v0.12.0+ Phase C3：結構化資料 JSON-LD（SoftwareApplication）
   // 幫助搜尋引擎理解這是「工具型 web app」而非「文章頁」
   other: {
@@ -41,7 +41,8 @@ export const metadata: Metadata = {
       '@context': 'https://schema.org',
       '@type': 'SoftwareApplication',
       name: '台灣車禍理賠金額估算器',
-      description: '依強制汽車責任保險法、民法侵權行為及 6 個直轄市地方法院實務，快速估算體傷理賠金額。',
+      description:
+        '依強制汽車責任保險法、民法侵權行為及 6 個直轄市地方法院實務，快速估算體傷理賠金額。',
       applicationCategory: 'FinanceApplication',
       operatingSystem: 'Web',
       inLanguage: 'zh-Hant',
@@ -57,15 +58,15 @@ export const metadata: Metadata = {
       },
     }),
   },
-  description: "依強制汽車責任保險法、民法侵權行為及法院實務，快速估算體傷理賠金額",
-  applicationName: "車禍理賠估算器",
+  description: '依強制汽車責任保險法、民法侵權行為及法院實務，快速估算體傷理賠金額',
+  applicationName: '車禍理賠估算器',
   appleWebApp: {
-    capable: true,               // iOS Safari 「加到主畫面」啟用全螢幕 web app 模式
-    title: "車禍理賠估算器",
-    statusBarStyle: "default",   // 'default' | 'black' | 'black-translucent'
+    capable: true, // iOS Safari 「加到主畫面」啟用全螢幕 web app 模式
+    title: '車禍理賠估算器',
+    statusBarStyle: 'default', // 'default' | 'black' | 'black-translucent'
   },
   formatDetection: {
-    telephone: false,            // 不要自動把電話號碼變 link
+    telephone: false, // 不要自動把電話號碼變 link
   },
   icons: {
     // 192 用於 Android home screen、180 用於 iOS apple-touch-icon
@@ -73,16 +74,14 @@ export const metadata: Metadata = {
       { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
       { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
     ],
-    apple: [
-      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-    ],
+    apple: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
   },
-};
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html
@@ -130,5 +129,5 @@ export default function RootLayout({
         <ServiceWorkerRegistrar />
       </body>
     </html>
-  );
+  )
 }

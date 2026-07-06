@@ -222,7 +222,9 @@ describe('generateEvidence — 診斷書補件', () => {
       medical: makeMedical({ diagnosisText: '' }),
     })
     const result = generateEvidence(input, makeDisability(), makeWorkLoss(), makePas())
-    expect(result.missingDocuments).toContain('補診斷證明書（須記載傷勢部位、醫囑休養天數、需否看護）')
+    expect(result.missingDocuments).toContain(
+      '補診斷證明書（須記載傷勢部位、醫囑休養天數、需否看護）',
+    )
   })
 
   it('有診斷書但醫囑標需看護又沒填看護天數 → 提示補看護天數', () => {
@@ -246,12 +248,7 @@ describe('generateEvidence — 診斷書補件', () => {
   })
 
   it('診斷書完整、醫囑休養天數也有、看護不需 → 不應再出現診斷書相關補件', () => {
-    const result = generateEvidence(
-      makeInput(),
-      makeDisability(),
-      makeWorkLoss(),
-      makePas(),
-    )
+    const result = generateEvidence(makeInput(), makeDisability(), makeWorkLoss(), makePas())
     const hasDiagMissing = result.missingDocuments.some((d) => d.startsWith('補診斷'))
     expect(hasDiagMissing).toBe(false)
   })
@@ -266,12 +263,7 @@ describe('generateEvidence — 失能初篩帶入補件', () => {
     const disability = makeDisability({
       needsSupplement: ['補關節量測記錄', '補骨科回診紀錄'],
     })
-    const result = generateEvidence(
-      makeInput(),
-      disability,
-      makeWorkLoss(),
-      makePas(),
-    )
+    const result = generateEvidence(makeInput(), disability, makeWorkLoss(), makePas())
     expect(result.missingDocuments).toContain('補關節量測記錄')
     expect(result.missingDocuments).toContain('補骨科回診紀錄')
   })
@@ -280,12 +272,7 @@ describe('generateEvidence — 失能初篩帶入補件', () => {
     const disability = makeDisability({
       needsSupplement: ['補關節量測記錄', '補關節量測記錄'], // 重複
     })
-    const result = generateEvidence(
-      makeInput(),
-      disability,
-      makeWorkLoss(),
-      makePas(),
-    )
+    const result = generateEvidence(makeInput(), disability, makeWorkLoss(), makePas())
     const count = result.missingDocuments.filter((d) => d === '補關節量測記錄').length
     expect(count).toBe(1)
   })
@@ -348,7 +335,8 @@ describe('generateEvidence — 工作損失補件', () => {
     const workLoss = makeWorkLoss({ amount: 0 })
     const result = generateEvidence(input, makeDisability(), workLoss, makePas())
     const hasWorkLossMissing = result.missingDocuments.some(
-      (d) => d.includes('薪轉') || d.includes('請假單') || d.includes('扣薪') || d.includes('所得稅'),
+      (d) =>
+        d.includes('薪轉') || d.includes('請假單') || d.includes('扣薪') || d.includes('所得稅'),
     )
     expect(hasWorkLossMissing).toBe(false)
   })
@@ -378,7 +366,9 @@ describe('generateEvidence — 車損財損', () => {
       }),
     })
     const result = generateEvidence(input, makeDisability(), makeWorkLoss(), makePas())
-    expect(result.riskNotes).toContain('車損估算需事故前車價以避免超估，建議補車輛殘值或市場行情資料')
+    expect(result.riskNotes).toContain(
+      '車損估算需事故前車價以避免超估，建議補車輛殘值或市場行情資料',
+    )
   })
 
   it('有拖吊費但無車損資料 → 提示補', () => {
@@ -461,7 +451,9 @@ describe('generateEvidence — 保險狀態風險', () => {
       basics: makeBasics({ hasCompulsoryInsurance: false }),
     })
     const result = generateEvidence(input, makeDisability(), makeWorkLoss(), makePas())
-    expect(result.riskNotes).toContain('⚠️ 未投保強制險，將由交通事故特別補償基金處理，請先確認加害人車輛是否有投保')
+    expect(result.riskNotes).toContain(
+      '⚠️ 未投保強制險，將由交通事故特別補償基金處理，請先確認加害人車輛是否有投保',
+    )
   })
 
   // v0.5.2: 拿掉「加害人未保第三人責任險」風險提示 — 永遠當有第三人險
@@ -475,7 +467,9 @@ describe('generateEvidence — 失能等級風險', () => {
   it('screening B → 提示補診斷與關節量測', () => {
     const disability = makeDisability({ screening: 'B' })
     const result = generateEvidence(makeInput(), disability, makeWorkLoss(), makePas())
-    expect(result.riskNotes).toContain('失能初篩為 B 級（有線索但資料不足），建議補診斷書與關節量測')
+    expect(result.riskNotes).toContain(
+      '失能初篩為 B 級（有線索但資料不足），建議補診斷書與關節量測',
+    )
   })
 
   it('screening C → 提示申請失能鑑定', () => {
@@ -506,7 +500,9 @@ describe('generateEvidence — 精神慰撫金風險', () => {
   it('severityScore >= 45 → 提示慰撫金不屬於強制險', () => {
     const pas = makePas({ severityScore: 50 })
     const result = generateEvidence(makeInput(), makeDisability(), makeWorkLoss(), pas)
-    expect(result.riskNotes).toContain('精神慰撫金不屬於強制險給付，須列入第三人責任險體傷或民事和解')
+    expect(result.riskNotes).toContain(
+      '精神慰撫金不屬於強制險給付，須列入第三人責任險體傷或民事和解',
+    )
   })
 
   it('severityScore < 45 → 不應觸發該提示', () => {
@@ -536,12 +532,7 @@ describe('generateEvidence — 精神慰撫金風險', () => {
 
 describe('generateEvidence — 輸出結構', () => {
   it('missingDocuments 與 riskNotes 都是陣列', () => {
-    const result = generateEvidence(
-      makeInput(),
-      makeDisability(),
-      makeWorkLoss(),
-      makePas(),
-    )
+    const result = generateEvidence(makeInput(), makeDisability(), makeWorkLoss(), makePas())
     expect(Array.isArray(result.missingDocuments)).toBe(true)
     expect(Array.isArray(result.riskNotes)).toBe(true)
   })

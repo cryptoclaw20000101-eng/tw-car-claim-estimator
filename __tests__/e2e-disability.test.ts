@@ -44,7 +44,20 @@ describe('失能保典 E2E：通用判例載入器', () => {
     const tax = getDisabilityTaxonomy()
     expect(tax).not.toBeNull()
     const notesStr = JSON.stringify(tax!.notes ?? [])
-    for (const cat of ['精神', '神經', '眼', '耳', '鼻', '口', '胸腹部臟器', '軀幹', '頭臉頸', '皮膚', '上肢', '下肢']) {
+    for (const cat of [
+      '精神',
+      '神經',
+      '眼',
+      '耳',
+      '鼻',
+      '口',
+      '胸腹部臟器',
+      '軀幹',
+      '頭臉頸',
+      '皮膚',
+      '上肢',
+      '下肢',
+    ]) {
       expect(notesStr).toContain(cat)
     }
   })

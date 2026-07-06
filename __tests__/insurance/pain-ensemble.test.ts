@@ -78,9 +78,11 @@ describe('ensembleEstimate — 三票共識引擎', () => {
   })
 
   it('partial 共識：回傳兩票平均 + 標 outlier', () => {
-    const r = ensembleEstimate(input({
-      knnCases: [{ caseNo: 'A', amount: 200_000 }],
-    }))
+    const r = ensembleEstimate(
+      input({
+        knnCases: [{ caseNo: 'A', amount: 200_000 }],
+      }),
+    )
     expect(r.consensus).toBe('partial')
     // 規則 100K + ML 100K → 平均 100K
     expect(r.consensusAmount).toBe(100_000)
@@ -89,22 +91,26 @@ describe('ensembleEstimate — 三票共識引擎', () => {
   })
 
   it('weak 共識：回傳區間 + 警示人工複核', () => {
-    const r = ensembleEstimate(input({
-      rulesMid: 100_000,
-      mlP50: 300_000,
-      knnCases: [{ caseNo: 'A', amount: 50_000 }],
-    }))
+    const r = ensembleEstimate(
+      input({
+        rulesMid: 100_000,
+        mlP50: 300_000,
+        knnCases: [{ caseNo: 'A', amount: 50_000 }],
+      }),
+    )
     expect(r.consensus).toBe('weak')
-    expect(r.consensusAmount).toBeNull()  // 不給單一金額
+    expect(r.consensusAmount).toBeNull() // 不給單一金額
     expect(r.suggestedRange).toBeDefined()
     expect(r.warning).toMatch(/人工複核|建議複核/)
   })
 
   it('KNN 不可用：仍能計算（規則 + ML 二票）', () => {
-    const r = ensembleEstimate(input({
-      knnAvailable: false,
-      knnCases: [],
-    }))
+    const r = ensembleEstimate(
+      input({
+        knnAvailable: false,
+        knnCases: [],
+      }),
+    )
     // 規則 100K + ML 100K → 仍 strong（兩票就夠）
     expect(r.consensus).toBe('strong')
     expect(r.consensusAmount).toBe(100_000)
@@ -112,24 +118,28 @@ describe('ensembleEstimate — 三票共識引擎', () => {
   })
 
   it('ML confidence=low 時：弱化 ML 票的權重', () => {
-    const r = ensembleEstimate(input({
-      rulesMid: 100_000,
-      mlP50: 100_000,
-      knnCases: [{ caseNo: 'A', amount: 100_000 }],
-      mlConfidence: 'low',
-    }))
+    const r = ensembleEstimate(
+      input({
+        rulesMid: 100_000,
+        mlP50: 100_000,
+        knnCases: [{ caseNo: 'A', amount: 100_000 }],
+        mlConfidence: 'low',
+      }),
+    )
     // 三票一致但 ML 信心低 → consensus 仍 strong 但附說明
     expect(r.consensus).toBe('strong')
-    expect(r.mlWeight).toBeLessThan(1)  // ML 票權重 < 1
+    expect(r.mlWeight).toBeLessThan(1) // ML 票權重 < 1
   })
 
   it('票數為空（rules/ml 都 null）→ 回傳 null + 補件提示', () => {
-    const r = ensembleEstimate(input({
-      rulesMid: 0,
-      mlP50: 0,
-      knnAvailable: false,
-      knnCases: [],
-    }))
+    const r = ensembleEstimate(
+      input({
+        rulesMid: 0,
+        mlP50: 0,
+        knnAvailable: false,
+        knnCases: [],
+      }),
+    )
     expect(r.consensus).toBe('insufficient')
     expect(r.consensusAmount).toBeNull()
     expect(r.warning).toMatch(/資料不足/)
@@ -145,11 +155,13 @@ describe('ensembleEstimate — 不變量', () => {
   })
 
   it('suggestedRange 下限 ≤ 上限', () => {
-    const r = ensembleEstimate(input({
-      rulesMid: 100_000,
-      mlP50: 300_000,
-      knnCases: [{ caseNo: 'A', amount: 50_000 }],
-    }))
+    const r = ensembleEstimate(
+      input({
+        rulesMid: 100_000,
+        mlP50: 300_000,
+        knnCases: [{ caseNo: 'A', amount: 50_000 }],
+      }),
+    )
     if (r.suggestedRange) {
       expect(r.suggestedRange.low).toBeLessThanOrEqual(r.suggestedRange.high)
     }

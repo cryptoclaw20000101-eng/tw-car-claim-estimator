@@ -29,7 +29,12 @@
 import { useEffect, useState } from 'react'
 import { Alert, Button, Modal, Space, Typography } from 'antd'
 import { InfoAlert } from '@/components/InfoAlert'
-import { DownloadOutlined, ShareAltOutlined, PlusSquareOutlined, CloseOutlined } from '@ant-design/icons'
+import {
+  DownloadOutlined,
+  ShareAltOutlined,
+  PlusSquareOutlined,
+  CloseOutlined,
+} from '@ant-design/icons'
 
 const { Text, Paragraph } = Typography
 
@@ -106,7 +111,12 @@ export function InstallPWAButton() {
   }
 
   // SSR / loading / 已安裝 / 不支援 → 不 render
-  if (platform === 'loading' || platform === 'unsupported' || platform === 'installed' || installed) {
+  if (
+    platform === 'loading' ||
+    platform === 'unsupported' ||
+    platform === 'installed' ||
+    installed
+  ) {
     return null
   }
 
@@ -239,14 +249,37 @@ function IosShareIllustration() {
       className="shrink-0"
     >
       {/* 模擬 iOS Safari URL bar */}
-      <rect x="4" y="8" width="72" height="44" rx="8" fill="#ffffff" stroke="#e4e4e7" strokeWidth="1" />
+      <rect
+        x="4"
+        y="8"
+        width="72"
+        height="44"
+        rx="8"
+        fill="#ffffff"
+        stroke="#e4e4e7"
+        strokeWidth="1"
+      />
       {/* URL 文字 */}
       <rect x="10" y="14" width="44" height="6" rx="2" fill="#a1a1aa" />
       {/* 重新整理 icon */}
       <circle cx="64" cy="17" r="3" stroke="#71717a" strokeWidth="1" fill="none" />
       {/* 分享 icon — accent ring 標記 */}
-      <rect x="50" y="11" width="14" height="14" rx="3" fill="#ffffff" stroke="#be123c" strokeWidth="2" />
-      <path d="M53 18 L57 14 M57 14 L61 18 M57 14 L57 22" stroke="#be123c" strokeWidth="1.5" strokeLinecap="round" />
+      <rect
+        x="50"
+        y="11"
+        width="14"
+        height="14"
+        rx="3"
+        fill="#ffffff"
+        stroke="#be123c"
+        strokeWidth="2"
+      />
+      <path
+        d="M53 18 L57 14 M57 14 L61 18 M57 14 L57 22"
+        stroke="#be123c"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
       {/* 下方漸層 bar 模擬頁面 */}
       <rect x="10" y="28" width="50" height="2" rx="1" fill="#e4e4e7" />
       <rect x="10" y="34" width="40" height="2" rx="1" fill="#e4e4e7" />
@@ -270,7 +303,16 @@ function IosAddToHomeIllustration() {
       className="shrink-0"
     >
       {/* 模擬 iOS share sheet 容器 */}
-      <rect x="4" y="4" width="72" height="52" rx="6" fill="#f4f4f5" stroke="#e4e4e7" strokeWidth="1" />
+      <rect
+        x="4"
+        y="4"
+        width="72"
+        height="52"
+        rx="6"
+        fill="#f4f4f5"
+        stroke="#e4e4e7"
+        strokeWidth="1"
+      />
       {/* 標題列 */}
       <rect x="24" y="8" width="32" height="3" rx="1" fill="#71717a" />
       {/* 多個 icon grid（淡灰） */}
@@ -282,9 +324,27 @@ function IosAddToHomeIllustration() {
         <rect x="66" y="16" width="6" height="10" rx="2" />
       </g>
       {/* 「加入主畫面」高亮列（accent 框） */}
-      <rect x="10" y="32" width="62" height="16" rx="4" fill="#ffffff" stroke="#be123c" strokeWidth="2" />
+      <rect
+        x="10"
+        y="32"
+        width="62"
+        height="16"
+        rx="4"
+        fill="#ffffff"
+        stroke="#be123c"
+        strokeWidth="2"
+      />
       {/* 加號 icon */}
-      <rect x="14" y="36" width="8" height="8" rx="1.5" fill="none" stroke="#be123c" strokeWidth="1.5" />
+      <rect
+        x="14"
+        y="36"
+        width="8"
+        height="8"
+        rx="1.5"
+        fill="none"
+        stroke="#be123c"
+        strokeWidth="1.5"
+      />
       <line x1="18" y1="38" x2="18" y2="42" stroke="#be123c" strokeWidth="1.5" />
       <line x1="16" y1="40" x2="20" y2="40" stroke="#be123c" strokeWidth="1.5" />
       {/* 文字標籤條 */}
