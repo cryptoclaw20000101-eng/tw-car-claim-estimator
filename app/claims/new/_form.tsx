@@ -52,7 +52,10 @@ import { FormProgress } from '@/components/FormProgress'
 // v0.15.x Phase 4：Step 元件抽出
 import { Step1Basics } from './_steps/Step1Basics'
 import { Step2Fault } from './_steps/Step2Fault'
+import { Step3Person } from './_steps/Step3Person'
 import { Step4Medical } from './_steps/Step4Medical'
+import { Step5Receipts } from './_steps/Step5Receipts'
+import { Step6Property } from './_steps/Step6Property'
 import { Step7Region } from './_steps/Step7Region'
 import {
   LeftOutlined,
@@ -514,7 +517,7 @@ export default function NewClaimForm() {
           {/* ====== Step 2：肇責 ====== */}
           {current === 1 && <Step2Fault form={form} faultSourceOptions={FAULT_SOURCE_OPTIONS} />}
           {/* ====== Step 3：人身 / 工作 ====== */}
-          {current === 2 && <Step3Person form={form} />}
+          {current === 2 && <Step3Person form={form} employmentOptions={EMPLOYMENT_OPTIONS} />}
           {/* ====== Step 4：診斷書 ====== */}
           {current === 3 && (
             <Step4Medical form={form} accidentLocationForKnn={data.basics.accidentLocation} />
@@ -577,281 +580,12 @@ function mergeStep(prev: FormSchema, step: number, values: Partial<FormSchema>):
 // ============== Step 1：事故基本 ==============
 // ============== Step 2：肇責 ==============
 // ============== Step 3：人身 / 工作 ==============
-function Step3Person({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
-  // v0.5.3 bugfix: birthDate DatePicker 也會踩 rc-picker getUDayjs('') isValid 炸
-  // 跟 Step1 一樣：mount 時若不是 dayjs 物件就塞 dayjs()（空字串轉 dayjs()，user 選完 onChange 會再轉回字串）
-  useEffect(() => {
-    const cur = form.getFieldValue(['person', 'birthDate'])
-    if (!cur || typeof cur === 'string') {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      form.setFieldsValue({ person: { birthDate: dayjs() } } as any)
-    }
-  }, [form])
-  return (
-    <Card
-      title={
-        <>
-          <UserOutlined className="mr-2" />
-          受害人身分與工作
-        </>
-      }
-    >
-      <Row gutter={16}>
-        <Col xs={24} md={8}>
-          <Form.Item
-            label="出生年月日"
-            name={['person', 'birthDate']}
-            getValueProps={(value) => ({ value: value ? dayjs(value) : null })}
-          >
-            <DatePicker
-              style={{ width: '100%' }}
-              format="YYYY-MM-DD"
-              onChange={(d: Dayjs | null) => {
-                const iso = d?.format('YYYY-MM-DD') ?? ''
-                form.setFieldValue(['person', 'birthDate'], iso)
-                if (d) {
-                  const age = dayjs().diff(d, 'year')
-                  form.setFieldValue(['person', 'age'], age)
-                }
-              }}
-            />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={8}>
-          <Form.Item label="年齡（自動）" name={['person', 'age']}>
-            <InputNumber style={{ width: '100%' }} min={0} max={120} disabled />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={8}>
-          <Form.Item label="職業" name={['person', 'occupation']}>
-            <Input placeholder="例：工程師" autoComplete="organization-title" enterKeyHint="next" />
-          </Form.Item>
-        </Col>
-      </Row>
-      <Form.Item
-        label="受僱類型 *"
-        name={['person', 'employmentType']}
-        rules={[{ required: true }]}
-      >
-        <Select options={EMPLOYMENT_OPTIONS} />
-      </Form.Item>
-      <Row gutter={16}>
-        <Col xs={24} md={12}>
-          <Form.Item
-            label="事故前 6 月平均月薪（元）"
-            name={['person', 'sixMonthAverageSalary']}
-            // v0.12.0+ Phase A3：月薪證明影響工作損失計算
-            tooltip={{
-              title:
-                '需附「事故前 6 個月薪資證明」（如薪轉單、扣繳憑單）。無證明者，工作損失改按基本工資估算（金額較低）。',
-              icon: <InfoCircleOutlined />,
-            }}
-          >
-            <InputNumber
-              style={{ width: '100%' }}
-              min={0}
-              step={1000}
-              formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-            />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={12}>
-          <Form.Item label="現職月薪（元）" name={['person', 'monthlySalary']}>
-            <InputNumber
-              style={{ width: '100%' }}
-              min={0}
-              step={1000}
-              formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-            />
-          </Form.Item>
-        </Col>
-      </Row>
-      <Row gutter={16}>
-        <Col xs={24} md={12}>
-          <Form.Item label="日薪（按件/日領者）" name={['person', 'dailyWage']}>
-            <InputNumber
-              style={{ width: '100%' }}
-              min={0}
-              step={500}
-              formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-            />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={12}>
-          <Form.Item label="去年報稅所得（元）" name={['person', 'lastYearTaxableIncome']}>
-            <InputNumber
-              style={{ width: '100%' }}
-              min={0}
-              step={10_000}
-              formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-            />
-          </Form.Item>
-        </Col>
-      </Row>
-      <Title level={5} className="!mt-4">
-        工作損失佐證
-      </Title>
-      <Row gutter={16}>
-        <Col xs={12} md={6}>
-          <Form.Item label="財產清單" name={['person', 'hasPropertyList']} valuePropName="checked">
-            <Switch />
-          </Form.Item>
-        </Col>
-        <Col xs={12} md={6}>
-          <Form.Item
-            label="薪轉證明"
-            name={['person', 'hasSalaryTransferRecord']}
-            valuePropName="checked"
-          >
-            <Switch />
-          </Form.Item>
-        </Col>
-        <Col xs={12} md={6}>
-          <Form.Item
-            label="請假證明"
-            name={['person', 'hasLeaveCertificate']}
-            valuePropName="checked"
-          >
-            <Switch />
-          </Form.Item>
-        </Col>
-        <Col xs={12} md={6}>
-          <Form.Item
-            label="扣薪證明"
-            name={['person', 'hasSalaryDeductionProof']}
-            valuePropName="checked"
-          >
-            <Switch />
-          </Form.Item>
-        </Col>
-      </Row>
-      <Row gutter={16}>
-        <Col xs={24} md={12}>
-          <Form.Item label="實際請假日數" name={['person', 'actualLeaveDays']}>
-            <InputNumber style={{ width: '100%' }} min={0} />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={12}>
-          <Form.Item label="醫囑休養日數" name={['person', 'doctorOrderedRestDays']}>
-            <InputNumber style={{ width: '100%' }} min={0} />
-          </Form.Item>
-        </Col>
-      </Row>
-    </Card>
-  )
-}
 
 // ============== Step 4：診斷書 ==============
 
 // ============== Step 5：醫療收據 ==============
-function Step5Receipts({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
-  // v0.2.5+：22 欄位塞一張 Card 但分 4 Section — 救人/住院/義肢/特殊材料
-  // 對應強制汽車責任保險給付標準 §2 第 1-3 項（醫療給付 15 細項）
-  // 不在強制險範圍：精神慰撫金 / 工作損失 / 車損（這 3 項走第三人責任險）
-  return (
-    <StepShell
-      icon={<FileTextOutlined />}
-      title="醫療收據（強制險 15 細項）"
-      alertType="info"
-      alertTitle="依強制汽車責任保險給付標準 §2 細項填寫；看護費有 1,200 元/日、30 日硬上限（會自動套用）。"
-      alertBody="本表單只收醫療相關；精神慰撫金 / 工作損失 / 車損請勿填入此處（法律強制不併入強制險，會在 Step 3 工作、Step 6 車損分開算）。"
-    >
-      <Section title="救護與掛號（急診/救護/掛號/診斷書）">
-        <R2C name={['receipts', 'emergencyFee']} label="急診費" />
-        <R2C name={['receipts', 'ambulanceFee']} label="救護車費" />
-        <R2C name={['receipts', 'nhiCopayment']} label="健保自付額" />
-        <R2C name={['receipts', 'registrationFee']} label="掛號費" />
-        <R2C name={['receipts', 'diagnosisCertificateFee']} label="診斷書費" />
-        <R2C name={['receipts', 'nonNhiNecessaryMedicalFee']} label="非健保必要醫療" />
-      </Section>
-      <Section title="住院（病房/膳食）">
-        <R2C name={['receipts', 'wardFeeDifference']} label="病房費差額" />
-        <R2C name={['receipts', 'wardFeeDays']} label="病房費天數" />
-        <R2C name={['receipts', 'mealFee']} label="膳食費" />
-        <R2C name={['receipts', 'mealDays']} label="膳食天數" />
-      </Section>
-      <Section title="義肢 / 齒 / 眼（按缺損部位）">
-        <R2C name={['receipts', 'prosthesisFee']} label="義肢費" />
-        <R2C name={['receipts', 'dentureFee']} label="義齒費" />
-        <R2C name={['receipts', 'missingTeethCount']} label="缺牙數" />
-        <R2C name={['receipts', 'artificialEyeFee']} label="義眼費" />
-      </Section>
-      <Section title="特殊材料 / 輔具 / 其他（v0.2.5+ 2 萬上限只限「特殊材料+輔具」）">
-        {/* v0.2.5+：拆「醫材費」為「特殊材料費」+「一般醫材歸健保自付額」；2 萬上限只限特殊材料 + 輔具 */}
-        <R2C name={['receipts', 'specialMaterialFee']} label="特殊材料費（骨材/鋼板/特材）" />
-        <R2C name={['receipts', 'assistiveDeviceFee']} label="輔具費（拐杖/輪椅/支架）" />
-        <R2C name={['receipts', 'transportationFee']} label="接送費" />
-        <R2C name={['receipts', 'nursingFee']} label="看護費" />
-        <R2C name={['receipts', 'nursingDays']} label="看護天數" />
-        <R2C name={['receipts', 'otherNecessaryMedicalFee']} label="其他必要醫療" />
-      </Section>
-    </StepShell>
-  )
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="!mb-4">
-      <Title level={5} className="!mb-2">
-        {title}
-      </Title>
-      <Row gutter={16}>{children}</Row>
-    </div>
-  )
-}
-
-function R2C({ name, label }: { name: [string, string]; label: string }) {
-  return (
-    <Col xs={12} md={8}>
-      <Form.Item label={label} name={name}>
-        <InputNumber
-          style={{ width: '100%' }}
-          min={0}
-          formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-        />
-      </Form.Item>
-    </Col>
-  )
-}
 
 // ============== Step 6：車損 / 財損 ==============
-function Step6Property({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
-  return (
-    <Card
-      title={
-        <>
-          <ToolOutlined className="mr-2" />
-          車損 / 財損
-        </>
-      }
-    >
-      <Title level={5}>車輛</Title>
-      <Row gutter={16}>
-        <R2C name={['property', 'vehicleRepairEstimate']} label="估價單金額" />
-        <R2C name={['property', 'vehicleRepairInvoice']} label="發票金額" />
-        <R2C name={['property', 'vehicleMarketValueBeforeAccident']} label="事故前車價" />
-        <R2C name={['property', 'salvageValue']} label="殘值" />
-      </Row>
-      <Row gutter={16}>
-        <R2C name={['property', 'towingFee']} label="拖吊費" />
-        <R2C name={['property', 'rentalCarFee']} label="代步費" />
-      </Row>
-      <Title level={5} className="!mt-4">
-        其他財損
-      </Title>
-      <Row gutter={16}>
-        <R2C name={['property', 'phoneDamage']} label="手機損壞" />
-        <R2C name={['property', 'helmetDamage']} label="安全帽損壞" />
-        <R2C name={['property', 'clothingDamage']} label="衣物損壞" />
-        <R2C name={['property', 'glassesDamage']} label="眼鏡損壞" />
-        <R2C name={['property', 'otherPropertyDamage']} label="其他財損" />
-      </Row>
-    </Card>
-  )
-}
-
-// ============== Step 7：地區 / 法院 ==============
-
 // ============== 失能保典 12 大類 sub-component ==============
 
 /** 即時顯示「失能等級 → 勞減比例」對照（依 DISABILITY_LABOR_LOSS_PCT 公式） */
