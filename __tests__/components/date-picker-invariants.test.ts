@@ -20,8 +20,14 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-const FORM_PATH = resolve(process.cwd(), 'app/claims/new/_form.tsx')
-const source = readFileSync(FORM_PATH, 'utf-8')
+// v0.15.x+ 重構後，Step 元件拆到 _steps/ 子目錄
+// 源碼分散：_form.tsx（主檔）+ _steps/Step1Basics.tsx + _steps/Step4Medical.tsx
+const PATHS = [
+  resolve(process.cwd(), 'app/claims/new/_form.tsx'),
+  resolve(process.cwd(), 'app/claims/new/_steps/Step1Basics.tsx'),
+  resolve(process.cwd(), 'app/claims/new/_steps/Step4Medical.tsx'),
+]
+const source = PATHS.map((p) => readFileSync(p, 'utf-8')).join('\n')
 
 describe('DatePicker 不變量 (v0.6.5 regression)', () => {
   // -------------------------------------------------------------------
