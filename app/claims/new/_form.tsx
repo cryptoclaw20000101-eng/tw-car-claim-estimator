@@ -51,6 +51,8 @@ import { MobileStickyCTA } from '@/components/MobileStickyCTA'
 import { FormProgress } from '@/components/FormProgress'
 // v0.15.x Phase 4：Step 元件抽出
 import { Step1Basics } from './_steps/Step1Basics'
+import { Step2Fault } from './_steps/Step2Fault'
+import { Step7Region } from './_steps/Step7Region'
 import {
   LeftOutlined,
   RightOutlined,
@@ -509,7 +511,7 @@ export default function NewClaimForm() {
             />
           )}
           {/* ====== Step 2：肇責 ====== */}
-          {current === 1 && <Step2Fault form={form} />}
+          {current === 1 && <Step2Fault form={form} faultSourceOptions={FAULT_SOURCE_OPTIONS} />}
           {/* ====== Step 3：人身 / 工作 ====== */}
           {current === 2 && <Step3Person form={form} />}
           {/* ====== Step 4：診斷書 ====== */}
@@ -519,7 +521,9 @@ export default function NewClaimForm() {
           {/* ====== Step 6：車損 / 財損 ====== */}
           {current === 5 && <Step6Property form={form} />}
           {/* ====== Step 7：地區 / 法院 ====== */}
-          {current === 6 && <Step7Region form={form} />}
+          {current === 6 && (
+            <Step7Region form={form} courtJurisdiction={data.basics.courtJurisdiction} />
+          )}
         </Form>
 
         {/* v0.8.1+：手機 sticky CTA（桌機保留原本 flex 排版） */}
@@ -569,75 +573,6 @@ function mergeStep(prev: FormSchema, step: number, values: Partial<FormSchema>):
 
 // ============== Step 1：事故基本 ==============
 // ============== Step 2：肇責 ==============
-function Step2Fault({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
-  const selfRatio = Form.useWatch(['fault', 'selfFaultRatio'], form) as number | undefined
-  return (
-    <StepShell
-      icon={<AuditOutlined />}
-      title="肇責比例"
-      alertType="warning"
-      alertTitle="強制險不乘肇責；第三人責任險的『有責金額』才會乘此比例。"
-    >
-      <Row gutter={16}>
-        <Col xs={24} md={12}>
-          <Form.Item
-            label="己方肇責 (%) *"
-            name={['fault', 'selfFaultRatio']}
-            rules={[{ required: true }]}
-            // v0.12.0+ Phase A3：tooltip 說明肇責意義與填法
-            tooltip={{
-              title:
-                '肇事責任比例由警方初判或法院判決認定。本欄不影響強制險（強制險不乘肇責），只影響第三人責任險的「可向對方求償」金額。',
-              icon: <InfoCircleOutlined />,
-            }}
-          >
-            <InputNumber
-              style={{ width: '100%' }}
-              min={0}
-              max={100}
-              step={5}
-              onChange={(v) => {
-                const n = Number(v) || 0
-                form.setFieldValue(['fault', 'otherFaultRatio'], 100 - n)
-              }}
-            />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={12}>
-          <Form.Item
-            label="對方肇責 (%)"
-            name={['fault', 'otherFaultRatio']}
-            tooltip={{
-              title:
-                '自動計算（=100 − 己方肇責）。若未確定，可暫時填 50/50 後再勾「肇責仍有爭議」。',
-              icon: <InfoCircleOutlined />,
-            }}
-          >
-            <InputNumber style={{ width: '100%' }} min={0} max={100} disabled />
-          </Form.Item>
-        </Col>
-      </Row>
-      <Form.Item
-        label="肇責來源"
-        name={['fault', 'faultSource']}
-        tooltip={{
-          title:
-            '若由警方初判、調委會調解、或法院判決決定，請選對應來源；尚未確定可選「尚未確定」。',
-          icon: <InfoCircleOutlined />,
-        }}
-      >
-        <Select options={FAULT_SOURCE_OPTIONS} />
-      </Form.Item>
-      <Form.Item label="肇責仍有爭議" name={['fault', 'isFaultDisputed']} valuePropName="checked">
-        <Switch checkedChildren="是" unCheckedChildren="否" />
-      </Form.Item>
-      <Paragraph type="secondary" className="!text-sm">
-        己方 {selfRatio ?? 0}% / 對方 {100 - (selfRatio ?? 0)}%
-      </Paragraph>
-    </StepShell>
-  )
-}
-
 // ============== Step 3：人身 / 工作 ==============
 function Step3Person({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
   // v0.5.3 bugfix: birthDate DatePicker 也會踩 rc-picker getUDayjs('') isValid 炸
@@ -1286,81 +1221,6 @@ function Step6Property({ form }: { form: ReturnType<typeof Form.useForm<FormSche
 }
 
 // ============== Step 7：地區 / 法院 ==============
-function Step7Region({ form }: { form: ReturnType<typeof Form.useForm<FormSchema>>[0] }) {
-  // Step 1 已填過「事故縣市 → 自動帶入管轄法院」三件組
-  // Step 7 只留「聲請人/對方居住地」（必要 → 影響法院管轄 + 強制險理賠窗口）
-  // 並提供查看「管轄法院最終結果」唯讀確認區塊
-  const courtJurisdiction = Form.useWatch(['basics', 'courtJurisdiction'], form) as
-    string | undefined
-  return (
-    <Card
-      title={
-        <>
-          <EnvironmentOutlined className="mr-2" />
-          居住地與管轄法院確認
-        </>
-      }
-    >
-      <InfoAlert
-        type="info"
-        showIcon
-        className="!mb-4"
-        title="Step 1 已帶入「事故地 → 管轄法院」，本步只補當事人居住地。"
-        body="聲請人 / 對方居住地會送進第三人責任險估算（保險公司窗口歸屬）以及民事訴訟管轄參考。"
-      />
-
-      <Title level={5} className="!mt-2">
-        當事人居住地（強制險/第三人責任險理賠窗口）
-      </Title>
-      <Row gutter={16}>
-        <Col xs={24} md={12}>
-          <Form.Item label="聲請人居住縣市" name={['basics', 'claimantResidenceCity']}>
-            <Select options={CITY_OPTIONS.map((v) => ({ value: v, label: v }))} />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={12}>
-          <Form.Item label="聲請人居住鄉鎮" name={['basics', 'claimantResidenceDistrict']}>
-            <Input />
-          </Form.Item>
-        </Col>
-      </Row>
-      <Row gutter={16}>
-        <Col xs={24} md={12}>
-          <Form.Item label="對方居住縣市" name={['basics', 'defendantResidenceCity']}>
-            <Select options={CITY_OPTIONS.map((v) => ({ value: v, label: v }))} />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={12}>
-          <Form.Item label="對方居住鄉鎮" name={['basics', 'defendantResidenceDistrict']}>
-            <Input />
-          </Form.Item>
-        </Col>
-      </Row>
-
-      <Divider className="!my-3" />
-      <Title level={5}>管轄法院（依 Step 1 自動帶入，唯讀確認）</Title>
-      <Row gutter={16}>
-        <Col xs={24} md={12}>
-          <Form.Item label="管轄法院">
-            <Input value={courtJurisdiction ?? ''} disabled prefix={<ReadOutlined />} />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={12}>
-          <Form.Item label="保險公司分公司區域" name={['basics', 'insuranceCompanyBranchRegion']}>
-            <Input placeholder="例：中部 / 北部" />
-          </Form.Item>
-        </Col>
-      </Row>
-      <InfoAlert
-        type="info"
-        showIcon
-        className="!mt-4"
-        title="地區係數只影響第三人責任險／民事損害賠償估算；強制險本身是全國法定標準，不受地區影響。"
-        body="若想更換管轄法院，請回 Step 1 改「事故縣市」自動重帶，或在「管轄法院」欄位上方取消唯讀（Step 1 路徑）。"
-      />
-    </Card>
-  )
-}
 
 // ============== 失能保典 12 大類 sub-component ==============
 
