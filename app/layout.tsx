@@ -127,7 +127,116 @@ export default function RootLayout({
               <WebVitalsReporter />
               {/* v0.13.x：Sentry-style 錯誤追蹤 scaffold */}
               <ErrorTracker />
-              {children}
+              <div className="flex flex-1 flex-col">
+                {children}
+                {/* v0.16.x 完整 footer — 保險公司專業感 (律師事務所/客服/社群/法律) */}
+                <footer
+                  className="mt-auto border-t border-border bg-surface-subtle print-footer hidden"
+                  aria-label="網站頁尾"
+                >
+                  <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-8 px-6 py-12 md:grid-cols-4">
+                    {/* 律師事務所 — 必填欄位 placeholder (v0.16.x 預留) */}
+                    <div>
+                      <h3 className="!mb-3 !text-sm !font-semibold !uppercase !tracking-wider text-foreground">
+                        法律諮詢
+                      </h3>
+                      <p className="!mb-2 !text-sm !text-foreground">
+                        <strong>__律師事務所名稱__</strong>
+                      </p>
+                      <p className="!mb-1 !text-xs !text-muted">電話：__待填__</p>
+                      <p className="!mb-1 !text-xs !text-muted">地址：__待填__</p>
+                      <p className="!mb-1 !text-xs !text-muted">LINE：__待填__</p>
+                      <p className="!mt-3 !text-[10px] !text-muted">
+                        計算結果僅供試算，不構成法律意見
+                      </p>
+                    </div>
+
+                    {/* 客服 — 公開 (v0.16.x) */}
+                    <div>
+                      <h3 className="!mb-3 !text-sm !font-semibold !uppercase !tracking-wider text-foreground">
+                        客服
+                      </h3>
+                      <p className="!mb-1 !text-xs !text-muted">
+                        Email：
+                        <a
+                          href="mailto:support@tw-car-claim-estimator.vercel.app"
+                          className="!text-accent hover:underline"
+                        >
+                          support@tw-car-claim-estimator.vercel.app
+                        </a>
+                      </p>
+                      <p className="!mb-1 !text-xs !text-muted">回覆時間：3 個工作天內</p>
+                      <p className="!mb-1 !text-xs !text-muted">GitHub Issues：</p>
+                      <p className="!text-xs">
+                        <a
+                          href="https://github.com/cryptoclaw20000101-eng/tw-car-claim-estimator/issues"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="!text-accent hover:underline"
+                        >
+                          回報問題 / 建議
+                        </a>
+                      </p>
+                    </div>
+
+                    {/* 導覽 */}
+                    <div>
+                      <h3 className="!mb-3 !text-sm !font-semibold !uppercase !tracking-wider text-foreground">
+                        導覽
+                      </h3>
+                      <ul className="!m-0 !space-y-1 !p-0 !text-xs">
+                        <li>
+                          <a href="/claims/new" className="!text-muted hover:!text-foreground">
+                            開始估算
+                          </a>
+                        </li>
+                        <li>
+                          <a href="/claims/batch" className="!text-muted hover:!text-foreground">
+                            批次估算
+                          </a>
+                        </li>
+                        <li>
+                          <a href="/about" className="!text-muted hover:!text-foreground">
+                            關於我們
+                          </a>
+                        </li>
+                        <li>
+                          <a href="/privacy" className="!text-muted hover:!text-foreground">
+                            隱私權政策
+                          </a>
+                        </li>
+                        <li>
+                          <a href="/terms" className="!text-muted hover:!text-foreground">
+                            服務條款
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+
+                    {/* 法源 */}
+                    <div>
+                      <h3 className="!mb-3 !text-sm !font-semibold !uppercase !tracking-wider text-foreground">
+                        法源
+                      </h3>
+                      <ul className="!m-0 !space-y-1 !p-0 !text-xs">
+                        <li>強制汽車責任保險法 §27</li>
+                        <li>強制險給付標準 §2-§4</li>
+                        <li>民法 §184-196 侵權</li>
+                        <li>6 直轄市地院慰撫金區間</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="border-t border-border">
+                    <div className="mx-auto flex w-full max-w-6xl flex-col items-start gap-2 px-6 py-4 text-xs text-muted md:flex-row md:items-center md:justify-between">
+                      <p>© 2026 Taiwan Car-Claim Estimator · v0.16.x</p>
+                      <p>
+                        本工具僅供試算，不構成法律意見。實際理賠依保險公司審核 / 醫療資料 /
+                        肇事責任為準。
+                      </p>
+                    </div>
+                  </div>
+                </footer>
+              </div>
             </ThemeProvider>
           </AuthProvider>
         </AntdRegistry>
