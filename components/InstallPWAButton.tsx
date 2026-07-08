@@ -35,6 +35,7 @@ import {
   PlusSquareOutlined,
   CloseOutlined,
 } from '@ant-design/icons'
+import { ACCENT } from '@/lib/design/tokens'
 
 const { Text, Paragraph } = Typography
 
@@ -271,12 +272,12 @@ function IosShareIllustration() {
         height="14"
         rx="3"
         fill="#ffffff"
-        stroke="#be123c"
+        stroke="ACCENT"
         strokeWidth="2"
       />
       <path
         d="M53 18 L57 14 M57 14 L61 18 M57 14 L57 22"
-        stroke="#be123c"
+        stroke="ACCENT"
         strokeWidth="1.5"
         strokeLinecap="round"
       />
@@ -331,7 +332,7 @@ function IosAddToHomeIllustration() {
         height="16"
         rx="4"
         fill="#ffffff"
-        stroke="#be123c"
+        stroke="ACCENT"
         strokeWidth="2"
       />
       {/* 加號 icon */}
@@ -342,13 +343,13 @@ function IosAddToHomeIllustration() {
         height="8"
         rx="1.5"
         fill="none"
-        stroke="#be123c"
+        stroke="ACCENT"
         strokeWidth="1.5"
       />
-      <line x1="18" y1="38" x2="18" y2="42" stroke="#be123c" strokeWidth="1.5" />
-      <line x1="16" y1="40" x2="20" y2="40" stroke="#be123c" strokeWidth="1.5" />
+      <line x1="18" y1="38" x2="18" y2="42" stroke="ACCENT" strokeWidth="1.5" />
+      <line x1="16" y1="40" x2="20" y2="40" stroke="ACCENT" strokeWidth="1.5" />
       {/* 文字標籤條 */}
-      <rect x="26" y="38" width="32" height="4" rx="1" fill="#be123c" opacity="0.4" />
+      <rect x="26" y="38" width="32" height="4" rx="1" fill="ACCENT" opacity="0.4" />
     </svg>
   )
 }

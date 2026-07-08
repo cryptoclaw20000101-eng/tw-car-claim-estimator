@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import manifestFn from '@/app/manifest'
+import { ACCENT } from '@/lib/design/tokens'
 
 /**
  * S1.5 PWA Manifest 結構測試
@@ -28,9 +29,9 @@ describe('S1.5 PWA Manifest', () => {
   })
 
   it('theme_color 對齊 ConfigProvider colorPrimary', () => {
-    // 對齊 app/layout.tsx ConfigProvider colorPrimary = #be123c (rose-700)
-    // 若改 layout 的色，記得同步改這裡
-    expect(manifest.theme_color).toBe('#be123c')
+    // 對齊 app/layout.tsx ConfigProvider colorPrimary = ACCENT (從 tokens 引用)
+    // 換色只需改 tokens.ts + globals.css，test 動態讀 ACCENT 自動跟上
+    expect(manifest.theme_color).toBe(ACCENT)
   })
 
   it('zh-Hant 語系標記', () => {

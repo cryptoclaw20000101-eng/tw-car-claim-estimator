@@ -20,8 +20,9 @@
   --border-strong: #d4d4d8; /* zinc-300 */
 
   /* 強調色 — 避開 AntD 預設 #1677ff AI 藍紫，改用 deeper neutral + 單一 accent */
-  --accent: #be123c; /* rose-700，飽和 < 80%，單一 */
-  --accent-soft: #ffe4e6; /* rose-100 */
+  /* v0.16.x：保險公司深藍（從 rose-700 改 navy-700）*/
+  --accent: #1e40af; /* navy-700，保險公司深藍，飽和 < 80%，單一 */
+  --accent-soft: #dbeafe; /* blue-100 */
   --accent-foreground: #ffffff;
 
   /* 數據色（Stat 用）— 三色分明，不用彩虹 */
@@ -82,8 +83,8 @@
   --surface-subtle: #27272a; /* zinc-800 */
   --border: #3f3f46; /* zinc-700 */
   --border-strong: #52525b; /* zinc-600 */
-  --accent: #fb7185; /* rose-400（暗色模式降低飽和） */
-  --accent-soft: #4c0519; /* rose-950 */
+  --accent: #3b82f6; /* blue-500（暗色模式降低飽和） — 對應 light navy-700 */
+  --accent-soft: #172554; /* navy-950 */
   --accent-foreground: #ffffff;
   --data-positive: #4ade80; /* green-400 */
   --data-warning: #fbbf24; /* amber-400 */

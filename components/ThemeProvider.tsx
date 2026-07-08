@@ -17,6 +17,7 @@ import { useEffect, useState } from 'react'
 import { App, ConfigProvider, theme as antdTheme } from 'antd'
 import zhTW from 'antd/locale/zh_TW'
 import { MobileNav } from '@/components/MobileNav'
+import { ACCENT } from '@/lib/design/tokens'
 
 type ThemeMode = 'light' | 'dark'
 
@@ -69,7 +70,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         algorithm,
         token: {
           // v0.12.0+ 從 tokens 引用（已含在 layout 內的 token）
-          colorPrimary: '#be123c', // ACCENT
+          colorPrimary: ACCENT, // ACCENT
           colorInfo: '#0e7490',
           colorSuccess: '#166534',
           colorWarning: '#b45309',
@@ -100,10 +101,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
             fontWeight: 500,
           },
           Tabs: {
-            itemActiveColor: '#be123c',
-            itemHoverColor: '#be123c',
-            itemSelectedColor: '#be123c',
-            inkBarColor: '#be123c',
+            itemActiveColor: ACCENT,
+            itemHoverColor: ACCENT,
+            itemSelectedColor: ACCENT,
+            inkBarColor: ACCENT,
           },
           Alert: {
             borderRadiusLG: 8,

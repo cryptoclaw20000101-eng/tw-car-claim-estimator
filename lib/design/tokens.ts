@@ -34,9 +34,9 @@ export const COLORS = {
   border: '#e4e4e7', // zinc-200
   borderStrong: '#d4d4d8', // zinc-300
 
-  // 強調色（單一）
-  accent: '#be123c', // rose-700
-  accentSoft: '#ffe4e6', // rose-100
+  // 強調色（單一）— v0.16.x：保險公司深藍（從 rose-700 改 navy-700）
+  accent: '#1e40af', // navy-700（保險公司深藍）
+  accentSoft: '#dbeafe', // blue-100
   accentForeground: '#ffffff',
 
   // 數據色（Stat / Tag 用）
