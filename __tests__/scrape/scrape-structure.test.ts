@@ -87,15 +87,16 @@ describe('S8 v0.2.19 新鏈', () => {
   })
 
   it('report-precedents 報表有看護費 + 醫療費用 + 4 條衝量新鏈', () => {
-    expect(reportSource).toContain('"nursing-care.json"')
-    expect(reportSource).toContain('"medical-expense.json"')
-    expect(reportSource).toContain('"看護費"')
-    expect(reportSource).toContain('"醫療費用"')
+    // report-precedents.ts 內 CHAIN_FILE_TO_LABEL 用單引號字串（與專案風格一致）
+    expect(reportSource).toMatch(/['"]nursing-care\.json['"]/)
+    expect(reportSource).toMatch(/['"]medical-expense\.json['"]/)
+    expect(reportSource).toContain('看護費')
+    expect(reportSource).toContain('醫療費用')
     // v0.2.20+
-    expect(reportSource).toContain('"death-case.json"')
-    expect(reportSource).toContain('"transport-fee.json"')
-    expect(reportSource).toContain('"support-payment.json"')
-    expect(reportSource).toContain('"overtime-loss.json"')
+    expect(reportSource).toMatch(/['"]death-case\.json['"]/)
+    expect(reportSource).toMatch(/['"]transport-fee\.json['"]/)
+    expect(reportSource).toMatch(/['"]support-payment\.json['"]/)
+    expect(reportSource).toMatch(/['"]overtime-loss\.json['"]/)
   })
 })
 
