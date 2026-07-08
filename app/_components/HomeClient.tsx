@@ -87,7 +87,7 @@ export default function HomeClient() {
               <Divider />
               <Stat label="6 大計算引擎" value="6" />
               <Divider />
-              <Stat label="39 律師手動建檔" value="39" />
+              <Stat label="39 件手動建檔" value="39" />
               <Divider />
               <Stat label="6 直轄市法院" value="6" />
               <Divider />
@@ -296,7 +296,7 @@ export default function HomeClient() {
             為什麼保經業務員選這個工具
           </Title>
           <Paragraph className="!mb-10 !text-base text-muted">
-            不是另一個 AI 估算，是依「真實判例 + 律師手動建檔 + Ensemble 三票共識」的可信試算。
+            不是另一個 AI 估算，是依「真實判例 + 手動建檔 + Ensemble 三票共識」的可信試算。
           </Paragraph>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -307,7 +307,7 @@ export default function HomeClient() {
                 件真實司法院判例
               </Text>
               <Text className="!text-xs !text-muted">
-                13 條法律鏈自動爬取 + 律師手動建檔 39 件。每週自動更新，涵蓋近 2 年車禍判決。
+                13 條法律鏈自動爬取 + 手動建檔 39 件。每週自動更新，涵蓋近 2 年車禍判決。
               </Text>
             </div>
 
@@ -340,34 +340,26 @@ export default function HomeClient() {
                 個資外洩
               </Text>
               <Text className="!text-xs !text-muted">
-                個資不送 LLM、可關閉雲端同步、localStorage 脫敏。律師事務所內網自架可行。
+                個資不送 LLM、可關閉雲端同步、localStorage 脫敏。企業內網自架可行。
               </Text>
             </div>
           </div>
 
-          {/* 律師事務所合作 CTA — v0.16.x 預留 (C3 待 user 填具體資訊) */}
+          {/* v0.16.x 估算流程說明 (取代原本的合作 CTA) */}
           <div className="!mt-8 rounded-lg border-2 border-accent/30 bg-surface p-6">
             <Space size={8} className="!mb-2">
               <ReadOutlined className="text-accent" />
               <Text strong className="!text-base">
-                律師事務所合作
+                估算流程
               </Text>
             </Space>
             <Paragraph className="!mb-3 !text-sm text-foreground">
-              本工具由 <Text strong>__律師事務所名稱__</Text> 提供法律諮詢支援。
+              7 步表單填寫 → 6 大引擎並行計算 → Ensemble 三票共識 → 結果含 8 區明細 + 法源引用。
               計算結果僅供試算，實際理賠仍須依保險公司審核、醫療資料、肇事責任、保單條款、金融評議或法院認定為準。
             </Paragraph>
-            <Space size={12} wrap>
-              <Text className="!text-xs text-muted">
-                電話：<Text strong>__待填__</Text>
-              </Text>
-              <Text className="!text-xs text-muted">
-                地址：<Text strong>__待填__</Text>
-              </Text>
-              <Text className="!text-xs text-muted">
-                LINE：<Text strong>__待填__</Text>
-              </Text>
-            </Space>
+            <Paragraph className="!text-xs text-muted">
+              估算書可下載 PDF（含封面 / 編號 / 時間戳），適合保險經紀人 / 業務員跟客戶說明。
+            </Paragraph>
           </div>
         </div>
       </motion.section>

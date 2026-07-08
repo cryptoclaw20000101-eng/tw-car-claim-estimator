@@ -162,8 +162,7 @@ export default function AboutContent() {
               content={
                 <Paragraph>
                   本工具是個人練習作品 + 業務輔助工具，
-                  <strong>不是保險公司或律師事務所的官方產品</strong>。
-                  重大理賠決策請以正式專業意見為準。
+                  <strong>不是保險公司的官方產品</strong>。 重大理賠決策請以正式專業意見為準。
                   <br />
                   <Link href="/terms" className="text-accent hover:underline">
                     完整服務條款
