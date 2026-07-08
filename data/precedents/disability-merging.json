@@ -446,7 +446,7 @@
   {
     "id": "tw-disability-112-11213",
     "caseNo": "112 年度 保險 字第 13 號",
-    "court": "CTDV（未知代碼）",
+    "court": "臺灣橋頭地方法院",
     "year": 2023,
     "category": "minor_injury",
     "chain": "disability",
@@ -458,7 +458,7 @@
       "defendant": 100
     },
     "gist": "失能慰撫金 100,000 元",
-    "source": "CTDV（未知代碼） 112 年度 保險 字第 13 號",
+    "source": "臺灣橋頭地方法院 112 年度 保險 字第 13 號",
     "scrapedAt": "2026-06-12T06:45:31.690Z"
   },
   {
@@ -482,7 +482,7 @@
   {
     "id": "tw-disability-113-1134",
     "caseNo": "113 年度 保險 字第 4 號",
-    "court": "CTDV（未知代碼）",
+    "court": "臺灣橋頭地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "disability",
@@ -494,7 +494,7 @@
       "defendant": 100
     },
     "gist": "失能慰撫金 1,000,000 元",
-    "source": "CTDV（未知代碼） 113 年度 保險 字第 4 號",
+    "source": "臺灣橋頭地方法院 113 年度 保險 字第 4 號",
     "scrapedAt": "2026-06-12T06:45:36.570Z"
   },
   {
@@ -662,7 +662,7 @@
   {
     "id": "tw-disability_v2-115-11523",
     "caseNo": "115 年度 簡 字第 23 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "disability_v2",
@@ -674,7 +674,7 @@
       "defendant": 100
     },
     "gist": "失能(後遺症) 2,100,000 元",
-    "source": "ULDV（未知代碼） 115 年度 簡 字第 23 號",
+    "source": "臺灣雲林地方法院 115 年度 簡 字第 23 號",
     "scrapedAt": "2026-06-22T14:41:55.498Z"
   },
   {
@@ -716,7 +716,7 @@
   {
     "id": "tw-disability-115-1155",
     "caseNo": "115 年度 保險 字第 5 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2026,
     "category": "disability",
     "chain": "disability",
@@ -728,7 +728,7 @@
       "defendant": 100
     },
     "gist": "失能慰撫金 1,500,000 元",
-    "source": "ULDV（未知代碼） 115 年度 保險 字第 5 號",
+    "source": "臺灣雲林地方法院 115 年度 保險 字第 5 號",
     "scrapedAt": "2026-06-30T17:27:49.831Z"
   }
 ]

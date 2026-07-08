@@ -110,7 +110,7 @@
   {
     "id": "tw-overtime_loss-113-113126",
     "caseNo": "113 年度 簡 字第 126 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "overtime_loss",
@@ -122,7 +122,7 @@
       "defendant": 100
     },
     "gist": "加班損失 60,000 元",
-    "source": "ULDV（未知代碼） 113 年度 簡 字第 126 號",
+    "source": "臺灣雲林地方法院 113 年度 簡 字第 126 號",
     "scrapedAt": "2026-06-12T07:01:42.524Z"
   },
   {
@@ -164,7 +164,7 @@
   {
     "id": "tw-overtime_loss-114-114182",
     "caseNo": "114 年度 消債更 字第 182 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "overtime_loss",
@@ -176,7 +176,7 @@
       "defendant": 100
     },
     "gist": "加班損失 34,000 元",
-    "source": "ULDV（未知代碼） 114 年度 消債更 字第 182 號",
+    "source": "臺灣雲林地方法院 114 年度 消債更 字第 182 號",
     "scrapedAt": "2026-06-12T07:01:51.210Z"
   },
   {
@@ -308,7 +308,7 @@
   {
     "id": "tw-overtime_loss-114-11431",
     "caseNo": "114 年度 簡上 字第 31 號",
-    "court": "CTDV（未知代碼）",
+    "court": "臺灣橋頭地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "overtime_loss",
@@ -320,7 +320,7 @@
       "defendant": 100
     },
     "gist": "加班損失 55,883 元",
-    "source": "CTDV（未知代碼） 114 年度 簡上 字第 31 號",
+    "source": "臺灣橋頭地方法院 114 年度 簡上 字第 31 號",
     "scrapedAt": "2026-06-12T07:02:17.565Z"
   },
   {

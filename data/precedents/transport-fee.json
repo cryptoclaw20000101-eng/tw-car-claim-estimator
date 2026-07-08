@@ -110,7 +110,7 @@
   {
     "id": "tw-transport_fee-115-1159",
     "caseNo": "115 年度 簡上 字第 9 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "transport_fee",
@@ -122,7 +122,7 @@
       "defendant": 100
     },
     "gist": "交通費用 53,750 元",
-    "source": "ULDV（未知代碼） 115 年度 簡上 字第 9 號",
+    "source": "臺灣雲林地方法院 115 年度 簡上 字第 9 號",
     "scrapedAt": "2026-06-12T07:00:48.668Z"
   },
   {
@@ -254,7 +254,7 @@
   {
     "id": "tw-transport_fee-114-114103",
     "caseNo": "114 年度 簡 字第 103 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "transport_fee",
@@ -266,7 +266,7 @@
       "defendant": 100
     },
     "gist": "交通費用 16,670 元",
-    "source": "ULDV（未知代碼） 114 年度 簡 字第 103 號",
+    "source": "臺灣雲林地方法院 114 年度 簡 字第 103 號",
     "scrapedAt": "2026-06-22T14:51:07.547Z"
   },
   {

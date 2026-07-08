@@ -236,7 +236,7 @@
   {
     "id": "tw-practice-113-11399",
     "caseNo": "113 年度 簡 字第 99 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "practice",
@@ -254,7 +254,7 @@
   {
     "id": "tw-practice-113-11310",
     "caseNo": "113 年度 保險 字第 10 號",
-    "court": "CTDV（未知代碼）",
+    "court": "臺灣橋頭地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "practice",
@@ -290,7 +290,7 @@
   {
     "id": "tw-practice-110-11081",
     "caseNo": "110 年度 簡 字第 81 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2021,
     "category": "minor_injury",
     "chain": "practice",
@@ -506,7 +506,7 @@
   {
     "id": "tw-practice-114-114146",
     "caseNo": "114 年度 簡上 字第 146 號",
-    "court": "CTDV（未知代碼）",
+    "court": "臺灣橋頭地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "practice",
@@ -518,13 +518,13 @@
       "defendant": 100
     },
     "gist": "理賠實務 12,891 元",
-    "source": "CTDV（未知代碼） 114 年度 簡上 字第 146 號",
+    "source": "臺灣橋頭地方法院 114 年度 簡上 字第 146 號",
     "scrapedAt": "2026-06-12T06:48:41.705Z"
   },
   {
     "id": "tw-practice-112-11274",
     "caseNo": "112 年度 簡上 字第 74 號",
-    "court": "CTDV（未知代碼）",
+    "court": "臺灣橋頭地方法院",
     "year": 2023,
     "category": "minor_injury",
     "chain": "practice",
@@ -536,7 +536,7 @@
       "defendant": 100
     },
     "gist": "理賠實務 1,270,000 元",
-    "source": "CTDV（未知代碼） 112 年度 簡上 字第 74 號",
+    "source": "臺灣橋頭地方法院 112 年度 簡上 字第 74 號",
     "scrapedAt": "2026-06-12T06:49:31.582Z"
   },
   {
@@ -758,7 +758,7 @@
   {
     "id": "tw-appeal_case-114-114181",
     "caseNo": "114 年度 簡上 字第 181 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "appeal_case",
@@ -770,7 +770,7 @@
       "defendant": 100
     },
     "gist": "訴訟終結 57,000 元",
-    "source": "SCDV（未知代碼） 114 年度 簡上 字第 181 號",
+    "source": "臺灣新竹地方法院 114 年度 簡上 字第 181 號",
     "scrapedAt": "2026-06-22T14:53:47.481Z"
   },
   {

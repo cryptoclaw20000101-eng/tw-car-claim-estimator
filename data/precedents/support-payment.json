@@ -38,7 +38,7 @@
   {
     "id": "tw-support_payment-115-11513",
     "caseNo": "115 年度 簡 字第 13 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "support_payment",
@@ -50,13 +50,13 @@
       "defendant": 100
     },
     "gist": "撫養費 25,726 元",
-    "source": "ULDV（未知代碼） 115 年度 簡 字第 13 號",
+    "source": "臺灣雲林地方法院 115 年度 簡 字第 13 號",
     "scrapedAt": "2026-06-12T07:01:07.385Z"
   },
   {
     "id": "tw-support_payment-113-11350",
     "caseNo": "113 年度 簡 字第 50 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "support_payment",
@@ -68,13 +68,13 @@
       "defendant": 100
     },
     "gist": "撫養費 1,015,518 元",
-    "source": "ULDV（未知代碼） 113 年度 簡 字第 50 號",
+    "source": "臺灣雲林地方法院 113 年度 簡 字第 50 號",
     "scrapedAt": "2026-06-12T07:01:08.101Z"
   },
   {
     "id": "tw-support_payment-114-114109",
     "caseNo": "114 年度 簡 字第 109 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "support_payment",
@@ -86,7 +86,7 @@
       "defendant": 100
     },
     "gist": "撫養費 17,076 元",
-    "source": "ULDV（未知代碼） 114 年度 簡 字第 109 號",
+    "source": "臺灣雲林地方法院 114 年度 簡 字第 109 號",
     "scrapedAt": "2026-06-12T07:01:09.125Z"
   },
   {
@@ -164,7 +164,7 @@
   {
     "id": "tw-support_payment-114-11465",
     "caseNo": "114 年度 簡上 字第 65 號",
-    "court": "ILDV（未知代碼）",
+    "court": "臺灣宜蘭地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "support_payment",
@@ -176,7 +176,7 @@
       "defendant": 100
     },
     "gist": "撫養費 2,981,303 元",
-    "source": "ILDV（未知代碼） 114 年度 簡上 字第 65 號",
+    "source": "臺灣宜蘭地方法院 114 年度 簡上 字第 65 號",
     "scrapedAt": "2026-06-12T07:01:13.231Z"
   },
   {
@@ -218,7 +218,7 @@
   {
     "id": "tw-support_payment-107-10781",
     "caseNo": "107 年度 重訴 字第 81 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2018,
     "category": "minor_injury",
     "chain": "support_payment",
@@ -230,7 +230,7 @@
       "defendant": 100
     },
     "gist": "撫養費 1,316,700 元",
-    "source": "ULDV（未知代碼） 107 年度 重訴 字第 81 號",
+    "source": "臺灣雲林地方法院 107 年度 重訴 字第 81 號",
     "scrapedAt": "2026-06-12T07:01:25.625Z"
   },
   {
@@ -308,7 +308,7 @@
   {
     "id": "tw-support_payment-114-11445",
     "caseNo": "114 年度 簡上 字第 45 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "support_payment",
@@ -320,13 +320,13 @@
       "defendant": 100
     },
     "gist": "撫養費 2,129,173 元",
-    "source": "SCDV（未知代碼） 114 年度 簡上 字第 45 號",
+    "source": "臺灣新竹地方法院 114 年度 簡上 字第 45 號",
     "scrapedAt": "2026-06-22T14:51:38.673Z"
   },
   {
     "id": "tw-support_payment-113-1133",
     "caseNo": "113 年度 原簡上 字第 3 號",
-    "court": "CTDV（未知代碼）",
+    "court": "臺灣橋頭地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "support_payment",
@@ -338,13 +338,13 @@
       "defendant": 100
     },
     "gist": "撫養費 1,841,263 元",
-    "source": "CTDV（未知代碼） 113 年度 原簡上 字第 3 號",
+    "source": "臺灣橋頭地方法院 113 年度 原簡上 字第 3 號",
     "scrapedAt": "2026-06-22T14:51:39.811Z"
   },
   {
     "id": "tw-support_payment-112-11286",
     "caseNo": "112 年度 簡上 字第 86 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2023,
     "category": "minor_injury",
     "chain": "support_payment",
@@ -356,7 +356,7 @@
       "defendant": 100
     },
     "gist": "撫養費 955,048 元",
-    "source": "ULDV（未知代碼） 112 年度 簡上 字第 86 號",
+    "source": "臺灣雲林地方法院 112 年度 簡上 字第 86 號",
     "scrapedAt": "2026-06-22T14:51:41.554Z"
   },
   {
@@ -398,7 +398,7 @@
   {
     "id": "tw-support_payment-112-1121",
     "caseNo": "112 年度 原簡 字第 1 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2023,
     "category": "minor_injury",
     "chain": "support_payment",
@@ -410,13 +410,13 @@
       "defendant": 100
     },
     "gist": "撫養費 423,248 元",
-    "source": "ULDV（未知代碼） 112 年度 原簡 字第 1 號",
+    "source": "臺灣雲林地方法院 112 年度 原簡 字第 1 號",
     "scrapedAt": "2026-06-22T14:51:45.853Z"
   },
   {
     "id": "tw-support_payment-112-11267",
     "caseNo": "112 年度 簡 字第 67 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2023,
     "category": "minor_injury",
     "chain": "support_payment",
@@ -428,7 +428,7 @@
       "defendant": 100
     },
     "gist": "撫養費 2,215,131 元",
-    "source": "ULDV（未知代碼） 112 年度 簡 字第 67 號",
+    "source": "臺灣雲林地方法院 112 年度 簡 字第 67 號",
     "scrapedAt": "2026-06-22T14:51:46.273Z"
   },
   {

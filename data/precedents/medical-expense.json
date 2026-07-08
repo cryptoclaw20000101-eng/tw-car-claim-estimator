@@ -74,7 +74,7 @@
   {
     "id": "tw-medical_expense-115-11529",
     "caseNo": "115 年度 簡 字第 29 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "medical_expense",
@@ -86,7 +86,7 @@
       "defendant": 100
     },
     "gist": "醫療費用 108,153 元",
-    "source": "ULDV（未知代碼） 115 年度 簡 字第 29 號",
+    "source": "臺灣雲林地方法院 115 年度 簡 字第 29 號",
     "scrapedAt": "2026-06-12T06:00:00.441Z"
   },
   {
@@ -254,7 +254,7 @@
   {
     "id": "tw-medical_expense-113-113116",
     "caseNo": "113 年度 簡 字第 116 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "medical_expense",
@@ -266,7 +266,7 @@
       "defendant": 100
     },
     "gist": "醫療費用 340,235 元",
-    "source": "ULDV（未知代碼） 113 年度 簡 字第 116 號",
+    "source": "臺灣雲林地方法院 113 年度 簡 字第 116 號",
     "scrapedAt": "2026-06-12T06:00:33.026Z"
   },
   {
@@ -452,7 +452,7 @@
   {
     "id": "tw-medical_expense-113-11334",
     "caseNo": "113 年度 簡上 字第 34 號",
-    "court": "ILDV（未知代碼）",
+    "court": "臺灣宜蘭地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "medical_expense",
@@ -464,7 +464,7 @@
       "defendant": 100
     },
     "gist": "醫療費用 101,547 元",
-    "source": "ILDV（未知代碼） 113 年度 簡上 字第 34 號",
+    "source": "臺灣宜蘭地方法院 113 年度 簡上 字第 34 號",
     "scrapedAt": "2026-06-12T06:59:04.406Z"
   },
   {
@@ -506,7 +506,7 @@
   {
     "id": "tw-medical_expense-110-110208",
     "caseNo": "110 年度 勞訴 字第 208 號",
-    "court": "CTDV（未知代碼）",
+    "court": "臺灣橋頭地方法院",
     "year": 2021,
     "category": "minor_injury",
     "chain": "medical_expense",
@@ -518,7 +518,7 @@
       "defendant": 100
     },
     "gist": "醫療費用 38,369 元",
-    "source": "CTDV（未知代碼） 110 年度 勞訴 字第 208 號",
+    "source": "臺灣橋頭地方法院 110 年度 勞訴 字第 208 號",
     "scrapedAt": "2026-06-12T06:59:18.239Z"
   },
   {
@@ -650,7 +650,7 @@
   {
     "id": "tw-medical_expense-114-11442",
     "caseNo": "114 年度 簡上 字第 42 號",
-    "court": "ILDV（未知代碼）",
+    "court": "臺灣宜蘭地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "medical_expense",
@@ -662,7 +662,7 @@
       "defendant": 100
     },
     "gist": "醫療費用 556,221 元",
-    "source": "ILDV（未知代碼） 114 年度 簡上 字第 42 號",
+    "source": "臺灣宜蘭地方法院 114 年度 簡上 字第 42 號",
     "scrapedAt": "2026-06-22T14:46:13.955Z"
   },
   {

@@ -36,7 +36,7 @@
   {
     "id": "tw-md-113-113213",
     "caseNo": "113 年度 簡上 字第 213 號",
-    "court": "CTDV（未知代碼）",
+    "court": "臺灣橋頭地方法院",
     "year": 2024,
     "category": "minor_injury",
     "facts": "上訴駁回。第二審訴訟費用由上訴人負擔。事實及理由一、被上訴人起訴主張：上訴人於民國111年10月4日15時53分許，騎乘車牌號碼000-000號普通重型機車，沿高雄市岡山區後興北路由南往北行駛，於行經該路與岡山區大德一路之無號誌交岔路口時，",
@@ -121,7 +121,7 @@
   {
     "id": "tw-md-114-11465",
     "caseNo": "114 年度 簡上 字第 65 號",
-    "court": "ILDV（未知代碼）",
+    "court": "臺灣宜蘭地方法院",
     "year": 2025,
     "category": "minor_injury",
     "facts": "上訴駁回。第二審訴訟費用由上訴人負擔。事實及理由一、程序方面：被上訴人翁金堃、捷凱公司股份有限公司（下稱捷凱公司）經合法通知，未於言詞辯論期日到場，核無民事訴訟法第386條所列各款情形，爰依上訴人賴憲騰之聲請，由上訴人一造辯論而為判決。二、",
@@ -155,7 +155,7 @@
   {
     "id": "tw-md-114-11444",
     "caseNo": "114 年度 簡上 字第 44 號",
-    "court": "ILDV（未知代碼）",
+    "court": "臺灣宜蘭地方法院",
     "year": 2025,
     "category": "minor_injury",
     "facts": "原判決除確定部分外，關於命上訴人給付被上訴人逾新臺幣捌拾陸萬柒仟壹佰玖拾肆元本息部分，及該部分假執行之宣告，暨訴訟費用之裁判均廢棄。上開廢棄部分，被上訴人在第一審之訴及假執行之聲請均駁回。其餘上訴駁回。第一審（除確定部分外）、第二審訴訟費用",
@@ -259,7 +259,7 @@
   {
     "id": "tw-mental_distress-113-113213",
     "caseNo": "113 年度 簡上 字第 213 號",
-    "court": "CTDV（未知代碼）",
+    "court": "臺灣橋頭地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "mental_distress",
@@ -349,7 +349,7 @@
   {
     "id": "tw-mental_distress-114-11465",
     "caseNo": "114 年度 簡上 字第 65 號",
-    "court": "ILDV（未知代碼）",
+    "court": "臺灣宜蘭地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "mental_distress",
@@ -385,7 +385,7 @@
   {
     "id": "tw-mental_distress-114-11444",
     "caseNo": "114 年度 簡上 字第 44 號",
-    "court": "ILDV（未知代碼）",
+    "court": "臺灣宜蘭地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "mental_distress",
@@ -475,7 +475,7 @@
   {
     "id": "tw-mental_distress_v2-114-114109",
     "caseNo": "114 年度 簡 字第 109 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "mental_distress_v2",
@@ -487,13 +487,13 @@
       "defendant": 100
     },
     "gist": "精神慰撫金(死亡) 3,000,000 元",
-    "source": "ULDV（未知代碼） 114 年度 簡 字第 109 號",
+    "source": "臺灣雲林地方法院 114 年度 簡 字第 109 號",
     "scrapedAt": "2026-06-11T15:18:13.723Z"
   },
   {
     "id": "tw-mental_distress_v2-114-11465",
     "caseNo": "114 年度 簡上 字第 65 號",
-    "court": "ILDV（未知代碼）",
+    "court": "臺灣宜蘭地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "mental_distress_v2",
@@ -505,13 +505,13 @@
       "defendant": 100
     },
     "gist": "精神慰撫金(死亡) 22,412 元",
-    "source": "ILDV（未知代碼） 114 年度 簡上 字第 65 號",
+    "source": "臺灣宜蘭地方法院 114 年度 簡上 字第 65 號",
     "scrapedAt": "2026-06-11T15:18:14.473Z"
   },
   {
     "id": "tw-mental_distress_v2-114-11444",
     "caseNo": "114 年度 簡上 字第 44 號",
-    "court": "ILDV（未知代碼）",
+    "court": "臺灣宜蘭地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "mental_distress_v2",
@@ -523,7 +523,7 @@
       "defendant": 100
     },
     "gist": "精神慰撫金(死亡) 2,006,326 元",
-    "source": "ILDV（未知代碼） 114 年度 簡上 字第 44 號",
+    "source": "臺灣宜蘭地方法院 114 年度 簡上 字第 44 號",
     "scrapedAt": "2026-06-11T15:18:15.657Z"
   },
   {
@@ -547,7 +547,7 @@
   {
     "id": "tw-mental_distress_v2-115-11531",
     "caseNo": "115 年度 簡 字第 31 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "mental_distress_v2",
@@ -559,7 +559,7 @@
       "defendant": 100
     },
     "gist": "精神慰撫金(死亡) 667,546 元",
-    "source": "ULDV（未知代碼） 115 年度 簡 字第 31 號",
+    "source": "臺灣雲林地方法院 115 年度 簡 字第 31 號",
     "scrapedAt": "2026-06-11T15:18:21.238Z"
   },
   {
@@ -601,7 +601,7 @@
   {
     "id": "tw-mental_distress_v2-115-1157",
     "caseNo": "115 年度 簡 字第 7 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "mental_distress_v2",
@@ -613,7 +613,7 @@
       "defendant": 100
     },
     "gist": "精神慰撫金(死亡) 2,000,000 元",
-    "source": "ULDV（未知代碼） 115 年度 簡 字第 7 號",
+    "source": "臺灣雲林地方法院 115 年度 簡 字第 7 號",
     "scrapedAt": "2026-06-11T15:18:27.274Z"
   },
   {
@@ -961,7 +961,7 @@
   {
     "id": "tw-mental_distress-113-11390",
     "caseNo": "113 年度 簡 字第 90 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "mental_distress",
@@ -973,7 +973,7 @@
       "defendant": 100
     },
     "gist": "精神慰撫金 3,000,000 元",
-    "source": "ULDV（未知代碼） 113 年度 簡 字第 90 號",
+    "source": "臺灣雲林地方法院 113 年度 簡 字第 90 號",
     "scrapedAt": "2026-06-12T06:40:32.057Z"
   },
   {
@@ -997,7 +997,7 @@
   {
     "id": "tw-mental_distress-113-113195",
     "caseNo": "113 年度 簡上 字第 195 號",
-    "court": "CTDV（未知代碼）",
+    "court": "臺灣橋頭地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "mental_distress",
@@ -1009,7 +1009,7 @@
       "defendant": 100
     },
     "gist": "精神慰撫金 1,200,000 元",
-    "source": "CTDV（未知代碼） 113 年度 簡上 字第 195 號",
+    "source": "臺灣橋頭地方法院 113 年度 簡上 字第 195 號",
     "scrapedAt": "2026-06-12T06:40:37.855Z"
   },
   {
@@ -1213,7 +1213,7 @@
   {
     "id": "tw-mental_distress_v2-115-1151",
     "caseNo": "115 年度 簡 字第 1 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "mental_distress_v2",
@@ -1225,7 +1225,7 @@
       "defendant": 100
     },
     "gist": "精神慰撫金(死亡) 60,000 元",
-    "source": "ULDV（未知代碼） 115 年度 簡 字第 1 號",
+    "source": "臺灣雲林地方法院 115 年度 簡 字第 1 號",
     "scrapedAt": "2026-06-12T06:51:23.876Z"
   },
   {
@@ -1249,7 +1249,7 @@
   {
     "id": "tw-mental_distress_v2-114-11486",
     "caseNo": "114 年度 簡 字第 86 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "mental_distress_v2",
@@ -1261,7 +1261,7 @@
       "defendant": 100
     },
     "gist": "精神慰撫金(死亡) 30,000 元",
-    "source": "ULDV（未知代碼） 114 年度 簡 字第 86 號",
+    "source": "臺灣雲林地方法院 114 年度 簡 字第 86 號",
     "scrapedAt": "2026-06-12T06:51:33.125Z"
   },
   {
@@ -1285,7 +1285,7 @@
   {
     "id": "tw-mental_distress_v2-113-11390",
     "caseNo": "113 年度 簡 字第 90 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "mental_distress_v2",
@@ -1297,7 +1297,7 @@
       "defendant": 100
     },
     "gist": "精神慰撫金(死亡) 3,000,000 元",
-    "source": "ULDV（未知代碼） 113 年度 簡 字第 90 號",
+    "source": "臺灣雲林地方法院 113 年度 簡 字第 90 號",
     "scrapedAt": "2026-06-12T06:51:35.589Z"
   },
   {
@@ -1357,7 +1357,7 @@
   {
     "id": "tw-mental_distress-115-115205",
     "caseNo": "115 年度 竹簡 字第 205 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "mental_distress",
@@ -1369,7 +1369,7 @@
       "defendant": 100
     },
     "gist": "精神慰撫金 400,000 元",
-    "source": "SCDV（未知代碼） 115 年度 竹簡 字第 205 號",
+    "source": "臺灣新竹地方法院 115 年度 竹簡 字第 205 號",
     "scrapedAt": "2026-06-22T14:28:57.069Z"
   },
   {
@@ -1393,7 +1393,7 @@
   {
     "id": "tw-mental_distress-114-11442",
     "caseNo": "114 年度 簡上 字第 42 號",
-    "court": "ILDV（未知代碼）",
+    "court": "臺灣宜蘭地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "mental_distress",
@@ -1405,7 +1405,7 @@
       "defendant": 100
     },
     "gist": "精神慰撫金 2,207,580 元",
-    "source": "ILDV（未知代碼） 114 年度 簡上 字第 42 號",
+    "source": "臺灣宜蘭地方法院 114 年度 簡上 字第 42 號",
     "scrapedAt": "2026-06-22T14:29:01.036Z"
   },
   {
@@ -1429,7 +1429,7 @@
   {
     "id": "tw-mental_distress-115-115207",
     "caseNo": "115 年度 基簡 字第 207 號",
-    "court": "KLDV（未知代碼）",
+    "court": "臺灣基隆地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "mental_distress",
@@ -1441,7 +1441,7 @@
       "defendant": 100
     },
     "gist": "精神慰撫金 600,000 元",
-    "source": "KLDV（未知代碼） 115 年度 基簡 字第 207 號",
+    "source": "臺灣基隆地方法院 115 年度 基簡 字第 207 號",
     "scrapedAt": "2026-06-22T14:29:23.134Z"
   },
   {
@@ -1465,7 +1465,7 @@
   {
     "id": "tw-mental_distress-115-11523",
     "caseNo": "115 年度 簡 字第 23 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "mental_distress",
@@ -1477,7 +1477,7 @@
       "defendant": 100
     },
     "gist": "精神慰撫金 500,000 元",
-    "source": "ULDV（未知代碼） 115 年度 簡 字第 23 號",
+    "source": "臺灣雲林地方法院 115 年度 簡 字第 23 號",
     "scrapedAt": "2026-06-22T14:29:24.896Z"
   },
   {
@@ -1519,7 +1519,7 @@
   {
     "id": "tw-mental_distress_v2-114-11442",
     "caseNo": "114 年度 簡上 字第 42 號",
-    "court": "ILDV（未知代碼）",
+    "court": "臺灣宜蘭地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "mental_distress_v2",
@@ -1531,7 +1531,7 @@
       "defendant": 100
     },
     "gist": "精神慰撫金(死亡) 2,207,580 元",
-    "source": "ILDV（未知代碼） 114 年度 簡上 字第 42 號",
+    "source": "臺灣宜蘭地方法院 114 年度 簡上 字第 42 號",
     "scrapedAt": "2026-06-22T14:39:11.249Z"
   },
   {
@@ -1555,7 +1555,7 @@
   {
     "id": "tw-pain_suffering_basis-115-11513",
     "caseNo": "115 年度 簡上 字第 13 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "pain_suffering_basis",
@@ -1567,7 +1567,7 @@
       "defendant": 100
     },
     "gist": "慰撫金計算基準 90,000 元",
-    "source": "SCDV（未知代碼） 115 年度 簡上 字第 13 號",
+    "source": "臺灣新竹地方法院 115 年度 簡上 字第 13 號",
     "scrapedAt": "2026-06-22T14:54:03.970Z"
   },
   {
@@ -1663,7 +1663,7 @@
   {
     "id": "tw-pain_suffering_basis-115-11523",
     "caseNo": "115 年度 簡 字第 23 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "pain_suffering_basis",
@@ -1675,7 +1675,7 @@
       "defendant": 100
     },
     "gist": "慰撫金計算基準 500,000 元",
-    "source": "ULDV（未知代碼） 115 年度 簡 字第 23 號",
+    "source": "臺灣雲林地方法院 115 年度 簡 字第 23 號",
     "scrapedAt": "2026-06-22T14:54:16.369Z"
   },
   {
@@ -1771,7 +1771,7 @@
   {
     "id": "tw-pain_suffering_basis-115-115205",
     "caseNo": "115 年度 竹簡 字第 205 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "pain_suffering_basis",
@@ -1783,13 +1783,13 @@
       "defendant": 100
     },
     "gist": "慰撫金計算基準 400,000 元",
-    "source": "SCDV（未知代碼） 115 年度 竹簡 字第 205 號",
+    "source": "臺灣新竹地方法院 115 年度 竹簡 字第 205 號",
     "scrapedAt": "2026-06-22T14:54:28.630Z"
   },
   {
     "id": "tw-pain_suffering_basis-115-115207",
     "caseNo": "115 年度 基簡 字第 207 號",
-    "court": "KLDV（未知代碼）",
+    "court": "臺灣基隆地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "pain_suffering_basis",
@@ -1801,7 +1801,7 @@
       "defendant": 100
     },
     "gist": "慰撫金計算基準 600,000 元",
-    "source": "KLDV（未知代碼） 115 年度 基簡 字第 207 號",
+    "source": "臺灣基隆地方法院 115 年度 基簡 字第 207 號",
     "scrapedAt": "2026-06-22T14:54:29.572Z"
   },
   {
@@ -1825,7 +1825,7 @@
   {
     "id": "tw-mental_distress-115-11551",
     "caseNo": "115 年度 簡上 字第 51 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "mental_distress",
@@ -1837,13 +1837,13 @@
       "defendant": 100
     },
     "gist": "精神慰撫金 50,000 元",
-    "source": "SCDV（未知代碼） 115 年度 簡上 字第 51 號",
+    "source": "臺灣新竹地方法院 115 年度 簡上 字第 51 號",
     "scrapedAt": "2026-06-30T17:22:06.502Z"
   },
   {
     "id": "tw-mental_distress-114-114680",
     "caseNo": "114 年度 竹簡 字第 680 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "mental_distress",
@@ -1855,13 +1855,13 @@
       "defendant": 100
     },
     "gist": "精神慰撫金 200,000 元",
-    "source": "SCDV（未知代碼） 114 年度 竹簡 字第 680 號",
+    "source": "臺灣新竹地方法院 114 年度 竹簡 字第 680 號",
     "scrapedAt": "2026-06-30T17:22:06.979Z"
   },
   {
     "id": "tw-mental_distress-115-115482",
     "caseNo": "115 年度 竹小 字第 482 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "mental_distress",
@@ -1873,13 +1873,13 @@
       "defendant": 100
     },
     "gist": "精神慰撫金 40,000 元",
-    "source": "SCDV（未知代碼） 115 年度 竹小 字第 482 號",
+    "source": "臺灣新竹地方法院 115 年度 竹小 字第 482 號",
     "scrapedAt": "2026-06-30T17:22:07.630Z"
   },
   {
     "id": "tw-mental_distress-115-115287",
     "caseNo": "115 年度 竹小 字第 287 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "mental_distress",
@@ -1891,7 +1891,7 @@
       "defendant": 100
     },
     "gist": "精神慰撫金 60,000 元",
-    "source": "SCDV（未知代碼） 115 年度 竹小 字第 287 號",
+    "source": "臺灣新竹地方法院 115 年度 竹小 字第 287 號",
     "scrapedAt": "2026-06-30T17:22:08.204Z"
   },
   {
@@ -2005,7 +2005,7 @@
   {
     "id": "tw-mental_distress-113-11318",
     "caseNo": "113 年度 醫 字第 18 號",
-    "court": "CTDV（未知代碼）",
+    "court": "臺灣橋頭地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "mental_distress",
@@ -2017,7 +2017,7 @@
       "defendant": 100
     },
     "gist": "精神慰撫金 1,000,000 元",
-    "source": "CTDV（未知代碼） 113 年度 醫 字第 18 號",
+    "source": "臺灣橋頭地方法院 113 年度 醫 字第 18 號",
     "scrapedAt": "2026-06-30T17:22:38.764Z"
   },
   {

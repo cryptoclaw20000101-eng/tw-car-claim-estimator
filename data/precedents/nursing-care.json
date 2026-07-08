@@ -308,7 +308,7 @@
   {
     "id": "tw-nursing_care-114-114103",
     "caseNo": "114 年度 簡 字第 103 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "nursing_care",
@@ -320,7 +320,7 @@
       "defendant": 100
     },
     "gist": "看護費 158,600 元",
-    "source": "ULDV（未知代碼） 114 年度 簡 字第 103 號",
+    "source": "臺灣雲林地方法院 114 年度 簡 字第 103 號",
     "scrapedAt": "2026-06-12T05:59:06.242Z"
   },
   {
@@ -344,7 +344,7 @@
   {
     "id": "tw-nursing_care-113-113179",
     "caseNo": "113 年度 簡上 字第 179 號",
-    "court": "CTDV（未知代碼）",
+    "court": "臺灣橋頭地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "nursing_care",
@@ -356,7 +356,7 @@
       "defendant": 100
     },
     "gist": "看護費 151,800 元",
-    "source": "CTDV（未知代碼） 113 年度 簡上 字第 179 號",
+    "source": "臺灣橋頭地方法院 113 年度 簡上 字第 179 號",
     "scrapedAt": "2026-06-12T05:59:12.758Z"
   },
   {
@@ -416,7 +416,7 @@
   {
     "id": "tw-nursing_care-108-108372",
     "caseNo": "108 年度 訴 字第 372 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2019,
     "category": "minor_injury",
     "chain": "nursing_care",
@@ -428,7 +428,7 @@
       "defendant": 100
     },
     "gist": "看護費 321,200 元",
-    "source": "ULDV（未知代碼） 108 年度 訴 字第 372 號",
+    "source": "臺灣雲林地方法院 108 年度 訴 字第 372 號",
     "scrapedAt": "2026-06-12T05:59:23.569Z"
   },
   {
@@ -578,7 +578,7 @@
   {
     "id": "tw-nursing_care-113-11316",
     "caseNo": "113 年度 簡 字第 16 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "nursing_care",
@@ -590,7 +590,7 @@
       "defendant": 100
     },
     "gist": "看護費 33,000 元",
-    "source": "ULDV（未知代碼） 113 年度 簡 字第 16 號",
+    "source": "臺灣雲林地方法院 113 年度 簡 字第 16 號",
     "scrapedAt": "2026-06-12T06:56:56.519Z"
   },
   {
@@ -704,7 +704,7 @@
   {
     "id": "tw-nursing_care-114-11442",
     "caseNo": "114 年度 簡上 字第 42 號",
-    "court": "ILDV（未知代碼）",
+    "court": "臺灣宜蘭地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "nursing_care",
@@ -716,13 +716,13 @@
       "defendant": 100
     },
     "gist": "看護費 640,200 元",
-    "source": "ILDV（未知代碼） 114 年度 簡上 字第 42 號",
+    "source": "臺灣宜蘭地方法院 114 年度 簡上 字第 42 號",
     "scrapedAt": "2026-06-22T14:44:26.645Z"
   },
   {
     "id": "tw-nursing_care-115-11523",
     "caseNo": "115 年度 簡 字第 23 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "nursing_care",
@@ -734,7 +734,7 @@
       "defendant": 100
     },
     "gist": "看護費 2,100,000 元",
-    "source": "ULDV（未知代碼） 115 年度 簡 字第 23 號",
+    "source": "臺灣雲林地方法院 115 年度 簡 字第 23 號",
     "scrapedAt": "2026-06-22T14:44:39.334Z"
   },
   {
