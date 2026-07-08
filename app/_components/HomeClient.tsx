@@ -83,6 +83,12 @@ export default function HomeClient() {
             {/* v0.8.0+：提示卡 — 永遠顯示「可以裝成 app」 */}
             <PWAHintCard />
             <Space size={20} className="!mt-10" wrap>
+              <Stat label="583 件真實判例" value="583" />
+              <Divider />
+              <Stat label="6 大計算引擎" value="6" />
+              <Divider />
+              <Stat label="39 律師手動建檔" value="39" />
+              <Divider />
               <Stat label="6 直轄市法院" value="6" />
               <Divider />
               <Stat label="26 縣市自動對應" value="26" />
@@ -268,6 +274,100 @@ export default function HomeClient() {
               desc="顯示需補資料，不給假數字"
               reason="估算金額會影響保戶決策。缺資料時硬給一個數字，比老實說『需要補件』更不負責任。"
             />
+          </div>
+        </div>
+      </motion.section>
+
+      {/* ============ v0.16.x 信任區塊 — 為什麼選我們 (保險公司專業感) ============ */}
+      <motion.section
+        id="trust"
+        className="border-t border-border bg-background"
+        initial={reduce ? false : { opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={viewportOnce}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+      >
+        <div className="mx-auto w-full max-w-6xl px-6 py-16 md:py-20">
+          <Space size={6} className="!mb-2">
+            <SafetyCertificateOutlined />
+            <Text className="!text-xs uppercase tracking-[0.18em] text-muted">Why Choose Us</Text>
+          </Space>
+          <Title level={2} className="!mb-3 !text-3xl !tracking-tight md:!text-4xl">
+            為什麼保經業務員選這個工具
+          </Title>
+          <Paragraph className="!mb-10 !text-base text-muted">
+            不是另一個 AI 估算，是依「真實判例 + 律師手動建檔 + Ensemble 三票共識」的可信試算。
+          </Paragraph>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {/* 真實判例 */}
+            <div className="rounded-lg border border-border bg-surface p-5">
+              <div className="!mb-3 text-3xl text-accent tabular-nums">583</div>
+              <Text strong className="!block !mb-1 !text-base">
+                件真實司法院判例
+              </Text>
+              <Text className="!text-xs !text-muted">
+                13 條法律鏈自動爬取 + 律師手動建檔 39 件。每週自動更新，涵蓋近 2 年車禍判決。
+              </Text>
+            </div>
+
+            {/* 6 大引擎 */}
+            <div className="rounded-lg border border-border bg-surface p-5">
+              <div className="!mb-3 text-3xl text-accent tabular-nums">6</div>
+              <Text strong className="!block !mb-1 !text-base">
+                大計算引擎
+              </Text>
+              <Text className="!text-xs !text-muted">
+                強制險 / 失能初篩 / 民事 / 第三人 / 補件 / 地區。每個引擎有獨立測試（79 it 守護）。
+              </Text>
+            </div>
+
+            {/* Ensemble 三票 */}
+            <div className="rounded-lg border border-border bg-surface p-5">
+              <div className="!mb-3 text-3xl text-accent tabular-nums">3</div>
+              <Text strong className="!block !mb-1 !text-base">
+                票 Ensemble 共識
+              </Text>
+              <Text className="!text-xs !text-muted">
+                規則公式 + ML anchor + KNN 相似判例，三種推理路徑共識。信心度分級 + LLM 顧問複核。
+              </Text>
+            </div>
+
+            {/* 個資保護 */}
+            <div className="rounded-lg border border-border bg-surface p-5">
+              <div className="!mb-3 text-3xl text-accent tabular-nums">0</div>
+              <Text strong className="!block !mb-1 !text-base">
+                個資外洩
+              </Text>
+              <Text className="!text-xs !text-muted">
+                個資不送 LLM、可關閉雲端同步、localStorage 脫敏。律師事務所內網自架可行。
+              </Text>
+            </div>
+          </div>
+
+          {/* 律師事務所合作 CTA — v0.16.x 預留 (C3 待 user 填具體資訊) */}
+          <div className="!mt-8 rounded-lg border-2 border-accent/30 bg-surface p-6">
+            <Space size={8} className="!mb-2">
+              <ReadOutlined className="text-accent" />
+              <Text strong className="!text-base">
+                律師事務所合作
+              </Text>
+            </Space>
+            <Paragraph className="!mb-3 !text-sm text-foreground">
+              本工具由 <Text strong>__律師事務所名稱__</Text> 提供法律諮詢支援。
+              計算結果僅供試算，實際理賠仍須依保險公司審核、醫療資料、肇事責任、保單條款、金融評議或法院認定為準。
+            </Paragraph>
+            <Space size={12} wrap>
+              <Text className="!text-xs text-muted">
+                電話：<Text strong>__待填__</Text>
+              </Text>
+              <Text className="!text-xs text-muted">
+                地址：<Text strong>__待填__</Text>
+              </Text>
+              <Text className="!text-xs text-muted">
+                LINE：<Text strong>__待填__</Text>
+              </Text>
+            </Space>
           </div>
         </div>
       </motion.section>
