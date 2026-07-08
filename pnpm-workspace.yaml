@@ -1,3 +1,8 @@
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver
+# jsdom 29.1.1 require undici/lib/handler/wrap-handler.js 路徑
+# undici 8.x 拿掉這條 path → a11y test fork 失敗
+# undici 7.28.0 是 7.x 末班仍有那條 path, audit 0 vuln
+overrides:
+  undici: 7.28.0
