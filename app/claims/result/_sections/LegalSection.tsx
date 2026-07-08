@@ -6,6 +6,7 @@
 'use client'
 
 import { Card, Table, Typography } from 'antd'
+import { InfoAlert } from '@/components/InfoAlert'
 import { listLegalReferences } from '@/lib/data-sources/legal-reference'
 import type { LegalReference } from '@/lib/data-sources/types'
 

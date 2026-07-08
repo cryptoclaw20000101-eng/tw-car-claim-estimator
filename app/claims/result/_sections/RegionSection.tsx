@@ -5,19 +5,19 @@
 
 'use client'
 
-import { Card, Col, Collapse, Row, Space, Statistic, Typography } from 'antd'
+import { Card, Col, Collapse, Divider, Row, Space, Statistic, Typography } from 'antd'
 import { ReadOutlined } from '@ant-design/icons'
 import { InfoAlert } from '@/components/InfoAlert'
 import {
   getMedianCourtCompensation,
   getCaseReferencesByCategory,
-  getPrecedentCount,
+  getCourtCaseCount,
 } from '@/lib/data-sources/judicial'
 import { getAverageFoiCompensation } from '@/lib/data-sources/foi'
 import { findRelatedPrecedents } from '@/lib/estimate/precedents'
 import type { EstimationResult } from '@/lib/insurance/types'
 
-const { Title, Paragraph, Text, Divider } = Typography
+const { Title, Paragraph, Text } = Typography
 
 const dollar = (n: number) => `NT$ ${(n ?? 0).toLocaleString('zh-TW')}`
 
@@ -76,7 +76,7 @@ export function RegionSection({ result }: { result: EstimationResult }) {
           <>
             <Paragraph strong className="!mt-4 !mb-2">
               <ReadOutlined className="mr-1" />
-              真實判例引註（依據：{getPrecedentCount()} 件司法院真實判決）
+              真實判例引註（依據：{getCourtCaseCount()} 件司法院真實判決）
             </Paragraph>
             <Paragraph type="secondary" className="!text-xs !mb-2">
               依「精神慰撫金金額」與「法院」挑選最相關的真實判決

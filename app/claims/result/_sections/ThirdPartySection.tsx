@@ -5,10 +5,10 @@
 
 'use client'
 
-import { Card, Col, Row, Statistic, Typography } from 'antd'
+import { Card, Col, Divider, Row, Statistic, Typography } from 'antd'
 import type { ClaimInput, EstimationResult } from '@/lib/insurance/types'
 
-const { Title, Paragraph, Divider } = Typography
+const { Title, Paragraph } = Typography
 
 const dollar = (n: number) => `NT$ ${(n ?? 0).toLocaleString('zh-TW')}`
 
