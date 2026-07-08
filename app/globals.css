@@ -290,6 +290,18 @@ input[type='number'] {
     display: none !important;
   }
 
+  /* v0.16.x 列印專用元素：平時 hidden，列印時顯示 */
+  .print-only {
+    display: block !important;
+  }
+
+  /* 列印時在每頁結尾加律師事務所聯絡 + 免責 footer */
+  .print-footer {
+    display: block !important;
+    page-break-before: always;
+    padding: 1cm 0;
+  }
+
   /* 隱藏 sticky CTA 與浮動按鈕 */
   .mobile-sticky-cta,
   [data-testid='install-pwa-button-ios'],

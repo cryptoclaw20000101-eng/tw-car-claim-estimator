@@ -155,6 +155,20 @@ export default function ResultForm() {
   const result = hydrated.result
   const stale = hydrated.stale
 
+  // v0.16.x 完整 PDF 估算書：自動產生唯一估算編號（用 input + timestamp hash）
+  // 列印時跟時間戳印在封面，確保試算可追溯
+  const estimateId = input
+    ? (() => {
+        // 簡易 djb2 hash (input JSON 字串) → 8 字符 hex
+        const s = JSON.stringify(input) + Date.now()
+        let h = 5381
+        for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0
+        const ts = new Date()
+        const stamp = `${ts.getFullYear()}${String(ts.getMonth() + 1).padStart(2, '0')}${String(ts.getDate()).padStart(2, '0')}`
+        return `TCE-${stamp}-${(h >>> 0).toString(16).padStart(8, '0').slice(0, 8).toUpperCase()}`
+      })()
+    : null
+
   // v0.12.0+ Phase B3：估算成功後自動寫入 localStorage 歷史（脫敏後）
   // v0.14.x：登入時改存 Supabase 雲端（fallback 到 localStorage）
   // 用 useEffect 確保只在 client 跑（避免 SSR 報錯）
@@ -221,6 +235,41 @@ export default function ResultForm() {
       data-compact={compactMode}
       className="flex flex-1 flex-col items-center px-6 py-8 bg-surface-subtle"
     >
+      {/* v0.16.x 列印專用封面 (平時 hidden, @media print 顯示) */}
+      <div className="print-only hidden w-full max-w-5xl !bg-white !p-12" data-testid="print-cover">
+        <div className="!mb-8 !border-b-2 !border-black !pb-4">
+          <div className="!text-2xl !font-bold !text-black">車禍理賠金額試算書</div>
+          <div className="!mt-1 !text-sm !text-black">Car-Claim Estimation Report</div>
+        </div>
+        <div className="!mb-6 !grid !grid-cols-2 !gap-4 !text-sm !text-black">
+          <div>
+            <div className="!font-semibold">估算編號</div>
+            <div className="!font-mono">{estimateId ?? '—'}</div>
+          </div>
+          <div>
+            <div className="!font-semibold">估算時間</div>
+            <div>{new Date().toLocaleString('zh-TW')}</div>
+          </div>
+          <div>
+            <div className="!font-semibold">工具版本</div>
+            <div>v0.16.x · tw-car-claim-estimator</div>
+          </div>
+          <div>
+            <div className="!font-semibold">事故地點</div>
+            <div>{input?.basics?.accidentLocation ?? '—'}</div>
+          </div>
+        </div>
+        <div className="!mt-8 !rounded !border-2 !border-black !p-4 !text-xs !text-black">
+          <div className="!mb-2 !font-bold">免責聲明</div>
+          <div>
+            本試算書僅供參考，金額依《強制汽車責任保險法》、《民法》侵權行為及 6
+            直轄市地方法院實務區間推算，<strong>不構成法律意見</strong>。
+            實際理賠仍須依保險公司審核、醫療資料、肇事責任、保單條款、金融評議或法院認定為準。
+          </div>
+        </div>
+        <div className="!mt-4 !text-center !text-xs !text-black">— 第 1 頁 —</div>
+      </div>
+
       <div className="w-full max-w-5xl">
         <PageBreadcrumb
           back={{
