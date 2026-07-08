@@ -330,7 +330,7 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - Cost control：每案件最多 1 次 LLM 呼叫
 - Rate limit fallback：API 失敗時降級回 mockLLMAdvisor
 
-## §11 精神慰撫金 Ensemble UI 呈現（v0.6.7+）
+## §11.5 精神慰撫金 Ensemble UI 呈現（v0.6.7+）
 
 > **檔案**: `components/PainEnsembleCard.tsx` + 結果頁 `app/claims/result/_form.tsx`
 > **測試**: `__tests__/components/PainEnsembleCard.test.tsx`（13 it）
