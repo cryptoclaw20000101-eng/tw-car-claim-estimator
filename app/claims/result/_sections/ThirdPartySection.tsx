@@ -22,7 +22,7 @@ export function ThirdPartySection({
   const t = result.thirdParty
   return (
     <Card>
-      <Divider>第三人責任險估算（不含強制險，v0.5.2 起無保額上限）</Divider>
+      <Divider>第三人責任險估算（不含強制險，v0.5.2 起取消保額上限）</Divider>
       <Row gutter={16}>
         <Col xs={8}>
           <Statistic

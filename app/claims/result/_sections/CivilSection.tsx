@@ -41,7 +41,7 @@ export function CivilSection({ result }: { result: EstimationResult }) {
         </Col>
       </Row>
 
-      <Divider>除疤 / 修疤費用（4 術式 × 北中南）</Divider>
+      <Divider>除疤 / 修疤費用（4 術式 · 北中南）</Divider>
       <Row gutter={16}>
         <Col xs={24} md={8}>
           <Statistic
@@ -234,7 +234,7 @@ export function CivilSection({ result }: { result: EstimationResult }) {
         </Paragraph>
       )}
 
-      <Divider>車損 / 財損（第三人責任險）</Divider>
+      <Divider>車損 / 財損</Divider>
       <Row gutter={16}>
         <Col xs={12}>
           <Statistic

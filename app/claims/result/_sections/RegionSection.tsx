@@ -59,7 +59,7 @@ export function RegionSection({ result }: { result: EstimationResult }) {
         body={`資料信心：${result.region.confidenceLevel}`}
       />
 
-      <Divider>司法院同類判決中位數（精神慰撫金）</Divider>
+      <Divider>司法院同類判決 P50 中位數（精神慰撫金）</Divider>
       {medianAmount !== null ? (
         <Paragraph>
           {courtName} 精神慰撫金中位數：<Text strong>{dollar(medianAmount)}</Text>
@@ -120,7 +120,7 @@ export function RegionSection({ result }: { result: EstimationResult }) {
         />
       )}
 
-      <Divider>金融評議中心同類平均</Divider>
+      <Divider>金融評議中心同類平均（替代 P50 仲裁）</Divider>
       <Paragraph>
         看護費類平均：{foiNursingAvg !== null ? dollar(foiNursingAvg) : '—'} · 工作損失類平均：
         {foiWorkLossAvg !== null ? dollar(foiWorkLossAvg) : '—'}
