@@ -4,7 +4,8 @@
   "framework": "nextjs",
   "buildCommand": "pnpm build",
   "installCommand": "pnpm install --frozen-lockfile",
-  "outputDirectory": "out",
+  // v0.16.x：拿掉 output: 'export' 改 Vercel 標準 Next.js 部署
+  // 移除 outputDirectory 讓 Vercel 自動偵測 (.next/)
   "trailingSlash": false,
   "cleanUrls": true,
   "headers": [
