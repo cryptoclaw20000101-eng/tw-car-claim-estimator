@@ -251,7 +251,7 @@ const _experimentIcon = <ExperimentOutlined />
  * v0.14.x：用戶登入選單（顯示登入狀態 + 切換）
  */
 function UserMenu() {
-  const { user, signOut, configured, loading } = useAuth()
+  const { user, signOut, loading } = useAuth()
   const pathname = usePathname()
 
   if (loading) {
@@ -260,15 +260,9 @@ function UserMenu() {
 
   if (!user) {
     return (
-      <Tooltip title={configured ? '點擊登入' : 'Supabase 未設定'}>
+      <Tooltip title="點擊登入">
         <Link href="/login" passHref legacyBehavior>
-          <Button
-            type="text"
-            icon={<LoginOutlined />}
-            disabled={!configured}
-            data-testid="user-menu"
-            aria-label="登入"
-          />
+          <Button type="text" icon={<LoginOutlined />} data-testid="user-menu" aria-label="登入" />
         </Link>
       </Tooltip>
     )

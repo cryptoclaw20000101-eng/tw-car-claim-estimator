@@ -37,7 +37,7 @@ import { smartSync, type SyncResult } from '@/lib/sync'
 const { Text, Paragraph } = Typography
 
 export function EstimateHistory() {
-  const { user, configured } = useAuth()
+  const { user } = useAuth()
   const [items, setItems] = useState<HistoryEntry[]>([])
   const [cloudItems, setCloudItems] = useState<CloudEstimate[]>([])
   const [storage, setStorage] = useState<'cloud' | 'local'>('local')

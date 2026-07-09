@@ -1,83 +1,101 @@
 'use client'
 
 /**
- * AuthProvider — Supabase 認證 context（v0.14.x 新增）
+ * AuthProvider — JWT cookie auth context (v0.17.x 重寫)
  *
- * 設計：
- * - 'use client' 元件，封裝 Supabase auth state
- * - 沒設 env vars 時自動降級（user = null，所有功能仍可用 localStorage）
- * - 透過 useAuth() hook 取得 { user, signInWithMagicLink, signOut }
- * - 監聽 auth state change 自動更新
+ * 從 Supabase Auth 切換到自寫 JWT + bcrypt + /api/auth/* (R6)
+ * 介面保持不變 (useAuth hook 仍回 { user, loading, signIn, signOut })
  *
- * 使用：
- *   <AuthProvider>{children}</AuthProvider>
- *   const { user, signInWithMagicLink } = useAuth()
+ * 設計:
+ * - 'use client' 元件, 用 React Context 傳遞 auth state
+ * - mount 時 GET /api/auth/me 查當前 user (從 cookie 抽 JWT)
+ * - signIn: fetch POST /api/auth/signin (cookie 自動由 server 設)
+ * - signOut: fetch POST /api/auth/signout (清 cookie)
+ * - 跨頁: cookie 自動帶, 不需 manual sync
+ *
+ * 介面對外保持舊的 useAuth() 但內部實作改 fetch.
  */
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { getSupabase, hasSupabase } from '@/lib/supabase'
-import type { User } from '@supabase/supabase-js'
+
+export interface AuthUser {
+  id: string
+  email: string
+}
 
 interface AuthContextValue {
-  user: User | null
+  user: AuthUser | null
   loading: boolean
-  configured: boolean
-  signInWithMagicLink: (email: string) => Promise<{ error?: string }>
+  signIn: (email: string, password: string) => Promise<{ error?: string }>
+  signUp: (email: string, password: string) => Promise<{ error?: string }>
   signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
-  const [configured, setConfigured] = useState(false)
 
+  // mount 時 GET /api/auth/me 查當前 user
   useEffect(() => {
-    setConfigured(hasSupabase())
-    const client = getSupabase()
-    if (!client) {
-      setLoading(false)
-      return
-    }
-    // 取得當前 session
-    client.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user ?? null)
-      setLoading(false)
-    })
-    // 監聽 auth state change
-    const {
-      data: { subscription },
-    } = client.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
-    return () => subscription.unsubscribe()
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then((r) => r.json() as Promise<{ user: AuthUser | null }>)
+      .then((body) => setUser(body.user))
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false))
   }, [])
 
-  const signInWithMagicLink = async (email: string) => {
-    const client = getSupabase()
-    if (!client) {
-      return { error: 'Supabase 未設定' }
+  const signIn = async (email: string, password: string) => {
+    try {
+      const res = await fetch('/api/auth/signin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      })
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string }
+        return { error: body.error ?? '登入失敗' }
+      }
+      const body = (await res.json()) as { user: AuthUser }
+      setUser(body.user)
+      return {}
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : '網路錯誤' }
     }
-    const { error } = await client.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/claims/new`,
-      },
-    })
-    if (error) return { error: error.message }
-    return {}
+  }
+
+  const signUp = async (email: string, password: string) => {
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      })
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string }
+        return { error: body.error ?? '註冊失敗' }
+      }
+      const body = (await res.json()) as { user: AuthUser }
+      setUser(body.user)
+      return {}
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : '網路錯誤' }
+    }
   }
 
   const signOut = async () => {
-    const client = getSupabase()
-    if (!client) return
-    await client.auth.signOut()
+    await fetch('/api/auth/signout', {
+      method: 'POST',
+      credentials: 'include',
+    }).catch(() => {})
     setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, configured, signInWithMagicLink, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   )
