@@ -29,193 +29,180 @@ var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 const node_fs_1 = require("node:fs");
 const node_path_1 = require("node:path");
-const BASE = "https://judgment.judicial.gov.tw";
+const BASE = 'https://judgment.judicial.gov.tw';
 const SEARCH_URL = `${BASE}/FJUD/default.aspx`;
-const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
 const KEYWORDS = {
     mental_distress: [
-        "精神慰撫金 車禍",
-        "精神慰撫金 交通事故 死亡",
-        "慰撫金 過失傷害",
-        "非財產上損害 交通事故", // 擴：法律用語版
+        '精神慰撫金 車禍',
+        '精神慰撫金 交通事故 死亡',
+        '慰撫金 過失傷害',
+        '非財產上損害 交通事故', // 擴：法律用語版
         // v0.2.20+ 衝量 keyword
-        "慰撫金 肇責比例",
-        "慰撫金 輕傷",
-        "精神慰撫金 等級",
+        '慰撫金 肇責比例',
+        '慰撫金 輕傷',
+        '精神慰撫金 等級',
     ],
     labor_loss: [
-        "工作損失 車禍",
-        "勞動能力減損 交通事故",
-        "工作收入損失 過失傷害",
-        "減少勞動能力 車禍", // 擴：法條用語
+        '工作損失 車禍',
+        '勞動能力減損 交通事故',
+        '工作收入損失 過失傷害',
+        '減少勞動能力 車禍', // 擴：法條用語
         // v0.2.20+ 衝量 keyword
-        "工作損失 住院",
-        "薪資 車禍 損害",
-        "全勤獎金 車禍",
+        '工作損失 住院',
+        '薪資 車禍 損害',
+        '全勤獎金 車禍',
     ],
     car_damage: [
-        "車輛修復費用 車禍",
-        "財產損害 交通事故",
-        "車損 過失傷害",
-        "車輛全損 交通事故", // 擴：全損情境
+        '車輛修復費用 車禍',
+        '財產損害 交通事故',
+        '車損 過失傷害',
+        '車輛全損 交通事故', // 擴：全損情境
         // v0.2.20+ 衝量 keyword
-        "拖車費 車禍",
-        "代步車 車禍 費用",
-        "車輛 貶值 車禍",
+        '拖車費 車禍',
+        '代步車 車禍 費用',
+        '車輛 貶值 車禍',
     ],
     disability: [
-        "失能等級 車禍",
-        "勞減 交通事故",
-        "後遺症 過失傷害",
-        "殘廢 車禍 給付", // 擴：舊法用語
+        '失能等級 車禍',
+        '勞減 交通事故',
+        '後遺症 過失傷害',
+        '殘廢 車禍 給付', // 擴：舊法用語
         // v0.2.20+ 衝量 keyword
-        "失能 等級 給付",
-        "後遺症 殘廢 車禍",
-        "殘廢 車禍 等級",
+        '失能 等級 給付',
+        '後遺症 殘廢 車禍',
+        '殘廢 車禍 等級',
     ],
     // v0.2.6+ 新鏈：車禍調解流程（從理賠顧問/調解委員視角）
     mediation: [
-        "調解委員會 車禍 和解",
-        "鄉鎮市調解 交通事故",
-        "法院調解 車禍 成立", // 擴
+        '調解委員會 車禍 和解',
+        '鄉鎮市調解 交通事故',
+        '法院調解 車禍 成立', // 擴
         // v0.2.20+ 衝量 keyword
-        "調解 車禍 撤回",
-        "調解委員會 車禍",
+        '調解 車禍 撤回',
+        '調解委員會 車禍',
     ],
     // v0.2.6+ 新鏈：理賠實務案例（車禍處理經驗）
     practice: [
-        "理賠實務 車禍 和解",
-        "訴訟實務 交通事故 處理",
-        "強制險 車禍 理賠 案例", // 擴
+        '理賠實務 車禍 和解',
+        '訴訟實務 交通事故 處理',
+        '強制險 車禍 理賠 案例', // 擴
         // v0.2.20+ 衝量 keyword
-        "車禍 訴訟 實務",
-        "強制險 訴訟 案例",
+        '車禍 訴訟 實務',
+        '強制險 訴訟 案例',
     ],
     // v0.2.14+ 新增 keyword：3 年擴增專用（每鏈加 2-3 個新角度）
     // 設計原則：繞過飽和既有前 4 個 keyword，從死亡/肇責/醫療/和解 等新視角切入
     mental_distress_v2: [
-        "精神慰撫金 車禍 死亡",
-        "精神慰撫金 過失致死",
-        "慰撫金 車禍 重傷",
+        // v0.2.14+ 額外 keyword（精神慰撫金新角度）
+        '精神慰撫金 車禍 死亡',
+        '精神慰撫金 過失致死',
+        '慰撫金 車禍 重傷',
         // v0.2.20+ 衝量 keyword
-        "慰撫金 重傷 車禍",
-        "精神賠償 車禍 金額",
+        '慰撫金 重傷 車禍',
+        '精神賠償 車禍 金額',
     ],
     labor_loss_v2: [
-        "勞動能力 喪失 車禍",
-        "工作收入 減少 車禍",
-        "勞減率 車禍 鑑定",
+        '勞動能力 喪失 車禍',
+        '工作收入 減少 車禍',
+        '勞減率 車禍 鑑定',
         // v0.2.20+ 衝量 keyword
-        "減少勞動能力 計算",
-        "勞動能力 車禍 比例",
+        '減少勞動能力 計算',
+        '勞動能力 車禍 比例',
     ],
     car_damage_v2: [
-        "車輛修理費 交通事故",
-        "車禍 全損 折舊",
-        "車輛 殘值 車禍",
+        '車輛修理費 交通事故',
+        '車禍 全損 折舊',
+        '車輛 殘值 車禍',
         // v0.2.20+ 衝量 keyword
-        "車輛 折舊 車禍",
-        "車禍 殘值 計算",
+        '車輛 折舊 車禍',
+        '車禍 殘值 計算',
     ],
     disability_v2: [
-        "勞減 車禍 後遺症",
-        "失能 給付 交通事故",
-        "後遺症 車禍 等級",
+        '勞減 車禍 後遺症',
+        '失能 給付 交通事故',
+        '後遺症 車禍 等級',
         // v0.2.20+ 衝量 keyword
-        "失能給付 標準 車禍",
-        "後遺症 車禍 殘等",
+        '失能給付 標準 車禍',
+        '後遺症 車禍 殘等',
     ],
     // v0.2.14+ 額外關鍵字（跨鏈，從「肇責比例」/「和解金」切入）
     settlement_v2: [
-        "車禍 和解金 計算",
-        "過失比例 車禍 民事",
-        "肇責 車禍 比例",
+        '車禍 和解金 計算',
+        '過失比例 車禍 民事',
+        '肇責 車禍 比例',
         // v0.2.20+ 衝量 keyword
-        "肇責比例 和解金",
-        "車禍 民事 過失比例",
+        '肇責比例 和解金',
+        '車禍 民事 過失比例',
     ],
     // v0.2.19+ 新鏈：看護費（民法 §193 + 強保險 §11，最大宗理賠項目之一）
     // 對齊 6 鏈都沒抓的「最大缺口」之一，6 鏈全集中在精神慰撫金/工作損失/車損/失能
     nursing_care: [
-        "看護費 車禍",
-        "看護費用 交通事故",
-        "看護 車禍 日額",
+        '看護費 車禍',
+        '看護費用 交通事故',
+        '看護 車禍 日額',
         // v0.2.20+ 衝量 keyword
-        "看護 親屬 車禍",
-        "居家看護 車禍",
-        "看護 醫院 車禍",
+        '看護 親屬 車禍',
+        '居家看護 車禍',
+        '看護 醫院 車禍',
     ],
     // v0.2.19+ 新鏈：醫療費用（含醫藥費/住院費/自費醫材）
     medical_expense: [
-        "醫療費用 車禍",
-        "醫藥費 交通事故",
-        "住院費 車禍 賠償",
+        '醫療費用 車禍',
+        '醫藥費 交通事故',
+        '住院費 車禍 賠償',
         // v0.2.20+ 衝量 keyword
-        "醫美 車禍",
-        "義齒 車禍 費用",
-        "復健 車禍 費用",
-        "中醫 車禍",
+        '醫美 車禍',
+        '義齒 車禍 費用',
+        '復健 車禍 費用',
+        '中醫 車禍',
     ],
     // v0.2.20+ 衝量 4 條新鏈 — 填補「死亡 / 交通 / 撫養 / 薪資」4 個大宗缺口
     // 對齊 1000 件目標的關鍵擴增
     death_case: [
-        "死亡 車禍 賠償",
-        "致死 交通事故 民事",
-        "過失致死 車禍 和解",
+        '死亡 車禍 賠償',
+        '致死 交通事故 民事',
+        '過失致死 車禍 和解',
         // v0.5.7+ 衝量 keyword
-        "車禍 死亡 慰撫金",
-        "車禍 死亡 撫養費",
-        "車禍 死亡 過失比例",
+        '車禍 死亡 慰撫金',
+        '車禍 死亡 撫養費',
+        '車禍 死亡 過失比例',
     ],
     transport_fee: [
-        "計程車 車禍 費用",
-        "就醫 交通 車禍",
-        "代步 車禍 費用",
+        '計程車 車禍 費用',
+        '就醫 交通 車禍',
+        '代步 車禍 費用',
         // v0.5.7+ 衝量 keyword
-        "計程車 往返 醫院",
-        "就醫 計程車 車禍",
+        '計程車 往返 醫院',
+        '就醫 計程車 車禍',
     ],
     support_payment: [
-        "扶養費 車禍",
-        "扶養 交通事故",
-        "遺屬 車禍 撫卹",
+        '扶養費 車禍',
+        '扶養 交通事故',
+        '遺屬 車禍 撫卹',
         // v0.5.7+ 衝量 keyword
-        "撫養費 計算 車禍",
-        "扶養 親屬 車禍",
+        '撫養費 計算 車禍',
+        '扶養 親屬 車禍',
     ],
     overtime_loss: [
-        "加班費 車禍 損失",
-        "全勤獎金 車禍",
-        "年終獎金 車禍 損失",
+        '加班費 車禍 損失',
+        '全勤獎金 車禍',
+        '年終獎金 車禍 損失',
         // v0.5.7+ 衝量 keyword
-        "績效獎金 車禍",
-        "車禍 請假 扣薪",
+        '績效獎金 車禍',
+        '車禍 請假 扣薪',
     ],
     // v0.5.7+ 新鏈：訴訟終結與上訴（從律師實務切入補上 2020-2022 缺口）
-    appeal_case: [
-        "車禍 上訴 民事",
-        "二審 車禍 和解",
-        "上訴 駁回 車禍",
-        "車禍 撤回上訴",
-    ],
+    appeal_case: ['車禍 上訴 民事', '二審 車禍 和解', '上訴 駁回 車禍', '車禍 撤回上訴'],
     // v0.5.7+ 新鏈：慰撫金計算基準（最高法院 + 地方法院常引）
-    pain_suffering_basis: [
-        "慰撫金 計算基準",
-        "精神慰撫金 酌定",
-        "慰撫金 數額",
-        "慰撫金 審酌",
-    ],
+    pain_suffering_basis: ['慰撫金 計算基準', '精神慰撫金 酌定', '慰撫金 數額', '慰撫金 審酌'],
     // v0.18.x+ 新鏈：5 年內民事車禍（user 2026-07-09 需求擴充資料庫）
     // 5 年內 = 2021-2026 民事 + 車禍相關
     // 排除刑庭（已 isCivilCase 過濾）+ 5 年內日期過濾（在 parseDataLinks chainKey 條件）
     // 寫入新檔 traffic-accident-civil-5y.json（避免污染既有 13 鏈）
     // keyword 用「精神慰撫金 車禍」+「車禍 民事」+「交通事故 和解」這 3 個已驗證有結果的
     // 5 年內 filter 自動在 parseDataLinks 內 yearInt < 2021 時 continue
-    traffic_accident_civil_5y: [
-        "精神慰撫金 車禍",
-        "車禍 民事",
-        "交通事故 和解",
-    ],
+    traffic_accident_civil_5y: ['精神慰撫金 車禍', '車禍 民事', '交通事故 和解'],
 };
 // v0.2.8+ — retry config（全域，main() 解析 --retry 旗標後填入）
 const retryConfig = {
@@ -258,76 +245,76 @@ const CHAIN_REGEX = {
     traffic_accident_civil_5y: /(?:精神)?慰撫金|損害賠償|和解金[^。]*?([\d,]+)\s*元/,
 };
 const CHAIN_FILE = {
-    mental_distress: "taipei-mental-distress.json",
-    mental_distress_v2: "taipei-mental-distress.json", // v0.2.14 寫入同檔
-    labor_loss: "labor-loss.json",
-    labor_loss_v2: "labor-loss.json",
-    car_damage: "car-damage.json",
-    car_damage_v2: "car-damage.json",
-    disability: "disability-merging.json",
-    disability_v2: "disability-merging.json",
-    mediation: "mediation-procedures.json", // 新檔
-    practice: "practice-cases.json", // 擴充既有檔
-    settlement_v2: "practice-cases.json", // v0.2.14 跨鏈寫入 practice
+    mental_distress: 'taipei-mental-distress.json',
+    mental_distress_v2: 'taipei-mental-distress.json', // v0.2.14 寫入同檔
+    labor_loss: 'labor-loss.json',
+    labor_loss_v2: 'labor-loss.json',
+    car_damage: 'car-damage.json',
+    car_damage_v2: 'car-damage.json',
+    disability: 'disability-merging.json',
+    disability_v2: 'disability-merging.json',
+    mediation: 'mediation-procedures.json', // 新檔
+    practice: 'practice-cases.json', // 擴充既有檔
+    settlement_v2: 'practice-cases.json', // v0.2.14 跨鏈寫入 practice
     // v0.2.19+ 新檔：看護費 + 醫療費用
-    nursing_care: "nursing-care.json",
-    medical_expense: "medical-expense.json",
+    nursing_care: 'nursing-care.json',
+    medical_expense: 'medical-expense.json',
     // v0.2.20+ 衝量 4 新檔
-    death_case: "death-case.json",
-    transport_fee: "transport-fee.json",
-    support_payment: "support-payment.json",
-    overtime_loss: "overtime-loss.json",
+    death_case: 'death-case.json',
+    transport_fee: 'transport-fee.json',
+    support_payment: 'support-payment.json',
+    overtime_loss: 'overtime-loss.json',
     // v0.5.7+ 衝量 2 新檔（訴訟終結 + 慰撫金計算基準）
-    appeal_case: "practice-cases.json", // 訴訟終結併入 practice-cases.json（已有調解/律師實務）
-    pain_suffering_basis: "taipei-mental-distress.json", // 慰撫金計算基準併入精神慰撫金主鏈
+    appeal_case: 'practice-cases.json', // 訴訟終結併入 practice-cases.json（已有調解/律師實務）
+    pain_suffering_basis: 'taipei-mental-distress.json', // 慰撫金計算基準併入精神慰撫金主鏈
     // v0.18.x+ 5 年內民事車禍：新檔
-    traffic_accident_civil_5y: "traffic-accident-civil-5y.json",
+    traffic_accident_civil_5y: 'traffic-accident-civil-5y.json',
 };
 const CHAIN_LABEL = {
-    mental_distress: "精神慰撫金",
-    mental_distress_v2: "精神慰撫金(死亡)",
-    labor_loss: "工作損失",
-    labor_loss_v2: "工作損失(勞減)",
-    car_damage: "車損",
-    car_damage_v2: "車損(全損)",
-    disability: "失能慰撫金",
-    disability_v2: "失能(後遺症)",
-    mediation: "車禍調解",
-    practice: "理賠實務",
-    settlement_v2: "和解金(肇責)",
+    mental_distress: '精神慰撫金',
+    mental_distress_v2: '精神慰撫金(死亡)',
+    labor_loss: '工作損失',
+    labor_loss_v2: '工作損失(勞減)',
+    car_damage: '車損',
+    car_damage_v2: '車損(全損)',
+    disability: '失能慰撫金',
+    disability_v2: '失能(後遺症)',
+    mediation: '車禍調解',
+    practice: '理賠實務',
+    settlement_v2: '和解金(肇責)',
     // v0.2.19+
-    nursing_care: "看護費",
-    medical_expense: "醫療費用",
+    nursing_care: '看護費',
+    medical_expense: '醫療費用',
     // v0.2.20+
-    death_case: "死亡案件",
-    transport_fee: "交通費用",
-    support_payment: "撫養費",
-    overtime_loss: "加班損失",
+    death_case: '死亡案件',
+    transport_fee: '交通費用',
+    support_payment: '撫養費',
+    overtime_loss: '加班損失',
     // v0.5.7+ 衝量新鏈 label
-    appeal_case: "訴訟終結",
-    pain_suffering_basis: "慰撫金計算基準",
+    appeal_case: '訴訟終結',
+    pain_suffering_basis: '慰撫金計算基準',
     // v0.18.x+ 5 年內民事車禍
-    traffic_accident_civil_5y: "5 年內民事車禍",
+    traffic_accident_civil_5y: '5 年內民事車禍',
 };
 const COURT_CODE = {
-    TPDV: "臺灣臺北地方法院",
-    PCDV: "臺灣新北地方法院",
-    SLDV: "臺灣士林地方法院",
-    TYDV: "臺灣桃園地方法院",
-    KSDV: "臺灣高雄地方法院",
-    TCDV: "臺灣臺中地方法院",
-    TNDV: "臺灣臺南地方法院",
-    CYDV: "臺灣嘉義地方法院",
-    CHDV: "臺灣彰化地方法院",
-    YLDV: "臺灣宜蘭地方法院",
-    HLDV: "臺灣花蓮地方法院",
-    TTDV: "臺灣臺東地方法院",
-    MLDV: "臺灣苗栗地方法院",
-    NTDV: "臺灣南投地方法院",
-    YDV: "臺灣雲林地方法院",
-    PHDV: "臺灣澎湖地方法院",
-    KMOV: "福建金門地方法院",
-    LCDV: "臺灣基隆地方法院",
+    TPDV: '臺灣臺北地方法院',
+    PCDV: '臺灣新北地方法院',
+    SLDV: '臺灣士林地方法院',
+    TYDV: '臺灣桃園地方法院',
+    KSDV: '臺灣高雄地方法院',
+    TCDV: '臺灣臺中地方法院',
+    TNDV: '臺灣臺南地方法院',
+    CYDV: '臺灣嘉義地方法院',
+    CHDV: '臺灣彰化地方法院',
+    YLDV: '臺灣宜蘭地方法院',
+    HLDV: '臺灣花蓮地方法院',
+    TTDV: '臺灣臺東地方法院',
+    MLDV: '臺灣苗栗地方法院',
+    NTDV: '臺灣南投地方法院',
+    YDV: '臺灣雲林地方法院',
+    PHDV: '臺灣澎湖地方法院',
+    KMOV: '福建金門地方法院',
+    LCDV: '臺灣基隆地方法院',
 };
 function newJar() {
     return { cookies: new Map() };
@@ -335,17 +322,17 @@ function newJar() {
 function cookieHeader(jar) {
     return Array.from(jar.cookies.entries())
         .map(([k, v]) => `${k}=${v}`)
-        .join("; ");
+        .join('; ');
 }
 function absorbCookies(jar, res) {
     var _a, _b;
     const setCookie = ((_b = (_a = res.headers).getSetCookie) === null || _b === void 0 ? void 0 : _b.call(_a)) ||
-        (res.headers.get("set-cookie") ? [res.headers.get("set-cookie")] : []);
+        (res.headers.get('set-cookie') ? [res.headers.get('set-cookie')] : []);
     for (const c of setCookie) {
         if (!c)
             continue;
-        const [pair] = c.split(";");
-        const eq = pair.indexOf("=");
+        const [pair] = c.split(';');
+        const eq = pair.indexOf('=');
         if (eq < 0)
             continue;
         jar.cookies.set(pair.slice(0, eq).trim(), pair.slice(eq + 1).trim());
@@ -365,7 +352,7 @@ async function getHtmlWithRetry(jar, url, referer, config) {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
             const res = await fetch(url, {
-                headers: Object.assign({ "User-Agent": UA, Accept: "text/html,application/xhtml+xml", "Accept-Language": "zh-TW,zh;q=0.9", Cookie: cookieHeader(jar) }, (referer ? { Referer: referer } : {})),
+                headers: Object.assign({ 'User-Agent': UA, Accept: 'text/html,application/xhtml+xml', 'Accept-Language': 'zh-TW,zh;q=0.9', Cookie: cookieHeader(jar) }, (referer ? { Referer: referer } : {})),
             });
             if (res.status >= 500) {
                 // 5xx → 可重試
@@ -406,20 +393,20 @@ async function postSearch(jar, keyword, viewState, viewStateGen, eventValidation
     const body = new URLSearchParams({
         __VIEWSTATE: viewState,
         __VIEWSTATEGENERATOR: viewStateGen,
-        __VIEWSTATEENCRYPTED: "",
+        __VIEWSTATEENCRYPTED: '',
         __EVENTVALIDATION: eventValidation,
         txtKW: keyword,
-        judtype: "JUDBOOK",
-        whosub: "0",
-        "ctl00$cp_content$btnSimpleQry": "送出查詢",
+        judtype: 'JUDBOOK',
+        whosub: '0',
+        ctl00$cp_content$btnSimpleQry: '送出查詢',
     });
     const res = await fetch(SEARCH_URL, {
-        method: "POST",
+        method: 'POST',
         headers: {
-            "User-Agent": UA,
-            "Content-Type": "application/x-www-form-urlencoded",
-            Accept: "text/html,application/xhtml+xml",
-            "Accept-Language": "zh-TW,zh;q=0.9",
+            'User-Agent': UA,
+            'Content-Type': 'application/x-www-form-urlencoded',
+            Accept: 'text/html,application/xhtml+xml',
+            'Accept-Language': 'zh-TW,zh;q=0.9',
             Referer: SEARCH_URL,
             Cookie: cookieHeader(jar),
         },
@@ -431,9 +418,9 @@ async function postSearch(jar, keyword, viewState, viewStateGen, eventValidation
     return res.text();
 }
 function extractInputValue(html, name) {
-    const re = new RegExp(`name="${name}"[^>]*value="([^"]*)"`, "i");
+    const re = new RegExp(`name="${name}"[^>]*value="([^"]*)"`, 'i');
     const m = html.match(re);
-    return m ? m[1] : "";
+    return m ? m[1] : '';
 }
 function extractQryHash(html) {
     const m = html.match(/qryresultlst\.aspx\?ty=JUDBOOK&q=([a-f0-9]+)/);
@@ -446,9 +433,12 @@ function parseDataLinks(html) {
     let match;
     while ((match = linkRe.exec(html)) !== null) {
         const id = decodeURIComponent(match[1]);
-        const text = match[2].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+        const text = match[2]
+            .replace(/<[^>]+>/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
         // id 格式：{courtCode},{year},{caseType},{caseNum},{date},{v}
-        const parts = id.split(",");
+        const parts = id.split(',');
         if (parts.length < 5)
             continue;
         const [code, year, caseType, caseNum, date] = parts;
@@ -483,12 +473,12 @@ function parseDataLinks(html) {
 function extractAmounts(html, chain) {
     // 把 HTML 壓平成純文字
     const text = html
-        .replace(/<script[\s\S]*?<\/script>/gi, " ")
-        .replace(/<style[\s\S]*?<\/style>/gi, " ")
-        .replace(/<[^>]+>/g, " ")
-        .replace(/&nbsp;/g, " ")
-        .replace(/&amp;/g, "&")
-        .replace(/\s+/g, "");
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/\s+/g, '');
     const regex = CHAIN_REGEX[chain];
     // 主文段：找該鏈關鍵金額
     const mainMatch = text.match(/主文([\s\S]{0,2000}?)(?:理由|事實|壹|貳)/);
@@ -496,15 +486,15 @@ function extractAmounts(html, chain) {
     if (mainMatch) {
         const m = mainMatch[1].match(regex);
         if (m)
-            amount = parseInt(m[1].replace(/,/g, ""), 10);
+            amount = parseInt(m[1].replace(/,/g, ''), 10);
     }
     // 退回全文：找該鏈關鍵字 + 合理金額（1 萬 - 300 萬）
     if (!amount) {
         const candidates = [];
-        const re = new RegExp(regex.source, "g");
+        const re = new RegExp(regex.source, 'g');
         let m;
         while ((m = re.exec(text)) !== null) {
-            const v = parseInt(m[1].replace(/,/g, ""), 10);
+            const v = parseInt(m[1].replace(/,/g, ''), 10);
             if (v >= 10000 && v <= 3000000)
                 candidates.push(v);
         }
@@ -516,7 +506,7 @@ function extractAmounts(html, chain) {
     // 總判賠：主文段最大單筆金額
     let total = 0;
     if (mainMatch) {
-        const amounts = Array.from(mainMatch[1].matchAll(/([\d,]+)\s*元/g)).map((m) => parseInt(m[1].replace(/,/g, ""), 10));
+        const amounts = Array.from(mainMatch[1].matchAll(/([\d,]+)\s*元/g)).map((m) => parseInt(m[1].replace(/,/g, ''), 10));
         if (amounts.length > 0)
             total = Math.max(...amounts);
     }
@@ -529,13 +519,13 @@ function extractAmounts(html, chain) {
     return { amount, total, gist };
 }
 function categorizeByFacts(gist, _amount) {
-    if (gist.includes("死亡") || gist.includes("致死"))
-        return "death";
-    if (gist.includes("重傷") || gist.includes("重殘"))
-        return "severe_injury";
-    if (gist.includes("後遺症") || gist.includes("失能") || gist.includes("殘廢"))
-        return "disability";
-    return "minor_injury";
+    if (gist.includes('死亡') || gist.includes('致死'))
+        return 'death';
+    if (gist.includes('重傷') || gist.includes('重殘'))
+        return 'severe_injury';
+    if (gist.includes('後遺症') || gist.includes('失能') || gist.includes('殘廢'))
+        return 'disability';
+    return 'minor_injury';
 }
 /**
  * 即時 append 寫入（避免最後 session 死了丟資料）
@@ -543,14 +533,14 @@ function categorizeByFacts(gist, _amount) {
  * 4 鏈各自寫到對應 JSON
  */
 function writePrecedent(p) {
-    const outDir = (0, node_path_1.join)(process.cwd(), "data", "precedents");
+    const outDir = (0, node_path_1.join)(process.cwd(), 'data', 'precedents');
     if (!(0, node_fs_1.existsSync)(outDir))
         (0, node_fs_1.mkdirSync)(outDir, { recursive: true });
     const outFile = (0, node_path_1.join)(outDir, CHAIN_FILE[p.chain]);
     let arr = [];
     if ((0, node_fs_1.existsSync)(outFile)) {
         try {
-            arr = JSON.parse((0, node_fs_1.readFileSync)(outFile, "utf-8"));
+            arr = JSON.parse((0, node_fs_1.readFileSync)(outFile, 'utf-8'));
         }
         catch (_a) {
             arr = [];
@@ -560,7 +550,7 @@ function writePrecedent(p) {
     if (arr.some((x) => x.id === p.id))
         return;
     arr.push(p);
-    (0, node_fs_1.writeFileSync)(outFile, JSON.stringify(arr, null, 2), "utf-8");
+    (0, node_fs_1.writeFileSync)(outFile, JSON.stringify(arr, null, 2), 'utf-8');
 }
 /**
  * isCivilCase — 案號是否為民事案件
@@ -578,14 +568,22 @@ function isCivilCase(caseNo) {
         return true; // 沒案號=保留
     // 排除清單
     const penalPatterns = [
-        "附民", "交附民", "原附民", "簡附民", "刑附民", // 刑事附帶民事
-        "易字", "易", "交易", "自訴", "自", // 刑事
+        '附民',
+        '交附民',
+        '原附民',
+        '簡附民',
+        '刑附民', // 刑事附帶民事
+        '易字',
+        '易',
+        '交易',
+        '自訴',
+        '自', // 刑事
     ];
     for (const pat of penalPatterns) {
         if (caseNo.includes(pat))
             return false;
     }
-    const familyPatterns = ["家親", "家聲", "家事"]; // 家事法庭（非車禍民事）
+    const familyPatterns = ['家親', '家聲', '家事']; // 家事法庭（非車禍民事）
     for (const pat of familyPatterns) {
         if (caseNo.includes(pat))
             return false;
@@ -614,36 +612,30 @@ async function main() {
     var _a, _b, _c, _d, _e;
     // CLI: --dry-run = 不寫檔，只跑流程; --chain <name> = 只跑單鏈; --quiet = 精簡輸出（給 cron 用）
     //       --retry <N> = fetch 重試次數（預設 3，設 0 關閉）; --retry-delay <ms> = 起始退避毫秒（預設 500，指數倍增）
-    const isDryRun = process.argv.includes("--dry-run");
-    const isQuiet = process.argv.includes("--quiet");
+    const isDryRun = process.argv.includes('--dry-run');
+    const isQuiet = process.argv.includes('--quiet');
     retryConfig.quiet = isQuiet;
-    const chainArgIdx = process.argv.indexOf("--chain");
-    const chainFilter = chainArgIdx >= 0
-        ? process.argv[chainArgIdx + 1]
-        : null;
-    const retryArgIdx = process.argv.indexOf("--retry");
+    const chainArgIdx = process.argv.indexOf('--chain');
+    const chainFilter = chainArgIdx >= 0 ? process.argv[chainArgIdx + 1] : null;
+    const retryArgIdx = process.argv.indexOf('--retry');
     if (retryArgIdx >= 0) {
-        const n = parseInt((_a = process.argv[retryArgIdx + 1]) !== null && _a !== void 0 ? _a : "3", 10);
+        const n = parseInt((_a = process.argv[retryArgIdx + 1]) !== null && _a !== void 0 ? _a : '3', 10);
         retryConfig.maxRetries = isNaN(n) ? 3 : Math.max(0, n);
     }
-    const retryDelayArgIdx = process.argv.indexOf("--retry-delay");
+    const retryDelayArgIdx = process.argv.indexOf('--retry-delay');
     if (retryDelayArgIdx >= 0) {
-        const ms = parseInt((_b = process.argv[retryDelayArgIdx + 1]) !== null && _b !== void 0 ? _b : "500", 10);
+        const ms = parseInt((_b = process.argv[retryDelayArgIdx + 1]) !== null && _b !== void 0 ? _b : '500', 10);
         retryConfig.baseDelayMs = isNaN(ms) ? 500 : Math.max(100, ms);
     }
     // v0.2.21+ — 年度範圍過濾（民國年），預設不限。例: --year-min 109 --year-max 111
-    const yearMinArgIdx = process.argv.indexOf("--year-min");
-    const yearMaxArgIdx = process.argv.indexOf("--year-max");
-    const yearMin = yearMinArgIdx >= 0
-        ? parseInt((_c = process.argv[yearMinArgIdx + 1]) !== null && _c !== void 0 ? _c : "0", 10)
-        : null;
-    const yearMax = yearMaxArgIdx >= 0
-        ? parseInt((_d = process.argv[yearMaxArgIdx + 1]) !== null && _d !== void 0 ? _d : "0", 10)
-        : null;
+    const yearMinArgIdx = process.argv.indexOf('--year-min');
+    const yearMaxArgIdx = process.argv.indexOf('--year-max');
+    const yearMin = yearMinArgIdx >= 0 ? parseInt((_c = process.argv[yearMinArgIdx + 1]) !== null && _c !== void 0 ? _c : '0', 10) : null;
+    const yearMax = yearMaxArgIdx >= 0 ? parseInt((_d = process.argv[yearMaxArgIdx + 1]) !== null && _d !== void 0 ? _d : '0', 10) : null;
     const hasYearFilter = yearMin !== null && !isNaN(yearMin) && yearMax !== null && !isNaN(yearMax);
     if (!isQuiet) {
         if (isDryRun)
-            console.log("[scrape] 🧪 DRY RUN — 不會寫入 precedents 檔");
+            console.log('[scrape] 🧪 DRY RUN — 不會寫入 precedents 檔');
         if (chainFilter)
             console.log(`[scrape] 🔗 只跑 ${chainFilter} 鏈`);
         if (hasYearFilter)
@@ -662,9 +654,9 @@ async function main() {
         const jar = newJar();
         // 1. GET 拿 ViewState + cookies
         const homeHtml = await getHtml(jar, SEARCH_URL);
-        const vs = extractInputValue(homeHtml, "__VIEWSTATE");
-        const vsg = extractInputValue(homeHtml, "__VIEWSTATEGENERATOR");
-        const ev = extractInputValue(homeHtml, "__EVENTVALIDATION");
+        const vs = extractInputValue(homeHtml, '__VIEWSTATE');
+        const vsg = extractInputValue(homeHtml, '__VIEWSTATEGENERATOR');
+        const ev = extractInputValue(homeHtml, '__EVENTVALIDATION');
         console.log(`[scrape]   Step 1: ViewState ${vs.length}b / EV ${ev.length}b`);
         // 2. POST
         const resultHtml = await postSearch(jar, kw, vs, vsg, ev);
@@ -676,7 +668,7 @@ async function main() {
         }
         console.log(`[scrape]   Step 2: q=${qHash.slice(0, 8)}...`);
         // 3. GET qryresultlst 拿 data.aspx 連結（v0.2.14+ 支援分頁: a=1..maxPages）
-        const maxPages = Math.max(1, parseInt(process.env.SCRAPE_MAX_PAGES || "6", 10)); // v0.5.7+ 預設 6 (從 3 改 6, 衝量)
+        const maxPages = Math.max(1, parseInt(process.env.SCRAPE_MAX_PAGES || '6', 10)); // v0.5.7+ 預設 6 (從 3 改 6, 衝量)
         const allHitsMap = new Map(); // v0.2.14 用 href 去重(避免 page 1+2+3 重複抓同一件)
         let actualPages = 0;
         const qryReferer = `${BASE}/FJUD/qryresultlst.aspx?ty=JUDBOOK&q=${qHash}`; // 給 detail 抓取當 referer
@@ -719,12 +711,12 @@ async function main() {
                     totalSkipped++;
                     continue;
                 }
-                const yearInt = parseInt(((_e = hit.caseNo.match(/(\d+)/)) === null || _e === void 0 ? void 0 : _e[1]) || "0", 10);
+                const yearInt = parseInt(((_e = hit.caseNo.match(/(\d+)/)) === null || _e === void 0 ? void 0 : _e[1]) || '0', 10);
                 const category = categorizeByFacts(amts.gist, amts.amount);
                 allHits.push(Object.assign({}, hit));
                 // 直接寫進 precedents（dry-run 跳過）
                 const precedent = {
-                    id: `tw-${chain}-${yearInt}-${hit.caseNo.replace(/\D/g, "").slice(-6)}`,
+                    id: `tw-${chain}-${yearInt}-${hit.caseNo.replace(/\D/g, '').slice(-6)}`,
                     caseNo: hit.caseNo,
                     court: hit.court,
                     year: yearInt + 1911,
@@ -762,8 +754,8 @@ async function main() {
         }
     }
     // Run 結束 summary
-    console.log("");
-    console.log("═══════════════════════════════════════");
+    console.log('');
+    console.log('═══════════════════════════════════════');
     console.log(`[scrape] 📊 Run summary`);
     console.log(`[scrape]   抓取成功: ${totalScraped} 件`);
     console.log(`[scrape]   跳過:     ${totalSkipped} 件`);
@@ -773,12 +765,12 @@ async function main() {
         console.log(`[scrape] 🔗 限定鏈: ${chainFilter}`);
     if (isDryRun)
         console.log(`[scrape] 🧪 DRY RUN — 未寫入任何檔案`);
-    console.log("═══════════════════════════════════════");
+    console.log('═══════════════════════════════════════');
 }
 // 直接跑 main 才執行（避免 import 時跑）
-if ((_a = process.argv[1]) === null || _a === void 0 ? void 0 : _a.endsWith("scrape-judgments.js")) {
+if ((_a = process.argv[1]) === null || _a === void 0 ? void 0 : _a.endsWith('scrape-judgments.js')) {
     main().catch((e) => {
-        console.error("[scrape] ❌", e);
+        console.error('[scrape] ❌', e);
         process.exit(1);
     });
 }

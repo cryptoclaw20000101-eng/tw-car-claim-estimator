@@ -18,10 +18,18 @@ exports.CONFIDENCE_META = void 0
 exports.computeEnsembleHealth = computeEnsembleHealth
 /** 取純量函式（給純函式模組用，避免 reports 重複實作） */
 function median(nums) {
+  var _a, _b, _c
   if (nums.length === 0) return 0
   const sorted = [...nums].sort((a, b) => a - b)
   const mid = Math.floor(sorted.length / 2)
-  return sorted.length % 2 === 0 ? Math.round((sorted[mid - 1] + sorted[mid]) / 2) : sorted[mid]
+  if (sorted.length % 2 === 0) {
+    return Math.round(
+      (((_a = sorted[mid - 1]) !== null && _a !== void 0 ? _a : 0) +
+        ((_b = sorted[mid]) !== null && _b !== void 0 ? _b : 0)) /
+        2,
+    )
+  }
+  return (_c = sorted[mid]) !== null && _c !== void 0 ? _c : 0
 }
 /**
  * 從精神慰撫金 anchor rows 計算 Ensemble 健康度
@@ -30,7 +38,7 @@ function median(nums) {
  * @returns 4 組指標：anchor / court / confidence / injury
  */
 function computeEnsembleHealth(anchorRows) {
-  var _a, _b, _c
+  var _a, _b, _c, _d, _e
   const amounts = anchorRows
     .map((r) => {
       var _a, _b
@@ -95,11 +103,14 @@ function computeEnsembleHealth(anchorRows) {
   // 傷勢梯度警示
   let injuryGradientWarning = null
   if (injuryCoverage.length === 1) {
-    injuryGradientWarning = `全部 ${injuryCoverage[0].n} 件都集中在 ${injuryCoverage[0].category}，傷勢梯度為 0，XGBoost 無法學習`
+    const first = injuryCoverage[0]
+    if (first) {
+      injuryGradientWarning = `全部 ${first.n} 件都集中在 ${first.category}，傷勢梯度為 0，XGBoost 無法學習`
+    }
   } else if (injuryCoverage.length === 2) {
     const top = injuryCoverage[0]
     const total = injuryCoverage.reduce((s, x) => s + x.n, 0)
-    if (top.n / total > 0.9) {
+    if (top && top.n / total > 0.9) {
       injuryGradientWarning = `${top.category} 佔 ${((top.n / total) * 100).toFixed(0)}%，傷勢梯度不足，XGBoost 偏置風險高`
     }
   }
@@ -107,8 +118,8 @@ function computeEnsembleHealth(anchorRows) {
     anchorFile: 'taipei-mental-distress.json',
     anchorN: n,
     anchorMedian: n > 0 ? median(amounts) : 0,
-    anchorP10: n > 0 ? at(0.1) : 0,
-    anchorP90: n > 0 ? at(0.9) : 0,
+    anchorP10: n > 0 ? ((_d = at(0.1)) !== null && _d !== void 0 ? _d : 0) : 0,
+    anchorP90: n > 0 ? ((_e = at(0.9)) !== null && _e !== void 0 ? _e : 0) : 0,
     confidenceLevel,
     confidenceTip,
     courtMedians,
