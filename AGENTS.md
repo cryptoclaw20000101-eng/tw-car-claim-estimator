@@ -1421,3 +1421,140 @@ AntD React 元件不能直接吃 CSS var（會破壞 inline style + 主題計算
 - 切換 dark mode 瞬間 AntD 元件會重新計算 token（可能 1 frame 閃爍）
 - 影響：極小（MutationObserver 同步觸發，< 16ms）
 - v0.13.x 之後可加 token transition CSS 平滑過場
+
+---
+
+## §31 Railway Postgres 雲端持久化（v0.17.x）
+
+> **檔案**：`lib/db.ts` + `lib/auth.ts` + `db/migrations/0001_init.sql` + `app/api/auth/*` + `app/api/estimates/*` + `components/AuthProvider.tsx` + `app/login/_form.tsx`
+> **測試**：792 tests / 65 files 全綠 + production E2E 跑通
+
+### 為什麼從 Supabase 切到 Railway Postgres？
+
+- 跟 deployment 同 platform（Railway 已有 + free $5 credit/月）
+- 不用多辦 Supabase 帳號（少 1 個 vendor）
+- 全控制：可加欄位 / 改 schema / 跑 migration
+- 自寫 Auth：JWT + bcrypt → 無 vendor lock-in
+
+### 切換前的問題（v0.14.x 規劃）
+
+- v0.14.x 設了 `lib/supabase.ts` + `lib/estimate-storage.ts` 走 Supabase client
+- `@supabase/supabase-js` 在 client component chain 內（EstimateHistory → estimate-storage → supabase）→ **但 pg 是 Node.js only**，Supabase client 在 client side 沒問題（SDK 自動 fetch remote API）
+- 實務沒人設 Supabase env vars → `hasSupabase()` 回 false → 全部 fallback localStorage → 雲端 sync 功能完全 dead code
+
+### 切換後的架構（v0.17.x）
+
+| 層                 | 元件                                     | 職責                    |
+| ------------------ | ---------------------------------------- | ----------------------- |
+| **DB**             | Railway Postgres（`pgcrypto` extension） | users + estimates table |
+| **ORM**            | 純 SQL（用 `pg` Pool）                   | 沒 ORM 依賴             |
+| **Auth**           | 自寫 JWT + bcrypt                        | 取代 Supabase Auth      |
+| **Client**         | `fetch('/api/...')`                      | 取代 Supabase client    |
+| **Cookie**         | httpOnly + SameSite=lax                  | 7 天有效                |
+| **Railway plugin** | Postgres service                         | DATABASE_URL 自動注入   |
+
+### 不變量（守護）
+
+- **app-level filter 取代 RLS**：每個 query 加 `WHERE user_id = $1`（`lib/auth.ts:114 getUserFromRequest` 解析 JWT → 傳入 query）
+- **bcrypt cost 10**：~100ms / hash（安全 + 平衡）
+- **JWT HS256 + 7 天有效**：`exp` 自動驗
+- **密碼至少 8 字符**：signin/signup 端驗證
+
+### 為什麼 client 不能直接 import pg？
+
+- Next.js 16 build 會把 import 的 server module bundle 進 client
+- `pg` 含 `pg-native` 內部 require Node.js fs/path → browser 跑炸
+- 修法：所有 pg 操作只能在 `/api/*` serverful route 內跑
+- client 端 `lib/estimate-storage.ts` 改為 `fetch('/api/estimates')` 包裝（v0.17.x R5 修法）
+
+### API routes（v0.17.x R6+R7）
+
+| Method | Path                  | 用途                                                |
+| ------ | --------------------- | --------------------------------------------------- |
+| POST   | `/api/auth/signup`    | 註冊 + bcrypt hash + 設 JWT cookie                  |
+| POST   | `/api/auth/signin`    | 登入 + 驗密碼 + 設 JWT cookie                       |
+| POST   | `/api/auth/signout`   | 清 cookie                                           |
+| GET    | `/api/auth/me`        | 查當前 user（從 cookie JWT 解析）                   |
+| GET    | `/api/estimates`      | 列出 user 估算 (limit 20, ORDER BY created_at DESC) |
+| POST   | `/api/estimates`      | 儲存估算                                            |
+| DELETE | `/api/estimates/[id]` | 刪單筆                                              |
+
+### Cookie + 跨裝置 sync 流程
+
+1. User 註冊 → server 設 `auth_token` cookie (httpOnly, secure, 7d)
+2. User 填表估算 → `saveEstimate()` fetch POST `/api/estimates` (cookie 自動帶)
+3. 跨裝置：換瀏覽器 / 換手機 → cookie 不帶 → 自動 fallback localStorage
+4. 要 sync：登入同 email + password → 設新 cookie → 看到雲端歷史
+
+### 5 個檔案結構（v0.17.x 整個切換）
+
+```
+lib/
+  db.ts              # pg.Pool singleton + query() + getClient() + closePool()
+  auth.ts            # hashPassword + verifyPassword + signToken + verifyToken
+                     # + getUserFromRequest (Request → JwtPayload | null)
+  estimate-storage.ts # client-side fetch wrapper (v0.17.x 改: 不再 import pg)
+
+db/migrations/
+  0001_init.sql      # users + estimates + pgcrypto + trigger (updated_at)
+
+app/api/
+  auth/
+    signup/route.ts   # POST: 註冊
+    signin/route.ts   # POST: 登入
+    signout/route.ts  # POST: 清 cookie
+    me/route.ts       # GET: 查當前 user
+  estimates/
+    route.ts          # GET / POST
+    [id]/route.ts     # DELETE
+
+components/
+  AuthProvider.tsx   # 'use client' context + fetch + cookie (取代 supabase client)
+```
+
+### 部署環境變數（Railway）
+
+- `DATABASE_URL` — Postgres 連線字串（Railway 自動注入）
+- `JWT_SECRET` — 隨機 96 hex（`node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`）
+- `NEXT_PUBLIC_SITE_URL` — production URL（已設）
+- 舊的 `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` / `ANTHROPIC_API_KEY` / `ANTHROPIC_BASE_URL` — **不再需要**
+
+### Dockerfile 改動（v0.16.x+）
+
+```dockerfile
+FROM node:24-alpine
+WORKDIR /app
+RUN corepack enable && corepack prepare pnpm@latest --activate
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+COPY . .
+RUN pnpm build
+EXPOSE 3000
+ENV PORT=3000 HOSTNAME="0.0.0.0"
+CMD ["pnpm", "start"]
+```
+
+### Redis 紅線
+
+- ❌ **不要把 `pg` import 進 client component** — build fail（`Element type is invalid`）+ production browser crash
+  - 修法：所有 pg 操作放 `/api/*` route 內，client 用 `fetch`
+- ❌ **不要把 `pg` import 進 `lib/estimate-storage.ts`** — 即使在 `'use client'` 檔內，Next.js build 仍會把它 bundle 進 client
+  - 修法：`lib/estimate-storage.ts` 改 fetch wrapper
+- ❌ **不要在 query 內忘記加 `WHERE user_id = $1`** — 沒 RLS 保護，所有資料都會洩漏
+- ❌ **不要把 `JWT_SECRET` commit 到 git** — 用 `node -e` 隨機產生或 `openssl rand -hex 48`
+- ❌ **不要在 production 用 `bcrypt cost < 10`** — 太低會被暴力破解
+- ❌ **不要在 API route 內 log 用戶密碼 / JWT** — 即使 debug 也不要
+
+### 測試守護
+
+- production E2E（Railway 跑過）：signup → me → POST estimate → GET list → DELETE → signout → me(null) 全 200
+- 19 routes 200（9 page + 8 static + 2 dynamic API）
+- `pnpm test 792 passed / 65 files` 全綠
+- `pnpm tsc --noEmit` 0 錯
+
+### verify
+
+- pnpm tsc 0 錯
+- pnpm test 792 passed
+- pnpm build 27 routes（21 page/static + 6 API dynamic）
+- Railway production E2E 完整跑通
