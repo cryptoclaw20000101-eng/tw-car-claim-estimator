@@ -177,7 +177,7 @@ export function PainEnsembleCard({
       <Row gutter={12}>
         <Col xs={24} md={8}>
           <TicketTile
-            label="🎯 規則票"
+            label="規則算法"
             amount={painEnsemble.rulesAmount}
             weight={painEnsemble.rulesWeight}
             outlier={painEnsemble.outlier === 'rules'}
@@ -187,7 +187,7 @@ export function PainEnsembleCard({
         </Col>
         <Col xs={24} md={8}>
           <TicketTile
-            label="📊 ML 票"
+            label="案例比對"
             amount={painEnsemble.mlAmount}
             weight={painEnsemble.mlWeight}
             outlier={painEnsemble.outlier === 'ml'}
@@ -197,7 +197,7 @@ export function PainEnsembleCard({
         </Col>
         <Col xs={24} md={8}>
           <TicketTile
-            label="🔍 KNN 票"
+            label="歷史相似"
             amount={painEnsemble.knnAmount ?? 0}
             weight={painEnsemble.knnWeight}
             outlier={painEnsemble.outlier === 'knn'}

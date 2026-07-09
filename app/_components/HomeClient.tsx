@@ -138,8 +138,8 @@ export default function HomeClient() {
                     計算
                   </Title>
                   <Paragraph className="!mb-3 !text-sm text-muted">
-                    6 大引擎（強制險 / 失能 / 民事 / 第三人 / 補件 / 地區）並行運算，Ensemble
-                    三票共識給出區間。
+                    6 種算法交叉計算（強制險 / 失能 / 民事 / 第三人 / 補件 /
+                    地區），綜合給出合理區間。
                   </Paragraph>
                   <Paragraph className="!mb-0 !text-xs text-muted">預估時間：&lt; 1 秒</Paragraph>
                 </Card>
