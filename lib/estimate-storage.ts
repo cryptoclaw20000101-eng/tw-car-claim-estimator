@@ -1,17 +1,17 @@
 /**
- * Estimate Storage — Railway Postgres 雲端持久化 (v0.17.x+ 重寫)
+ * Estimate Storage — Client-side fetch wrapper (v0.17.x+)
  *
- * 從 Supabase 切換到 Railway Postgres (user 2026-07-09 選)
- * 介面保持不變, 只換底層實作
+ * 從 Supabase + 直接 pg 改為 fetch /api/estimates
+ * 原因: pg 是 Node.js only, 不能 bundle 到 client (Next.js build 會 fail)
  *
- * 設計:
- * - 登入時：用 Railway Postgres 儲存
- * - 未登入時：fallback 到 localStorage
- * - 用 pg.Pool 連線, 用 JWT 認證 (lib/auth.ts)
- * - app-level filter (WHERE user_id = $1) 取代 RLS
+ * 流程:
+ * - client 呼叫 saveEstimate() → fetch POST /api/estimates
+ * - /api/estimates (serverful route) 透過 lib/db.ts 用 pg 寫入 Postgres
+ * - cookie (auth_token) 自動跟著 fetch 走
+ *
+ * 介面不變, 只換底層實作.
  */
 
-import { query } from '@/lib/db'
 import {
   getEstimateHistory,
   saveEstimateHistory,
@@ -33,6 +33,8 @@ export interface CloudEstimate {
 
 /**
  * 儲存估算
+ * - 已登入: POST /api/estimates (serverful 寫 Postgres)
+ * - 未登入: localStorage fallback
  */
 export async function saveEstimate(
   input: ClaimInput,
@@ -41,28 +43,20 @@ export async function saveEstimate(
 ): Promise<{ storage: 'cloud' | 'local'; id?: string }> {
   if (userId) {
     try {
-      const { rows } = await query<{ id: string }>(
-        `insert into public.estimates
-           (user_id, claim_input, result, compulsory_total_estimated,
-            disability_level, court_name, self_fault_ratio)
-         values ($1, $2, $3, $4, $5, $6, $7)
-         returning id`,
-        [
-          userId,
-          input,
-          result,
-          result.compulsoryTotalEstimated,
-          input.medical?.disabilityLevel ?? null,
-          result.region.courtName,
-          input.fault?.selfFaultRatio ?? 50,
-        ],
-      )
-      if (rows[0]) return { storage: 'cloud', id: rows[0].id }
+      const res = await fetch('/api/estimates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ claimInput: input, result }),
+      })
+      if (res.ok) {
+        const body = (await res.json()) as { id: string }
+        return { storage: 'cloud', id: body.id }
+      }
     } catch (e) {
-      console.warn('[estimate-storage] Postgres 儲存失敗, fallback 到 localStorage:', e)
+      console.warn('[estimate-storage] /api/estimates POST 失敗:', e)
     }
   }
-
   // Fallback
   const entry = buildHistoryEntry(result, input.fault?.selfFaultRatio ?? 50)
   saveEstimateHistory(entry)
@@ -77,54 +71,39 @@ export async function loadEstimates(
 ): Promise<{ storage: 'cloud' | 'local'; items: HistoryEntry[] | CloudEstimate[] }> {
   if (userId) {
     try {
-      const { rows } = await query<{
-        id: string
-        user_id: string
-        claim_input: ClaimInput
-        result: EstimationResult | null
-        created_at: string
-      }>(
-        `select id, user_id, claim_input, result, created_at
-         from public.estimates
-         where user_id = $1
-         order by created_at desc
-         limit 20`,
-        [userId],
-      )
-      const items: CloudEstimate[] = rows.map((row) => ({
-        id: row.id,
-        userId: row.user_id,
-        claimInput: row.claim_input,
-        result: row.result ?? undefined,
-        createdAt: row.created_at,
-      }))
-      return { storage: 'cloud', items }
+      const res = await fetch('/api/estimates', {
+        method: 'GET',
+        credentials: 'include',
+      })
+      if (res.ok) {
+        const body = (await res.json()) as { items: CloudEstimate[] }
+        return { storage: 'cloud', items: body.items }
+      }
     } catch (e) {
-      console.warn('[estimate-storage] Postgres 載入失敗:', e)
+      console.warn('[estimate-storage] /api/estimates GET 失敗:', e)
     }
   }
-
   return { storage: 'local', items: getEstimateHistory() }
 }
 
 /**
  * 刪除雲端估算
  */
-export async function deleteCloudEstimate(id: string, userId: string): Promise<boolean> {
+export async function deleteCloudEstimate(id: string, _userId: string): Promise<boolean> {
   try {
-    const { rowCount } = await query(
-      'delete from public.estimates where id = $1 and user_id = $2',
-      [id, userId],
-    )
-    return (rowCount ?? 0) > 0
+    const res = await fetch(`/api/estimates/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+    return res.ok
   } catch {
     return false
   }
 }
 
 /**
- * 是否啟用雲端 (有 user + DB 連線成功)
+ * 是否啟用雲端 (Railway 部署時 API route 可用)
  */
 export function hasCloudStorage(): boolean {
-  return Boolean(process.env.DATABASE_URL)
+  return typeof window !== 'undefined'
 }
