@@ -6,10 +6,13 @@ const withBundleAnalyzer = bundleAnalyzer({
 })
 
 const nextConfig: NextConfig = {
-  // v0.5.0: Vercel 部署優化
-  output: 'export', // 靜態 export，Vercel Edge 全球 CDN
+  // v0.16.x：拿掉 output: 'export' 改用 Vercel 標準 Next.js 部署
+  // 原因：Next.js 16 + Vercel static export 找 routes-manifest.json 失敗
+  // 拿掉後 build 產 .next/ 含 manifest, Vercel 自動偵測並 deploy
+  // 副作用：advisor route 變可訪問 (但仍走 mockLLMAdvisor, 0 cost)
+  // 參考：AGENTS.md §13 部署矩陣 (Vercel Edge CDN 仍運作, 只是改成 serverful 部署)
+  // images.unoptimized 保留 (即使 serverful 也不影響)
   images: {
-    // 靜態 export 必須 unoptimized
     unoptimized: true,
   },
   // AGENTS.md §2.4：Next.js 16 breaking changes — reactStrictMode 預設已 true
