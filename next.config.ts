@@ -41,6 +41,15 @@ const nextConfig: NextConfig = {
       },
     ]
   },
+  // v0.17.x：3 個 redirect 從舊路徑到新路徑（/home /estimate /result → canonical）
+  // 原本在 vercel.json (Vercel-only), Railway 不支援, 改用 Next.js 16 內建 redirects
+  async redirects() {
+    return [
+      { source: '/home', destination: '/', permanent: true },
+      { source: '/estimate', destination: '/claims/new', permanent: true },
+      { source: '/result', destination: '/claims/result', permanent: true },
+    ]
+  },
 }
 
 export default withBundleAnalyzer(nextConfig)
