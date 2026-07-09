@@ -16,8 +16,6 @@ import {
   CompassOutlined,
   ExperimentOutlined,
   ReadOutlined,
-  // v0.12.0+ Phase A6：FAQ 區 icon
-  QuestionCircleOutlined,
 } from '@ant-design/icons'
 
 const { Title, Paragraph, Text } = Typography
@@ -193,7 +191,7 @@ export default function HomeClient() {
               index="01"
               title="強制險"
               subtitle="Compulsory Insurance"
-              description="依 15 細項法定上限逐項試算（醫療 20 萬 cap / 看護 30 日 1,200 元 / 日）"
+              description="依 15 細項法定上限逐項試算"
               featured
             />
             <BentoCell
@@ -234,187 +232,6 @@ export default function HomeClient() {
         </div>
       </motion.section>
 
-      {/* ============ 鐵律（不踩雷） ============ */}
-      <motion.section
-        className="border-t border-border bg-background"
-        // v0.10.0+：scroll reveal
-        initial={reduce ? false : { opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={viewportOnce}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-      >
-        <div className="mx-auto w-full max-w-6xl px-6 py-16 md:py-20">
-          <Space size={6} className="!mb-2">
-            <ExperimentOutlined />
-            <Text className="!text-xs uppercase tracking-[0.18em] text-muted">
-              Engineering Principles
-            </Text>
-          </Space>
-          <Title level={2} className="!mb-3 !text-2xl !tracking-tight md:!text-3xl">
-            三條鐵律，系統永遠守著。
-          </Title>
-          <Paragraph className="!mb-10 !text-base text-muted">
-            這三條不是工程師個人偏好，是法律強制 + 業務實務的底線。
-            <br />
-            違反任一條都可能讓估算金額對保戶產生誤導，後果比「算不出來」更嚴重。
-          </Paragraph>
-          <div className="grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-3">
-            <IronRow
-              label="強制險採無過失主義"
-              desc="不乘肇責比例，純依傷害程度計算"
-              reason="1967 年強制險立法目的就是為了讓受害人不必舉證對方過失，肇責只影響第三人責任險層。"
-            />
-            <IronRow
-              label="精神慰撫金 / 工作損失 / 車損不放入強制險"
-              desc="這是法律強制，不是系統限制"
-              reason="強制險 §27 列舉的給付項目限定醫療 / 失能 / 死亡三類，把精神慰撫金塞進去會誤導保戶。"
-            />
-            <IronRow
-              label="資料不足不硬算"
-              desc="顯示需補資料，不給假數字"
-              reason="估算金額會影響保戶決策。缺資料時硬給一個數字，比老實說『需要補件』更不負責任。"
-            />
-          </div>
-        </div>
-      </motion.section>
-
-      {/* ============ v0.16.x 信任區塊 — 為什麼選我們 (保險公司專業感) ============ */}
-      <motion.section
-        id="trust"
-        className="border-t border-border bg-background"
-        initial={reduce ? false : { opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={viewportOnce}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-      >
-        <div className="mx-auto w-full max-w-6xl px-6 py-16 md:py-20">
-          <Space size={6} className="!mb-2">
-            <SafetyCertificateOutlined />
-            <Text className="!text-xs uppercase tracking-[0.18em] text-muted">Why Choose Us</Text>
-          </Space>
-          <Title level={2} className="!mb-3 !text-3xl !tracking-tight md:!text-4xl">
-            為什麼保經業務員選這個工具
-          </Title>
-          <Paragraph className="!mb-10 !text-base text-muted">
-            不是另一個 AI 估算，是依「真實判例 + 手動建檔 + Ensemble 三票共識」的可信試算。
-          </Paragraph>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {/* 真實判例 */}
-            <div className="rounded-lg border border-border bg-surface p-5">
-              <div className="!mb-3 text-3xl text-accent tabular-nums">583</div>
-              <Text strong className="!block !mb-1 !text-base">
-                件真實司法院判例
-              </Text>
-              <Text className="!text-xs !text-muted">
-                13 條法律鏈自動爬取 + 手動建檔 39 件。每週自動更新，涵蓋近 2 年車禍判決。
-              </Text>
-            </div>
-
-            {/* 6 大引擎 */}
-            <div className="rounded-lg border border-border bg-surface p-5">
-              <div className="!mb-3 text-3xl text-accent tabular-nums">6</div>
-              <Text strong className="!block !mb-1 !text-base">
-                大計算引擎
-              </Text>
-              <Text className="!text-xs !text-muted">
-                強制險 / 失能初篩 / 民事 / 第三人 / 補件 / 地區。每個引擎有獨立測試（79 it 守護）。
-              </Text>
-            </div>
-
-            {/* Ensemble 三票 */}
-            <div className="rounded-lg border border-border bg-surface p-5">
-              <div className="!mb-3 text-3xl text-accent tabular-nums">3</div>
-              <Text strong className="!block !mb-1 !text-base">
-                票 Ensemble 共識
-              </Text>
-              <Text className="!text-xs !text-muted">
-                規則公式 + ML anchor + KNN 相似判例，三種推理路徑共識。信心度分級 + LLM 顧問複核。
-              </Text>
-            </div>
-
-            {/* 個資保護 */}
-            <div className="rounded-lg border border-border bg-surface p-5">
-              <div className="!mb-3 text-3xl text-accent tabular-nums">0</div>
-              <Text strong className="!block !mb-1 !text-base">
-                個資外洩
-              </Text>
-              <Text className="!text-xs !text-muted">
-                個資不送 LLM、可關閉雲端同步、localStorage 脫敏。企業內網自架可行。
-              </Text>
-            </div>
-          </div>
-
-          {/* v0.16.x 估算流程說明 (取代原本的合作 CTA) */}
-          <div className="!mt-8 rounded-lg border-2 border-accent/30 bg-surface p-6">
-            <Space size={8} className="!mb-2">
-              <ReadOutlined className="text-accent" />
-              <Text strong className="!text-base">
-                估算流程
-              </Text>
-            </Space>
-            <Paragraph className="!mb-3 !text-sm text-foreground">
-              7 步表單填寫 → 6 大引擎並行計算 → Ensemble 三票共識 → 結果含 8 區明細 + 法源引用。
-              計算結果僅供試算，實際理賠仍須依保險公司審核、醫療資料、肇事責任、保單條款、金融評議或法院認定為準。
-            </Paragraph>
-            <Paragraph className="!text-xs text-muted">
-              估算書可下載 PDF（含封面 / 編號 / 時間戳），適合保險經紀人 / 業務員跟客戶說明。
-            </Paragraph>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* ============ FAQ — v0.12.0+ Phase A6 常見問題 ============ */}
-      <motion.section
-        className="border-t border-border bg-surface-subtle"
-        initial={reduce ? false : { opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={viewportOnce}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-      >
-        <div className="mx-auto w-full max-w-6xl px-6 py-16 md:py-20">
-          <Space size={6} className="!mb-2">
-            <QuestionCircleOutlined />
-            <Text className="!text-xs uppercase tracking-[0.18em] text-muted">FAQ</Text>
-          </Space>
-          <Title level={2} className="!mb-3 !text-2xl !tracking-tight md:!text-3xl">
-            常見問題
-          </Title>
-          <Paragraph className="!mb-10 !text-base text-muted">
-            保戶最常問的 6 個問題，先看這裡；如果還有疑問，
-            <br />
-            請諮詢保險經紀人或律師（聯絡資訊見金融消費評議中心）。
-          </Paragraph>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <FaqCard
-              q="為什麼我的估算金額跟鄰居不一樣？"
-              a="車禍理賠估算至少受 3 個變數影響：肇責比例（強制險不受影響，但第三人責任險差很多）、失能等級（同一個部位不同等級差到 10 倍）、地區法院實務係數（臺北跟高雄的精神慰撫金可能差 30%）。填越多精確欄位，估算越接近實際理賠。"
-            />
-            <FaqCard
-              q="強制險是什麼？跟第三人責任險差在哪？"
-              a="強制險是國家立法規定每輛車都要保的「基本險」，保護所有用路人（不論肇事責任），賠醫療、失能、死亡三大類。第三人責任險是「自己加保的進階險」，賠對方的體傷與財損，乘肇責比例才有賠。"
-            />
-            <FaqCard
-              q="精神慰撫金怎麼算？為什麼這麼高？"
-              a="精神慰撫金沒有法定公式，採用法院實務區間 × 傷勢等級 × 地區係數。本工具用 13 件真實判決 + Ensemble 三票（規則公式 / ML 統計 / KNN 相似案件）給出區間，金額從數萬到數十萬都有可能，須依個案情節調整。"
-            />
-            <FaqCard
-              q="失能等級怎麼認定？我自己填準嗎？"
-              a="失能等級須由醫院開立「失能診斷書」並經保險公司 / 評議 / 法院認定。本工具的「失能等級」欄是「初步篩選用途」，真實理賠以官方診斷為準。業務員常用這欄做客戶預估，但不要直接拿這個等級去跟保險公司談。"
-            />
-            <FaqCard
-              q="資料不足怎麼辦？工具會給假數字嗎？"
-              a="不會。資料不足時工具會顯示「需補件清單」並回傳 null，不會硬給數字。這是系統的底線之一 — 估算金額會影響保戶決策，缺資料時硬給數字比老實說「需補件」更不負責任。"
-            />
-            <FaqCard
-              q="理賠結果不如預期，可以去哪裡申訴？"
-              a="三個管道：(1) 向保險公司申訴部門申訴；(2) 不滿結果可向「財團法人金融消費評議中心」申請評議（免費、具法律效力）；(3) 涉及訴訟請洽執業律師，循民事訴訟程序。本工具不提供申訴服務，也不介入個案。"
-            />
-          </div>
-        </div>
-      </motion.section>
-
       {/* ============ 最近估算紀錄 — v0.12.0+ Phase B3（localStorage） ============ */}
       <EstimateHistory />
 
@@ -428,57 +245,6 @@ export default function HomeClient() {
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         <div className="mx-auto w-full max-w-6xl px-6 py-10">
-          {/* v0.12.0+ Phase A4：免責聲明精準化 — 主標 + 3 點白話拆解 */}
-          <InfoAlert
-            type="warning"
-            showIcon
-            className="!mb-4"
-            title="這是「估算」，不是「判決」"
-            body={
-              <>
-                <p className="!mb-3">
-                  本工具依你輸入的資料 + 強制汽車責任保險給付標準 + 民法 §184-196 + 6
-                  直轄市地方法院實務區間，做<strong>初步金額估算</strong>。
-                  這不是保險公司的最終理賠，也不是律師 / 法院的判決。
-                </p>
-                <p className="!mb-3">
-                  <strong>實際理賠金額</strong>還要看：保險公司審核 · 醫療單據齊全度 · 肇事責任認定
-                  · 保單條款 · 金融評議結果 · 法院判決 · 雙方和解。
-                </p>
-                <p className="!mb-0">
-                  <strong>本工具不保證金額，亦不構成法律意見。</strong>
-                  涉及訴訟請洽執業律師；理賠爭議可向金融消費評議中心申訴。
-                </p>
-              </>
-            }
-          />
-          {/* v0.12.0+ Phase A4：拆出「3 個常見誤解」幫保戶建立正確預期 */}
-          <div className="!mb-6 grid grid-cols-1 gap-3 md:grid-cols-3">
-            <div className="rounded border border-border bg-surface-subtle p-3">
-              <Text strong className="!text-xs text-foreground">
-                「估算」不等於「保證」
-              </Text>
-              <Text className="!mt-1 !text-xs text-muted">
-                同一個案件，可能因為一份醫療單據差 1,000 元，估算就不同。
-              </Text>
-            </div>
-            <div className="rounded border border-border bg-surface-subtle p-3">
-              <Text strong className="!text-xs text-foreground">
-                「結果」需專業複核
-              </Text>
-              <Text className="!mt-1 !text-xs text-muted">
-                真實理賠前請交給保險經紀人 / 律師，依個案情節重新檢視。
-              </Text>
-            </div>
-            <div className="rounded border border-border bg-surface-subtle p-3">
-              <Text strong className="!text-xs text-foreground">
-                「規則」會持續更新
-              </Text>
-              <Text className="!mt-1 !text-xs text-muted">
-                法規與案例每 30 天更新。重大法規變動請參考司法院公告。
-              </Text>
-            </div>
-          </div>
           <div className="flex flex-col items-start justify-between gap-2 text-xs text-muted md:flex-row md:items-center">
             <Space size={12} wrap>
               <Text className="!text-xs text-muted">
