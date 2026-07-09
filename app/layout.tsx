@@ -129,28 +129,12 @@ export default function RootLayout({
               <ErrorTracker />
               <div className="flex flex-1 flex-col">
                 {children}
-                {/* v0.16.x 完整 footer — 保險公司專業感 (律師事務所/客服/社群/法律) */}
+                {/* v0.16.x 完整 footer — 保險公司專業感 (客服/導覽/法源) */}
                 <footer
                   className="mt-auto border-t border-border bg-surface-subtle print-footer hidden"
                   aria-label="網站頁尾"
                 >
-                  <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-8 px-6 py-12 md:grid-cols-4">
-                    {/* 律師事務所 — 必填欄位 placeholder (v0.16.x 預留) */}
-                    <div>
-                      <h3 className="!mb-3 !text-sm !font-semibold !uppercase !tracking-wider text-foreground">
-                        法律諮詢
-                      </h3>
-                      <p className="!mb-2 !text-sm !text-foreground">
-                        <strong>__律師事務所名稱__</strong>
-                      </p>
-                      <p className="!mb-1 !text-xs !text-muted">電話：__待填__</p>
-                      <p className="!mb-1 !text-xs !text-muted">地址：__待填__</p>
-                      <p className="!mb-1 !text-xs !text-muted">LINE：__待填__</p>
-                      <p className="!mt-3 !text-[10px] !text-muted">
-                        計算結果僅供試算，不構成法律意見
-                      </p>
-                    </div>
-
+                  <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-8 px-6 py-12 md:grid-cols-3">
                     {/* 客服 — 公開 (v0.16.x) */}
                     <div>
                       <h3 className="!mb-3 !text-sm !font-semibold !uppercase !tracking-wider text-foreground">

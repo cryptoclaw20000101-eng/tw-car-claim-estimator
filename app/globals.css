@@ -295,7 +295,7 @@ input[type='number'] {
     display: block !important;
   }
 
-  /* 列印時在每頁結尾加律師事務所聯絡 + 免責 footer */
+  /* 列印時在每頁結尾加客服 + 免責 footer */
   .print-footer {
     display: block !important;
     page-break-before: always;
