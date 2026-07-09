@@ -16,7 +16,7 @@ import { useAuth } from '@/components/AuthProvider'
 const { Title, Paragraph } = Typography
 
 export default function LoginForm() {
-  const { signIn, signUp, user } = useAuth()
+  const { signIn, signUp, signOut, user } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
@@ -47,7 +47,7 @@ export default function LoginForm() {
             <Link href="/claims/new">
               <Button type="primary">開始估算</Button>
             </Link>
-            <Button onClick={() => useAuth().signOut()}>登出</Button>
+            <Button onClick={signOut}>登出</Button>
           </Space>
         </Card>
       </main>
