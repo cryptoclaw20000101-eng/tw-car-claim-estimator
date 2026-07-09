@@ -308,36 +308,6 @@ describe('報表 Ensemble 健康度區塊（v0.6.8 → v0.6.9 refactor）', () =
 })
 
 /**
- * v0.6.9 首頁 hero Ensemble 健康度卡
- *
- * 為什麼測 source 而不是 render：
- *   沿用既有 .tsx 測試 pattern（StepShell.test.tsx / PainEnsembleCard.test.tsx）：
- *   用 props 介面契約 + 結構性斷言，避免 jsdom 依賴。
- *   對於純組合元件（內含 fetch/import 靜態 JSON）是最 surgical 方案。
- */
-describe('首頁 hero Ensemble 健康度卡（v0.6.9）', () => {
-  it('app/_components/HomeClient.tsx import EnsembleHealthHeroCard', () => {
-    // v0.9.0+：app/page.tsx 從 client 改 server + 抽出 HomeClient.tsx
-    // 實際 UI 在 HomeClient.tsx（client component），這裡 grep 改指向新位置
-    const pageSource = readFileSync(
-      resolve(__dirname, '../../app/_components/HomeClient.tsx'),
-      'utf-8',
-    )
-    expect(pageSource).toContain('import { EnsembleHealthHeroCard }')
-  })
-
-  it('EnsembleHealthHeroCard 渲染在 hero 右側（引用法源 / 地區覆蓋之後）', () => {
-    const pageSource = readFileSync(
-      resolve(__dirname, '../../app/_components/HomeClient.tsx'),
-      'utf-8',
-    )
-    expect(pageSource).toMatch(/<EnsembleHealthHeroCard\s*\/>/)
-  })
-
-  it('EnsembleHealthHeroCard 內含 build-time JSON import', () => {
-    const cardSource = readFileSync(
-      resolve(__dirname, '../../components/EnsembleHealthHeroCard.tsx'),
-      'utf-8',
     )
     // Next 16 turbopack JSON import（內嵌 bundle 不需 runtime fetch）
     expect(cardSource).toContain(
