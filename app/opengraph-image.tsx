@@ -1,7 +1,7 @@
 export const dynamic = 'force-static'
 
 import { ImageResponse } from 'next/og'
-import { ACCENT, BACKGROUND } from '@/lib/design/tokens'
+import { ACCENT, BACKGROUND, FOREGROUND, MUTED, SURFACE, BORDER } from '@/lib/design/tokens'
 
 /**
  * OG image — 自動生成 1200x630（v0.9.0+ 新增）
@@ -39,7 +39,7 @@ export default async function OpengraphImage() {
         style={{
           display: 'flex',
           alignItems: 'center',
-          color: '#71717a',
+          color: MUTED,
           fontSize: 20,
           letterSpacing: '0.18em',
           textTransform: 'uppercase',
@@ -54,7 +54,7 @@ export default async function OpengraphImage() {
         style={{
           display: 'flex',
           flexDirection: 'column',
-          color: '#18181b',
+          color: FOREGROUND,
           fontSize: 88,
           fontWeight: 700,
           lineHeight: 1.05,
@@ -73,7 +73,7 @@ export default async function OpengraphImage() {
       <div
         style={{
           display: 'flex',
-          color: '#52525b',
+          color: MUTED,
           fontSize: 32,
           lineHeight: 1.4,
           maxWidth: 900,
@@ -88,7 +88,7 @@ export default async function OpengraphImage() {
           display: 'flex',
           marginTop: 'auto',
           gap: 16,
-          color: '#18181b',
+          color: FOREGROUND,
           fontSize: 22,
         }}
       >
@@ -111,9 +111,9 @@ function Chip({ children }: { children: string }) {
         alignItems: 'center',
         padding: '12px 20px',
         borderRadius: 999,
-        backgroundColor: '#ffffff',
-        border: '1px solid #e4e4e7',
-        color: '#18181b',
+        backgroundColor: SURFACE,
+        border: `1px solid ${BORDER}`,
+        color: FOREGROUND,
         fontSize: 22,
         fontWeight: 500,
       }}

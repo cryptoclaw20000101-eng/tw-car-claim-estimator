@@ -1,7 +1,7 @@
 export const dynamic = 'force-static'
 
 import { ImageResponse } from 'next/og'
-import { ACCENT, BACKGROUND } from '@/lib/design/tokens'
+import { ACCENT, BACKGROUND, FOREGROUND } from '@/lib/design/tokens'
 
 /**
  * Twitter card image — 自動生成 1200x630（v0.9.0+ 新增）
@@ -36,7 +36,7 @@ export default async function TwitterImage() {
           display: 'flex',
           fontSize: 80,
           fontWeight: 700,
-          color: '#18181b',
+          color: FOREGROUND,
           letterSpacing: '-0.02em',
           marginBottom: 24,
           textAlign: 'center',

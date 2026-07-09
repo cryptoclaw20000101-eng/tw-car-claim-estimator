@@ -53,6 +53,10 @@ export const COLORS = {
 export const ACCENT = COLORS.accent
 export const BACKGROUND = COLORS.background
 export const FOREGROUND = COLORS.foreground
+// v0.16.x：擴充別名（OG image / opengraph-image / apple-icon 都吃 tokens, 避免 hardcode 顏色）
+export const MUTED = COLORS.muted
+export const SURFACE = COLORS.surface
+export const BORDER = COLORS.border
 
 // 型別 export（給 strict mode 用）
 export type DesignColor = (typeof COLORS)[keyof typeof COLORS]
