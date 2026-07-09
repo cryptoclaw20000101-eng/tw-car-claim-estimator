@@ -35,8 +35,7 @@ export function Step3Person({ form, employmentOptions }: Step3PersonProps) {
   useEffect(() => {
     const cur = form.getFieldValue(['person', 'birthDate'])
     if (!cur || typeof cur === 'string') {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      form.setFieldsValue({ person: { birthDate: dayjs() } } as any)
+      form.setFieldsValue({ person: { birthDate: dayjs() } } as Record<string, unknown>)
     }
   }, [form])
   return (

@@ -34,7 +34,7 @@ export function Step1Basics({
   useEffect(() => {
     const cur = form.getFieldValue(['basics', 'accidentDate'])
     if (!cur) {
-      form.setFieldsValue({ basics: { accidentDate: dayjs() } } as any)
+      form.setFieldsValue({ basics: { accidentDate: dayjs() } } as Record<string, unknown>)
     }
   }, [form])
 

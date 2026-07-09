@@ -33,6 +33,7 @@ import { useAuth } from '@/components/AuthProvider'
 import { saveForLoad } from '@/lib/estimate-loader'
 // v0.15.x Phase 3：雲端 ↔ 本地 同步
 import { smartSync, type SyncResult } from '@/lib/sync'
+import type { ClaimInput } from '@/lib/insurance/types'
 
 const { Text, Paragraph } = Typography
 
@@ -126,7 +127,7 @@ export function EstimateHistory() {
         medical: { disabilityLevel: he.disabilityLevel },
         medicalReceipts: {},
         property: {},
-      } as any)
+      } as unknown as ClaimInput)
     }
     window.location.href = '/claims/new?load=true'
   }

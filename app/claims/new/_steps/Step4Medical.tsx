@@ -92,8 +92,7 @@ export function Step4Medical({ form, accidentLocationForKnn }: Step4MedicalProps
   const emergencyDate = Form.useWatch(['medical', 'emergencyDate'], form)
   useState(() => {
     if (!emergencyDate) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      form.setFieldsValue({ medical: { emergencyDate: dayjs() } } as any)
+      form.setFieldsValue({ medical: { emergencyDate: dayjs() } } as Record<string, unknown>)
     }
   })
 

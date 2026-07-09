@@ -401,7 +401,7 @@ export default function NewClaimForm() {
       basics: { accidentDate: dayjs() },
       person: { birthDate: dayjs('1990-01-01') },
       medical: { emergencyDate: dayjs() },
-    } as any)
+    } as Record<string, unknown>)
   }, [form])
 
   // 監聽 basics.accidentCity 自動帶入 courtJurisdiction
@@ -434,7 +434,7 @@ export default function NewClaimForm() {
       }
       setData(next as FormSchema)
       // AntD Form 也填入
-      form.setFieldsValue(next as any)
+      form.setFieldsValue(next as unknown as Record<string, unknown>)
       // 顯示成功提示
       message.success('已從歷史載入，請確認或修改後送出')
       // 移除 ?load=true 避免重複載入
