@@ -14,7 +14,7 @@
  *   - honor prefers-reduced-motion
  *
  * 為什麼手機需要漢堡？
- *   5 大區塊 + 「開始估算」按鈕 → 桌機可並排，手機擠不下
+ *   首頁 + 「開始估算」按鈕 → 桌機可並排，手機擠不下
  *   漢堡選單是 PWA / 原生 app 通用模式
  */
 
@@ -55,7 +55,6 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/', label: '首頁', icon: <HomeOutlined /> },
   { href: '/claims/new', label: '開始估算', icon: <CalculatorOutlined /> },
   { href: '/claims/result', label: '結果頁', icon: <FileSearchOutlined /> },
-  { href: '#sections', label: '5 大區塊', icon: <ReadOutlined /> },
 ]
 
 export function MobileNav() {
