@@ -5,15 +5,48 @@
  *
  * 從 Supabase magic link 切換到 email + password
  * 走 /api/auth/signin + /api/auth/signup
+ *
+ * v0.19.x+ 密碼強度提示 (註冊模式 only):
+ * 12+ 字符 + 數字 + 大寫 — 即時 Progress bar + 弱/中/強
+ * 業務設計: 業務員註冊時直接看到強度, 不必 server 回 400 才知
  */
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Alert, Button, Card, Input, Space, Typography } from 'antd'
+import { Alert, Button, Card, Input, Progress, Space, Typography } from 'antd'
 import { LockOutlined, MailOutlined } from '@ant-design/icons'
 import { useAuth } from '@/components/AuthProvider'
 
-const { Title, Paragraph } = Typography
+const { Title, Paragraph, Text } = Typography
+
+type PasswordStrength = 'weak' | 'medium' | 'strong' | null
+
+function checkPasswordStrength(password: string): PasswordStrength {
+  if (!password) return null
+  if (password.length < 12) return 'weak'
+  const hasDigit = /\d/.test(password)
+  const hasUpper = /[A-Z]/.test(password)
+  if (hasDigit && hasUpper) return 'strong'
+  return 'medium'
+}
+
+const STRENGTH_LABEL: Record<Exclude<PasswordStrength, null>, string> = {
+  weak: '弱',
+  medium: '中',
+  strong: '強',
+}
+
+const STRENGTH_COLOR: Record<Exclude<PasswordStrength, null>, string> = {
+  weak: 'bg-red-500',
+  medium: 'bg-amber-500',
+  strong: 'bg-emerald-500',
+}
+
+const STRENGTH_PERCENT: Record<Exclude<PasswordStrength, null>, number> = {
+  weak: 33,
+  medium: 66,
+  strong: 100,
+}
 
 export default function LoginForm() {
   const { signIn, signUp, signOut, user } = useAuth()
@@ -22,6 +55,8 @@ export default function LoginForm() {
   const [isSignUp, setIsSignUp] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const strength = checkPasswordStrength(password)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -87,15 +122,36 @@ export default function LoginForm() {
               />
               <Input.Password
                 size="large"
-                placeholder="密碼（至少 8 字符）"
+                placeholder={isSignUp ? '密碼（12+ 字符 + 數字 + 大寫）' : '密碼'}
                 prefix={<LockOutlined />}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={8}
+                minLength={isSignUp ? 12 : 8}
                 disabled={submitting}
                 data-testid="login-password"
               />
+              {isSignUp && password && strength && (
+                <div data-testid="password-strength">
+                  <Progress
+                    percent={STRENGTH_PERCENT[strength]}
+                    strokeColor={
+                      STRENGTH_COLOR[strength] === 'bg-red-500'
+                        ? '#ef4444'
+                        : STRENGTH_COLOR[strength] === 'bg-amber-500'
+                          ? '#f59e0b'
+                          : '#10b981'
+                    }
+                    showInfo={false}
+                    size="small"
+                  />
+                  <Text className="!mt-1 !text-xs text-muted">
+                    密碼強度：{STRENGTH_LABEL[strength]}
+                    {strength === 'weak' && '（至少 12 字符，需含數字與大寫）'}
+                    {strength === 'medium' && '（已含 12+ 字符 + 數字或大寫其一）'}
+                  </Text>
+                </div>
+              )}
               <Button
                 type="primary"
                 size="large"
