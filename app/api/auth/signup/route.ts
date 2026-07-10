@@ -56,7 +56,8 @@ export async function POST(req: NextRequest) {
     }
 
     // v0.19.x+ 印驗證連結 (mock SMTP, 業務環境: 控制台 log 給業務員)
-    const verifyUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/auth/verify?token=${verifyToken}`
+    // 注意: verifyUrl 指向 /verify 頁面 (用戶友好), 不是 /api/auth/verify (JSON 端點)
+    const verifyUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/verify?token=${verifyToken}`
     console.log(`\n📧 [Email 驗證] 寄給 ${normalizedEmail}\n🔗 ${verifyUrl}\n📅 24 小時內有效\n`)
 
     // 簽 JWT + 設 httpOnly cookie (但 email_verified=false, 登入後引導去驗證)
