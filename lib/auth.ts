@@ -74,6 +74,74 @@ export function verifyToken(token: string): JwtPayload | null {
 }
 
 /**
+ * v0.19.x+ 密碼強度規則 (user 2026-07-10 重新設計)
+ *
+ * 業務場景: 業務員帳號常被同事共用, 強密碼可防撞庫
+ * 規則: 12+ 字符 + 至少 1 個數字 + 至少 1 個大寫字母
+ *
+ * 回傳 null = 通過; 回傳字串 = 失敗原因 (繁中, 直接給使用者看)
+ */
+export function validatePasswordStrength(password: string): string | null {
+  if (password.length < 12) {
+    return '密碼至少 12 個字符'
+  }
+  if (!/\d/.test(password)) {
+    return '密碼需包含至少 1 個數字'
+  }
+  if (!/[A-Z]/.test(password)) {
+    return '密碼需包含至少 1 個大寫字母'
+  }
+  return null
+}
+
+/**
+ * v0.19.x+ 生成 email 驗證 token (24 小時過期)
+ *
+ * 業務場景: 防垃圾註冊 + 確保 email 正確
+ * 用 crypto.randomUUID + base64 編碼 (32 字符)
+ *
+ * 回傳 { token, expires (Date) }
+ */
+export function generateVerifyToken(): { token: string; expires: Date } {
+  const token = Buffer.from(crypto.randomUUID() + crypto.randomUUID()).toString('base64url')
+  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 小時
+  return { token, expires }
+}
+
+/**
+ * v0.19.x+ Rate limit (user 2026-07-10 重新設計)
+ *
+ * 業務場景: 防暴力破解 (5 次/分鐘 → 鎖 15 分鐘)
+ * 配合 users.failed_login_count + locked_until 欄位
+ *
+ * 5 次失敗 → 鎖 15 分鐘 → 期間 signin 直接返回 429
+ *
+ * 業務友善設計: 鎖定後回傳「帳號被暫時鎖定，請 15 分鐘後再試」+ 剩餘時間
+ */
+
+const RATE_LIMIT_THRESHOLD = 5
+const RATE_LIMIT_WINDOW_MIN = 15
+const RATE_LIMIT_WINDOW_MS = RATE_LIMIT_WINDOW_MIN * 60 * 1000
+
+export function isAccountLocked(lockedUntil: Date | null): boolean {
+  if (!lockedUntil) return false
+  return new Date() < lockedUntil
+}
+
+export function shouldLockAccount(failedCount: number): boolean {
+  return failedCount >= RATE_LIMIT_THRESHOLD
+}
+
+export function calculateLockUntil(): Date {
+  return new Date(Date.now() + RATE_LIMIT_WINDOW_MS)
+}
+
+export const RATE_LIMIT_CONFIG = {
+  threshold: RATE_LIMIT_THRESHOLD,
+  windowMinutes: RATE_LIMIT_WINDOW_MIN,
+} as const
+
+/**
  * 從 cookie / header 抽出 token
  */
 export function extractToken(cookieHeader: string | null): string | null {
