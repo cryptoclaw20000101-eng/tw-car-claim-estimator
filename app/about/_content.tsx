@@ -52,8 +52,8 @@ export default function AboutContent() {
                     <Tag color="cyan">Ant Design 6</Tag>
                     <Tag color="cyan">Tailwind CSS 4</Tag>
                     <Tag color="purple">Framer Motion 12</Tag>
-                    <Tag color="green">Supabase Postgres</Tag>
-                    <Tag color="green">Supabase Auth</Tag>
+                    <Tag color="green">Railway Postgres</Tag>
+                    <Tag color="green">JWT + bcrypt</Tag>
                     <Tag color="orange">Vitest 4</Tag>
                     <Tag color="orange">Playwright</Tag>
                   </div>

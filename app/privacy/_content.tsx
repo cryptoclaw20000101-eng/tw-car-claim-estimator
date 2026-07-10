@@ -47,7 +47,7 @@ export default function PrivacyContent() {
                   </Paragraph>
                   <Paragraph>
                     登入是<strong>選用</strong>的：未登入時您的估算只存在瀏覽器 localStorage；
-                    登入後可同步到 Supabase 雲端（如啟用），隨時可刪除。
+                    登入後可同步到 Railway Postgres 雲端，隨時可刪除。
                   </Paragraph>
                 </>
               }
@@ -68,8 +68,9 @@ export default function PrivacyContent() {
                     我們<strong>不追蹤您的身分</strong>。
                   </Paragraph>
                   <Paragraph>
-                    <strong>登入 email（選用）</strong>：用 Supabase magic link 登入時使用。 Email
-                    只用於寄送登入連結，<strong>不會用於行銷或第三方分享</strong>。
+                    <strong>登入 email（選用）</strong>：用 email + password 登入時使用 (v0.19.x+ 從
+                    Supabase magic link 切換)。 Email 只用於寄送登入連結，
+                    <strong>不會用於行銷或第三方分享</strong>。
                   </Paragraph>
                 </>
               }
@@ -84,8 +85,8 @@ export default function PrivacyContent() {
                     筆（FIFO 自動驅逐最舊）。清除瀏覽器資料即可刪除。
                   </Paragraph>
                   <Paragraph>
-                    <strong>雲端（登入時）</strong>：存在 Supabase Postgres DB。 啟用 Row Level
-                    Security（RLS），只有您自己能讀寫自己的估算。
+                    <strong>雲端（登入時）</strong>：存在 Railway Postgres DB (v0.17.x+)。 啟用
+                    App-Level Security（RLS），只有您自己能讀寫自己的估算。
                   </Paragraph>
                   <Paragraph>
                     <strong>用途</strong>：純粹跨裝置同步您的估算記錄。<strong>不</strong>用於：
@@ -104,11 +105,11 @@ export default function PrivacyContent() {
                     <strong>傳輸加密</strong>：全站 HTTPS（含 HSTS preload）。
                   </Paragraph>
                   <Paragraph>
-                    <strong>資料加密</strong>：Supabase 提供 TLS 1.2+ 傳輸加密 + 靜態加密（at
+                    <strong>資料加密</strong>：Railway 提供 TLS 1.2+ 傳輸加密 + 靜態加密（at
                     rest）。
                   </Paragraph>
                   <Paragraph>
-                    <strong>存取控制</strong>：Supabase Row Level Security
+                    <strong>存取控制</strong>：App-Level Filter (WHERE user_id = $1) 取代 RLS
                     確保只有您能存取自己的資料。
                   </Paragraph>
                   <Paragraph>
@@ -135,7 +136,7 @@ export default function PrivacyContent() {
                     <strong>匯出</strong>：點「複製結果 CSV」可下載單筆估算。
                   </Paragraph>
                   <Paragraph>
-                    <strong>帳號刪除</strong>：登出後聯絡我們（見下方）可永久刪除 Supabase 帳號。
+                    <strong>帳號刪除</strong>：登出後聯絡我們（見下方）可永久刪除 Railway 帳號。
                   </Paragraph>
                 </>
               }
@@ -164,8 +165,8 @@ export default function PrivacyContent() {
               content={
                 <>
                   <Paragraph>
-                    <strong>Supabase</strong>：雲端 DB + 認證（open source，總部位於美國/新加坡）。
-                    隱私權政策：{' '}
+                    <strong>Railway</strong>：雲端 PostgreSQL + 自寫 JWT 認證（v0.17.x+，避免
+                    Supabase vendor lock-in）。 隱私權政策：{' '}
                     <a
                       href="https://supabase.com/privacy"
                       target="_blank"
