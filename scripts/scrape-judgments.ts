@@ -204,6 +204,15 @@ const KEYWORDS = {
   // keyword 用「精神慰撫金 車禍」+「車禍 民事」+「交通事故 和解」這 3 個已驗證有結果的
   // 5 年內 filter 自動在 parseDataLinks 內 yearInt < 2021 時 continue
   traffic_accident_civil_5y: ['精神慰撫金 車禍', '車禍 民事', '交通事故 和解'],
+  // v0.18.x+ 失能/勞動能力減損 (user 2026-07-10 擴增到 1000 件)
+  labor_loss_v3: [
+    '失能 勞動能力減損',
+    '後遺症 失能等級',
+    '殘廢 喪失工作能力',
+    '終身勞動能力',
+    '失能給付',
+    '喪失勞動能力',
+  ],
 } as const
 
 type ChainKey = keyof typeof KEYWORDS
@@ -248,6 +257,8 @@ const CHAIN_REGEX: Record<ChainKey, RegExp> = {
   pain_suffering_basis: /(?:精神)?慰撫金[^。]*?([\d,]+)\s*元/,
   // v0.18.x+ 5 年內民事車禍：用「精神慰撫金/損害賠償/和解」regex（金額為主，不限 chain）
   traffic_accident_civil_5y: /(?:精神)?慰撫金|損害賠償|和解金[^。]*?([\d,]+)\s*元/,
+  // v0.18.x+ 失能/勞動能力減損 (user 2026-07-10 擴增到 1000 件)
+  labor_loss_v3: /(?:失能|後遺症|終身|殘廢|喪失)[^。]*?([\d,]+)\s*元/,
 }
 
 const CHAIN_FILE: Record<ChainKey, string> = {
@@ -273,6 +284,8 @@ const CHAIN_FILE: Record<ChainKey, string> = {
   // v0.5.7+ 衝量 2 新檔（訴訟終結 + 慰撫金計算基準）
   appeal_case: 'practice-cases.json', // 訴訟終結併入 practice-cases.json（已有調解/律師實務）
   pain_suffering_basis: 'taipei-mental-distress.json', // 慰撫金計算基準併入精神慰撫金主鏈
+  // v0.18.x+ 失能/勞動能力減損 (user 2026-07-10 擴增到 1000 件)
+  labor_loss_v3: 'labor-loss-v3.json',
   // v0.18.x+ 5 年內民事車禍：新檔
   traffic_accident_civil_5y: 'traffic-accident-civil-5y.json',
 }
@@ -300,6 +313,8 @@ const CHAIN_LABEL: Record<ChainKey, string> = {
   // v0.5.7+ 衝量新鏈 label
   appeal_case: '訴訟終結',
   pain_suffering_basis: '慰撫金計算基準',
+  // v0.18.x+ 失能/勞動能力減損
+  labor_loss_v3: '失能/勞動能力減損',
   // v0.18.x+ 5 年內民事車禍
   traffic_accident_civil_5y: '5 年內民事車禍',
 }
