@@ -184,7 +184,7 @@ export function Step4KnnPreview({ disabilityLevel, accidentLocation }: Step4KnnP
                 }}
                 data-testid="knn-preview-card"
               >
-                <Card size="small" className="!bg-blue-50/30">
+                <Card size="small" className="!bg-accent-soft/40 dark:!bg-accent-soft/20">
                   <Space size="small" wrap className="!w-full !justify-between">
                     <Space size="small" wrap>
                       <Text strong className="!text-sm">

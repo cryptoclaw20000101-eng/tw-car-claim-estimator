@@ -488,7 +488,7 @@ export function Step4Medical({ form, accidentLocationForKnn }: Step4MedicalProps
 
       {/* 關節選了才顯示角度填寫（v0.4.0+） */}
       {jointName && (
-        <Card size="small" className="!mt-3 !bg-blue-50/30">
+        <Card size="small" className="!mt-3 !bg-accent-soft/40 dark:!bg-accent-soft/20">
           <Title level={5} className="!mb-2">
             已選關節：{JOINT_OPTIONS.find((o) => o.value === jointName)?.label ?? jointName}
             （正常活動度 {ROM_NORMAL[jointName]} 度）

@@ -151,7 +151,7 @@ export function KnnDebugPanel({ cases, title = '🔍 KNN 推薦理由（debug）
   if (debuggable.length === 0) return null
 
   return (
-    <Card size="small" className="!mt-2 !bg-blue-50/40">
+    <Card size="small" className="!mt-2 !bg-accent-soft/40 dark:!bg-accent-soft/20">
       <Text strong className="!text-sm">
         {title}
       </Text>
@@ -216,7 +216,7 @@ export function KnnDebugPanel({ cases, title = '🔍 KNN 推薦理由（debug）
                 delay: reduce ? 0 : cIdx * 0.1,
                 ease: 'easeOut',
               }}
-              className="!bg-white !p-2 !rounded"
+              className="!bg-surface !p-2 !rounded"
             >
               <Space size="small" wrap className="!mb-2">
                 <Text strong className="!text-xs">

@@ -287,7 +287,7 @@ function TicketTile({ label, amount, weight, outlier, note, dim, dollar }: Ticke
   return (
     <div
       className={`!p-2 rounded border ${
-        outlier ? 'border-red-300 bg-red-50/30' : 'border-border'
+        outlier ? 'border-red-700 bg-red-950/30' : 'border-border'
       } ${dim ? 'opacity-50' : ''}`}
     >
       <div className="!text-xs">{label}</div>
