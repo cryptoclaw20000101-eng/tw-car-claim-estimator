@@ -390,9 +390,9 @@ export default function ResultForm() {
 
         {/* v0.12.0+ Phase B7：多肇責比例並排比較 */}
         <MultiFaultCompare
-          civilMidBaseline={result.thirdParty.civilDamageTotalMid}
-          bodilyInjuryAmount={result.civilMedicalExpense + result.workLoss}
-          propertyDamageAmount={result.propertyDamage}
+          civilMidBaseline={result.thirdParty?.civilDamageTotalMid ?? 0}
+          bodilyInjuryAmount={(result.civilMedicalExpense ?? 0) + (result.workLoss ?? 0)}
+          propertyDamageAmount={result.propertyDamage ?? 0}
         />
 
         <div className="sticky top-0 z-10 -mx-6 mb-6 bg-surface-subtle/95 px-6 py-3 backdrop-blur supports-[backdrop-filter]:bg-surface-subtle/80">
