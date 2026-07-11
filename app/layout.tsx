@@ -212,7 +212,7 @@ export default function RootLayout({
                   </div>
                   <div className="border-t border-border">
                     <div className="mx-auto flex w-full max-w-6xl flex-col items-start gap-2 px-6 py-4 text-xs text-muted md:flex-row md:items-center md:justify-between">
-                      <p>© 2026 Taiwan Car-Claim Estimator · v0.16.x</p>
+                      <p>© 2026 Taiwan Car-Claim Estimator · v0.16.x · 製作 by 信安保經小鄭</p>
                       <p>
                         本工具僅供試算，不構成法律意見。實際理賠依保險公司審核 / 醫療資料 /
                         肇事責任為準。

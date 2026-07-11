@@ -268,6 +268,7 @@ export default function ResultForm() {
           </div>
         </div>
         <div className="!mt-4 !text-center !text-xs !text-black">— 第 1 頁 —</div>
+        <div className="!mt-2 !text-center !text-xs !text-black">製作 by 信安保經小鄭</div>
       </div>
 
       <div className="w-full max-w-5xl">
