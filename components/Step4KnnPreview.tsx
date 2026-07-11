@@ -213,9 +213,7 @@ export function Step4KnnPreview({ disabilityLevel, accidentLocation }: Step4KnnP
         </Space>
 
         <details className="!mt-3">
-          <summary className="!cursor-pointer !text-xs !text-gray-500">
-            🔍 展開 KNN 5 維拆解
-          </summary>
+          <summary className="!cursor-pointer !text-xs !text-muted">🔍 展開 KNN 5 維拆解</summary>
           <KnnDebugPanel cases={cases} title="為什麼這些案例被推薦？" />
         </details>
       </Card>

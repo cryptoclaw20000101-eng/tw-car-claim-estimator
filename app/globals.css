@@ -78,7 +78,8 @@
 .dark {
   --background: #0a0a0a; /* zinc-950 */
   --foreground: #fafaf9; /* stone-50 */
-  --muted: #a1a1aa; /* zinc-400 */
+  --muted: #d4d4d8; /* zinc-300（v0.18.x 從 zinc-400 升 zinc-300，暗色模式提高對比） */
+  --muted-strong: #e4e4e7; /* zinc-200 for important secondary text */
   --surface: #18181b; /* zinc-900 */
   --surface-subtle: #27272a; /* zinc-800 */
   --border: #3f3f46; /* zinc-700 */

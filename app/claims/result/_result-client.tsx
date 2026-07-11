@@ -17,7 +17,7 @@ import dynamic from 'next/dynamic'
  */
 const ResultForm = dynamic(() => import('./_form'), {
   ssr: false,
-  loading: () => <div className="p-12 text-center text-zinc-500">載入中…</div>,
+  loading: () => <div className="p-12 text-center text-muted">載入中…</div>,
 })
 
 export default function ResultClient() {
