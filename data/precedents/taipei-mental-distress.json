@@ -1949,24 +1949,6 @@
     "scrapedAt": "2026-06-30T17:22:13.588Z"
   },
   {
-    "id": "tw-mental_distress-112-11228",
-    "caseNo": "112 年度 家繼簡 字第 28 號",
-    "court": "臺灣士林地方法院",
-    "year": 2023,
-    "category": "death",
-    "chain": "mental_distress",
-    "facts": "兩造就被繼承人陳實德所遺如附表一所示之遺產，應按如附表一「分割方法」欄所示之方法分割。訴訟費用由兩造按如附表二所示之應繼分比例負擔。事實及理由壹、程序方面本件被告陳怡慧、陳彥慧經合法通知，均未於言詞辯論期日到場，核無民事訴訟法第386條各款",
-    "amount": 974142,
-    "totalAward": 0,
-    "ratio": {
-      "plaintiff": 0,
-      "defendant": 100
-    },
-    "gist": "精神慰撫金 974,142 元",
-    "source": "臺灣士林地方法院 112 年度 家繼簡 字第 28 號",
-    "scrapedAt": "2026-06-30T17:22:23.166Z"
-  },
-  {
     "id": "tw-mental_distress-114-114202",
     "caseNo": "114 年度 簡上 字第 202 號",
     "court": "臺灣高雄地方法院",
@@ -2399,24 +2381,6 @@
     "scrapedAt": "2026-07-11T00:58:20.031Z"
   },
   {
-    "id": "tw-mental_distress_v2-112-11228",
-    "caseNo": "112 年度 家繼簡 字第 28 號",
-    "court": "臺灣士林地方法院",
-    "year": 2023,
-    "category": "death",
-    "chain": "mental_distress_v2",
-    "facts": "兩造就被繼承人陳實德所遺如附表一所示之遺產，應按如附表一「分割方法」欄所示之方法分割。訴訟費用由兩造按如附表二所示之應繼分比例負擔。事實及理由壹、程序方面本件被告陳怡慧、陳彥慧經合法通知，均未於言詞辯論期日到場，核無民事訴訟法第386條各款",
-    "amount": 974142,
-    "totalAward": 0,
-    "ratio": {
-      "plaintiff": 0,
-      "defendant": 100
-    },
-    "gist": "精神慰撫金(死亡) 974,142 元",
-    "source": "臺灣士林地方法院 112 年度 家繼簡 字第 28 號",
-    "scrapedAt": "2026-07-11T00:58:20.608Z"
-  },
-  {
     "id": "tw-mental_distress_v2-115-115125",
     "caseNo": "115 年度 交上易 字第 125 號",
     "court": "TPHM（未知代碼）",
@@ -2433,5 +2397,347 @@
     "gist": "精神慰撫金(死亡) 10,000 元",
     "source": "TPHM（未知代碼） 115 年度 交上易 字第 125 號",
     "scrapedAt": "2026-07-11T00:58:40.746Z"
+  },
+  {
+    "id": "tw-pain_suffering_basis-115-11551",
+    "caseNo": "115 年度 簡上 字第 51 號",
+    "court": "SCDV（未知代碼）",
+    "year": 2026,
+    "category": "minor_injury",
+    "chain": "pain_suffering_basis",
+    "facts": "一、原判決關於駁回上訴人後開第二項、第三項之訴部分，及命上訴人負擔該訴訟費用（除確定部分外）之裁判均廢棄。二、被上訴人應再分別給付上訴人Ａ０１新臺幣11,250元、上訴人Ａ０２新臺幣13,501元，及均自民國113年11月16日起至清償日止",
+    "amount": 50000,
+    "totalAward": 13501,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "慰撫金計算基準 50,000 元",
+    "source": "SCDV（未知代碼） 115 年度 簡上 字第 51 號",
+    "scrapedAt": "2026-07-11T05:07:36.799Z"
+  },
+  {
+    "id": "tw-pain_suffering_basis-113-113538",
+    "caseNo": "113 年度 訴 字第 538 號",
+    "court": "臺灣嘉義地方法院",
+    "year": 2024,
+    "category": "minor_injury",
+    "chain": "pain_suffering_basis",
+    "facts": "一、被告應給付原告新臺幣1,093,052元，及自民國113年4月25日起至清償日止，按年息百分之5計算之利息。二、原告其餘之訴駁回。三、訴訟費用由被告負擔百分之26，餘由原告負擔。四、本判決第一項，於原告以新臺幣364,350元供擔保後，",
+    "amount": 500000,
+    "totalAward": 1093052,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "慰撫金計算基準 500,000 元",
+    "source": "臺灣嘉義地方法院 113 年度 訴 字第 538 號",
+    "scrapedAt": "2026-07-11T05:07:38.337Z"
+  },
+  {
+    "id": "tw-pain_suffering_basis-113-11364",
+    "caseNo": "113 年度 婚 字第 64 號",
+    "court": "臺灣新北地方法院",
+    "year": 2024,
+    "category": "minor_injury",
+    "chain": "pain_suffering_basis",
+    "facts": "一、准Ａ０１與Ａ０２離婚。二、對於兩造所生未成年子女甲OO（民國000年0月00日生，身分證統一編號：Z000000000號）、乙OO（民國000年0月00日生，身分證統一編號：Z000000000號）權利義務之行使或負擔由兩造共同任之，惟",
+    "amount": 50000,
+    "totalAward": 339181,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "慰撫金計算基準 50,000 元",
+    "source": "臺灣新北地方法院 113 年度 婚 字第 64 號",
+    "scrapedAt": "2026-07-11T05:07:39.607Z"
+  },
+  {
+    "id": "tw-pain_suffering_basis-114-114459",
+    "caseNo": "114 年度 簡上 字第 459 號",
+    "court": "臺灣臺北地方法院",
+    "year": 2025,
+    "category": "minor_injury",
+    "chain": "pain_suffering_basis",
+    "facts": "上訴駁回。第二審訴訟費用由上訴人負擔。事實及理由一、被上訴人起訴主張：上訴人於民國111年2月25日19時18分許，駕駛車牌號碼000-0000號自用小客車，沿臺北市中山區朱崙街由西向東行駛，行駛至朱崙街與復興北路交岔路口，欲向南右轉往復興",
+    "amount": 150000,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "慰撫金計算基準 150,000 元",
+    "source": "臺灣臺北地方法院 114 年度 簡上 字第 459 號",
+    "scrapedAt": "2026-07-11T05:07:40.184Z"
+  },
+  {
+    "id": "tw-pain_suffering_basis-115-1156",
+    "caseNo": "115 年度 簡上 字第 6 號",
+    "court": "臺灣新北地方法院",
+    "year": 2026,
+    "category": "minor_injury",
+    "chain": "pain_suffering_basis",
+    "facts": "上訴駁回。第二審訴訟費用由上訴人負擔。事實及理由一、被上訴人主張：上訴人於民國113年2月7日13時54分許，騎乘普通重型機車沿新北市板橋區公館街往智樂路方向行駛，行經公館街與金華街10巷交岔路口前，疏未注意車輛應按車道線及車道遵循方向行駛",
+    "amount": 300000,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "慰撫金計算基準 300,000 元",
+    "source": "臺灣新北地方法院 115 年度 簡上 字第 6 號",
+    "scrapedAt": "2026-07-11T05:07:51.973Z"
+  },
+  {
+    "id": "tw-pain_suffering_basis-114-141040",
+    "caseNo": "114 年度 重訴 字第 1040 號",
+    "court": "臺灣臺北地方法院",
+    "year": 2025,
+    "category": "minor_injury",
+    "chain": "pain_suffering_basis",
+    "facts": "一、被告應連帶給付原告王茂鳳新臺幣262,584元，及其中被告周昱帆自民國114年7月11日起至清償日止，被告王紘騰自民國115年5月18日起至清償日止，均按週年利率百分之5計算之利息。二、被告應連帶給付原告羅來芬新臺幣4,055,069元",
+    "amount": 3000000,
+    "totalAward": 4055069,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "慰撫金計算基準 3,000,000 元",
+    "source": "臺灣臺北地方法院 114 年度 重訴 字第 1040 號",
+    "scrapedAt": "2026-07-11T05:07:52.527Z"
+  },
+  {
+    "id": "tw-pain_suffering_basis-114-11417",
+    "caseNo": "114 年度 國 字第 17 號",
+    "court": "臺灣臺南地方法院",
+    "year": 2025,
+    "category": "minor_injury",
+    "chain": "pain_suffering_basis",
+    "facts": "一、被告臺南市新市區公所應給付原告新臺幣195,169元，及自民國114年11月26日起至清償日止，按週年利率5％計算之利息。二、被告廣泰營造有限公司、蔡宗頴、黃子倫應連帶給付原告新臺幣195,169元，及自民國114年11月26日起至清償",
+    "amount": 650562,
+    "totalAward": 195169,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "慰撫金計算基準 650,562 元",
+    "source": "臺灣臺南地方法院 114 年度 國 字第 17 號",
+    "scrapedAt": "2026-07-11T05:07:53.146Z"
+  },
+  {
+    "id": "tw-pain_suffering_basis-114-114176",
+    "caseNo": "114 年度 訴 字第 176 號",
+    "court": "CTDV（未知代碼）",
+    "year": 2025,
+    "category": "minor_injury",
+    "chain": "pain_suffering_basis",
+    "facts": "被告應連帶給付原告新臺幣476,208元，及自民國114年8月19日起至清償日止，按年息5%計算之利息。原告其餘之訴駁回。訴訟費用由被告連帶負擔50分之17，餘由原告負擔。本判決第1項得假執行。但被告如以新臺幣476,208元為原告預供擔保",
+    "amount": 1039305,
+    "totalAward": 476208,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "慰撫金計算基準 1,039,305 元",
+    "source": "CTDV（未知代碼） 114 年度 訴 字第 176 號",
+    "scrapedAt": "2026-07-11T05:07:58.405Z"
+  },
+  {
+    "id": "tw-pain_suffering_basis-114-141466",
+    "caseNo": "114 年度 訴 字第 1466 號",
+    "court": "SCDV（未知代碼）",
+    "year": 2025,
+    "category": "minor_injury",
+    "chain": "pain_suffering_basis",
+    "facts": "一、被告張聲莛、吳昀臻應連帶給付原告乙童新臺幣392,900元，及均自民國114年6月19日起至清償日止，按年息百分之5計算之利息。二、原告乙童其餘之訴及原告乙童之母之訴均駁回。三、訴訟費用新臺幣819元由原告乙童負擔。四、本判決第一項得假",
+    "amount": 17500,
+    "totalAward": 392900,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "慰撫金計算基準 17,500 元",
+    "source": "SCDV（未知代碼） 114 年度 訴 字第 1466 號",
+    "scrapedAt": "2026-07-11T05:07:59.594Z"
+  },
+  {
+    "id": "tw-pain_suffering_basis-114-114122",
+    "caseNo": "114 年度 勞訴 字第 122 號",
+    "court": "臺灣臺北地方法院",
+    "year": 2025,
+    "category": "minor_injury",
+    "chain": "pain_suffering_basis",
+    "facts": "一、確認原告與被告間自民國114年2月8日起至民國117年10月15日止僱傭關係存在。二、被告應自民國114年2月8日起至民國117年10月15日止，按月於每月5日給付原告新臺幣107,000元，及自各期應給付之翌日起至清償日止，按週年利率",
+    "amount": 500000,
+    "totalAward": 107000,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "慰撫金計算基準 500,000 元",
+    "source": "臺灣臺北地方法院 114 年度 勞訴 字第 122 號",
+    "scrapedAt": "2026-07-11T05:08:00.364Z"
+  },
+  {
+    "id": "tw-pain_suffering_basis-114-114266",
+    "caseNo": "114 年度 婚 字第 266 號",
+    "court": "臺灣臺北地方法院",
+    "year": 2025,
+    "category": "minor_injury",
+    "chain": "pain_suffering_basis",
+    "facts": "原告應於本裁定送達後七日內，補繳第一審裁判費新臺幣70,115元，逾期不繳即駁回其訴。理由一、按原告之訴有起訴不合程式或不備其他要件之情形者，依其情形可以補正經審判長定期間命其補正而不補正者，法院應以裁定駁回之，民事訴訟法第249條第1項定",
+    "amount": 500000,
+    "totalAward": 70115,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "慰撫金計算基準 500,000 元",
+    "source": "臺灣臺北地方法院 114 年度 婚 字第 266 號",
+    "scrapedAt": "2026-07-11T05:08:00.760Z"
+  },
+  {
+    "id": "tw-pain_suffering_basis-114-114339",
+    "caseNo": "114 年度 簡上 字第 339 號",
+    "court": "臺灣臺南地方法院",
+    "year": 2025,
+    "category": "minor_injury",
+    "chain": "pain_suffering_basis",
+    "facts": "上訴駁回。第二審訴訟費用新台幣2,445元由上訴人負擔。事實及理由壹、程序事項（本件無發回原法院更審之必要）：按第一審之訴訟程序有重大之瑕疵者，因維持審級制度認為必要時，民事訴訟法第451條第1項規定，原則上固賦與第二審法院是否廢棄原判決，",
+    "amount": 66000,
+    "totalAward": 2445,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "慰撫金計算基準 66,000 元",
+    "source": "臺灣臺南地方法院 114 年度 簡上 字第 339 號",
+    "scrapedAt": "2026-07-11T05:08:06.181Z"
+  },
+  {
+    "id": "tw-pain_suffering_basis-115-11565",
+    "caseNo": "115 年度 簡上 字第 65 號",
+    "court": "臺灣臺南地方法院",
+    "year": 2026,
+    "category": "minor_injury",
+    "chain": "pain_suffering_basis",
+    "facts": "上訴駁回。第二審訴訟費用由上訴人負擔。事實及理由一、被上訴人起訴主張及上訴後補充：㈠上訴人Ａ０１於民國113年3月17日12時46分，無照騎乘車牌號碼000-000號普通重型機車，沿台三線由大埔往中埔北向南行駛，行經嘉義縣○路鄉○○00號之",
+    "amount": 327300,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "慰撫金計算基準 327,300 元",
+    "source": "臺灣臺南地方法院 115 年度 簡上 字第 65 號",
+    "scrapedAt": "2026-07-11T05:08:06.700Z"
+  },
+  {
+    "id": "tw-pain_suffering_basis-112-112175",
+    "caseNo": "112 年度 勞訴 字第 175 號",
+    "court": "臺灣臺北地方法院",
+    "year": 2023,
+    "category": "minor_injury",
+    "chain": "pain_suffering_basis",
+    "facts": "一、原告之訴駁回。二、訴訟費用由原告負擔。事實及理由壹、程序部分被告法定代理人原為吳宏謀，嗣於本院審理中變更為王國材，王國材並於民國113年11月13日提出書狀聲明承受訴訟（見本院卷六第11頁），經核合於民事訴訟法第170條、第175條第1",
+    "amount": 1640663,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "慰撫金計算基準 1,640,663 元",
+    "source": "臺灣臺北地方法院 112 年度 勞訴 字第 175 號",
+    "scrapedAt": "2026-07-11T05:08:07.723Z"
+  },
+  {
+    "id": "tw-pain_suffering_basis-113-11362",
+    "caseNo": "113 年度 簡上 字第 62 號",
+    "court": "臺灣桃園地方法院",
+    "year": 2024,
+    "category": "death",
+    "chain": "pain_suffering_basis",
+    "facts": "上訴駁回。第二審訴訟費用由上訴人負擔。事實及理由壹、程序部分一、按當事人死亡者，訴訟程序在有繼承人、遺產管理人或其他依法令應續行訴訟之人承受其訴訟以前當然停止。前開所定第168條至第172條及前條所定之承受訴訟人，於得為承受時，應即為承受之",
+    "amount": 100000,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "慰撫金計算基準 100,000 元",
+    "source": "臺灣桃園地方法院 113 年度 簡上 字第 62 號",
+    "scrapedAt": "2026-07-11T05:08:13.311Z"
+  },
+  {
+    "id": "tw-pain_suffering_basis-115-115321",
+    "caseNo": "115 年度 苗簡 字第 321 號",
+    "court": "臺灣苗栗地方法院",
+    "year": 2026,
+    "category": "minor_injury",
+    "chain": "pain_suffering_basis",
+    "facts": "被告應連帶給付原告新臺幣參拾萬元，及自民國一一五年三月二十日起至清償日止，按週年利率百分之五計算之利息。訴訟費用由被告連帶負擔。本判決得假執行。事實及理由壹、程序部分:按行政機關及司法機關所製作必須公開之文書，除前項第三款或其他法律特別規定",
+    "amount": 271371,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "慰撫金計算基準 271,371 元",
+    "source": "臺灣苗栗地方法院 115 年度 苗簡 字第 321 號",
+    "scrapedAt": "2026-07-11T05:08:16.325Z"
+  },
+  {
+    "id": "tw-pain_suffering_basis-115-115202",
+    "caseNo": "115 年度 竹簡 字第 202 號",
+    "court": "SCDV（未知代碼）",
+    "year": 2026,
+    "category": "minor_injury",
+    "chain": "pain_suffering_basis",
+    "facts": "被告應給付原告新臺幣186,111元，及自民國114年10月14日起至清償日止，按週年利率百分之5計算之利息。原告其餘之訴駁回。訴訟費用新臺幣1,500元由被告負擔新臺幣150元，及自本判決確定之翌日起至清償日止，加給按週年利率百分之5計算",
+    "amount": 420000,
+    "totalAward": 186111,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "慰撫金計算基準 420,000 元",
+    "source": "SCDV（未知代碼） 115 年度 竹簡 字第 202 號",
+    "scrapedAt": "2026-07-11T05:08:16.772Z"
+  },
+  {
+    "id": "tw-pain_suffering_basis-115-1151",
+    "caseNo": "115 年度 消簡上 字第 1 號",
+    "court": "臺灣臺南地方法院",
+    "year": 2026,
+    "category": "minor_injury",
+    "chain": "pain_suffering_basis",
+    "facts": "上訴駁回。第二審訴訟費用由上訴人負擔。事實及理由一、按對於簡易程序第一審判決之上訴程序，準用民事訴訟法第第三編第一章第二審程序之規定，同法第436條之1第3項定有明文。又依民事訴訟法第473條規定，第三審上訴之聲明，不得變更或擴張之，而現行",
+    "amount": 100000,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "慰撫金計算基準 100,000 元",
+    "source": "臺灣臺南地方法院 115 年度 消簡上 字第 1 號",
+    "scrapedAt": "2026-07-11T05:08:21.554Z"
+  },
+  {
+    "id": "tw-pain_suffering_basis-115-1157",
+    "caseNo": "115 年度 竹勞簡專調 字第 7 號",
+    "court": "SCDV（未知代碼）",
+    "year": 2026,
+    "category": "minor_injury",
+    "chain": "pain_suffering_basis",
+    "facts": "聲請人即原告應於收受本裁定送達後五日內補正下列事項，其中任一項逾期未補正，即駁回其訴：㈠補正本件請求金額新臺幣140,000元之請求項目、計算方式。㈡提出僱傭關係之證明、2年內仍未痊癒之證明、所受傷害為職業災害之證明。㈡提出補正後起訴狀及其",
+    "amount": 140000,
+    "totalAward": 140000,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "慰撫金計算基準 140,000 元",
+    "source": "SCDV（未知代碼） 115 年度 竹勞簡專調 字第 7 號",
+    "scrapedAt": "2026-07-11T05:08:23.760Z"
   }
 ]

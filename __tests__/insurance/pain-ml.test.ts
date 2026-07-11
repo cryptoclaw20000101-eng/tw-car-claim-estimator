@@ -138,10 +138,11 @@ describe('predictPainRange — 三層區間引擎', () => {
     expect(out.upper).toBeGreaterThanOrEqual(800_000)
   })
 
-  it('confidence 反映樣本量：當前資料庫 13 件 → medium', () => {
+  it('confidence 反映樣本量：當前資料庫 153 件 → high', () => {
     const out = predictPainRange(mlInput())
-    // 樣本 10-19 → medium（v0.6.0 載入 13 件）
-    expect(out.confidence).toBe('medium')
+    // 樣本 ≥ 20 → high（v0.18.x 載入 153 件有金額的 records）
+    expect(out.confidence).toBe('high')
+    expect(out.sampleSize).toBeGreaterThanOrEqual(20)
   })
 
   it('回傳的 anchorCases 是當前資料庫的真實判決', () => {
@@ -210,6 +211,7 @@ describe('reconcileWithRules — 規則 vs ML 校驗', () => {
       method: 'heuristic_only',
       severityLevel: 1,
       severityLabel: '極輕微',
+      sampleSize: 0,
     }
     const result = reconcileWithRules(ml, 200_000) // 落差 300%
     // confidence=low 時只給「注意」不給「強烈警告」

@@ -386,7 +386,7 @@ export interface EstimationResult {
     p50: number
     p90: number
     confidence: 'high' | 'medium' | 'low'
-    method: 'ml_v1_ensemble' | 'heuristic_only' | 'fallback'
+    method: 'ml_v2_severity_region' | 'ml_v2_severity_national' | 'heuristic_only' | 'fallback'
     severityLevel: number
     severityLabel: string
     anchorCases: Array<{

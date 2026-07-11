@@ -1,29 +1,32 @@
 // =====================================================================
-// 精神慰撫金 ML 區間引擎（v0.6.0）
+// 精神慰撫金 ML 區間引擎（v0.18.x+ v2 — 傷勢 × 地區 brackets）
 //
-// 設計：三層架構
+// 設計：四層架構
 //   Layer 1（啟發式）  規則引擎 8 級區間 + 地區係數 → baseline range
-//   Layer 2（歷史區間） 從 data/precedents/taipei-mental-distress.json
-//                       取出 13 件有金額的 anchor → 用傷勢類別推相似度
-//                       產出 P10/P50/P90
-//   Layer 3（fallback） 樣本 < 5 或資料損壞 → 退回 Layer 1
+//   Layer 2（傷勢 × 地區 brackets） 從 153 件 精神慰撫金 真實判決萃取
+//                       按 (死亡/重傷/輕傷) × (北/中/南) 給 P10/P50/P90
+//                       v0.18.x 取代 v0.6.0 的 13 件全體 anchor
+//   Layer 3（傷勢全國 fallback） 該地區樣本 < 5 → 退到全國傷勢中位
+//   Layer 4（純啟發式） 樣本 < 5 → 退到 Layer 1
 //
 // 輸出：
 //   - lower / mid / upper：金額區間（元）
-//   - confidence: 'high' | 'medium' | 'low'
-//       high = anchor ≥ 20; medium = 10-19; low = <10
+//   - p10 / p50 / p90：歷史中位 + 80% 信賴區間
+//   - confidence: 'high' ≥ 20 / 'medium' 10-19 / 'low' < 10
 //   - anchorCases: 真實判例 ref（給 UI 引註）
-//   - method: 'ml_v1_ensemble' | 'heuristic_only' | 'fallback'
+//   - method: 'ml_v2_severity_region' | 'ml_v2_severity_national'
+//           | 'heuristic_only' | 'fallback'
 //
-// 為何 v0.6.0 不用 XGBoost？
-//   - 樣本 13 件太少，訓練有意義模型會過擬合
-//   - 13 件都集中在 minor_injury，傷勢梯度學不到
-//   - 律師手動建檔補完 89 件 0 元 → v0.6.1+ 再升級成 XGBoost
+// v0.18.x 變更（相對 v0.6.0）：
+//   - 修 loadAnchorCases 欄位名 bug（mentalDistressAmount → amount）
+//     13 件 anchor 全部沒讀到的問題修了
+//   - 改成 (severity, region) 二維 bracket，從 153 件 records 萃取
+//   - sample size 大幅提升：death_north N=12 / minor_north N=48 / minor_central N=24
 //
 // 不變量（測試守護）：
 //   - lower ≤ mid ≤ upper
-//   - mid 與規則引擎 regionalMid 偏差合理範圍
-//   - 未知法院 → fallback 到 1.0 係數，不報錯
+//   - p10 ≤ p50 ≤ p90
+//   - 未知法院 / 未知傷勢 → fallback 到 1.0 係數，不報錯
 // =====================================================================
 
 import type { MedicalRecord } from './types'
@@ -59,10 +62,12 @@ export interface PainMLOutput {
   /** 真實判例 anchor（給 UI 顯示引註） */
   anchorCases: PainAnchorCase[]
   /** 採用方法：說明這次預測是純啟發式還是有歷史資料校正 */
-  method: 'ml_v1_ensemble' | 'heuristic_only' | 'fallback'
+  method: 'ml_v2_severity_region' | 'ml_v2_severity_national' | 'heuristic_only' | 'fallback'
   /** 嚴重度等級（給 UI 顯示對應等級 label） */
   severityLevel: number
   severityLabel: string
+  /** 樣本數（給 UI 顯示「歷史 N=48 件」） */
+  sampleSize: number
 }
 
 export interface ReconcileResult {
@@ -115,36 +120,24 @@ interface SeverityBreakdown {
 function scoreSeverity(b: SeverityBreakdown): number {
   let score = 0
 
-  // 住院日數（0-20）
   if (b.hospitalizationDays >= 15) score += 20
   else if (b.hospitalizationDays >= 8) score += 15
   else if (b.hospitalizationDays >= 4) score += 10
   else if (b.hospitalizationDays >= 1) score += 5
 
-  // 復健次數（0-15）
   if (b.rehabilitationCount >= 16) score += 15
   else if (b.rehabilitationCount >= 6) score += 10
   else if (b.rehabilitationCount >= 1) score += 5
 
-  // 疤痕（0-15）
   if (b.hasAmputation) score += 15
   else if (b.scarLengthCm >= 10) score += 15
   else if (b.scarLengthCm >= 5) score += 10
   else if (b.scarLengthCm > 0) score += 5
 
-  // 手術（0-10）
   if (b.hasSurgery) score += 10
-
-  // 骨折（0-10）
   if (b.hasFracture) score += 10
-
-  // 神經損傷（0-10）
   if (b.hasNerveDamage) score += 10
-
-  // 永久障害（0-10）
   if (b.hasPermanentImpairment) score += 10
-
-  // 失能/截肢（0-10）
   if (b.hasDisability || b.hasAmputation) score += 10
 
   return Math.min(score, 100)
@@ -161,16 +154,98 @@ function pickLevelIndex(score: number): number {
   return 0
 }
 
-// --- Layer 2：歷史 anchor 載入（13 件有金額的真實判決）----------------
+// --- 傷勢分類 (對應 historical bracket) ---------------------------------
 
-let _anchorCache: PainAnchorCase[] | null = null
+type PainSeverity = 'death' | 'severe_injury' | 'minor_injury'
+
+/** 從 severity level 推對應的 historical bracket 分類 */
+function severityFromLevel(level: number): PainSeverity {
+  if (level >= 7) return 'death' // 極嚴重/重大 → 對齊「死亡」分組
+  if (level >= 5) return 'severe_injury' // 重度/嚴重 → 對齊「重傷」分組
+  return 'minor_injury' // 其他 → 對齊「輕傷」分組
+}
+
+// --- 地區分類 (與 precedents 一致) ---------------------------------------
+
+type PainRegion = 'north' | 'central' | 'south' | 'island' | 'unknown'
+
+function courtToRegion(courtName: string): PainRegion {
+  if (!courtName) return 'unknown'
+  if (courtName.includes('福建')) return 'island'
+  if (
+    courtName.includes('臺灣臺北') ||
+    courtName.includes('臺灣新北') ||
+    courtName.includes('臺灣士林') ||
+    courtName.includes('臺灣基隆') ||
+    courtName.includes('臺灣宜蘭') ||
+    courtName.includes('臺灣桃園') ||
+    courtName.includes('臺灣新竹')
+  )
+    return 'north'
+  if (
+    courtName.includes('臺灣臺中') ||
+    courtName.includes('臺灣彰化') ||
+    courtName.includes('臺灣南投') ||
+    courtName.includes('臺灣苗栗') ||
+    courtName.includes('臺灣雲林') ||
+    courtName.includes('臺灣嘉義')
+  )
+    return 'central'
+  if (
+    courtName.includes('臺灣臺南') ||
+    courtName.includes('臺灣高雄') ||
+    courtName.includes('臺灣屏東') ||
+    courtName.includes('臺灣花蓮') ||
+    courtName.includes('臺灣臺東') ||
+    courtName.includes('臺灣澎湖') ||
+    courtName.includes('橋頭')
+  )
+    return 'south'
+  return 'unknown'
+}
+
+// --- Historical anchor 載入 -----------------------------------------------
+
+interface RawPrecedent {
+  caseNo: string
+  court: string
+  year: number
+  category: string
+  amount: number
+  gist?: string
+  facts?: string
+}
+
+interface PainBracket {
+  n: number
+  p10: number
+  p50: number
+  p90: number
+}
+
+interface BracketMap {
+  /** (severity, region) → bracket；樣本 < 5 會被省略 */
+  byCell: Record<string, PainBracket>
+  /** 該 severity 跨所有地區的 fallback */
+  bySeverity: Record<string, PainBracket>
+  /** 全部 anchor (internal) */
+  allAnchors: PainAnchorInternal[]
+}
+
+/** Internal anchor with severity/region for bracket 計算（不 export） */
+interface PainAnchorInternal extends PainAnchorCase {
+  severity: PainSeverity
+  region: PainRegion
+}
+
+let _bracketCache: BracketMap | null = null
 
 /**
- * 載入 13 件有金額的精神慰撫金真實判決（SSR-safe + cache）
- * 失敗回空陣列，視同無資料
+ * 從 taipei-mental-distress.json 153 件 records 計算 (severity × region) brackets
+ * 樣本 < 5 的 cell 省略，調用端 fallback 到 bySeverity
  */
-function loadAnchorCases(): PainAnchorCase[] {
-  if (_anchorCache !== null) return _anchorCache
+function loadBrackets(): BracketMap {
+  if (_bracketCache !== null) return _bracketCache
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { readFileSync, existsSync } = require('node:fs') as typeof import('node:fs')
@@ -181,47 +256,72 @@ function loadAnchorCases(): PainAnchorCase[] {
       join(process.cwd(), '..', 'data/precedents/taipei-mental-distress.json'),
     ]
     const path = candidates.find((p) => existsSync(p))
-    if (!path) {
-      _anchorCache = []
-      return []
-    }
-    const raw = JSON.parse(readFileSync(path, 'utf-8')) as Array<{
-      caseNo: string
-      court: string
-      year: number
-      category: string
-      mentalDistressAmount: number
-    }>
-    _anchorCache = raw
-      .filter((r) => r.mentalDistressAmount > 0)
-      .map((r) => ({
+    if (!path) return { byCell: {}, bySeverity: {}, allAnchors: [] }
+
+    const raw = JSON.parse(readFileSync(path, 'utf-8')) as RawPrecedent[]
+    const anchors: PainAnchorInternal[] = []
+    for (const r of raw) {
+      if (!r.amount || r.amount <= 0) continue
+      const text = (r.gist || '') + (r.facts || '') + (r.category || '')
+      let sev: PainSeverity = 'minor_injury'
+      if (r.category === 'death' || text.includes('死亡')) sev = 'death'
+      else if (r.category === 'severe_injury' || text.includes('重傷')) sev = 'severe_injury'
+      const reg = courtToRegion(r.court || '')
+      anchors.push({
         caseNo: r.caseNo,
         court: r.court,
-        amount: r.mentalDistressAmount,
+        amount: r.amount,
         year: r.year,
         category: r.category,
-      }))
-    return _anchorCache
+        severity: sev,
+        region: reg,
+      })
+    }
+
+    // 計算 (severity, region) brackets
+    const byCell: Record<string, PainBracket> = {}
+    const bySeverity: Record<string, PainBracket> = {}
+    const MIN_N = 5
+    const cellMap: Record<string, number[]> = {}
+    for (const a of anchors) {
+      const key = `${a.severity}_${a.region}`
+      ;(cellMap[key] ||= []).push(a.amount)
+      ;(cellMap[`${a.severity}_*`] ||= []).push(a.amount) // 全國 fallback
+    }
+    for (const key of Object.keys(cellMap)) {
+      const amounts = cellMap[key]!.sort((a, b) => a - b)
+      const bracket: PainBracket = {
+        n: amounts.length,
+        p10: Math.round(percentile(amounts, 0.1)),
+        p50: Math.round(percentile(amounts, 0.5)),
+        p90: Math.round(percentile(amounts, 0.9)),
+      }
+      // 樣本 ≥ 5 才列入 cell；severity 全國 fallback 不論 N
+      if (key.endsWith('_*') || amounts.length >= MIN_N) {
+        if (key.endsWith('_*')) {
+          bySeverity[key.replace('_*', '')] = bracket
+        } else {
+          byCell[key] = bracket
+        }
+      }
+    }
+    _bracketCache = { byCell, bySeverity, allAnchors: anchors }
+    return _bracketCache
   } catch {
-    _anchorCache = []
-    return []
+    return { byCell: {}, bySeverity: {}, allAnchors: [] }
   }
 }
 
-/**
- * 從 anchor 計算百分位數（線性插值）
- */
+/** 線性插值百分位數 */
 function percentile(sorted: number[], p: number): number {
   if (sorted.length === 0) return 0
-  const first = sorted[0]
-  if (sorted.length === 1) return first ?? 0
+  const first = sorted[0]!
+  if (sorted.length === 1) return first
   const idx = (sorted.length - 1) * p
   const lower = Math.floor(idx)
   const upper = Math.ceil(idx)
-  if (lower === upper) {
-    return sorted[lower] ?? 0
-  }
-  return (sorted[lower] ?? 0) + ((sorted[upper] ?? 0) - (sorted[lower] ?? 0)) * (idx - lower)
+  if (lower === upper) return sorted[lower]!
+  return sorted[lower]! + (sorted[upper]! - sorted[lower]!) * (idx - lower)
 }
 
 // --- 主入口：predictPainRange -----------------------------------------
@@ -245,7 +345,7 @@ export function predictPainRange(input: PainMLInput): PainMLOutput {
   const levelIdx = pickLevelIndex(severityScore)
   const baseRow = BASE_PAS_TABLE[levelIdx]!
 
-  // 地區係數（fallback 1.0 給未知法院）
+  // 地區係數
   let regionMultiplier = 1.0
   try {
     const region = getRegionAdjustment(courtName)
@@ -254,8 +354,7 @@ export function predictPainRange(input: PainMLInput): PainMLOutput {
     regionMultiplier = 1.0
   }
 
-  // 治療期間加成（與規則引擎同步：保守版，最多 +20%）
-  // 規則公式：treatmentDays = hospitalizationDays × 2 + rehabilitationCount × 3
+  // 治療期間加成（保守版最多 +20%）
   const treatmentDays = medical.hospitalizationDays * 2 + medical.rehabilitationCount * 3
   const treatmentBoost = Math.min(treatmentDays / 180, 0.2)
 
@@ -267,41 +366,63 @@ export function predictPainRange(input: PainMLInput): PainMLOutput {
   const heurMid = Math.round(baseMid * regionMultiplier)
   const heurHigh = Math.round(baseHigh * regionMultiplier)
 
-  // Layer 2：歷史 anchor 載入（13 件有金額的 minor_injury 真實判決）
-  const anchors = loadAnchorCases()
-  const validAnchors = anchors.filter((a) => a.amount > 0)
-
-  // ⚠️ 重要決策（v0.6.0）：
-  // anchor 樣本全部是 minor_injury，傷勢梯度學不到。
-  // 因此 v0.6.0 不直接用 anchor 校正金額區間（會把輕傷慰撫金推高），
-  // 只用 anchor 來：
-  //   1. 提供 P10/P50/P90 給 UI 顯示「歷史中位數」
-  //   2. 計算 confidence（給業務信心度標記）
-  //   3. 提供 anchorCases 給 UI 顯示引註
-  //
-  // 區間金額本身仍由規則引擎（heurLow/heurMid/heurHigh）決定，
-  // 保證不變量 lower ≤ mid ≤ upper 且地區係數正確生效。
-  //
-  // v0.6.1+ 律師補完 89 件 0 元資料 → 才能真正用 XGBoost 學出傷勢梯度。
+  // Layer 2-4：歷史 anchor brackets
+  const { byCell, bySeverity, allAnchors } = loadBrackets()
+  const severity = severityFromLevel(levelIdx)
+  const region = courtToRegion(courtName)
+  const cellKey = `${severity}_${region}`
 
   let p10 = heurLow
   let p50 = heurMid
   let p90 = heurHigh
+  let sampleSize = 0
   let confidence: 'high' | 'medium' | 'low' = 'low'
-  let method: 'ml_v1_ensemble' | 'heuristic_only' | 'fallback' = 'heuristic_only'
+  let method: PainMLOutput['method'] = 'heuristic_only'
 
-  if (validAnchors.length >= 5) {
-    const sortedAmounts = validAnchors.map((a) => a.amount).sort((a, b) => a - b)
-    p10 = percentile(sortedAmounts, 0.1)
-    p50 = percentile(sortedAmounts, 0.5)
-    p90 = percentile(sortedAmounts, 0.9)
+  // 優先用 (severity, region) cell
+  const cell = byCell[cellKey]
+  const fallback = bySeverity[severity]
 
-    if (validAnchors.length >= 20) confidence = 'high'
-    else if (validAnchors.length >= 10) confidence = 'medium'
-    else confidence = 'low'
-
-    method = 'ml_v1_ensemble'
+  if (cell) {
+    p10 = cell.p10
+    p50 = cell.p50
+    p90 = cell.p90
+    sampleSize = cell.n
+    method = 'ml_v2_severity_region'
+  } else if (fallback) {
+    p10 = fallback.p10
+    p50 = fallback.p50
+    p90 = fallback.p90
+    sampleSize = fallback.n
+    method = 'ml_v2_severity_national'
+  } else if (allAnchors.length > 0) {
+    // 全 anchor fallback
+    const sorted = allAnchors.map((a) => a.amount).sort((a, b) => a - b)
+    p10 = Math.round(percentile(sorted, 0.1))
+    p50 = Math.round(percentile(sorted, 0.5))
+    p90 = Math.round(percentile(sorted, 0.9))
+    sampleSize = allAnchors.length
+    method = 'fallback'
   }
+
+  if (sampleSize >= 20) confidence = 'high'
+  else if (sampleSize >= 10) confidence = 'medium'
+  else if (sampleSize > 0) confidence = 'low'
+
+  // 選 anchorCases 引註 (同 severity + region 優先)
+  const sameCellAnchors = allAnchors.filter((a) => a.severity === severity && a.region === region)
+  const sameSevAnchors = allAnchors.filter((a) => a.severity === severity)
+  const pickAnchors = sameCellAnchors.length > 0 ? sameCellAnchors : sameSevAnchors
+  const anchorCases = pickAnchors
+    .sort((a, b) => Math.abs(a.amount - p50) - Math.abs(b.amount - p50))
+    .slice(0, 3)
+    .map((a) => ({
+      caseNo: a.caseNo,
+      court: a.court,
+      amount: a.amount,
+      year: a.year,
+      category: a.category,
+    }))
 
   return {
     lower: heurLow,
@@ -311,24 +432,16 @@ export function predictPainRange(input: PainMLInput): PainMLOutput {
     p50,
     p90,
     confidence,
-    anchorCases: validAnchors.slice(0, 3),
+    anchorCases,
     method,
     severityLevel: baseRow.level,
     severityLabel: baseRow.label,
+    sampleSize,
   }
 }
 
 // --- reconcileWithRules：規則 vs ML 校驗 ------------------------------
 
-/**
- * 比較規則引擎（中點）與 ML（中點），給 UI 顯示共識度
- *
- * - agree: 偏差 ≤ 15%
- * - minor_diverge: 偏差 15-30%
- * - diverge: 偏差 > 30%
- *
- * ML confidence=low 時降級警告強度（避免誤報）
- */
 export function reconcileWithRules(ml: PainMLOutput, rulesMid: number): ReconcileResult {
   const divergence = Math.abs(rulesMid - ml.mid) / Math.max(ml.mid, 1)
 
@@ -344,8 +457,7 @@ export function reconcileWithRules(ml: PainMLOutput, rulesMid: number): Reconcil
     }
   }
 
-  // > 30% 落差
-  const baseWarning = `規則引擎 ${rulesMid.toLocaleString()} 元 vs 歷史中位 ${ml.mid.toLocaleString()} 元，落差 ${(divergence * 100).toFixed(0)}%`
+  const baseWarning = `規則引擎 ${rulesMid.toLocaleString()} 元 vs 歷史中位 ${ml.p50.toLocaleString()} 元，落差 ${(divergence * 100).toFixed(0)}%`
   if (ml.confidence === 'low') {
     return {
       status: 'diverge',

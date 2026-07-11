@@ -460,8 +460,26 @@ function categorizeByFacts(gist: string): FinalPrecedent['category'] {
 }
 function isCivilCase(caseNo: string): boolean {
   if (!caseNo) return true
-  const penalPatterns = ['附民', '交附民', '原附民', '簡附民', '刑附民', '易字', '交易', '自訴']
-  for (const pat of penalPatterns) if (caseNo.includes(pat)) return false
+  // 刑事庭 (附民 / 刑庭) + 家事法庭 (家親/家聲/家訴/家財/家繼/家調/重家/家婚) 都要排除
+  const excludePatterns = [
+    '附民',
+    '交附民',
+    '原附民',
+    '簡附民',
+    '刑附民',
+    '易字',
+    '交易',
+    '自訴',
+    '家聲',
+    '家親',
+    '家訴',
+    '家財',
+    '家繼',
+    '家調',
+    '重家',
+    '家婚',
+  ]
+  for (const pat of excludePatterns) if (caseNo.includes(pat)) return false
   return true
 }
 function writePrecedent(p: FinalPrecedent): void {

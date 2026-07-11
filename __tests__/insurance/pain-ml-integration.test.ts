@@ -115,10 +115,18 @@ describe('estimateClaim — painML 整合（v0.6.0）', () => {
   it('painML 信心度 + method 標籤正確', () => {
     const result = estimateClaim(buildInput())
     expect(['high', 'medium', 'low']).toContain(result.painML.confidence)
-    expect(['ml_v1_ensemble', 'heuristic_only', 'fallback']).toContain(result.painML.method)
-    // 13 件 anchor → medium
-    expect(result.painML.confidence).toBe('medium')
-    expect(result.painML.method).toBe('ml_v1_ensemble')
+    expect([
+      'ml_v2_severity_region',
+      'ml_v2_severity_national',
+      'heuristic_only',
+      'fallback',
+    ]).toContain(result.painML.method)
+    // v0.18.x 153 件 anchor → 信心度 high（severe_injury 樣本少會走 fallback 但 anchor 總數 ≥ 20）
+    expect(result.painML.confidence).toBe('high')
+    // method 視嚴重度對應 cell 是否有樣本：minor_injury cell 命中 → region；severe/death cell 缺 → fallback
+    expect(['ml_v2_severity_region', 'ml_v2_severity_national', 'fallback']).toContain(
+      result.painML.method,
+    )
   })
 
   it('painML 與規則 painAndSuffering 落差合理（agree）', () => {

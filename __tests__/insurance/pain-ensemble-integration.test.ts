@@ -133,8 +133,8 @@ describe('estimateClaim — painEnsemble 整合（v0.6.2）', () => {
 
   it('權重反映 ML 信心度', () => {
     const result = estimateClaim(buildInput())
-    // 13 件 anchor → medium → mlWeight = 0.7
-    expect(result.painEnsemble.mlWeight).toBe(0.7)
+    // v0.18.x 153 件 anchor → high → mlWeight = 1.0
+    expect(result.painEnsemble.mlWeight).toBe(1.0)
   })
 
   it('重度案件 + KNN outlier 可能觸發 partial 共識', () => {
