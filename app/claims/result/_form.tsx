@@ -132,6 +132,20 @@ export default function ResultForm() {
   // （符合 react-hooks/set-state-in-effect 規則）
   const [hydrated] = useState(() => {
     if (typeof window === 'undefined') return { input: null, result: null, stale: false }
+    // v0.18.x+ sessionStorage 版本檢查：避免舊版資料殘留導致 crash
+    const STORAGE_VERSION = 'v2'
+    if (sessionStorage.getItem('claim-storage-version') !== STORAGE_VERSION) {
+      sessionStorage.removeItem('claim-input')
+      sessionStorage.removeItem('claim-result')
+      sessionStorage.setItem('claim-storage-version', STORAGE_VERSION)
+    }
+    // v0.18.x+ 過期檢查：超過 1 小時的估算視為過期
+    const ts = sessionStorage.getItem('claim-storage-ts')
+    if (ts && Date.now() - parseInt(ts, 10) > 60 * 60 * 1000) {
+      sessionStorage.removeItem('claim-input')
+      sessionStorage.removeItem('claim-result')
+      sessionStorage.removeItem('claim-storage-ts')
+    }
     const rawInput = sessionStorage.getItem('claim-input')
     const rawResult = sessionStorage.getItem('claim-result')
     if (!rawInput || !rawResult) return { input: null, result: null, stale: false }
@@ -218,6 +232,7 @@ export default function ResultForm() {
                 const result = estimateClaim(SAMPLE_INPUT)
                 sessionStorage.setItem('claim-input', JSON.stringify(SAMPLE_INPUT))
                 sessionStorage.setItem('claim-result', JSON.stringify(result))
+                sessionStorage.setItem('claim-storage-version', 'v2') // v0.18.x+
                 window.location.assign('/claims/result')
               }}
             >
@@ -409,6 +424,7 @@ export default function ResultForm() {
         <div className="sticky top-0 z-10 -mx-6 mb-6 bg-surface-subtle/95 px-6 py-3 backdrop-blur supports-[backdrop-filter]:bg-surface-subtle/80">
           <Tabs
             type="card"
+            destroyOnHidden
             defaultActiveKey="compulsory"
             items={[
               {

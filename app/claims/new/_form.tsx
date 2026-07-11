@@ -475,6 +475,8 @@ export default function NewClaimForm() {
       // 存進 sessionStorage 給結果頁讀
       sessionStorage.setItem('claim-input', JSON.stringify(input))
       sessionStorage.setItem('claim-result', JSON.stringify(result))
+      sessionStorage.setItem('claim-storage-version', 'v2') // v0.18.x+ 防舊版殘留
+      sessionStorage.setItem('claim-storage-ts', String(Date.now())) // 過期檢查用
       router.push('/claims/result')
     } catch (e) {
       message.error('請填寫完整資料')
