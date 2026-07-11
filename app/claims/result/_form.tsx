@@ -282,7 +282,17 @@ export default function ResultForm() {
           actions={[
             {
               kind: 'button',
-              onClick: () => window.print(),
+              onClick: () => {
+                // v0.18.x 會員限定：未登入跳登入頁（估算本身開放所有訪客）
+                if (!user) {
+                  antdMessage.warning('PDF 報告產出為會員限定功能，請先登入')
+                  setTimeout(() => {
+                    window.location.href = '/login?redirect=/claims/result'
+                  }, 800)
+                  return
+                }
+                window.print()
+              },
               label: '下載 PDF',
               icon: <FilePdfOutlined />,
               testId: 'download-pdf',

@@ -412,4 +412,22 @@ input[type='number'] {
       color: #666;
     }
   }
+
+  /* v0.18.x 列印浮水印：每頁重複顯示「信安保經小鄭製作」 */
+  /* 用 position:fixed 讓每頁都蓋一次 (瀏覽器列印對 fixed 元素每頁重複) */
+  body::after {
+    content: '信安保經小鄭製作';
+    position: fixed;
+    bottom: 40%;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 72pt;
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.08);
+    transform: rotate(-30deg);
+    transform-origin: center center;
+    pointer-events: none;
+    z-index: 0;
+  }
 }
