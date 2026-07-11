@@ -52,6 +52,7 @@ export default function LoginForm() {
   const { signIn, signUp, signOut, user } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -61,6 +62,17 @@ export default function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email || !password) return
+    // v0.18.x+ 註冊需確認密碼：兩次輸入相同才送 API
+    if (isSignUp) {
+      if (!confirmPassword) {
+        setError('請再次輸入密碼以確認')
+        return
+      }
+      if (password !== confirmPassword) {
+        setError('兩次密碼輸入不一致，請重新輸入')
+        return
+      }
+    }
     setSubmitting(true)
     setError(null)
     const result = isSignUp ? await signUp(email, password) : await signIn(email, password)
@@ -131,6 +143,19 @@ export default function LoginForm() {
                 disabled={submitting}
                 data-testid="login-password"
               />
+              {isSignUp && (
+                <Input.Password
+                  placeholder="再次輸入密碼"
+                  prefix={<LockOutlined />}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  disabled={submitting}
+                  status={confirmPassword && confirmPassword !== password ? 'error' : ''}
+                  data-testid="login-confirm-password"
+                  className="!mt-3"
+                />
+              )}
               {isSignUp && password && strength && (
                 <div data-testid="password-strength">
                   <Progress
@@ -168,6 +193,7 @@ export default function LoginForm() {
                 block
                 onClick={() => {
                   setIsSignUp(!isSignUp)
+                  setConfirmPassword('')
                   setError(null)
                 }}
               >
