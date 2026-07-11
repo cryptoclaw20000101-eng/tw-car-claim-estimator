@@ -285,8 +285,16 @@ export interface PainAndSufferingResult {
   regionalLow: number
   regionalMid: number
   regionalHigh: number
+  /** v0.18.x+ 套用 Personal Factors 後的金額（年齡/職業/扶養人/勞減） */
+  adjustedLow?: number
+  adjustedMid?: number
+  adjustedHigh?: number
+  /** v0.18.x+ Personal Factors multiplier 拆解 */
+  personalFactorMultiplier?: number // 0.85-1.6 範圍
+  personalFactorNotes?: string[] // 給 UI 顯示「為什麼會加成」
   severityLevel: string // 'minor' | 'moderate' | 'serious' | ...
-  severityScore: number // 0-100
+  severityScore: number // 0-200 (v0.18.x+ 從 0-100 擴為 0-200)
+  severityLevelIndex?: number // 0-14 (v0.18.x+ 從 0-7 擴為 0-14)
   breakdown: {
     hospitalizationDays: number
     rehabilitationCount: number

@@ -1,13 +1,13 @@
 // =====================================================================
 // 民事損害賠償計算
 // 涵蓋：民事醫療差額、看護費（地區行情）、工作損失、勞動能力減損、
-//       精神慰撫金（6-8 級分項加權 + 地區係數）
+//       精神慰撫金（v0.18.x+ 15 級 + Personal Factors）
 //
 // 公式原則：
 //   1. 民事醫療 = 總收據 - 強制險已認列
 //   2. 民事看護 = 地區日額 × 醫囑日數 - 強制險已認列
 //   3. 工作損失 = 每日收入 × min(實際請假, 醫囑休養)
-//   4. 精神慰撫金 = 嚴重度分數 → 對應區間 → × 地區係數
+//   4. 精神慰撫金 = 嚴重度分數 (0-200) → 15 級區間 → × 地區係數 × Personal Factors
 // =====================================================================
 
 import type {
@@ -35,23 +35,15 @@ interface SeverityScoreBreakdown {
   treatmentDurationDays: number // 保留供 scoreSeverity 內部使用（測試可注入）
 }
 
-// 8 級區間表（元），基本值
-const BASE_PAS_TABLE: { level: number; label: string; low: number; mid: number; high: number }[] = [
-  { level: 1, label: '極輕微（單純擦挫傷）', low: 20_000, mid: 50_000, high: 80_000 },
-  { level: 2, label: '輕傷（擦挫傷 + 短期就醫）', low: 40_000, mid: 70_000, high: 100_000 },
-  { level: 3, label: '中度（明顯疤痕或治療 1-2 個月）', low: 80_000, mid: 120_000, high: 150_000 },
-  { level: 4, label: '中重度（住院 1-2 週 + 復健）', low: 100_000, mid: 150_000, high: 200_000 },
-  { level: 5, label: '重度（骨折 + 手術 + 長期復健）', low: 150_000, mid: 220_000, high: 300_000 },
-  { level: 6, label: '嚴重（多處骨折 + 多次手術）', low: 200_000, mid: 300_000, high: 400_000 },
-  { level: 7, label: '極嚴重（永久障害 + 持續治療）', low: 300_000, mid: 500_000, high: 800_000 },
-  {
-    level: 8,
-    label: '重大（失能 / 截肢 / 神經重大損傷）',
-    low: 500_000,
-    mid: 800_000,
-    high: 1_500_000,
-  },
-]
+// 15 級區間表（v0.18.x+ 從 pas-table.ts 共用，原 8 級擴為 15 級）
+import {
+  PAS_TABLE,
+  type PasLevelRow,
+  personalFactorMultiplier,
+  DEFAULT_PERSONAL_FACTORS,
+  type PersonalFactors,
+} from './pas-table'
+const BASE_PAS_TABLE: PasLevelRow[] = PAS_TABLE
 
 /**
  * 依傷勢細節計算嚴重度分數（0-100），再對應到 8 級區間
@@ -69,51 +61,61 @@ const BASE_PAS_TABLE: { level: number; label: string; low: number; mid: number; 
 export function scoreSeverity(b: SeverityScoreBreakdown): number {
   let score = 0
 
-  // 住院日數（0-20）
-  if (b.hospitalizationDays >= 15) score += 20
-  else if (b.hospitalizationDays >= 8) score += 15
-  else if (b.hospitalizationDays >= 4) score += 10
+  // 住院日數（0-30）
+  if (b.hospitalizationDays >= 60) score += 30
+  else if (b.hospitalizationDays >= 30) score += 22
+  else if (b.hospitalizationDays >= 15) score += 15
+  else if (b.hospitalizationDays >= 7) score += 10
   else if (b.hospitalizationDays >= 1) score += 5
 
   // 復健次數（0-15）
-  if (b.rehabilitationCount >= 16) score += 15
-  else if (b.rehabilitationCount >= 6) score += 10
-  else if (b.rehabilitationCount >= 1) score += 5
+  if (b.rehabilitationCount >= 50) score += 15
+  else if (b.rehabilitationCount >= 30) score += 12
+  else if (b.rehabilitationCount >= 15) score += 8
+  else if (b.rehabilitationCount >= 5) score += 4
 
-  // 疤痕（0-15）
-  if (b.hasAmputation)
-    score += 15 // 截肢疤痕極重
+  // 疤痕 (0-30)
+  if (b.hasAmputation) score += 30
+  else if (b.scarLengthCm >= 20) score += 20
   else if (b.scarLengthCm >= 10) score += 15
   else if (b.scarLengthCm >= 5) score += 10
   else if (b.scarLengthCm > 0) score += 5
 
-  // 手術（0-10）
+  // 開刀 (0-10)
   if (b.hasSurgery) score += 10
 
-  // 骨折（0-10）
+  // 骨折 (0-10)
   if (b.hasFracture) score += 10
 
-  // 神經損傷（0-10）
-  if (b.hasNerveDamage) score += 10
+  // 神經損傷 (0-15)
+  if (b.hasNerveDamage) score += 15
 
-  // 永久障害（0-10）
-  if (b.hasPermanentImpairment) score += 10
+  // 永久障害 (0-12)
+  if (b.hasPermanentImpairment) score += 12
 
-  // 失能/截肢（0-10）— 與疤痕不重複計
-  if (b.hasDisability || b.hasAmputation) score += 10
+  // 失能/截肢 (0-25)
+  if (b.hasDisability || b.hasAmputation) score += 25
 
-  return Math.min(score, 100)
+  return Math.min(score, 200)
 }
 
 function pickPasTableIndex(score: number): number {
-  if (score >= 75) return 7 // 重大
-  if (score >= 60) return 6 // 極嚴重
-  if (score >= 45) return 5 // 嚴重
-  if (score >= 35) return 4 // 重度
-  if (score >= 25) return 3 // 中重度
-  if (score >= 15) return 2 // 中度
-  if (score >= 5) return 1 // 輕傷
-  return 0 // 極輕微
+  // v0.18.x+ 15 等級 (0-14)
+  if (score >= 130) return 14
+  if (score >= 100) return 13
+  if (score >= 80) return 12
+  if (score >= 65) return 11
+  if (score >= 50) return 10
+  if (score >= 40) return 9
+  if (score >= 32) return 8
+  if (score >= 25) return 7
+  if (score >= 18) return 6
+  if (score >= 12) return 5
+  if (score >= 8) return 4
+  if (score >= 5) return 3
+  if (score >= 3) return 2
+  if (score >= 1) return 1
+  return 0
 }
 
 /**
@@ -122,6 +124,7 @@ function pickPasTableIndex(score: number): number {
 export function computePainAndSuffering(
   medical: MedicalRecord,
   courtName: string,
+  personal?: PersonalFactors, // v0.18.x+ Personal Factors (不傳時用 DEFAULT)
 ): PainAndSufferingResult {
   const breakdown: SeverityScoreBreakdown = {
     hospitalizationDays: medical.hospitalizationDays,
@@ -153,6 +156,18 @@ export function computePainAndSuffering(
   const regionalMid = Math.round(baseMid * region.painAndSufferingMultiplier)
   const regionalHigh = Math.round(baseHigh * region.painAndSufferingMultiplier)
 
+  // v0.18.x+ Personal Factors (民法 §195 酌定因子：年齡/職業/扶養人/勞減)
+  const pf = personalFactorMultiplier(personal ?? DEFAULT_PERSONAL_FACTORS)
+  const adjustedLow = Math.round(regionalLow * pf.multiplier)
+  const adjustedMid = Math.round(regionalMid * pf.multiplier)
+  const adjustedHigh = Math.round(regionalHigh * pf.multiplier)
+
+  const notes: string[] = []
+  if (pf.ageNote) notes.push(pf.ageNote)
+  if (pf.occupationNote) notes.push(pf.occupationNote)
+  if (pf.dependentNote) notes.push(pf.dependentNote)
+  if (pf.laborLossNote) notes.push(pf.laborLossNote)
+
   return {
     baseLow,
     baseMid,
@@ -161,8 +176,14 @@ export function computePainAndSuffering(
     regionalLow,
     regionalMid,
     regionalHigh,
+    adjustedLow,
+    adjustedMid,
+    adjustedHigh,
+    personalFactorMultiplier: pf.multiplier,
+    personalFactorNotes: notes,
     severityLevel: baseRow.label,
     severityScore,
+    severityLevelIndex: idx,
     breakdown: {
       hospitalizationDays: breakdown.hospitalizationDays,
       rehabilitationCount: breakdown.rehabilitationCount,

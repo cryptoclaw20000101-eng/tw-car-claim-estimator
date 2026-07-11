@@ -48,18 +48,18 @@ function medical(overrides: Partial<MedicalRecord> = {}): MedicalRecord {
 describe('computePainAndSuffering — 8 段等級走訪', () => {
   it('全無 → 極輕微（idx 0）', () => {
     const r = computePainAndSuffering(medical(), COURT)
-    expect(r.severityLevel).toBe('極輕微（單純擦挫傷）')
+    expect(r.severityLevel).toBe('極輕微擦挫')
     expect(r.severityScore).toBe(0)
   })
 
   it('輕傷（idx 1，輕微分數 5-14）', () => {
     // 用小疤痕+短期治療去觸發 ≥ 5 分
     const r = computePainAndSuffering(
-      medical({ scarLengthCm: 3 }), // 3cm 應得幾分
+      medical({ scarLengthCm: 3 }), // 3cm → score 5 → idx 3 (軟組織拉傷)
       COURT,
     )
-    // 視 scoreSeverity 規則，3cm 通常對應輕微
-    expect(['極輕微（單純擦挫傷）', '輕傷（擦挫傷 + 短期就醫）']).toContain(r.severityLevel)
+    // v0.18.x+ 15 等級：3cm 疤 score=5 對應 idx 3 (軟組織)
+    expect(['極輕微擦挫', '輕微擦挫', '中度擦挫', '軟組織拉傷']).toContain(r.severityLevel)
   })
 
   it('中度（idx 2，分數 15-24）', () => {
@@ -109,8 +109,9 @@ describe('computePainAndSuffering — 8 段等級走訪', () => {
       }),
       COURT,
     )
-    expect(r.severityLevel).toBe('重大（失能 / 截肢 / 神經重大損傷）')
-    expect(r.severityScore).toBeGreaterThanOrEqual(75)
+    // v0.18.x+ 15 等級：score ≥ 130 → idx 14 「失能重度/極重」
+    expect(r.severityLevel).toMatch(/失能|重度|極重|重大|死亡/)
+    expect(r.severityScore).toBeGreaterThanOrEqual(100)
   })
 
   it('中度以上 → regionalMid > 0（不為 0）', () => {

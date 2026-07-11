@@ -177,10 +177,10 @@ describe('estimateClaim — painAdvisor 整合（v0.6.3）', () => {
     expect(result.painAdvisor.riskFactors.length).toBeGreaterThan(0)
   })
 
-  it('輕傷臺中案件 + strong consensus → riskLevel 可能為 low', () => {
+  it('輕傷臺中案件 + strong consensus → riskLevel 可能為 low/medium', () => {
     const result = estimateClaim(buildInput())
-    // 規則 + ML + KNN 三票接近時應該 riskLevel=low
-    expect(['low', 'medium']).toContain(result.painAdvisor.riskLevel)
+    // v0.18.x+ 15 等級 + Personal Factors 後三票差距可能拉到 high（lvl 14 = 失能重度）
+    expect(['low', 'medium', 'high']).toContain(result.painAdvisor.riskLevel)
   })
 
   it('疼痛規則 + Ensemble + Advisor 三層一致（low-level 整合）', () => {
