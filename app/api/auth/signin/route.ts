@@ -8,10 +8,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { query } from '@/lib/db'
 import { verifyPassword, signToken } from '@/lib/auth'
+import { apiGuard } from '@/lib/api-security'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
+  // v0.18.x+：rate limit + CSRF (Origin) 守護
+  const guard = apiGuard(req, { bucket: 'auth-signin' })
+  if (guard) return guard
+
   try {
     const { email, password } = (await req.json()) as {
       email?: string

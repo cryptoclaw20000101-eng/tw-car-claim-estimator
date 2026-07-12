@@ -71,6 +71,7 @@ import {
   EyeOutlined,
 } from '@ant-design/icons'
 import { motion, useReducedMotion } from 'framer-motion'
+import dynamic from 'next/dynamic'
 import type { ClaimInput, EstimationResult } from '@/lib/insurance/types'
 import { estimateClaim } from '@/lib/insurance'
 import { SAMPLE_INPUT } from '@/lib/insurance/sample'
@@ -88,15 +89,38 @@ import { useAuth } from '@/components/AuthProvider'
 import { getAverageFoiCompensation } from '@/lib/data-sources/foi'
 import { listLegalReferences, isLegalReferenceStale } from '@/lib/data-sources/legal-reference'
 import type { LegalReference } from '@/lib/data-sources/types'
-// v0.15.x+ Section 元件（從 _form.tsx 拆出，6808672 partial + cb6f0fe 完成切換）
-import { CompulsorySection } from './_sections/CompulsorySection'
-import { DisabilitySection } from './_sections/DisabilitySection'
-import { PracticeCasesSection } from './_sections/PracticeCasesSection'
-import { CivilSection } from './_sections/CivilSection'
-import { ThirdPartySection } from './_sections/ThirdPartySection'
-import { SupplementSection } from './_sections/SupplementSection'
-import { RegionSection } from './_sections/RegionSection'
-import { LegalSection } from './_sections/LegalSection'
+// v0.18.x+ 動態載入 8 個 Section 元件（每 section 獨立 chunk；只有當前 tab 才 mount）
+// 比起 destroyOnHidden 更進一步：完全 lazy load，減少首次 result page 的 JS bundle
+const CompulsorySection = dynamic(
+  () => import('./_sections/CompulsorySection').then((m) => m.CompulsorySection),
+  { ssr: false },
+)
+const DisabilitySection = dynamic(
+  () => import('./_sections/DisabilitySection').then((m) => m.DisabilitySection),
+  { ssr: false },
+)
+const PracticeCasesSection = dynamic(
+  () => import('./_sections/PracticeCasesSection').then((m) => m.PracticeCasesSection),
+  { ssr: false },
+)
+const CivilSection = dynamic(() => import('./_sections/CivilSection').then((m) => m.CivilSection), {
+  ssr: false,
+})
+const ThirdPartySection = dynamic(
+  () => import('./_sections/ThirdPartySection').then((m) => m.ThirdPartySection),
+  { ssr: false },
+)
+const SupplementSection = dynamic(
+  () => import('./_sections/SupplementSection').then((m) => m.SupplementSection),
+  { ssr: false },
+)
+const RegionSection = dynamic(
+  () => import('./_sections/RegionSection').then((m) => m.RegionSection),
+  { ssr: false },
+)
+const LegalSection = dynamic(() => import('./_sections/LegalSection').then((m) => m.LegalSection), {
+  ssr: false,
+})
 
 // 結果頁依賴 sessionStorage 與 AntD Table / Statistic，必須 client runtime
 

@@ -504,6 +504,9 @@ export default function NewClaimForm() {
           form={form}
           layout="vertical"
           initialValues={data}
+          // v0.18.x+ 即時驗證：onBlur 觸發 field-level validate，紅框提示不用等下一步
+          // （DatePicker 用 onChange 已經會觸發）
+          validateTrigger={['onBlur', 'onChange']}
           onValuesChange={(_, all) => setData((d) => ({ ...d, ...all }))}
           onKeyDown={(e) => {
             // v0.18.x+ 鍵盤快捷鍵：Enter 進下一步（最後一步 = 送出並估算）

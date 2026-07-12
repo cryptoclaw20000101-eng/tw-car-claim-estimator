@@ -73,8 +73,10 @@ export const metadata: Metadata = {
   icons: {
     // 192 用於 Android home screen、180 用於 iOS apple-touch-icon
     icon: [
-      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+      // v0.18.x+：192 給 Android home screen、512 給 PWA splash screen
+      // 180 給 iOS apple-touch-icon（Next 16 從 app/apple-icon.tsx 自動產生）
+      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
     ],
     apple: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
   },
