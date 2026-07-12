@@ -505,6 +505,21 @@ export default function NewClaimForm() {
           layout="vertical"
           initialValues={data}
           onValuesChange={(_, all) => setData((d) => ({ ...d, ...all }))}
+          onKeyDown={(e) => {
+            // v0.18.x+ 鍵盤快捷鍵：Enter 進下一步（最後一步 = 送出並估算）
+            if (
+              e.key === 'Enter' &&
+              !e.shiftKey &&
+              (e.target as HTMLElement).tagName !== 'TEXTAREA'
+            ) {
+              e.preventDefault()
+              if (current < STEPS.length - 1) {
+                void next()
+              } else {
+                void submit()
+              }
+            }
+          }}
         >
           {/* ====== Step 1：事故基本 ====== */}
           {current === 0 && (

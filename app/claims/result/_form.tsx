@@ -308,7 +308,8 @@ export default function ResultForm() {
                 }
                 window.print()
               },
-              label: '下載 PDF',
+              // v0.18.x 視覺化：未登入時按鈕文字加提示
+              label: user ? '下載 PDF' : '下載 PDF（需登入）',
               icon: <FilePdfOutlined />,
               testId: 'download-pdf',
             },
