@@ -378,18 +378,58 @@ const STEPS = [
 
 // ============== 主元件 ==============
 
-export default function NewClaimForm() {
-  const router = useRouter()
-  const [current, setCurrent] = useState(0)
-  const [form] = Form.useForm<FormSchema>()
-  const [data, setData] = useState<FormSchema>({
-    basics: { ...DEFAULT_BASICS, accidentDate: '' as unknown as string }, // v0.5.1 bugfix: 初始不塞字串，DatePicker 用 dayjs 物件才不會炸
+/** v0.18.x+ 預設 FormSchema（用於 draft 還原失敗時 fallback） */
+function getDefaultFormSchema(): FormSchema {
+  return {
+    basics: { ...DEFAULT_BASICS, accidentDate: '' as unknown as string },
     fault: DEFAULT_FAULT,
     person: DEFAULT_PERSON,
     medical: DEFAULT_MEDICAL,
     receipts: DEFAULT_RECEIPTS,
     property: DEFAULT_PROPERTY,
+  }
+}
+
+export default function NewClaimForm() {
+  const router = useRouter()
+  const [current, setCurrent] = useState(0)
+  const [form] = Form.useForm<FormSchema>()
+  // v0.18.x+ 自動草稿：onChange debounce 500ms 存 localStorage（防誤關瀏覽器）
+  // mount 時若 1 小時內有 draft 自動還原
+  const DRAFT_KEY = 'tw-claim-form-draft'
+  const [data, setData] = useState<FormSchema>(() => {
+    // 嘗試讀取草稿
+    if (typeof window === 'undefined') return getDefaultFormSchema()
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY)
+      if (!raw) return getDefaultFormSchema()
+      const parsed = JSON.parse(raw) as { ts: number; data: FormSchema }
+      // 1 小時過期
+      if (Date.now() - parsed.ts > 60 * 60 * 1000) {
+        localStorage.removeItem(DRAFT_KEY)
+        return getDefaultFormSchema()
+      }
+      return {
+        ...parsed.data,
+        basics: { ...parsed.data.basics, accidentDate: '' as unknown as string },
+      }
+    } catch {
+      return getDefaultFormSchema()
+    }
   })
+
+  // v0.18.x+ 草稿 debounce 自動存：data 變動 500ms 後寫 localStorage
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ ts: Date.now(), data }))
+      } catch {
+        // localStorage quota 超限 / 隱私模式 → 靜默 fail
+      }
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [data])
 
   // v0.6.4 bugfix: DatePicker 在 Form.Item 控制下，validateFields() 會跑所有 Step 的欄位
   // 即便當前 Step 沒 mount（conditional render），Form store 仍存字串/空字串 → rc-picker
