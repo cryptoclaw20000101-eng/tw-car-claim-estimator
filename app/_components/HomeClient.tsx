@@ -24,11 +24,12 @@ export default function HomeClient() {
   return (
     <main id="main-content" className="dvh-screen flex flex-1 flex-col">
       {/* ============ Hero — 1 句話 + 1 CTA ============ */}
+      {/* v0.18.x+ LCP 優化：Hero 文字 (LCP 元素) 不做 fade-in，初始即 opacity:1
+          動畫只保留給 below-the-fold (whileInView)，hero 第一屏立即可見 */}
       <motion.section
         className="border-b border-border bg-background"
-        initial={reduce ? false : { opacity: 0, y: 8 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
       >
         <div className="mx-auto max-w-2xl px-6 py-20 text-center md:py-28">
           <Title level={1} className="!mb-8 !text-4xl !leading-tight md:!text-5xl">
