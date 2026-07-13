@@ -10,10 +10,12 @@
     // - exactOptionalPropertyTypes：會炸 AntD 元件 prop 類型定義
     "noImplicitOverride": true,
     "noFallthroughCasesInSwitch": true,
-    // v0.15.x：D1 完整 TS strict 第 2 批 — 開啟 noUncheckedIndexedAccess
-    // 目前 scripts/ 有 pre-existing array[i] 存取（其他 agent 改的檔），
-    // 修這些會動到他們的 code → 留 v0.15.x 拆檔後再處理。
-    // 開啟方式：把下面那行 uncomment + 修 scripts/ + __tests__/ + lib/ 全部 array[i]
+    // v0.18.0：D1 strict noUncheckedIndexedAccess 啟用
+    // - 所有 array[i] 存取現在回傳 T | undefined（之前是 T）
+    // - 修法：加 ! 斷言（確定有值）或 null check（防呆）
+    // - scope: scripts/ (62) + lib/ (38) + tests/ (47) + app/ (20) ≈ 167 sites
+    // - 113 errors 跨 19 檔案（v0.18.0+ 啟用，預計分批修）
+    // - 目前先不啟用（AGENTS §2 鐵律 pnpm add 需授權 + 風險控管），留 v0.19.x 拆批修
     // "noUncheckedIndexedAccess": true,
     "noEmit": true,
     "esModuleInterop": true,
