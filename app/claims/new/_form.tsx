@@ -457,6 +457,23 @@ export default function NewClaimForm() {
     }
   }, [form])
 
+  // v0.20.5+：手機返回鍵保護
+  // User 回報：手機按返回鍵 → history.back() → SPA 離開 /claims/new → 回首頁 /
+  // 修法：監聽 popstate → 立即 pushState 把 /claims/new 加回 history stack
+  //        → AntD message 警告 user「請完成表單」
+  // 行為：
+  // 1. user 在 /claims/new 按返回 → popstate 觸發 → pushState 回去 → user 仍在表單
+  // 2. draft 仍自動存 localStorage（既有），即使意外離開下次再進也還原
+  // 3. 顯示警告訊息提示 user 完成送出
+  useEffect(() => {
+    const handler = () => {
+      window.history.pushState(null, '', '/claims/new')
+      message.warning('請完成表單或按「送出並估算」後再離開')
+    }
+    window.addEventListener('popstate', handler)
+    return () => window.removeEventListener('popstate', handler)
+  }, [])
+
   // 監聽 basics.accidentCity 自動帶入 courtJurisdiction
   const accidentCity = Form.useWatch('basics.accidentCity', form)
   const handleCityChange = (v: string) => {
