@@ -638,9 +638,20 @@ export default function NewClaimForm() {
 }
 
 // ============== 淺合併工具 ==============
-// 4 步 → 5 步重構配套：export 給 __tests__/form/mergeStep-five-steps.test.ts 用
+// 4 步 → 5 步重構配套：
+// - step 0/1/2/3 各合併對應 section
+// - step 4 = 「費用與財損」panel，同時合併 receipts + property 兩個 section
+// - export 給 __tests__/form/mergeStep-five-steps.test.ts 用
 export function mergeStep(prev: FormSchema, step: number, values: Partial<FormSchema>): FormSchema {
-  const STEP_KEYS = ['basics', 'fault', 'person', 'medical', 'receipts', 'property'] as const
+  // Step 5（費用與財損）：同時合併 receipts + property
+  if (step === 4) {
+    return {
+      ...prev,
+      receipts: { ...prev.receipts, ...(values.receipts ?? {}) },
+      property: { ...prev.property, ...(values.property ?? {}) },
+    }
+  }
+  const STEP_KEYS = ['basics', 'fault', 'person', 'medical'] as const
   const stepKey = STEP_KEYS[step] ?? 'basics'
   const prevSection = prev[stepKey]
   const newSection = values[stepKey]
