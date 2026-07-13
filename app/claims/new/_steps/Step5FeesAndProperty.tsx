@@ -111,6 +111,10 @@ export function Step5FeesAndProperty(_: Step5FeesAndPropertyProps) {
         items={[
           {
             key: 'medical',
+            // v0.20.4+：forceRender 確保 panel 折疊時 children（Form.Item）也 render，
+            // 否則 Form schema 沒註冊 receipts 欄位，validateFields() 拿不到值
+            // → estimateClaim 用預設值（0）→ 強制險 0 元 production bug
+            forceRender: true,
             label: (
               <span className="font-medium">
                 <FileTextOutlined className="mr-2" />
@@ -157,6 +161,8 @@ export function Step5FeesAndProperty(_: Step5FeesAndPropertyProps) {
           },
           {
             key: 'property',
+            // v0.20.4+：同 medical panel，forceRender 確保 Form.Item 永遠註冊
+            forceRender: true,
             label: (
               <span className="font-medium">
                 <ToolOutlined className="mr-2" />
