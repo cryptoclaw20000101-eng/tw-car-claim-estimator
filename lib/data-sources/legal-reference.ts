@@ -130,10 +130,10 @@ export function getCivilDamagesReferences(): LegalReference[] {
   )
 }
 
-/** 檢查某法源是否過期（effectiveDate 超過 10 年未更新） */
+/** 檢查某法源是否過期（lastReviewed 超過 1 年未更新） */
 export function isLegalReferenceStale(ref: LegalReference): boolean {
   const lastReviewed = new Date(ref.lastReviewed)
-  const now = new Date('2026-06-07')
+  const now = new Date()
   const ageInYears = (now.getTime() - lastReviewed.getTime()) / (1000 * 60 * 60 * 24 * 365)
   return ageInYears > 1 // 1 年未檢視 = stale
 }
