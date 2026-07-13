@@ -28,8 +28,15 @@ import {
   DatePicker,
   Cascader,
   Alert,
+  Button,
 } from 'antd'
-import { MedicineBoxOutlined, QuestionCircleOutlined } from '@ant-design/icons'
+import {
+  MedicineBoxOutlined,
+  QuestionCircleOutlined,
+  ThunderboltOutlined,
+  CheckCircleOutlined,
+  ExclamationCircleOutlined,
+} from '@ant-design/icons'
 import dayjs, { Dayjs } from 'dayjs'
 import { StepShell } from '@/components/StepShell'
 import { Step4KnnPreview } from '@/components/Step4KnnPreview'
@@ -44,6 +51,11 @@ import {
   needsMMSE,
   type DisabilityCategory,
 } from '@/lib/insurance/disability-categories'
+import {
+  extractDiagnosisFeatures,
+  recommendDisabilityLevel,
+  type LevelRecommendation,
+} from '@/lib/insurance/diagnosis-parser'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -85,6 +97,8 @@ export function Step4Medical({ form, accidentLocationForKnn }: Step4MedicalProps
   // v0.7.6+：KNN 即時預視 — 監聽失能等級 + 事故地點
   const disabilityLevelForKnn = Form.useWatch(['medical', 'disabilityLevel'], form) as
     number | undefined
+  // v0.19.0+：診斷書 AI 推薦結果（rule-based parser）
+  const [aiRecommendation, setAiRecommendation] = useState<LevelRecommendation | null>(null)
 
   // v0.5.3 bugfix: emergencyDate DatePicker 跟 birthDate 同症狀 — 收到空字串炸
   // 改用 getValueProps 在 client 端注入 dayjs() 物件
@@ -111,8 +125,103 @@ export function Step4Medical({ form, accidentLocationForKnn }: Step4MedicalProps
     >
       <Row gutter={16}>
         <Col xs={24} md={12}>
-          <Form.Item label="診斷描述" name={['medical', 'diagnosisText']}>
-            <Input.TextArea rows={2} placeholder="例：左側脛骨平台粉碎性骨折 + 膝關節活動受限" />
+          <Form.Item
+            label="診斷描述"
+            name={['medical', 'diagnosisText']}
+            tooltip="貼上診斷書全文或關鍵段落，點「AI 推薦」自動建議失能等級"
+          >
+            <Input.TextArea
+              rows={2}
+              placeholder="例：左側脛骨平台粉碎性骨折 + 膝關節活動受限 ROM 30 度"
+            />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={12}>
+          {/* v0.19.0+：AI 推薦失能等級按鈕 + 結果面板 */}
+          <Form.Item label="AI 推薦失能等級（rule-based）">
+            <Space direction="vertical" className="!w-full" size="small">
+              <Button
+                icon={<ThunderboltOutlined />}
+                onClick={() => {
+                  const text = form.getFieldValue(['medical', 'diagnosisText']) ?? ''
+                  const features = extractDiagnosisFeatures(text)
+                  const accidentDate = form.getFieldValue(['basics', 'accidentDate']) ?? ''
+                  const accidentDateStr =
+                    typeof accidentDate === 'string'
+                      ? accidentDate
+                      : accidentDate && typeof accidentDate === 'object' && 'format' in accidentDate
+                        ? (accidentDate as { format: (s: string) => string }).format('YYYY-MM-DD')
+                        : ''
+                  const rec = recommendDisabilityLevel(features, accidentDateStr)
+                  setAiRecommendation(rec)
+                }}
+                data-testid="ai-recommend-button"
+              >
+                AI 推薦
+              </Button>
+              {aiRecommendation && (
+                <Card size="small" className="!bg-accent-soft/30">
+                  <Space direction="vertical" size="small" className="!w-full">
+                    <Space>
+                      {aiRecommendation.level !== null ? (
+                        <Tag color="blue" className="!text-sm">
+                          建議第 {aiRecommendation.level} 級
+                        </Tag>
+                      ) : (
+                        <Tag className="!text-sm">資料不足</Tag>
+                      )}
+                      <Tag
+                        color={
+                          aiRecommendation.confidence === 'high'
+                            ? 'green'
+                            : aiRecommendation.confidence === 'medium'
+                              ? 'gold'
+                              : aiRecommendation.confidence === 'low'
+                                ? 'orange'
+                                : 'default'
+                        }
+                      >
+                        信心度：{aiRecommendation.confidence}
+                      </Tag>
+                      {aiRecommendation.requiresHumanReview && (
+                        <Tag icon={<ExclamationCircleOutlined />} color="error">
+                          需人工複核
+                        </Tag>
+                      )}
+                      {aiRecommendation.level !== null && (
+                        <Button
+                          size="small"
+                          type="link"
+                          icon={<CheckCircleOutlined />}
+                          onClick={() =>
+                            form.setFieldValue(
+                              ['medical', 'disabilityLevel'],
+                              aiRecommendation.level,
+                            )
+                          }
+                          data-testid="ai-adopt-button"
+                        >
+                          採用建議
+                        </Button>
+                      )}
+                    </Space>
+                    <details className="!text-xs">
+                      <summary className="!cursor-pointer !text-muted">
+                        推理過程（{aiRecommendation.reasoning.length} 步）
+                      </summary>
+                      <ol className="!mt-2 !ml-4 !text-xs">
+                        {aiRecommendation.reasoning.map((r, i) => (
+                          <li key={i}>{r}</li>
+                        ))}
+                      </ol>
+                    </details>
+                    <Text type="secondary" className="!text-xs !mt-1">
+                      {aiRecommendation.disclaimer}
+                    </Text>
+                  </Space>
+                </Card>
+              )}
+            </Space>
           </Form.Item>
         </Col>
         <Col xs={24} md={12}>
