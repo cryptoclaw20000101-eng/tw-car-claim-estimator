@@ -7,6 +7,7 @@
 
 import { useState } from 'react'
 import { Alert, Card, Divider, Space, Switch, Tabs, Tag, Typography } from 'antd'
+import { FileTextOutlined } from '@ant-design/icons'
 import { BulbOutlined, CodeOutlined } from '@ant-design/icons'
 import { FormProgress } from '@/components/FormProgress'
 import { MultiFaultCompare } from '@/components/MultiFaultCompare'
@@ -101,7 +102,7 @@ function FormSection({ dark }: { dark: boolean }) {
 
       <Section title="StepShell" dark={dark}>
         <StepShell
-          icon={<span>📋</span>}
+          icon={<FileTextOutlined />}
           title="範例 Step"
           alertType="info"
           alertTitle="這是範例 alert"

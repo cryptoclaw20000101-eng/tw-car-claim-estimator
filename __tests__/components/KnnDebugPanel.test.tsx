@@ -65,12 +65,12 @@ describe('KnnDebugPanel SSR 渲染', () => {
     expect(html).toContain('114 年度 訴字 第 100 號')
     // 距離標籤（SSR 會被 React 用 HTML 註解切開，要用 regex）
     expect(html).toMatch(/距離\s*<!--\s*-->\s*0\.75/)
-    // 5 維 emoji
-    expect(html).toContain('🏙️') // city
-    expect(html).toContain('🩺') // disability_level
-    expect(html).toContain('📅') // year
-    expect(html).toContain('⚕️') // injury
-    expect(html).toContain('📋') // disability record
+    // 5 維 AntD icons（v0.18.x+ 從 emoji 換成 icon）
+    expect(html).toContain('aria-label="home"') // city (HomeOutlined)
+    expect(html).toContain('aria-label="medicine-box"') // disability_level (MedicineBoxOutlined)
+    expect(html).toContain('aria-label="calendar"') // year (CalendarOutlined)
+    expect(html).toContain('aria-label="heart"') // injury (HeartOutlined)
+    expect(html).toContain('aria-label="file-text"') // disability record (FileTextOutlined)
   })
 
   it('距離 < 0.5 → 顯示「極相似」', () => {
@@ -204,7 +204,7 @@ describe('KnnDebugPanel SSR 渲染', () => {
     })
     const html = renderToString(<KnnDebugPanel cases={[c]} />)
     // city 維度值 0.00 還是會顯示（值固定），但解釋文字空字串
-    expect(html).toContain('🏙️')
+    expect(html).toContain('aria-label="home"')
     // 不應出現「同縣市」字眼（city null 解釋器回空字串）
     expect(html).not.toContain('同縣市')
   })
@@ -252,7 +252,7 @@ describe('KnnDebugPanel SSR 渲染', () => {
     const html = renderToString(<KnnDebugPanel cases={[c]} />)
     // 注意：AntD Tooltip 在 SSR 不渲染內容（client-only 用 React Portal）
     // → 不驗證 tooltip 內容，改驗證縣市 維度標籤還在 + 0.00 值仍顯示
-    expect(html).toContain('🏙️')
+    expect(html).toContain('aria-label="home"')
     expect(html).toContain('縣市')
     // city 0.00 還是會渲染
     expect(html).toMatch(/0\.00/)

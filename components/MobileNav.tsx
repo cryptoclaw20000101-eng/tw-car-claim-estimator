@@ -24,6 +24,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button, Drawer, Space, Tooltip, Typography } from 'antd'
+import { CarOutlined } from '@ant-design/icons'
 import {
   MenuOutlined,
   CloseOutlined,
@@ -145,7 +146,7 @@ export function MobileNav() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <Text strong className="!text-base !text-foreground md:!text-lg">
-            🚗 車禍理賠
+            <CarOutlined /> 車禍理賠
           </Text>
         </Link>
 
@@ -174,7 +175,7 @@ export function MobileNav() {
       <Drawer
         title={
           <Space>
-            <span className="text-lg">🚗</span>
+            <CarOutlined className="text-lg" />
             <Text strong>車禍理賠估算器</Text>
           </Space>
         }

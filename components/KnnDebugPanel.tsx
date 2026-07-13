@@ -22,7 +22,7 @@
  * v0.10.0+ motion polish：
  *   - 5 維長條加 staggered slide-right（用 framer-motion）
  *   - honor prefers-reduced-motion
- *   - SSR 仍渲染所有維度（測試守護 emoji + 標籤）
+ *   - SSR 仍渲染所有維度（測試守護 icon + 標籤）
  *
  * 不變量（測試守護）：
  *   - 空陣列 → 回 null 不 render
@@ -34,6 +34,13 @@
 'use client'
 
 import { Card, Progress, Space, Tag, Tooltip, Typography } from 'antd'
+import {
+  HomeOutlined,
+  MedicineBoxOutlined,
+  CalendarOutlined,
+  HeartOutlined,
+  FileTextOutlined,
+} from '@ant-design/icons'
 import { motion, useReducedMotion } from 'framer-motion'
 import type { PracticeCaseWithKnn } from '@/lib/estimate/precedents'
 import type { KnnDimensionBreakdown, PrecedentFeatures } from '@/lib/estimate/precedent-knn'
@@ -49,7 +56,7 @@ export interface KnnDebugPanelProps {
 
 interface DimensionRow {
   label: string
-  emoji: string
+  icon: React.ReactNode
   value: number
   tip: string
 }
@@ -135,7 +142,7 @@ function caseFeatures(p: PracticeCaseWithKnn): PrecedentFeatures {
   }
 }
 
-export function KnnDebugPanel({ cases, title = '🔍 KNN 推薦理由（debug）' }: KnnDebugPanelProps) {
+export function KnnDebugPanel({ cases, title = 'KNN 推薦理由（debug）' }: KnnDebugPanelProps) {
   const reduce = useReducedMotion()
   // 過濾掉沒附 KNN 距離的（callers 沒傳 withKnnDebug=true）
   const debuggable = cases.filter(
@@ -170,31 +177,31 @@ export function KnnDebugPanel({ cases, title = '🔍 KNN 推薦理由（debug）
           const rows: DimensionRow[] = [
             {
               label: '縣市',
-              emoji: '🏙️',
+              icon: <HomeOutlined />,
               value: breakdown.city,
               tip: explainDimension('city', breakdown.city, query, cf),
             },
             {
               label: '失能等級',
-              emoji: '🩺',
+              icon: <MedicineBoxOutlined />,
               value: breakdown.disabilityLevel,
               tip: explainDimension('disabilityLevel', breakdown.disabilityLevel, query, cf),
             },
             {
               label: '年份',
-              emoji: '📅',
+              icon: <CalendarOutlined />,
               value: breakdown.year,
               tip: explainDimension('year', breakdown.year, query, cf),
             },
             {
               label: '傷勢',
-              emoji: '⚕️',
+              icon: <HeartOutlined />,
               value: breakdown.injurySeverity,
               tip: explainDimension('injurySeverity', breakdown.injurySeverity, query, cf),
             },
             {
               label: '失能紀錄',
-              emoji: '📋',
+              icon: <FileTextOutlined />,
               value: breakdown.hasDisabilityRecord,
               tip: explainDimension(
                 'hasDisabilityRecord',
@@ -243,7 +250,7 @@ export function KnnDebugPanel({ cases, title = '🔍 KNN 推薦理由（debug）
                   >
                     <Tooltip title={row.tip || `${row.label} 維度距離`}>
                       <Text className="!text-xs !w-20 !shrink-0">
-                        {row.emoji} {row.label}
+                        <span className="!text-accent">{row.icon}</span> {row.label}
                       </Text>
                     </Tooltip>
                     <Progress

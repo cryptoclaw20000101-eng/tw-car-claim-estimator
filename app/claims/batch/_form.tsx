@@ -66,9 +66,7 @@ export default function BatchForm() {
       className="flex flex-1 flex-col items-center px-6 py-8 bg-surface-subtle"
     >
       <div className="w-full max-w-5xl">
-        <PageBreadcrumb
-          back={{ kind: 'link', href: '/claims/new', label: '← 回單筆估算' }}
-        />
+        <PageBreadcrumb back={{ kind: 'link', href: '/claims/new', label: '← 回單筆估算' }} />
 
         <Title level={2} className="!mb-2">
           <ThunderboltOutlined className="mr-2 text-accent" />
@@ -96,7 +94,7 @@ export default function BatchForm() {
                 faultRatio 是己方肇責 0-100，otherFaultRatio 自動推算 = 100 - faultRatio
               </p>
               <Button type="link" size="small" onClick={handleLoadExample} className="!p-0">
-                📋 載入範例 CSV
+                <FileTextOutlined /> 載入範例 CSV
               </Button>
             </div>
           }

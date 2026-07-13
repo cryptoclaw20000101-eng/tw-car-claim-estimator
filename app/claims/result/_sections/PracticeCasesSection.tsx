@@ -138,7 +138,7 @@ export function PracticeCasesSection({ result }: { result: EstimationResult }) {
         })}
       />
       {/* v0.7.3+ KNN debug：每件被推薦案例的 5 維距離拆解 + 解釋 */}
-      <KnnDebugPanel cases={refs} title="🔍 KNN 推薦理由（debug）" />
+      <KnnDebugPanel cases={refs} title="KNN 推薦理由（debug）" />
     </Card>
   )
 }

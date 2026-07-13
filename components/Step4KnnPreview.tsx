@@ -33,6 +33,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { Alert, Card, Empty, Space, Spin, Tag, Typography } from 'antd'
+import { BarChartOutlined, SearchOutlined } from '@ant-design/icons'
 import { motion, useReducedMotion } from 'framer-motion'
 import type { PracticeCaseWithKnn } from '@/lib/estimate/precedents'
 import { findRelatedPracticeCases } from '@/lib/estimate/precedents'
@@ -127,7 +128,15 @@ export function Step4KnnPreview({ disabilityLevel, accidentLocation }: Step4KnnP
   // 條件 2：兩欄齊全但 0 件 → 空狀態
   if (cases.length === 0) {
     return (
-      <Card size="small" title="📊 即時 KNN 預視" className="!mt-4">
+      <Card
+        size="small"
+        title={
+          <span>
+            <BarChartOutlined /> 即時 KNN 預視
+          </span>
+        }
+        className="!mt-4"
+      >
         {/* v0.12.0+ Phase A5：空狀態文案友善化 */}
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -157,7 +166,12 @@ export function Step4KnnPreview({ disabilityLevel, accidentLocation }: Step4KnnP
     >
       <Card
         size="small"
-        title={`📊 即時 KNN 預視（失能等級 ${disabilityLevel}${accidentLocation ? ` · ${accidentLocation}` : ''}）`}
+        title={
+          <span>
+            <BarChartOutlined /> 即時 KNN 預視（失能等級 {disabilityLevel}
+            {accidentLocation ? ` · ${accidentLocation}` : ''}）
+          </span>
+        }
         className="!mt-4"
         extra={<Tag color="blue">client-side · 0 網路成本</Tag>}
       >
@@ -213,7 +227,9 @@ export function Step4KnnPreview({ disabilityLevel, accidentLocation }: Step4KnnP
         </Space>
 
         <details className="!mt-3">
-          <summary className="!cursor-pointer !text-xs !text-muted">🔍 展開 KNN 5 維拆解</summary>
+          <summary className="!cursor-pointer !text-xs !text-muted">
+            <SearchOutlined /> 展開 KNN 5 維拆解
+          </summary>
           <KnnDebugPanel cases={cases} title="為什麼這些案例被推薦？" />
         </details>
       </Card>
@@ -227,7 +243,15 @@ export function Step4KnnPreview({ disabilityLevel, accidentLocation }: Step4KnnP
  */
 export function Step4KnnPreviewSkeleton() {
   return (
-    <Card size="small" title="📊 即時 KNN 預視" className="!mt-4">
+    <Card
+      size="small"
+      title={
+        <span>
+          <BarChartOutlined /> 即時 KNN 預視
+        </span>
+      }
+      className="!mt-4"
+    >
       <Space>
         <Spin size="small" />
         <Text type="secondary" className="!text-xs">

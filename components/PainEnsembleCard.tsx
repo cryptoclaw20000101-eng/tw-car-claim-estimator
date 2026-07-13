@@ -70,22 +70,22 @@ export interface PainEnsembleCardProps {
 
 const CONSENSUS_META: Record<ConsensusLevel, { label: string; color: string; tip: string }> = {
   strong: {
-    label: '🟢 高度共識',
+    label: '高度共識',
     color: 'green',
     tip: '三票差距 ≤20%，加權平均可靠',
   },
   partial: {
-    label: '🟡 部分共識',
+    label: '部分共識',
     color: 'gold',
     tip: '兩票聚集，一票 outlier，採聚集平均',
   },
   weak: {
-    label: '🔴 弱共識',
+    label: '弱共識',
     color: 'red',
     tip: '三票分散，僅顯示區間，建議人工複核',
   },
   insufficient: {
-    label: '⚪ 票數不足',
+    label: '票數不足',
     color: 'default',
     tip: '可計算票數 < 2，需補件或人工評估',
   },
@@ -216,7 +216,7 @@ export function PainEnsembleCard({
 
       {/* v0.7.3+ KNN 推薦理由面板 — 顯示每個被推薦案例的 5 維距離拆解 */}
       {knnDebugCases && knnDebugCases.length > 0 && (
-        <KnnDebugPanel cases={knnDebugCases} title="🔍 KNN 票 · 推薦理由（debug）" />
+        <KnnDebugPanel cases={knnDebugCases} title="KNN 票 · 推薦理由（debug）" />
       )}
 
       {/* LLM Advisor 風險面板 */}
