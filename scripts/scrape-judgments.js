@@ -466,10 +466,13 @@ function parseDataLinks(html) {
         const yearInt = parseInt(year, 10);
         if (!Number.isFinite(yearInt))
             continue;
-        // v0.18.x+ 5 年內 filter：user 2026-07-09 需求
-        // 只抓 2021-2026 民事車禍相關判例, 排除過舊無參考價值案件
-        // -1 是因為 chain 設 MAIN_CIVIL_5Y 排除也會再過濾
-        if (yearInt < 2021)
+        // v0.18.0 5 年 filter bug 修正：民國年 (110=2021, 115=2026) 用 env SCRAPE_YEAR_MIN 控制
+        // 原 `if (yearInt < 2021) continue` 把民國年拿去跟西元 2021 比較 → 永遠為真 → 100% reject
+        // 鏡 scripts/scrape-cloud.ts:393-398 的修正 pattern
+        // 預設 108 民國 (= 2019 西元, 5 年內 from 2024，符合 user 2026-07-09 需求)
+        // user 可用 SCRAPE_YEAR_MIN=110 收緊到 2021 西元起 (= 原意 5 年內 from 2026)
+        const yearMin = parseInt(process.env.SCRAPE_YEAR_MIN || '108', 10);
+        if (yearInt < yearMin)
             continue;
         // 案號：{year} 年度 {caseType} 字第 {caseNum} 號
         const caseNo = `${year} 年度 ${caseType} 字第 ${caseNum} 號`;

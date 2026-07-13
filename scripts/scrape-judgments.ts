@@ -23,6 +23,14 @@
  *
  * 純 Node 內建：fetch / URLSearchParams / RegExp
  * 不裝 cheerio / axios 等套件（CLAUDE.md 鐵律：pnpm add 需用戶授權）
+ *
+ * v0.18.0 修正：5 年 filter bug
+ * - 原 line 530 有 bug: `if (yearInt < 2021) continue` 把民國年 (110=2021, 115=2026)
+ *   拿去跟西元 2021 比較 → 永遠為真 → 100% reject 所有記錄
+ * - 改用 env SCRAPE_YEAR_MIN 控制（預設 108 民國 = 2019 西元）
+ *   鏡 scripts/scrape-cloud.ts:393-398 的修正 pattern
+ * - production cron (`pnpm scrape:cron` → `node scripts/scrape-judgments.js`) 跑這檔
+ *   修前 scrape 0 hit，修後恢復正常抓取
  */
 
 import { writeFileSync, readFileSync, mkdirSync, existsSync } from 'node:fs'
@@ -199,10 +207,9 @@ const KEYWORDS = {
   pain_suffering_basis: ['慰撫金 計算基準', '精神慰撫金 酌定', '慰撫金 數額', '慰撫金 審酌'],
   // v0.18.x+ 新鏈：5 年內民事車禍（user 2026-07-09 需求擴充資料庫）
   // 5 年內 = 2021-2026 民事 + 車禍相關
-  // 排除刑庭（已 isCivilCase 過濾）+ 5 年內日期過濾（在 parseDataLinks chainKey 條件）
+  // 排除刑庭（已 isCivilCase 過濾）+ 5 年內日期過濾（v0.18.0 fix：parseDataLinks 用 SCRAPE_YEAR_MIN env 控制）
   // 寫入新檔 traffic-accident-civil-5y.json（避免污染既有 13 鏈）
   // keyword 用「精神慰撫金 車禍」+「車禍 民事」+「交通事故 和解」這 3 個已驗證有結果的
-  // 5 年內 filter 自動在 parseDataLinks 內 yearInt < 2021 時 continue
   traffic_accident_civil_5y: ['精神慰撫金 車禍', '車禍 民事', '交通事故 和解'],
   // v0.18.x+ 失能/勞動能力減損 (user 2026-07-10 擴增到 1000 件)
   labor_loss_v3: [
@@ -524,10 +531,13 @@ function parseDataLinks(html: string): RawHit[] {
     const court = COURT_CODE[code] || `${code}（未知代碼）`
     const yearInt = parseInt(year, 10)
     if (!Number.isFinite(yearInt)) continue
-    // v0.18.x+ 5 年內 filter：user 2026-07-09 需求
-    // 只抓 2021-2026 民事車禍相關判例, 排除過舊無參考價值案件
-    // -1 是因為 chain 設 MAIN_CIVIL_5Y 排除也會再過濾
-    if (yearInt < 2021) continue
+    // v0.18.0 5 年 filter bug 修正：民國年 (110=2021, 115=2026) 用 env SCRAPE_YEAR_MIN 控制
+    // 原 `if (yearInt < 2021) continue` 把民國年拿去跟西元 2021 比較 → 永遠為真 → 100% reject
+    // 鏡 scripts/scrape-cloud.ts:393-398 的修正 pattern
+    // 預設 108 民國 (= 2019 西元, 5 年內 from 2024，符合 user 2026-07-09 需求)
+    // user 可用 SCRAPE_YEAR_MIN=110 收緊到 2021 西元起 (= 原意 5 年內 from 2026)
+    const yearMin = parseInt(process.env.SCRAPE_YEAR_MIN || '108', 10)
+    if (yearInt < yearMin) continue
     // 案號：{year} 年度 {caseType} 字第 {caseNum} 號
     const caseNo = `${year} 年度 ${caseType} 字第 ${caseNum} 號`
     hits.push({
