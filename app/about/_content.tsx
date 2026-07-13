@@ -4,6 +4,79 @@ import Link from 'next/link'
 import { Card, Space, Tag, Typography } from 'antd'
 import { GithubOutlined, CodeOutlined, ToolOutlined } from '@ant-design/icons'
 
+/**
+ * 三票共識 SVG 插畫（about 頁用）
+ * 3 條路徑（規則票 / ML 票 / KNN 票）匯聚成一個共識金額
+ * 無外部依賴，inline SVG，可直接控制顏色/大小
+ */
+function EnsembleIllustration({ className = '' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 280 180"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      role="img"
+      aria-label="三票共識示意圖：規則票 / ML 票 / KNN 票 匯聚成共識金額"
+    >
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#eff6ff" />
+          <stop offset="100%" stopColor="#fafafa" />
+        </linearGradient>
+      </defs>
+      <rect x="0" y="0" width="280" height="180" rx="12" fill="url(#bg)" />
+
+      {/* 三條輸入路徑（左側三個圓點） */}
+      <circle cx="40" cy="40" r="14" fill="#1e40af" />
+      <text x="40" y="45" textAnchor="middle" fontSize="11" fill="white" fontWeight="600">
+        規則
+      </text>
+      <circle cx="40" cy="90" r="14" fill="#0891b2" />
+      <text x="40" y="95" textAnchor="middle" fontSize="11" fill="white" fontWeight="600">
+        ML
+      </text>
+      <circle cx="40" cy="140" r="14" fill="#7c3aed" />
+      <text x="40" y="145" textAnchor="middle" fontSize="11" fill="white" fontWeight="600">
+        KNN
+      </text>
+
+      {/* 三條連線 → 中央匯聚點 */}
+      <path
+        d="M 54 40 Q 140 40 200 90"
+        stroke="#1e40af"
+        strokeWidth="2"
+        fill="none"
+        opacity="0.5"
+      />
+      <path d="M 54 90 L 200 90" stroke="#0891b2" strokeWidth="2" fill="none" opacity="0.5" />
+      <path
+        d="M 54 140 Q 140 140 200 90"
+        stroke="#7c3aed"
+        strokeWidth="2"
+        fill="none"
+        opacity="0.5"
+      />
+
+      {/* 共識輸出（右側矩形） */}
+      <rect x="200" y="70" width="60" height="40" rx="6" fill="#1e40af" />
+      <text x="230" y="88" textAnchor="middle" fontSize="9" fill="white" fontWeight="600">
+        共識金額
+      </text>
+      <text x="230" y="102" textAnchor="middle" fontSize="11" fill="white" fontWeight="700">
+        NT$
+      </text>
+
+      {/* 連線箭頭 */}
+      <path
+        d="M 200 90 L 196 86 M 200 90 L 196 94"
+        stroke="#1e40af"
+        strokeWidth="1.5"
+        fill="none"
+      />
+    </svg>
+  )
+}
+
 const { Title, Paragraph, Text } = Typography
 
 export default function AboutContent() {
@@ -20,23 +93,16 @@ export default function AboutContent() {
           臺灣車禍理賠估算工具 · Open source 個人專案
         </Paragraph>
 
+        <EnsembleIllustration className="!mb-6 !w-full !max-w-md !mx-auto" />
+
         <Card>
           <Space direction="vertical" size="large" className="!w-full">
             <Section
               title="工具定位"
               content={
-                <>
-                  <Paragraph>
-                    <strong>雙重身份</strong>：
-                  </Paragraph>
-                  <Paragraph>
-                    1. <strong>實務工具</strong>：保險經紀人、律師、業務員的日常估算輔助
-                  </Paragraph>
-                  <Paragraph>
-                    2. <strong>iPAS AI 應用規劃師備考作品</strong>：展示 Ensemble、LLM、Agent 等 AI
-                    概念
-                  </Paragraph>
-                </>
+                <Paragraph>
+                  <strong>實務工具</strong>：保險經紀人、律師、業務員的日常估算輔助
+                </Paragraph>
               }
             />
 
@@ -73,14 +139,15 @@ export default function AboutContent() {
                     1. <strong>強制險醫療</strong>：15 細項 × 法定上限（依事故日切換新/舊法）
                   </Paragraph>
                   <Paragraph>
-                    2. <strong>失能初篩</strong>：4 級（A/B/C/D）+ 14 級失能金額
+                    2. <strong>失能給付</strong>：依強制汽車責任保險給付標準 §4，失能等級 1–15 級 ×
+                    對應 金額（依事故日 2026-07-01 切換新/舊法）
                   </Paragraph>
                   <Paragraph>
-                    3. <strong>民事損害賠償</strong>：5 大項（醫療差額 / 看護 / 工作損失 / 勞動減損
-                    / 精神慰撫金）
+                    3. <strong>民事損害賠償</strong>：6 大項（醫療差額 / 看護 / 工作損失 / 勞動減損
+                    / 精神慰撫金 / 財產損失）
                   </Paragraph>
                   <Paragraph>
-                    4. <strong>第三人責任險</strong>：體傷 + 財損分開 cap，肇責比例分攤
+                    4. <strong>第三人責任險</strong>：體傷 + 財損分開計算，肇責比例分攤
                   </Paragraph>
                   <Paragraph>
                     5. <strong>補件 / 風險</strong>：缺文件清單 + 風險標示
@@ -100,13 +167,13 @@ export default function AboutContent() {
                     精神慰撫金沒有法定公式，所以用<strong>三票共識</strong>：
                   </Paragraph>
                   <Paragraph>
-                    🎯 <strong>規則票</strong>：8 級區間 × 治療加成 × 6 地院係數
+                    <strong>規則票</strong>：15 等級區間 × 治療加成 × 6 地院係數
                   </Paragraph>
                   <Paragraph>
-                    📊 <strong>ML 票</strong>：13+ 件真實判決 anchor 中位數
+                    <strong>ML 票</strong>：153+ 件真實判決 anchor 中位數
                   </Paragraph>
                   <Paragraph>
-                    🔍 <strong>KNN 票</strong>：200+ 司法院案例最相似 K 件平均
+                    <strong>KNN 票</strong>：779+ 司法院案例最相似 K 件平均
                   </Paragraph>
                   <Paragraph>
                     三票差距 ≤ 20% 視為共識 → 加權平均。差距大 → 警告「需人工複核」。
@@ -161,8 +228,7 @@ export default function AboutContent() {
               title="免責"
               content={
                 <Paragraph>
-                  本工具是個人練習作品 + 業務輔助工具，
-                  <strong>不是保險公司的官方產品</strong>。 重大理賠決策請以正式專業意見為準。
+                  重大理賠決策請以正式專業意見為準。
                   <br />
                   <Link href="/terms" className="text-accent hover:underline">
                     完整服務條款

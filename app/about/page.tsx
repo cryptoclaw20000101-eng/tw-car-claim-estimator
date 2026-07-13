@@ -5,7 +5,7 @@ import AboutContent from './_content'
  * /about — 關於我們（v0.14.x 新增）
  *
  * 展示：
- * - 工具定位（iPAS 練習作品 + 實務工具）
+ * - 工具定位（實務工具）
  * - 技術棧
  * - 開發團隊
  * - Open source 連結
