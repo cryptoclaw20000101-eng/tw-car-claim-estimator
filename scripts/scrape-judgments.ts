@@ -263,7 +263,11 @@ const CHAIN_REGEX: Record<ChainKey, RegExp> = {
   // v0.5.7+ 慰撫金計算基準：借 mental_distress regex（慰撫金/精神慰撫金 X 元）
   pain_suffering_basis: /(?:精神)?慰撫金[^。]*?([\d,]+)\s*元/,
   // v0.18.x+ 5 年內民事車禍：用「精神慰撫金/損害賠償/和解」regex（金額為主，不限 chain）
-  traffic_accident_civil_5y: /(?:精神)?慰撫金|損害賠償|和解金[^。]*?([\d,]+)\s*元/,
+  // v0.18.0 fix: 原寫法 `(?:精神)?慰撫金|損害賠償|和解金[^。]*?([\d,]+)\s*元` 讓 `(?:精神)?慰撫金` 第一個
+  // alternative 沒 capture group，匹配時 m[1] 變 undefined → .replace() crash。
+  // 改用 `(?:(?:精神)?慰撫金|損害賠償|和解金)[^。]*?([\d,]+)\s*元` 把整個 alternation 包起來，
+  // 確保任何 alternative 都會接著 capture 金額。
+  traffic_accident_civil_5y: /(?:(?:精神)?慰撫金|損害賠償|和解金)[^。]*?([\d,]+)\s*元/,
   // v0.18.x+ 失能/勞動能力減損 (user 2026-07-10 擴增到 1000 件)
   labor_loss_v3: /(?:失能|後遺症|終身|殘廢|喪失)[^。]*?([\d,]+)\s*元/,
 }
@@ -557,6 +561,7 @@ function extractAmounts(
   html: string,
   chain: ChainKey,
 ): { amount: number; total: number; gist: string } | null {
+  if (typeof html !== 'string') return null
   // 把 HTML 壓平成純文字
   const text = html
     .replace(/<script[\s\S]*?<\/script>/gi, ' ')

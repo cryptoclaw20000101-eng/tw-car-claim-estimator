@@ -201,7 +201,7 @@ const CHAIN_REGEX: Record<ChainKey, RegExp> = {
   overtime_loss: /(?:加班費|全勤獎金|年終獎金)[^。]*?([\d,]+)\s*元/,
   appeal_case: /(?:上訴|二審|撤回上訴)[^。]*?([\d,]+)\s*元/,
   pain_suffering_basis: /(?:精神)?慰撫金[^。]*?([\d,]+)\s*元/,
-  traffic_accident_civil_5y: /(?:精神)?慰撫金|損害賠償|和解金[^。]*?([\d,]+)\s*元/,
+  traffic_accident_civil_5y: /(?:(?:精神)?慰撫金|損害賠償|和解金)[^。]*?([\d,]+)\s*元/,
   labor_loss_v3: /(?:失能|後遺症|終身|殘廢|喪失)[^。]*?([\d,]+)\s*元/,
 }
 const CHAIN_FILE: Record<ChainKey, string> = {

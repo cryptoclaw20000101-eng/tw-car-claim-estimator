@@ -24,6 +24,14 @@
  *
  * 純 Node 內建：fetch / URLSearchParams / RegExp
  * 不裝 cheerio / axios 等套件（CLAUDE.md 鐵律：pnpm add 需用戶授權）
+ *
+ * v0.18.0 修正：5 年 filter bug
+ * - 原 line 530 有 bug: `if (yearInt < 2021) continue` 把民國年 (110=2021, 115=2026)
+ *   拿去跟西元 2021 比較 → 永遠為真 → 100% reject 所有記錄
+ * - 改用 env SCRAPE_YEAR_MIN 控制（預設 108 民國 = 2019 西元）
+ *   鏡 scripts/scrape-cloud.ts:393-398 的修正 pattern
+ * - production cron (`pnpm scrape:cron` → `node scripts/scrape-judgments.js`) 跑這檔
+ *   修前 scrape 0 hit，修後恢復正常抓取
  */
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -198,10 +206,9 @@ const KEYWORDS = {
     pain_suffering_basis: ['慰撫金 計算基準', '精神慰撫金 酌定', '慰撫金 數額', '慰撫金 審酌'],
     // v0.18.x+ 新鏈：5 年內民事車禍（user 2026-07-09 需求擴充資料庫）
     // 5 年內 = 2021-2026 民事 + 車禍相關
-    // 排除刑庭（已 isCivilCase 過濾）+ 5 年內日期過濾（在 parseDataLinks chainKey 條件）
+    // 排除刑庭（已 isCivilCase 過濾）+ 5 年內日期過濾（v0.18.0 fix：parseDataLinks 用 SCRAPE_YEAR_MIN env 控制）
     // 寫入新檔 traffic-accident-civil-5y.json（避免污染既有 13 鏈）
     // keyword 用「精神慰撫金 車禍」+「車禍 民事」+「交通事故 和解」這 3 個已驗證有結果的
-    // 5 年內 filter 自動在 parseDataLinks 內 yearInt < 2021 時 continue
     traffic_accident_civil_5y: ['精神慰撫金 車禍', '車禍 民事', '交通事故 和解'],
     // v0.18.x+ 失能/勞動能力減損 (user 2026-07-10 擴增到 1000 件)
     labor_loss_v3: [
@@ -251,7 +258,11 @@ const CHAIN_REGEX = {
     // v0.5.7+ 慰撫金計算基準：借 mental_distress regex（慰撫金/精神慰撫金 X 元）
     pain_suffering_basis: /(?:精神)?慰撫金[^。]*?([\d,]+)\s*元/,
     // v0.18.x+ 5 年內民事車禍：用「精神慰撫金/損害賠償/和解」regex（金額為主，不限 chain）
-    traffic_accident_civil_5y: /(?:精神)?慰撫金|損害賠償|和解金[^。]*?([\d,]+)\s*元/,
+    // v0.18.0 fix: 原寫法 `(?:精神)?慰撫金|損害賠償|和解金[^。]*?([\d,]+)\s*元` 讓 `(?:精神)?慰撫金` 第一個
+    // alternative 沒 capture group，匹配時 m[1] 變 undefined → .replace() crash。
+    // 改用 `(?:(?:精神)?慰撫金|損害賠償|和解金)[^。]*?([\d,]+)\s*元` 把整個 alternation 包起來，
+    // 確保任何 alternative 都會接著 capture 金額。
+    traffic_accident_civil_5y: /(?:(?:精神)?慰撫金|損害賠償|和解金)[^。]*?([\d,]+)\s*元/,
     // v0.18.x+ 失能/勞動能力減損 (user 2026-07-10 擴增到 1000 件)
     labor_loss_v3: /(?:失能|後遺症|終身|殘廢|喪失)[^。]*?([\d,]+)\s*元/,
 };
@@ -489,6 +500,8 @@ function parseDataLinks(html) {
     return hits;
 }
 function extractAmounts(html, chain) {
+    if (typeof html !== 'string')
+        return null;
     // 把 HTML 壓平成純文字
     const text = html
         .replace(/<script[\s\S]*?<\/script>/gi, ' ')
