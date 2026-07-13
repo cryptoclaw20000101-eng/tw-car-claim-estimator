@@ -632,7 +632,8 @@ export default function NewClaimForm() {
 }
 
 // ============== 淺合併工具 ==============
-function mergeStep(prev: FormSchema, step: number, values: Partial<FormSchema>): FormSchema {
+// 4 步 → 5 步重構配套：export 給 __tests__/form/mergeStep-five-steps.test.ts 用
+export function mergeStep(prev: FormSchema, step: number, values: Partial<FormSchema>): FormSchema {
   const STEP_KEYS = ['basics', 'fault', 'person', 'medical', 'receipts', 'property'] as const
   const stepKey = STEP_KEYS[step] ?? 'basics'
   const prevSection = prev[stepKey]
