@@ -1,7 +1,9 @@
 'use client'
 
 /**
- * FormProgress — 自製 7 步驟進度條（v0.12.0+ Phase B2）
+ * FormProgress — 自製 N 步驟進度條（v0.12.0+ Phase B2）
+ *
+ * v0.19.0+：從 hardcode 7 步改為動態 steps 數（支援 4 步表單重構）
  *
  * 為什麼不用 AntD Steps：
  * - AntD Steps 過於樣板化，視覺 zero surprise
@@ -9,7 +11,7 @@
  * - 想用更精準的進度填充條
  *
  * 設計：
- * - 7 個步驟圓圈 + 標題 + 進度填充條
+ * - N 個步驟圓圈 + 標題 + 進度填充條（動態 grid-cols-N）
  * - 三狀態：完成 / 進行中 / 未開始
  *   - 完成：accent 色填滿 + check icon
  *   - 進行中：accent 邊框 + 脈動 dot
@@ -46,8 +48,11 @@ export function FormProgress({ steps, current, className = '' }: FormProgressPro
           transition={{ duration: 0.4, ease: 'easeOut' }}
         />
 
-        {/* 步驟圓圈 + 標題 */}
-        <div className="relative grid grid-cols-7 gap-2">
+        {/* 步驟圓圈 + 標題（動態 grid-cols-{total}） */}
+        <div
+          className="relative gap-2"
+          style={{ display: 'grid', gridTemplateColumns: `repeat(${total}, minmax(0, 1fr))` }}
+        >
           {steps.map((step, i) => {
             const status = i < current ? 'done' : i === current ? 'current' : 'pending'
             return <StepDot key={step.title} index={i} status={status} title={step.title} />

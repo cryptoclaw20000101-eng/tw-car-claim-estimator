@@ -49,14 +49,13 @@ import { Step4KnnPreview } from '@/components/Step4KnnPreview'
 import { MobileStickyCTA } from '@/components/MobileStickyCTA'
 // v0.12.0+ Phase B2：自製進度條
 import { FormProgress } from '@/components/FormProgress'
-// v0.15.x Phase 4：Step 元件抽出
+// v0.15.x Phase 4 + v0.19.0：Step 元件抽出（7 → 4 步）
+// Step 3 = 原 Step3Person + Step7Region（聲請人/對方居住地）
+// Step 4 = 原 Step4Medical + Step5Receipts + Step6Property
 import { Step1Basics } from './_steps/Step1Basics'
 import { Step2Fault } from './_steps/Step2Fault'
-import { Step3Person } from './_steps/Step3Person'
+import { Step3PersonalWork } from './_steps/Step3PersonalWork'
 import { Step4Medical } from './_steps/Step4Medical'
-import { Step5Receipts } from './_steps/Step5Receipts'
-import { Step6Property } from './_steps/Step6Property'
-import { Step7Region } from './_steps/Step7Region'
 import {
   LeftOutlined,
   RightOutlined,
@@ -366,14 +365,16 @@ export interface FormSchema {
   property: PropertyDamageInputs
 }
 
+// v0.19.0+：表單 7 步 → 4 步重構
+// - Step 1：事故基本（日期/地點/類型）
+// - Step 2：肇責（己方/對方 + 來源）
+// - Step 3：人身 / 工作（合併原 Step3 人身 + Step7 聲請人/對方居住地 + 法院）
+// - Step 4：診斷書（合併原 Step4 失能 + Step5 醫療收據 15 細項 + Step6 車損/財損）
 const STEPS = [
   { title: '事故基本' },
   { title: '肇責' },
   { title: '人身 / 工作' },
   { title: '診斷書' },
-  { title: '醫療收據' },
-  { title: '車損 / 財損' },
-  { title: '地區 / 法院' },
 ]
 
 // ============== 主元件 ==============
@@ -576,19 +577,17 @@ export default function NewClaimForm() {
           )}
           {/* ====== Step 2：肇責 ====== */}
           {current === 1 && <Step2Fault form={form} faultSourceOptions={FAULT_SOURCE_OPTIONS} />}
-          {/* ====== Step 3：人身 / 工作 ====== */}
-          {current === 2 && <Step3Person form={form} employmentOptions={EMPLOYMENT_OPTIONS} />}
-          {/* ====== Step 4：診斷書 ====== */}
+          {/* ====== Step 3：人身 / 工作（v0.19.0+：合併原 Step3 + Step7 居住地） ====== */}
+          {current === 2 && (
+            <Step3PersonalWork
+              form={form}
+              employmentOptions={EMPLOYMENT_OPTIONS}
+              courtJurisdiction={data.basics.courtJurisdiction}
+            />
+          )}
+          {/* ====== Step 4：診斷書（v0.19.0+：合併原 Step4 + Step5 收據 + Step6 車損） ====== */}
           {current === 3 && (
             <Step4Medical form={form} accidentLocationForKnn={data.basics.accidentLocation} />
-          )}
-          {/* ====== Step 5：醫療收據 ====== */}
-          {current === 4 && <Step5Receipts form={form} />}
-          {/* ====== Step 6：車損 / 財損 ====== */}
-          {current === 5 && <Step6Property form={form} />}
-          {/* ====== Step 7：地區 / 法院 ====== */}
-          {current === 6 && (
-            <Step7Region form={form} courtJurisdiction={data.basics.courtJurisdiction} />
           )}
         </Form>
 

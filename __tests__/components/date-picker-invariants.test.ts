@@ -26,7 +26,7 @@ import { resolve } from 'node:path'
 const PATHS = [
   resolve(process.cwd(), 'app/claims/new/_form.tsx'),
   resolve(process.cwd(), 'app/claims/new/_steps/Step1Basics.tsx'),
-  resolve(process.cwd(), 'app/claims/new/_steps/Step3Person.tsx'),
+  resolve(process.cwd(), 'app/claims/new/_steps/Step3PersonalWork.tsx'),
   resolve(process.cwd(), 'app/claims/new/_steps/Step4Medical.tsx'),
 ]
 const source = PATHS.map((p) => readFileSync(p, 'utf-8')).join('\n')
