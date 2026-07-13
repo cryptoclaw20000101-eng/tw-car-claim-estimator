@@ -18,8 +18,6 @@
 
 import type { CourtCaseReference } from '@/lib/data-sources/types'
 import { courtToCity } from '@/lib/insurance/region-court-map'
-import { readdirSync, readFileSync, existsSync } from 'node:fs'
-import { join } from 'node:path'
 import {
   precedentDistance,
   computeDimensionDistances,
@@ -59,6 +57,12 @@ let _cache: ScrapedPrecedent[] | null = null
 function loadPrecedentsSync(): ScrapedPrecedent[] {
   if (_cache !== null) return _cache
   try {
+    // v0.20.2+：用 lazy require 避免把 node:fs / node:path 拉進 client bundle
+    // （Top-level import 會破 Next.js Turbopack client build）
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { readdirSync, readFileSync, existsSync } = require('node:fs') as typeof import('node:fs')
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { join } = require('node:path') as typeof import('node:path')
     // 嘗試多個路徑（cwd 在不同 context 不一樣）
     const candidates = [
       join(process.cwd(), 'data/precedents/taipei-mental-distress.json'),
@@ -174,6 +178,11 @@ let _generalCache: GeneralPrecedent[] | null = null
 export function loadAllPrecedents(): GeneralPrecedent[] {
   if (_generalCache !== null) return _generalCache
   try {
+    // v0.20.2+：同上一段 lazy require，避免 client bundle error
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { readdirSync, readFileSync, existsSync } = require('node:fs') as typeof import('node:fs')
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { join } = require('node:path') as typeof import('node:path')
     const dirs = [
       join(process.cwd(), 'data', 'precedents'),
       join(process.cwd(), '..', 'data', 'precedents'),
