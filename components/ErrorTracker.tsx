@@ -49,7 +49,6 @@ export function ErrorTracker({ endpoint, sampleRate = 1, debug = false }: ErrorT
     const send = (payload: ErrorPayload) => {
       // 開發模式 + debug：console.error
       if (process.env.NODE_ENV !== 'production' || debug) {
-        // eslint-disable-next-line no-console
         console.error('[ErrorTracker]', payload.type, payload.message, payload.stack)
       }
       // 生產環境：送到 endpoint（若有設定）
@@ -106,7 +105,7 @@ export function ErrorTracker({ endpoint, sampleRate = 1, debug = false }: ErrorT
  * 包裝使用者函式，捕獲錯誤自動上報
  * 用法：withErrorTracking(() => doSomething(), { endpoint: '/api/errors' })
  */
-export function withErrorTracking<T extends (...args: any[]) => any>(
+export function withErrorTracking<T extends (...args: unknown[]) => unknown>(
   fn: T,
   options: ErrorTrackerProps = {},
 ): T {
@@ -129,7 +128,6 @@ export function withErrorTracking<T extends (...args: any[]) => any>(
 
 function reportError(err: unknown, options: ErrorTrackerProps) {
   if (options.debug || process.env.NODE_ENV !== 'production') {
-    // eslint-disable-next-line no-console
     console.error('[ErrorTracker] caught:', err)
   }
   if (options.endpoint && process.env.NODE_ENV === 'production') {

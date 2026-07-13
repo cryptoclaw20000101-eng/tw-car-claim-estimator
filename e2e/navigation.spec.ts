@@ -14,7 +14,10 @@ test.describe('路由可達性', () => {
   test('首頁 → 表單頁可達', async ({ page }) => {
     await page.goto('/')
     // 點 hero CTA 按鈕（用 partial match 因為有 emoji）
-    await page.getByRole('link', { name: /開始估算/ }).first().click()
+    await page
+      .getByRole('link', { name: /開始估算/ })
+      .first()
+      .click()
     await expect(page).toHaveURL(/\/claims\/new/)
     // FormProgress 渲染
     await expect(page.getByTestId('form-progress')).toBeVisible()

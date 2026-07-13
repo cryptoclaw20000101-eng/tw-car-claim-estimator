@@ -25,7 +25,6 @@ type Reporter = (metric: Metric) => void
  * 生產環境可改為送到 analytics endpoint
  */
 const defaultReporter: Reporter = (metric) => {
-  // eslint-disable-next-line no-console
   console.info(`[Web Vitals] ${metric.name}:`, {
     value: metric.value,
     rating: metric.rating,

@@ -5,6 +5,8 @@
 // =====================================================================
 
 import { describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import {
   computeThirdParty,
   computeVehicleDamage,
@@ -232,12 +234,7 @@ describe('computeVehicleDamage — 車損計算（回傳 number）', () => {
   })
 
   it('AGENTS §1 鐵律②：車損不進強制險（守護：computeVehicleDamage 不該被 compulsory.ts 引用）', () => {
-    const fs = require('node:fs')
-    const path = require('node:path')
-    const compulsorySrc = fs.readFileSync(
-      path.join(process.cwd(), 'lib/insurance/compulsory.ts'),
-      'utf-8',
-    )
+    const compulsorySrc = readFileSync(join(process.cwd(), 'lib/insurance/compulsory.ts'), 'utf-8')
     expect(compulsorySrc).not.toContain('computeVehicleDamage')
   })
 })

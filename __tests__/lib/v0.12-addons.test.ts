@@ -11,6 +11,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import type { ClaimInput, EstimationResult } from '@/lib/insurance/types'
 
 // Mock window / localStorage / navigator.clipboard
 const localStorageMock = (() => {
@@ -49,7 +50,7 @@ afterEach(() => {
 describe('estimate-history', () => {
   it('SSR 安全：hasStorage false 時 getEstimateHistory 回 []', async () => {
     const origWindow = global.window
-    delete (global as any).window
+    delete (global as unknown as { window?: unknown }).window
     const { getEstimateHistory, saveEstimateHistory } = await import('@/lib/estimate-history')
     expect(getEstimateHistory()).toEqual([])
     saveEstimateHistory({
@@ -134,7 +135,7 @@ describe('estimate-history', () => {
       disability: { possibleLevel: 7, screening: 'B' as const },
       region: { courtName: '臺北地院' },
       painAndSuffering: { regionalMid: 30000 },
-    } as any
+    } as unknown as Parameters<typeof buildHistoryEntry>[0]
     const entry = buildHistoryEntry(fakeResult, 50)
     expect(entry.compulsoryTotalEstimated).toBe(50000)
     expect(entry.disabilityLevel).toBe(7)
@@ -164,19 +165,19 @@ describe('share-link', () => {
         isFaultDisputed: false,
       },
       medical: { disabilityLevel: 7 },
-    } as any
+    } as unknown as ClaimInput
     const result = {
       compulsoryTotalEstimated: 50000,
       disability: { screening: 'B' as const },
       thirdParty: { thirdPartyEstimateMid: 30000 },
-    } as any
+    } as unknown as EstimationResult
     const hash = encodeShareHash(input, result)
     expect(hash).toMatch(/^r=/)
     const decoded = decodeShareHash(hash)
     expect(decoded).not.toBeNull()
     expect(decoded?.input.accidentDate).toBe('2026-07-03')
     expect(decoded?.input.selfFaultRatio).toBe(30)
-    expect((decoded?.result as any).c).toBe(50000)
+    expect((decoded?.result as unknown as { c?: number }).c).toBe(50000)
   })
 
   it('空 hash 回 null', async () => {
@@ -196,7 +197,7 @@ describe('share-link', () => {
 
   it('restoreFromHash SSR 安全', async () => {
     const origWindow = global.window
-    delete (global as any).window
+    delete (global as unknown as { window?: unknown }).window
     const { restoreFromHash } = await import('@/lib/share-link')
     expect(restoreFromHash()).toBe(false)
     global.window = origWindow

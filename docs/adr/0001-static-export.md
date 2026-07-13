@@ -7,6 +7,7 @@
 ## 背景
 
 tw-car-claim-estimator 是車禍理賠估算工具，使用情境：
+
 - 業務員用手機 / 桌機查詢
 - 偶爾網路不穩（車行現場、客戶家）
 - 必須極速載入（使用者耐心 < 3s）
@@ -16,14 +17,17 @@ tw-car-claim-estimator 是車禍理賠估算工具，使用情境：
 ## 選項
 
 ### A. Next.js SSR（Node.js server）
+
 - 優：動態內容、API routes、ISR
 - 缺：要長期運行的 server、成本高
 
 ### B. Next.js static export（output: "export"）
+
 - 優：CDN 友善、零 server 成本、秒開
 - 缺：不能用 API routes 動態內容、不能用 cookies
 
 ### C. 純 SPA（Vite + React Router）
+
 - 優：開發簡單
 - 缺：SEO 差、首次載入慢、無 SSR
 
@@ -32,6 +36,7 @@ tw-car-claim-estimator 是車禍理賠估算工具，使用情境：
 **選 B（Next.js static export）**
 
 理由：
+
 - 純計算工具，沒用戶資料 → 不需要 server-side session
 - 業務員手機網路不穩 → 邊緣快取是必須
 - Vercel Edge CDN 免費 hosting 適合個人專案
@@ -49,6 +54,7 @@ tw-car-claim-estimator 是車禍理賠估算工具，使用情境：
 ## 替代方案
 
 若未來需要真實 LLM API 串接，可：
+
 1. 改用 Vercel Functions（partial SSR，v0.7.0+ 已設計）
 2. 切到 Tauri 桌面版（已有 v0.5.0+ 殼，純前端運算）
 3. 維持 mock 但接 Sentry / 第三方錯誤追蹤（v0.13.x 已 scaffold）

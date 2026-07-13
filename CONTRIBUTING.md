@@ -31,6 +31,7 @@ pnpm e2e
 ### 1. 改之前先讀 AGENTS.md
 
 `AGENTS.md` 是本專案的**單一真相源**：
+
 - §0 專案定位 / §1 三條鐵律（永不改） / §6 紅線（不可接受的內容）
 - §2 程式碼風格 / §3 測試規範 / §4 Git 流程
 - §8-§19 業務邏輯章節（v0.5.0-v0.8.4）
@@ -58,28 +59,30 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
 
 **type**（commitlint enforced）：
 
-| type | 用途 |
-|---|---|
-| `feat` | 新功能 |
-| `fix` | 修 bug |
-| `docs` | 純文件（README / AGENTS / CHANGELOG）|
-| `style` | 格式（不影響邏輯，Prettier 統一）|
-| `refactor` | 重構（不新功能也不修 bug）|
-| `perf` | 效能優化 |
-| `test` | 加測試 |
-| `chore` | 雜事（build / deps / config）|
+| type       | 用途                                  |
+| ---------- | ------------------------------------- |
+| `feat`     | 新功能                                |
+| `fix`      | 修 bug                                |
+| `docs`     | 純文件（README / AGENTS / CHANGELOG） |
+| `style`    | 格式（不影響邏輯，Prettier 統一）     |
+| `refactor` | 重構（不新功能也不修 bug）            |
+| `perf`     | 效能優化                              |
+| `test`     | 加測試                                |
+| `chore`    | 雜事（build / deps / config）         |
 
 **scope**（從 commitlint.config.js 的 scope-enum 選）：
 
 `seo` / `motion` / `visual` / `tokens` / `content` / `form` / `a11y` / `dx` / `workflow` / `theme` / `pwa` / `monitor` / `batch` / `cleanup` / `security`
 
 **subject** 規則：
+
 - 全小寫、無句點、最長 100 字元
 - 範例：`feat(form): 表單 5 個關鍵欄位加 tooltip`
 
 ### 4. Husky + lint-staged 自動檢查
 
 Commit 時自動跑：
+
 - `pre-commit` → prettier 自動 format staged 檔案
 - `commit-msg` → commitlint 驗證格式
 
@@ -154,6 +157,7 @@ git push origin feat/<scope>-<short-desc>
 ## 提問
 
 不確定的話：
+
 1. 先查 AGENTS.md（90% 問題都有寫）
 2. 再看 `__tests__/` 找類似測試
 3. 開 issue 討論

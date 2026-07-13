@@ -12,6 +12,12 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // v0.20.0+：tsc emit artifacts（不要 lint 已編譯的 .js）
+    "**/.law-cutoff-build/**",
+    "**/scripts/**/*.js",
+    "**/lib/**/*.js",
+    "**/src-tauri/target/**",
+    "**/src-tauri/gen/**",
   ]),
 ]);
 

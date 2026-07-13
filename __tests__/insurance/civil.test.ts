@@ -567,7 +567,11 @@ describe('computeLaborCapacityLoss', () => {
         hasNerveDamage: false,
         hasAmputation: false,
       } as MedicalRecord,
-      person: { age: 35, sixMonthAverageSalary: 40_000, monthlySalary: 40_000 } as any,
+      person: {
+        age: 35,
+        sixMonthAverageSalary: 40_000,
+        monthlySalary: 40_000,
+      } as unknown as PersonalIncome,
       courtName: '臺灣臺中地方法院',
       disabilityLevel: null,
     })
@@ -584,7 +588,11 @@ describe('computeLaborCapacityLoss', () => {
         hasNerveDamage: false,
         hasAmputation: false,
       } as MedicalRecord,
-      person: { age: 35, sixMonthAverageSalary: 40_000, monthlySalary: 40_000 } as any,
+      person: {
+        age: 35,
+        sixMonthAverageSalary: 40_000,
+        monthlySalary: 40_000,
+      } as unknown as PersonalIncome,
       courtName: '臺灣臺中地方法院',
       disabilityLevel: null,
     })
@@ -601,7 +609,11 @@ describe('computeLaborCapacityLoss', () => {
         hasNerveDamage: false,
         hasAmputation: false,
       } as MedicalRecord,
-      person: { age: 35, sixMonthAverageSalary: 40_000, monthlySalary: 40_000 } as any,
+      person: {
+        age: 35,
+        sixMonthAverageSalary: 40_000,
+        monthlySalary: 40_000,
+      } as unknown as PersonalIncome,
       courtName: '臺灣臺中地方法院',
       disabilityLevel: 8,
     })
@@ -623,7 +635,11 @@ describe('computeLaborCapacityLoss', () => {
         hasNerveDamage: false,
         hasAmputation: false,
       } as MedicalRecord,
-      person: { age: 65, sixMonthAverageSalary: 40_000, monthlySalary: 40_000 } as any,
+      person: {
+        age: 65,
+        sixMonthAverageSalary: 40_000,
+        monthlySalary: 40_000,
+      } as unknown as PersonalIncome,
       courtName: '臺灣臺中地方法院',
       disabilityLevel: 8,
     })

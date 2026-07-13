@@ -7,6 +7,7 @@
 ## 背景
 
 專案早期 `#be123c`（rose-700）硬編在 7 個地方：
+
 - `app/globals.css` 的 `--accent` token
 - `app/layout.tsx` 的 `viewport.themeColor`
 - `app/layout.tsx` 的 `ConfigProvider.colorPrimary`
@@ -20,14 +21,17 @@
 ## 選項
 
 ### A. 維持現狀（繼續硬編）
+
 - 優：簡單
 - 缺：易漏、易漂移、無法 type-safe
 
 ### B. CSS variable only
+
 - 優：瀏覽器原生支援
 - 缺：AntD ConfigProvider / ImageResponse 不吃 CSS var
 
 ### C. CSS variable + TS runtime tokens
+
 - 優：兩層覆蓋（CSS + AntD + manifest + ImageResponse）
 - 缺：要維護 2 個檔保持同步
 
@@ -36,6 +40,7 @@
 **選 C（CSS + TS tokens）**
 
 理由：
+
 - TS runtime 給 AntD ConfigProvider / manifest / ImageResponse 用（不能直接吃 CSS var）
 - CSS variable 給 Tailwind / 客製 CSS 用
 - 兩層用 `lib/design/tokens.ts` 統一 source

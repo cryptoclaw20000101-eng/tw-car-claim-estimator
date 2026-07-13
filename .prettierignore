@@ -6,3 +6,10 @@ data/precedents/*.json
 public/sw.js
 **/*.min.js
 **/*.d.ts
+# v0.20.0+：tsc emit artifacts（不要 format 已編譯的 .js）
+/.law-cutoff-build/**
+/src-tauri/target/**
+/src-tauri/gen/**
+/scripts/*.js
+/scripts/**/*.js
+/lib/**/*.js

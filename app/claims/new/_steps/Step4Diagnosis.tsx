@@ -331,7 +331,7 @@ export function Step4Diagnosis({ form, accidentLocationForKnn }: Step4DiagnosisP
             <Select
               allowClear
               placeholder="選大類"
-              options={DISABILITY_CATEGORIES.map((c) => ({ value: c, label: c }))}
+              options={DISABILITY_CATEGORIES.map((c) => ({ value: c.value, label: c.label }))}
               onChange={(v) => {
                 if (v) {
                   const defaultLvl = getDefaultLevel(v as DisabilityCategory)

@@ -7,19 +7,29 @@ import { renderToString } from 'react-dom/server'
 import { configureAxe } from 'vitest-axe'
 import { axe } from 'vitest-axe'
 
-const axeConfig = [
+/** axe-core Result 的最小具體型別（不 import axe-core 套件，只描述用得到的欄位） */
+interface AxeResultLite {
+  id: string
+  impact?: 'minor' | 'moderate' | 'serious' | 'critical' | null | undefined
+  description: string
+}
+
+const axeConfig: readonly string[] = [
   // 業務頁面特有寬容：區域性 color contrast 微小差距不擋
   // 'color-contrast',
 ]
 
+// v0.20.0+：vitest-axe upstream type bug — `globalOptions` 宣告成 `AxeCore.Spec`
+// 但 `runOnly` 實際在 `RunOptions` 而非 `Spec`，TS 永遠不過。
+// 整段 `as any` 放棄 type check（runtime 行為正確，4 it 都綠）
 configureAxe({
   globalOptions: {
     runOnly:
       axeConfig.length > 0
-        ? { type: 'tag', values: axeConfig }
+        ? { type: 'tag', values: [...axeConfig] }
         : { type: 'tag', values: ['wcag2a', 'wcag2aa'] },
   },
-})
+} as unknown as Parameters<typeof configureAxe>[0])
 
 // 測試各主要頁面 SSR HTML（純字串，無 React state）
 describe('key pages a11y (axe-core)', () => {
@@ -42,12 +52,12 @@ describe('key pages a11y (axe-core)', () => {
     const results = await axe(html)
     // critical/serious 違規必須為 0
     const critical = results.violations.filter(
-      (v: any) => v.impact === 'critical' || v.impact === 'serious',
+      (v: AxeResultLite) => v.impact === 'critical' || v.impact === 'serious',
     )
     if (critical.length > 0) {
       console.error(
         'Critical a11y violations:',
-        critical.map((v: any) => `${v.id}: ${v.description}`),
+        critical.map((v: AxeResultLite) => `${v.id}: ${v.description}`),
       )
     }
     expect(critical.length).toBe(0)
@@ -74,7 +84,7 @@ describe('key pages a11y (axe-core)', () => {
     `
     const results = await axe(html)
     const critical = results.violations.filter(
-      (v: any) => v.impact === 'critical' || v.impact === 'serious',
+      (v: AxeResultLite) => v.impact === 'critical' || v.impact === 'serious',
     )
     expect(critical.length).toBe(0)
   })
@@ -100,7 +110,7 @@ describe('key pages a11y (axe-core)', () => {
     `
     const results = await axe(html)
     const critical = results.violations.filter(
-      (v: any) => v.impact === 'critical' || v.impact === 'serious',
+      (v: AxeResultLite) => v.impact === 'critical' || v.impact === 'serious',
     )
     expect(critical.length).toBe(0)
   })

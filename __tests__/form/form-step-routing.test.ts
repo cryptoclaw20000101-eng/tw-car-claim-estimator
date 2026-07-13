@@ -22,7 +22,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 
 const FORM_PATH = join(process.cwd(), 'app/claims/new/_form.tsx')
@@ -33,7 +33,6 @@ function readFormSource(): string {
 }
 
 function listStepFiles(): string[] {
-  const { readdirSync } = require('node:fs')
   return readdirSync(STEPS_DIR).filter((f: string) => f.startsWith('Step') && f.endsWith('.tsx'))
 }
 

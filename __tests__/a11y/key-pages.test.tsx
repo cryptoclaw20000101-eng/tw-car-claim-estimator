@@ -49,7 +49,6 @@ describe('首頁 a11y smoke test', () => {
     )
 
     if (criticalOrSerious.length > 0) {
-      // eslint-disable-next-line no-console
       console.error(
         'A11y violations:',
         criticalOrSerious.map((v) => ({

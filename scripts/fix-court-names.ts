@@ -57,9 +57,9 @@ async function getHtml(jar: Jar, url: string, referer?: string): Promise<string>
       }
       if (!res.ok) throw new Error(`GET ${url} → ${res.status}`)
       return await res.text()
-    } catch (e: any) {
-      lastErr = e
-      if (i === 2) throw e
+    } catch (e) {
+      lastErr = e instanceof Error ? e : new Error(String(e))
+      if (i === 2) throw lastErr
       await sleep(500 * 2 ** i)
     }
   }

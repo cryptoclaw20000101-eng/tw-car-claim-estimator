@@ -18,12 +18,8 @@ test.describe('首頁', () => {
     await expect(page.getByRole('heading', { level: 1 })).toContainText('車禍理賠金額')
 
     // 5 區塊（強制險同時出現在多處，用 heading 限定到 BentoCell）
-    await expect(
-      page.getByRole('heading', { name: '強制險', level: 3 }),
-    ).toBeVisible()
-    await expect(
-      page.getByRole('heading', { name: '失能初篩', level: 3 }),
-    ).toBeVisible()
+    await expect(page.getByRole('heading', { name: '強制險', level: 3 })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '失能初篩', level: 3 })).toBeVisible()
 
     // 鐵律
     await expect(page.getByRole('heading', { name: '三條鐵律', level: 2 })).toBeVisible()

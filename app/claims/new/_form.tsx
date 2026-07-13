@@ -414,10 +414,9 @@ export default function NewClaimForm() {
         localStorage.removeItem(DRAFT_KEY)
         return getDefaultFormSchema()
       }
-      return {
-        ...parsed.data,
-        basics: { ...parsed.data.basics, accidentDate: '' as unknown as string },
-      }
+      // v0.20.0+：保留使用者之前填的日期（之前強制清空為 '' 會讓 dayjs 注入覆蓋成今天，
+      // 導致 draft 還原看起來像沒留住資料）
+      return parsed.data
     } catch {
       return getDefaultFormSchema()
     }
@@ -440,13 +439,22 @@ export default function NewClaimForm() {
   // 即便當前 Step 沒 mount（conditional render），Form store 仍存字串/空字串 → rc-picker
   // 內部 getUDayjs('1990-01-01').isValid() 炸（v0.5.1/v0.5.3 只在子 Step useEffect 補救，跨 Step 不夠）
   // 解法：父層 mount 時一次把所有日期欄位注入 dayjs()，不受 conditional render 影響
+  // v0.20.0+：只在欄位為空時注入 dayjs()，避免覆蓋 draft 還原的舊值
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    form.setFieldsValue({
-      basics: { accidentDate: dayjs() },
-      person: { birthDate: dayjs('1990-01-01') },
-      medical: { emergencyDate: dayjs() },
-    } as Record<string, unknown>)
+    const current = form.getFieldsValue() as Partial<FormSchema>
+    const patch: Record<string, unknown> = {}
+    if (!current.basics?.accidentDate) {
+      patch.basics = { ...current.basics, accidentDate: dayjs() }
+    }
+    if (!current.person?.birthDate) {
+      patch.person = { ...current.person, birthDate: dayjs('1990-01-01') }
+    }
+    if (!current.medical?.emergencyDate) {
+      patch.medical = { ...current.medical, emergencyDate: dayjs() }
+    }
+    if (Object.keys(patch).length > 0) {
+      form.setFieldsValue(patch as Record<string, unknown>)
+    }
   }, [form])
 
   // 監聽 basics.accidentCity 自動帶入 courtJurisdiction
@@ -485,7 +493,6 @@ export default function NewClaimForm() {
       // 移除 ?load=true 避免重複載入
       window.history.replaceState({}, '', '/claims/new')
     })()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form])
 
   const next = async () => {

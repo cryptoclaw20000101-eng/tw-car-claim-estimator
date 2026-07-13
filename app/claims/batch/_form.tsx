@@ -48,10 +48,9 @@ export default function BatchForm() {
     try {
       await navigator.clipboard.writeText(csvOut)
       // 簡單 fallback：alert
-      // eslint-disable-next-line no-alert
+
       alert('已複製結果 CSV 到剪貼簿')
     } catch {
-      // eslint-disable-next-line no-alert
       alert('複製失敗，請手動選取')
     }
   }

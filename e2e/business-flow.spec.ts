@@ -67,7 +67,15 @@ test.describe('業務流程', () => {
     await page.goto('/claims/new')
     await expect(page.getByTestId('form-progress')).toBeVisible()
     // 7 個步驟標題都顯示
-    for (const title of ['事故基本', '肇責', '人身 / 工作', '診斷書', '醫療收據', '車損 / 財損', '地區 / 法院']) {
+    for (const title of [
+      '事故基本',
+      '肇責',
+      '人身 / 工作',
+      '診斷書',
+      '醫療收據',
+      '車損 / 財損',
+      '地區 / 法院',
+    ]) {
       await expect(page.getByText(title, { exact: true })).toBeVisible()
     }
   })
