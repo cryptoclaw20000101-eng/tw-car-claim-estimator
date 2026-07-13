@@ -414,27 +414,32 @@ export default function ResultForm() {
               精神慰撫金 × {result.region.courtName} 係數
             </div>
           </div>
-          {/* 副格 2：失能初篩 — 縮小到 text-base */}
+          {/* 副格 2：失能初篩 — 縮小到 text-base
+              v0.19.x+：當沒信號時顯示「資料不足」而非「分級 A」（避免誤導）*/}
           <div className="bg-surface p-5">
             <div className="mb-2 text-xs uppercase tracking-[0.18em] text-muted">失能初篩</div>
             <div className="text-base font-semibold tracking-tight">
-              <span
-                style={{
-                  color: {
-                    A: 'var(--data-positive)',
-                    B: 'var(--accent)',
-                    C: 'var(--data-warning)',
-                    D: 'var(--data-negative)',
-                  }[result.disability.screening],
-                }}
-              >
-                分級 {result.disability.screening}
-              </span>
+              {result.disability.signals.length > 0 || result.disability.possibleLevel !== null ? (
+                <span
+                  style={{
+                    color: {
+                      A: 'var(--data-positive)',
+                      B: 'var(--accent)',
+                      C: 'var(--data-warning)',
+                      D: 'var(--data-negative)',
+                    }[result.disability.screening],
+                  }}
+                >
+                  分級 {result.disability.screening}
+                </span>
+              ) : (
+                <span className="text-muted">資料不足</span>
+              )}
             </div>
             <div className="mt-1 text-xs text-muted">
               {result.disability.possibleLevel
                 ? `可能等級：第 ${result.disability.possibleLevel} 級`
-                : '資料不足以判定'}
+                : '需補失能診斷書 + ROM 才能評估'}
             </div>
           </div>
         </div>

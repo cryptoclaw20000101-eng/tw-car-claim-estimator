@@ -16,12 +16,20 @@ const dollar = (n: number) => `NT$ ${(n ?? 0).toLocaleString('zh-TW')}`
 export function DisabilitySection({ result }: { result: EstimationResult }) {
   const d = result.disability
   const colorMap: Record<string, string> = { A: 'green', B: 'blue', C: 'orange', D: 'red' }
+  // v0.19.x+：當沒任何信號時，顯示「資料不足」而不是「分級 A」（避免誤導用戶）
+  const hasSignals = d.signals.length > 0 || d.possibleLevel !== null
   return (
     <Card>
       <Space size="middle" className="!mb-3">
-        <Tag color={colorMap[d.screening]} style={{ fontSize: 18, padding: '4px 12px' }}>
-          分級 {d.screening}
-        </Tag>
+        {hasSignals ? (
+          <Tag color={colorMap[d.screening]} style={{ fontSize: 18, padding: '4px 12px' }}>
+            分級 {d.screening}
+          </Tag>
+        ) : (
+          <Tag color="default" style={{ fontSize: 18, padding: '4px 12px' }}>
+            資料不足，未判定
+          </Tag>
+        )}
         {d.possibleLevel && <Tag color="purple">可能失能等級：第 {d.possibleLevel} 級</Tag>}
         {d.possibleAmount > 0 && (
           <Statistic
