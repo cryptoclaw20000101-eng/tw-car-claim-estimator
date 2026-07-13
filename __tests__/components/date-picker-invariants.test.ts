@@ -21,13 +21,14 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 // v0.15.x+ 重構後，Step 元件拆到 _steps/ 子目錄
-// 源碼分散：_form.tsx（主檔）+ _steps/Step1Basics.tsx + _steps/Step3Person.tsx + _steps/Step4Medical.tsx
+// 源碼分散：_form.tsx（主檔）+ _steps/Step1Basics.tsx + _steps/Step3Person.tsx + _steps/Step4Diagnosis.tsx
 // v0.15.x+ 抽 Step3 後，birthDate 從 Step1 搬到 Step3，PATHS 必須含 Step3Person
+// v0.20.0+：Step4Medical 拆成 Step4Diagnosis（保留 medical.emergencyDate）+ Step5FeesAndProperty
 const PATHS = [
   resolve(process.cwd(), 'app/claims/new/_form.tsx'),
   resolve(process.cwd(), 'app/claims/new/_steps/Step1Basics.tsx'),
   resolve(process.cwd(), 'app/claims/new/_steps/Step3PersonalWork.tsx'),
-  resolve(process.cwd(), 'app/claims/new/_steps/Step4Medical.tsx'),
+  resolve(process.cwd(), 'app/claims/new/_steps/Step4Diagnosis.tsx'),
 ]
 const source = PATHS.map((p) => readFileSync(p, 'utf-8')).join('\n')
 

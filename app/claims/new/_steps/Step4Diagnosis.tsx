@@ -1,18 +1,20 @@
 /**
- * Step 4：診斷書（v0.15.x+ 從 _form.tsx 抽出，269 行）
+ * Step 4：傷勢與診斷（v0.20.0+ 從原 Step4Medical 拆出上半段）
  *
- * 失能保典 12 大類 + 失能等級 + ROM 計算 + 永久障害標記
+ * 內容：診斷書 + AI 推薦 + 醫院 + 治療歷程 + 失能保典 12 大類 + 傷勢細節
+ * 不含：醫療收據（已搬到 Step5FeesAndProperty）+ 車損 / 財損（同上）
  *
- * 抽出原因：
- * - 269 行是 _form.tsx 最大 Step
- * - 內含多個 sub-component（DisabilityCategoryCascader 等）讓 _form.tsx 膨脹
- * - 拆出後 _form.tsx 從 1267 → 900 行
+ * 拆解理由：user 反饋「最後一步負擔過大」→ 5 步拆分：
+ *   Step 4（本檔）：傷勢與診斷（medial section）
+ *   Step 5：費用與財損（receipts + property，可展開）
  */
 
 'use client'
 
 import { useState } from 'react'
 import {
+  Alert,
+  Button,
   Card,
   Col,
   Form,
@@ -26,9 +28,6 @@ import {
   Tooltip,
   Typography,
   DatePicker,
-  Cascader,
-  Alert,
-  Button,
 } from 'antd'
 import {
   MedicineBoxOutlined,
@@ -36,8 +35,6 @@ import {
   ThunderboltOutlined,
   CheckCircleOutlined,
   ExclamationCircleOutlined,
-  FileTextOutlined,
-  ToolOutlined,
 } from '@ant-design/icons'
 import dayjs, { Dayjs } from 'dayjs'
 import { StepShell } from '@/components/StepShell'
@@ -61,7 +58,7 @@ import {
 
 const { Title, Text, Paragraph } = Typography
 
-export interface Step4MedicalProps {
+export interface Step4DiagnosisProps {
   form: ReturnType<typeof Form.useForm<FormSchema>>[0]
   /** 從 Step 1 帶入的 accidentLocation（給 KNN 預視用）*/
   accidentLocationForKnn: string | undefined
@@ -94,7 +91,7 @@ const ROM_NORMAL: Record<JointName, number> = {
   lumbar: 60,
 }
 
-export function Step4Medical({ form, accidentLocationForKnn }: Step4MedicalProps) {
+export function Step4Diagnosis({ form, accidentLocationForKnn }: Step4DiagnosisProps) {
   const jointName = Form.useWatch(['medical', 'jointName'], form) as JointName | null
   // v0.7.6+：KNN 即時預視 — 監聽失能等級 + 事故地點
   const disabilityLevelForKnn = Form.useWatch(['medical', 'disabilityLevel'], form) as
@@ -120,7 +117,7 @@ export function Step4Medical({ form, accidentLocationForKnn }: Step4MedicalProps
   return (
     <StepShell
       icon={<MedicineBoxOutlined />}
-      title="診斷書 / 失能保典"
+      title="傷勢與診斷"
       alertType="info"
       alertTitle="失能保典 12 大類（如骨骼／神經／眼耳等），從大類選完會自動帶出該類常見等級，可手改。"
       stepNumber={4}
@@ -609,128 +606,16 @@ export function Step4Medical({ form, accidentLocationForKnn }: Step4MedicalProps
           </Paragraph>
         </Card>
       )}
-
-      {/* v0.19.0+：合併原 Step5 醫療收據 15 細項（強制險 §2）*/}
-      <Card
-        className="!mt-4"
-        title={
-          <>
-            <FileTextOutlined className="mr-2" />
-            醫療收據（強制險 15 細項）
-          </>
-        }
-      >
-        <InfoAlert
-          type="info"
-          showIcon
-          className="!mb-3"
-          title="依強制汽車責任保險給付標準 §2 細項填寫；看護費有 1,200 元/日、30 日硬上限（會自動套用）。"
-          body="本表單只收醫療相關；精神慰撫金 / 工作損失 / 車損請勿填入此處（法律強制不併入強制險）。"
-        />
-        <Title level={5} className="!mb-2">
-          救護與掛號（急診/救護/掛號/診斷書）
-        </Title>
-        <Row gutter={16} className="!mb-3">
-          <R2C name={['receipts', 'emergencyFee']} label="急診費" />
-          <R2C name={['receipts', 'ambulanceFee']} label="救護車費" />
-          <R2C name={['receipts', 'nhiCopayment']} label="健保自付額" />
-          <R2C name={['receipts', 'registrationFee']} label="掛號費" />
-          <R2C name={['receipts', 'diagnosisCertificateFee']} label="診斷書費" />
-          <R2C name={['receipts', 'nonNhiNecessaryMedicalFee']} label="非健保必要醫療" />
-        </Row>
-        <Title level={5} className="!mb-2">
-          住院（病房/膳食）
-        </Title>
-        <Row gutter={16} className="!mb-3">
-          <R2C name={['receipts', 'wardFeeDifference']} label="病房費差額" />
-          <R2C name={['receipts', 'wardFeeDays']} label="病房費天數" />
-          <R2C name={['receipts', 'mealFee']} label="膳食費" />
-          <R2C name={['receipts', 'mealDays']} label="膳食天數" />
-        </Row>
-        <Title level={5} className="!mb-2">
-          義肢 / 齒 / 眼
-        </Title>
-        <Row gutter={16} className="!mb-3">
-          <R2C name={['receipts', 'prosthesisFee']} label="義肢費" />
-          <R2C name={['receipts', 'dentureFee']} label="義齒費" />
-          <R2C name={['receipts', 'missingTeethCount']} label="缺牙數" />
-          <R2C name={['receipts', 'artificialEyeFee']} label="義眼費" />
-        </Row>
-        <Title level={5} className="!mb-2">
-          特殊材料 / 輔具 / 其他
-        </Title>
-        <Row gutter={16}>
-          <R2C name={['receipts', 'specialMaterialFee']} label="特殊材料費（骨材/鋼板/特材）" />
-          <R2C name={['receipts', 'assistiveDeviceFee']} label="輔具費（拐杖/輪椅/支架）" />
-          <R2C name={['receipts', 'transportationFee']} label="接送費" />
-          <R2C name={['receipts', 'nursingFee']} label="看護費" />
-          <R2C name={['receipts', 'nursingDays']} label="看護天數" />
-          <R2C name={['receipts', 'otherNecessaryMedicalFee']} label="其他必要醫療" />
-        </Row>
-      </Card>
-
-      {/* v0.19.0+：合併原 Step6 車損 / 財損 */}
-      <Card
-        className="!mt-4"
-        title={
-          <>
-            <ToolOutlined className="mr-2" />
-            車損 / 財損
-          </>
-        }
-      >
-        <Title level={5} className="!mb-2">
-          車輛
-        </Title>
-        <Row gutter={16} className="!mb-3">
-          <R2C name={['property', 'vehicleRepairEstimate']} label="估價單金額" />
-          <R2C name={['property', 'vehicleRepairInvoice']} label="發票金額" />
-          <R2C name={['property', 'vehicleMarketValueBeforeAccident']} label="事故前車價" />
-          <R2C name={['property', 'salvageValue']} label="殘值" />
-          <R2C name={['property', 'towingFee']} label="拖吊費" />
-          <R2C name={['property', 'rentalCarFee']} label="代步費" />
-        </Row>
-        <Title level={5} className="!mb-2 !mt-2">
-          其他財損
-        </Title>
-        <Row gutter={16}>
-          <R2C name={['property', 'phoneDamage']} label="手機損壞" />
-          <R2C name={['property', 'helmetDamage']} label="安全帽損壞" />
-          <R2C name={['property', 'clothingDamage']} label="衣物損壞" />
-          <R2C name={['property', 'glassesDamage']} label="眼鏡損壞" />
-          <R2C name={['property', 'otherPropertyDamage']} label="其他財損" />
-        </Row>
-      </Card>
     </StepShell>
   )
 }
 
 /**
  * 即時顯示「失能等級 → 勞減比例」對照（依 DISABILITY_LABOR_LOSS_PCT 公式）
- * 跟 Step1 元件不重複
  */
 function DisabilityLevelTag() {
   const form = Form.useFormInstance<FormSchema>()
   const level = Form.useWatch(['medical', 'disabilityLevel'], form) as number | undefined
   if (level == null) return <Tag>未選</Tag>
-  // DISABILITY_LABOR_LOSS_PCT 從 _form.tsx 傳入（避免循環依賴）
   return <Tag color="default">{level} 級</Tag>
-}
-
-/**
- * v0.19.0+：合併原 Step5 醫療收據 + Step6 車損的 R2C helper
- * Row + Col 12/8 排版，金額格式化（千分位）
- */
-function R2C({ name, label }: { name: [string, string]; label: string }) {
-  return (
-    <Col xs={12} md={8}>
-      <Form.Item label={label} name={name}>
-        <InputNumber
-          style={{ width: '100%' }}
-          min={0}
-          formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-        />
-      </Form.Item>
-    </Col>
-  )
 }

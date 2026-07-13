@@ -55,7 +55,9 @@ import { FormProgress } from '@/components/FormProgress'
 import { Step1Basics } from './_steps/Step1Basics'
 import { Step2Fault } from './_steps/Step2Fault'
 import { Step3PersonalWork } from './_steps/Step3PersonalWork'
-import { Step4Medical } from './_steps/Step4Medical'
+// v0.20.0+：4 → 5 步重構；原 Step4Medical 拆成 Step4Diagnosis + Step5FeesAndProperty
+import { Step4Diagnosis } from './_steps/Step4Diagnosis'
+import { Step5FeesAndProperty } from './_steps/Step5FeesAndProperty'
 import {
   LeftOutlined,
   RightOutlined,
@@ -365,16 +367,18 @@ export interface FormSchema {
   property: PropertyDamageInputs
 }
 
-// v0.19.0+：表單 7 步 → 4 步重構
+// v0.20.0+：表單 7 步 → 5 步重構（user 反饋「最後一步負擔過大」）
 // - Step 1：事故基本（日期/地點/類型）
 // - Step 2：肇責（己方/對方 + 來源）
 // - Step 3：人身 / 工作（合併原 Step3 人身 + Step7 聲請人/對方居住地 + 法院）
-// - Step 4：診斷書（合併原 Step4 失能 + Step5 醫療收據 15 細項 + Step6 車損/財損）
+// - Step 4：傷勢與診斷（原 Step4 失能保典 12 大類 + 傷勢細節）
+// - Step 5：費用與財損（原 Step5 醫療收據 + Step6 車損；可展開區塊）
 const STEPS = [
   { title: '事故基本' },
   { title: '肇責' },
   { title: '人身 / 工作' },
-  { title: '診斷書' },
+  { title: '傷勢與診斷' },
+  { title: '費用與財損' },
 ]
 
 // ============== 主元件 ==============
@@ -595,10 +599,12 @@ export default function NewClaimForm() {
               courtJurisdiction={data.basics.courtJurisdiction}
             />
           )}
-          {/* ====== Step 4：診斷書（v0.19.0+：合併原 Step4 + Step5 收據 + Step6 車損） ====== */}
+          {/* ====== Step 4：傷勢與診斷（v0.20.0+：從原 Step4Medical 上半段拆出） ====== */}
           {current === 3 && (
-            <Step4Medical form={form} accidentLocationForKnn={data.basics.accidentLocation} />
+            <Step4Diagnosis form={form} accidentLocationForKnn={data.basics.accidentLocation} />
           )}
+          {/* ====== Step 5：費用與財損（v0.20.0+：從原 Step4Medical 下半段拆出） ====== */}
+          {current === 4 && <Step5FeesAndProperty form={form} />}
         </Form>
 
         {/* v0.8.1+：手機 sticky CTA（桌機保留原本 flex 排版） */}
