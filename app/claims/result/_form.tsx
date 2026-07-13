@@ -203,19 +203,32 @@ export default function ResultForm() {
     return sessionStorage.getItem('estimate-id')
   })
 
-  // v0.12.0+ Phase B3：估算成功後自動寫入 localStorage 歷史（脫敏後）
-  // v0.14.x：登入時改存 Supabase 雲端（fallback 到 localStorage）
-  // 用 useEffect 確保只在 client 跑（避免 SSR 報錯）
+  // v0.21.0+：估算成功後自動寫入雲端 / 本機，並把同步狀態存 state 給 UI 顯示
+  // 規則：登入 → 雲端 (Postgres) → UI 顯示「☁️ 已同步雲端」
+  //      未登入 → 本機 (localStorage) → UI 顯示「💾 僅存本機，建議登入雲端同步」
+  const [syncStatus, setSyncStatus] = useState<
+    | { state: 'idle' }
+    | { state: 'pending' }
+    | { state: 'cloud'; estimateId: string }
+    | { state: 'local' }
+    | { state: 'error'; message: string }
+  >({ state: 'idle' })
   useEffect(() => {
     if (!input || !result) return
+    setSyncStatus({ state: 'pending' })
     void (async () => {
       try {
-        await saveEstimate(input, result, user?.id ?? null)
-      } catch {
-        // silent fail
+        const saved = await saveEstimate(input, result, user?.id ?? null)
+        // saveEstimate 回傳 { storage: 'cloud' | 'local', id? }
+        setSyncStatus(
+          saved.storage === 'cloud' && saved.id
+            ? { state: 'cloud', estimateId: saved.id }
+            : { state: 'local' },
+        )
+      } catch (e) {
+        setSyncStatus({ state: 'error', message: String(e) })
       }
     })()
-    // 只在 mount 時跑一次（result 變動不重複存）
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -307,6 +320,48 @@ export default function ResultForm() {
       </div>
 
       <div className="w-full max-w-5xl">
+        {/* v0.21.0+：雲端同步狀態提示（user 之前看不到雲端存有沒有跑） */}
+        {syncStatus.state === 'pending' && (
+          <InfoAlert
+            type="info"
+            showIcon
+            className="!mb-4"
+            title="案件儲存中..."
+            body="正在同步到雲端（或本機）"
+          />
+        )}
+        {syncStatus.state === 'cloud' && (
+          <InfoAlert
+            type="success"
+            showIcon
+            className="!mb-4"
+            title="☁️ 已同步雲端"
+            body={`您的案件已存到雲端（ID: ${syncStatus.estimateId.slice(0, 8)}...）。下次用同 email 登入即可跨裝置存取。`}
+          />
+        )}
+        {syncStatus.state === 'local' && (
+          <InfoAlert
+            type="warning"
+            showIcon
+            className="!mb-4"
+            title="💾 僅存本機（未登入）"
+            body={
+              user
+                ? '雲端同步失敗，本機版本已保留。請稍後重試或聯絡客服。'
+                : '您的案件僅存於本瀏覽器。建議登入以同步到雲端，避免換裝置遺失。'
+            }
+          />
+        )}
+        {syncStatus.state === 'error' && (
+          <InfoAlert
+            type="error"
+            showIcon
+            className="!mb-4"
+            title="儲存失敗"
+            body={syncStatus.message}
+          />
+        )}
+
         <PageBreadcrumb
           back={{
             kind: 'link',

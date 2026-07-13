@@ -8,7 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { query } from '@/lib/db'
-import { hashPassword, signToken, validatePasswordStrength, generateVerifyToken } from '@/lib/auth'
+import { hashPassword, signToken, validatePasswordStrength } from '@/lib/auth'
 import { apiGuard } from '@/lib/api-security'
 
 export const dynamic = 'force-dynamic'
@@ -46,30 +46,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'email 已被註冊' }, { status: 409 })
     }
 
-    // 註冊 (v0.19.x+ 含 email 驗證欄位)
+    // 註冊 (v0.19.x+ 含 email 驗證欄位；v0.21.0+ 自動 email_verified=true)
+    // 取消 mock email verify：production 沒有真實 SMTP，user 永遠收不到信，
+    // 改為註冊時直接 email_verified=true，讓 user 立即能用雲端存功能
+    // AGENTS §31「v0.14.x+ 業務員從 console log 抓 link 給客戶」在 production 是 broken UX
     const hash = await hashPassword(password)
-    const { token: verifyToken, expires: verifyExpires } = generateVerifyToken()
     const { rows } = await query<{ id: string; email: string }>(
-      `insert into public.users (email, password_hash, display_name, verify_token, verify_expires)
-       values ($1, $2, $3, $4, $5)
+      `insert into public.users (email, password_hash, display_name, email_verified)
+       values ($1, $2, $3, true)
        returning id, email`,
-      [normalizedEmail, hash, displayName ?? null, verifyToken, verifyExpires],
+      [normalizedEmail, hash, displayName ?? null],
     )
     const user = rows[0]
     if (!user) {
       return NextResponse.json({ error: '註冊失敗' }, { status: 500 })
     }
 
-    // v0.19.x+ 印驗證連結 (mock SMTP, 業務環境: 控制台 log 給業務員)
-    // 注意: verifyUrl 指向 /verify 頁面 (用戶友好), 不是 /api/auth/verify (JSON 端點)
-    const verifyUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/verify?token=${verifyToken}`
-    console.log(`\n📧 [Email 驗證] 寄給 ${normalizedEmail}\n🔗 ${verifyUrl}\n📅 24 小時內有效\n`)
-
-    // 簽 JWT + 設 httpOnly cookie (但 email_verified=false, 登入後引導去驗證)
+    // 簽 JWT + 設 httpOnly cookie（v0.21.0+：email_verified=true 立即可用）
     const token = signToken(user.id, user.email)
     const res = NextResponse.json({
-      user: { id: user.id, email: user.email, emailVerified: false },
-      verifyUrl, // 前端顯示「請收信點連結驗證」
+      user: { id: user.id, email: user.email, emailVerified: true },
     })
     res.cookies.set('auth_token', token, {
       httpOnly: true,

@@ -74,10 +74,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'email 或密碼錯誤' }, { status: 401 })
     }
 
-    // v0.19.x+ Email 驗證檢查 (註冊後需收信點連結)
-    if (!user.email_verified) {
-      return NextResponse.json({ error: '請先收信點擊驗證連結啟用帳號' }, { status: 403 })
-    }
+    // v0.21.0+：移除 email_verified 檢查（signup 已自動 verified=true）
+    // 原本 v0.19.x 的「請先收信點連結」是 mock SMTP UX，production 沒真實郵件永遠收不到
 
     // 登入成功: 清 failed_login_count
     await query('update public.users set failed_login_count = 0 where id = $1', [user.id])
