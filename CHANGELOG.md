@@ -2,7 +2,7 @@
 
 所有重要變更都會記錄於此檔。格式基於 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)。
 
-## [v0.18.x] - 2026-07-11
+## [v0.18.0] - 2026-07-13
 
 ### Added
 
@@ -39,6 +39,8 @@
 - 19 件家事件（家親聲 / 家聲抗 / 家繼簡）誤混入民事 precedents
 - sessionStorage v1 → v2 升級時舊版資料 crash：版本戳 + 過期檢查
 - `Result: null` 導致結果頁 error boundary：加防護
+- tsc bleed-over 清理：刪除 untracked `scripts/scripts/scrape-cloud.js` + `scripts/scripts/import-cjcourt.js`；reset `scripts/lib/insurance/types.js` uncommitted Prettier diff
+- `.gitignore` 加 `/scripts/scripts/` 與 `/scripts/lib/` 防未來 tsc rebuild 把 bleed-over 加進 git
 
 ## [Unreleased]
 
