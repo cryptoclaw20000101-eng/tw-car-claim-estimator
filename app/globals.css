@@ -201,6 +201,28 @@ body {
   border: 1px solid var(--border) !important;
 }
 
+/* v0.19.0+：深色模式 InfoAlert 文字可見性
+   問題：.ant-alert 全域 !important 覆蓋了 AntD 內建 dark algorithm 的
+   background，但 description 文字顏色沒跟著調，導致 Step1「事故基本資料」
+   下面的 InfoAlert 說明文字（「強制險採無過失主義...」）在 dark mode 看不清。
+   解法：在 .dark 區塊明確覆寫 message + description 顏色 token。 */
+.dark .ant-alert {
+  background-color: var(--surface-subtle) !important;
+  border-color: var(--border) !important;
+}
+.dark .ant-alert .ant-alert-message {
+  color: var(--foreground) !important;
+}
+.dark .ant-alert .ant-alert-description {
+  color: var(--muted) !important;
+}
+.dark .ant-alert-with-description .ant-alert-message {
+  color: var(--foreground) !important;
+}
+.dark .ant-alert .ant-alert-icon {
+  color: var(--accent) !important;
+}
+
 /* AntD Skeleton 白天模式：淡灰色 */
 .ant-skeleton-content .ant-skeleton-title,
 .ant-skeleton-content .ant-skeleton-paragraph > li,
