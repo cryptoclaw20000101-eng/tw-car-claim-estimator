@@ -164,15 +164,29 @@ body {
   box-shadow: 0 0 0 4px rgba(190, 18, 60, 0.1) !important;
 }
 
-/* AntD Input 加白底（避免暗色預設） */
+/* AntD Input：var(--surface) token，dark mode 自動變 zinc-900
+   v0.19.0+ 從 hardcode #ffffff 改成 token，避免 dark mode 白底殘留 */
 .ant-input,
 .ant-input-affix-wrapper,
 .ant-input-number,
 .ant-input-number-input,
 .ant-select-selector,
 .ant-picker {
-  background-color: #ffffff !important;
+  background-color: var(--surface) !important;
   border-color: var(--border) !important;
+}
+.dark .ant-input,
+.dark .ant-input-affix-wrapper,
+.dark .ant-input-number,
+.dark .ant-input-number-input,
+.dark .ant-select-selector,
+.dark .ant-picker {
+  background-color: var(--surface) !important;
+  color: var(--foreground) !important;
+}
+.dark .ant-input::placeholder,
+.dark .ant-input-number-input::placeholder {
+  color: var(--muted) !important;
 }
 
 .ant-input::placeholder,
@@ -181,13 +195,17 @@ body {
   color: #a1a1aa !important;
 }
 
-/* AntD Card 白底 + Flowbite 軟陰影 */
+/* AntD Card：var(--surface) token，dark mode 自動變 zinc-900 */
 .ant-card {
-  background-color: #ffffff !important;
+  background-color: var(--surface) !important;
   border: 1px solid var(--border) !important;
   box-shadow:
     0 1px 2px 0 rgb(0 0 0 / 0.04),
     0 1px 3px 0 rgb(0 0 0 / 0.06) !important;
+}
+.dark .ant-card {
+  background-color: var(--surface) !important;
+  color: var(--foreground) !important;
 }
 
 .ant-card-head {
