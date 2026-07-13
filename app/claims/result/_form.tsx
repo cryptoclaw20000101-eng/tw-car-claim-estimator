@@ -48,6 +48,8 @@ import { MobileStickyCTA } from '@/components/MobileStickyCTA'
 import { PageBreadcrumb } from '@/components/PageBreadcrumb'
 // v0.12.0+ Phase B7：多肇責比例並排比較
 import { MultiFaultCompare } from '@/components/MultiFaultCompare'
+// v0.20.0+：結果頁區間卡（user 反饋「不要只顯示單一金額」+ AGENTS §0 不保證金額精神）
+import { EstimationRangeCard } from './_sections/EstimationRangeCard'
 // v0.12.0+ Phase B5：分享連結
 import { encodeShareHash } from '@/lib/share-link'
 import {
@@ -444,6 +446,30 @@ export default function ResultForm() {
           bodilyInjuryAmount={(result.civilMedicalExpense ?? 0) + (result.workLoss ?? 0)}
           propertyDamageAmount={result.propertyDamage ?? 0}
         />
+
+        {/* v0.20.0+：合理求償區間卡（保守/一般/積極 + 完整度 + 缺件 + 人工判斷項）*/}
+        {result.painAndSuffering && (
+          <EstimationRangeCard
+            pas={{
+              regionalLow: result.painAndSuffering.regionalLow,
+              regionalMid: result.painAndSuffering.regionalMid,
+              regionalHigh: result.painAndSuffering.regionalHigh,
+            }}
+            painEnsemble={{
+              consensus: result.painEnsemble?.consensus ?? 'insufficient',
+              consensusAmount: result.painEnsemble?.consensusAmount ?? null,
+              mlConfidence:
+                (result.painML?.confidence as 'low' | 'medium' | 'high' | undefined) ?? undefined,
+            }}
+            painAdvisor={{
+              requiresHumanReview: result.painAdvisor?.requiresHumanReview ?? false,
+              riskFactors: result.painAdvisor?.riskFactors ?? [],
+              disclaimer: result.painAdvisor?.disclaimer ?? '',
+            }}
+            missingDocuments={result.missingDocuments ?? []}
+            dollar={dollar}
+          />
+        )}
 
         <div className="sticky top-0 z-10 -mx-6 mb-6 bg-surface-subtle/95 px-6 py-3 backdrop-blur supports-[backdrop-filter]:bg-surface-subtle/80">
           <Tabs

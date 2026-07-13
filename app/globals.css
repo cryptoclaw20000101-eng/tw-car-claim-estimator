@@ -396,6 +396,11 @@ input[type='number'] {
     page-break-after: auto;
   }
 
+  /* v0.20.0+ 區間卡列印：避免區間卡本身被切到下一頁 */
+  .ant-card:has([data-testid='range-conservative']) {
+    page-break-inside: avoid;
+  }
+
   /* 卡片陰影列印時拿掉（省墨） */
   .ant-card,
   .card-shadow,
