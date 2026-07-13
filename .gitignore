@@ -67,3 +67,10 @@ next-env.d.ts
 
 # v0.8.4+ law-cutoff CLI 編譯產物（pnpm law-cutoff:build 產生）
 /.law-cutoff-build/
+
+# v0.18.0+ tsc bleed-over 路徑防護
+# scripts/tsconfig.json 跑 tsc -p 從 project root 時會 emit 到 scripts/scripts/ + scripts/lib/
+# （因為 import 路徑 ../lib/... 被 mirror 到 outDir 下）
+# 加這兩條避免未來 rebuild 時新產物被誤 add，但既有 tracked 檔不受影響
+/scripts/scripts/
+/scripts/lib/
