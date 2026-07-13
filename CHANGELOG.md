@@ -2,6 +2,32 @@
 
 所有重要變更都會記錄於此檔。格式基於 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)。
 
+## [v0.19.0] - 2026-07-13
+
+### Added
+
+- **診斷書 AI 推論失能等級**（rule-based parser，零套件依賴）：貼中文診斷書全文
+  → 自動萃取傷勢類型 / 關節 / ROM / 視力 / 聽力 → 對照強制險失能給付標準 §4 → 給建議
+  等級 + reasoning trace + confidence。新檔 lib/insurance/diagnosis-parser.ts +
+  21 個 unit test（**tests**/insurance/diagnosis-parser.test.ts）。
+  Step4 加 UI：AI 推薦按鈕 + 結果面板（建議等級 / 信心度 / 需人工複核 / 採用建議 /
+  推理過程 / disclaimer）。
+
+### Changed
+
+- **表單 7 步 → 4 步重構**：依用戶指定結構
+  1. 事故基本（日期/地點/類型）
+  2. 肇責
+  3. 人身 / 工作（合併原 Step3 + Step7 聲請人/對方居住地 + 法院）
+  4. 診斷書（合併原 Step4 + Step5 醫療收據 15 細項 + Step6 車損/財損）
+- FormProgress 動態 gridTemplateColumns（從 hardcode grid-cols-7 改 N 步通用）
+
+### Fixed
+
+- 深色模式 InfoAlert 文字看不見：.ant-alert 全域 !important 覆蓋背景但 description
+  文字顏色沒跟著 dark mode 調。加 .dark .ant-alert 明確覆寫：
+  message color → --foreground / description color → --muted / icon color → --accent
+
 ## [v0.18.0] - 2026-07-13
 
 ### Added
