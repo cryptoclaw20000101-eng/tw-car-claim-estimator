@@ -40,7 +40,6 @@ export default function HomeClient() {
               開始估算
             </Button>
           </Link>
-          <div className="!mt-6 text-sm text-muted">填寫 → 計算 → 列印</div>
         </div>
       </motion.section>
 
