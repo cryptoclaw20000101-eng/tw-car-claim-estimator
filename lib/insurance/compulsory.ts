@@ -40,8 +40,8 @@ function calcEmergency(input: CompulsoryMedicalInputs): CompulsoryItemResult {
     input.emergencyFee,
     input.emergencyFee,
     null,
-    null,
-    null,
+    input.emergencyFee === 0 ? '未輸入急救費' : null,
+    input.emergencyFee === 0 ? '請補急診收據' : null,
   )
 }
 
@@ -52,12 +52,14 @@ function calcAmbulance(input: CompulsoryMedicalInputs): CompulsoryItemResult {
     input.ambulanceFee,
     input.ambulanceFee,
     null,
-    null,
-    null,
+    input.ambulanceFee === 0 ? '未輸入救護車費' : null,
+    input.ambulanceFee === 0 ? '請補救護車收據' : null,
   )
 }
 
-function calcNhiCopayment(input: CompulsoryMedicalInputs): CompulsoryItemResult {
+function calcNhiCopayment(
+  input: CompulsoryMedicalInputs,
+): CompulsoryMedicalInputs extends never ? never : CompulsoryItemResult {
   // 健保自付額：依實際收據實支實付，無上限
   return mkItem(
     'nhiCopayment',
@@ -65,8 +67,8 @@ function calcNhiCopayment(input: CompulsoryMedicalInputs): CompulsoryItemResult 
     input.nhiCopayment,
     input.nhiCopayment,
     null,
-    null,
-    input.nhiCopayment === 0 ? '未輸入健保自付額，請補醫療收據' : null,
+    input.nhiCopayment === 0 ? '未輸入健保自付額' : null,
+    input.nhiCopayment === 0 ? '請補健保署醫療費用收據' : null,
   )
 }
 
@@ -77,8 +79,8 @@ function calcRegistration(input: CompulsoryMedicalInputs): CompulsoryItemResult 
     input.registrationFee,
     input.registrationFee,
     null,
-    null,
-    null,
+    input.registrationFee === 0 ? '未輸入掛號費' : null,
+    input.registrationFee === 0 ? '請補門診收據' : null,
   )
 }
 
@@ -89,8 +91,8 @@ function calcDiagnosisCertificate(input: CompulsoryMedicalInputs): CompulsoryIte
     input.diagnosisCertificateFee,
     input.diagnosisCertificateFee,
     null,
-    null,
-    null,
+    input.diagnosisCertificateFee === 0 ? '未輸入診斷書費' : null,
+    input.diagnosisCertificateFee === 0 ? '請補醫院開立之診斷證明書（強制險必備文件）' : null,
   )
 }
 
@@ -101,8 +103,10 @@ function calcNonNhi(input: CompulsoryMedicalInputs): CompulsoryItemResult {
     input.nonNhiNecessaryMedicalFee,
     input.nonNhiNecessaryMedicalFee,
     null,
-    null,
-    input.nonNhiNecessaryMedicalFee === 0 ? '非健保自費項目需檢附醫師證明必要性' : null,
+    input.nonNhiNecessaryMedicalFee === 0 ? '未輸入非健保自費項目' : null,
+    input.nonNhiNecessaryMedicalFee === 0
+      ? '請補收據 + 醫師證明必要性（強制險需醫療必要性文件）'
+      : '非健保自費項目需檢附醫師證明必要性',
   )
 }
 
@@ -112,11 +116,15 @@ function calcWardFee(input: CompulsoryMedicalInputs): CompulsoryItemResult {
   const reduction =
     approved < input.wardFeeDifference
       ? `病房費差額單日申請 ${formatTwd(input.wardFeeDifference / Math.max(input.wardFeeDays, 1))}，超出每日上限 1,500 元`
-      : null
+      : input.wardFeeDifference === 0
+        ? '未輸入病房費差額'
+        : null
   const hint =
     input.wardFeeDays === 0 && input.wardFeeDifference > 0
       ? '需輸入實際住院日數，否則無法估算'
-      : null
+      : input.wardFeeDifference === 0
+        ? '請補病房費差額收據'
+        : null
   return mkItem('wardFee', '病房費差額', input.wardFeeDifference, approved, cap, reduction, hint)
 }
 
@@ -126,17 +134,26 @@ function calcMealFee(input: CompulsoryMedicalInputs): CompulsoryItemResult {
   const reduction =
     approved < input.mealFee
       ? `膳食費單日申請 ${formatTwd(input.mealFee / Math.max(input.mealDays, 1))}，超出每日上限 180 元`
-      : null
-  return mkItem('mealFee', '膳食費', input.mealFee, approved, cap, reduction, null)
+      : input.mealFee === 0
+        ? '未輸入膳食費'
+        : null
+  const hint = input.mealFee === 0 ? '請補膳食費收據' : null
+  return mkItem('mealFee', '膳食費', input.mealFee, approved, cap, reduction, hint)
 }
 
 function calcProsthesis(input: CompulsoryMedicalInputs): CompulsoryItemResult {
   // 義肢每一上或下肢 50,000，本欄位採單肢簡化
   const cap = COMPULSORY_LIMITS.PROSTHESIS_PER_LIMB
   const approved = Math.min(input.prosthesisFee, cap)
-  const reduction = approved < input.prosthesisFee ? '義肢費超出單肢 50,000 上限' : null
+  const reduction =
+    approved < input.prosthesisFee
+      ? '義肢費超出單肢 50,000 上限'
+      : input.prosthesisFee === 0
+        ? '未輸入義肢器材費'
+        : null
   // hasSurgery 提示需由外層串接 medical.hasSurgery，本函式不重複
-  return mkItem('prosthesisFee', '義肢器材費', input.prosthesisFee, approved, cap, reduction, null)
+  const hint = input.prosthesisFee === 0 ? '請補義肢裝配證明 + 醫師處方箋' : null
+  return mkItem('prosthesisFee', '義肢器材費', input.prosthesisFee, approved, cap, reduction, hint)
 }
 
 function calcDenture(input: CompulsoryMedicalInputs): CompulsoryItemResult {
@@ -146,15 +163,28 @@ function calcDenture(input: CompulsoryMedicalInputs): CompulsoryItemResult {
   const reduction =
     approved < input.dentureFee
       ? `義齒費超出 ${input.missingTeethCount} 齒上限（每齒 10,000，最多 50,000）`
-      : null
-  const hint = input.dentureFee > 0 && input.missingTeethCount === 0 ? '需補缺牙數量資料' : null
+      : input.dentureFee === 0
+        ? '未輸入義齒費'
+        : null
+  const hint =
+    input.dentureFee > 0 && input.missingTeethCount === 0
+      ? '需補缺牙數量資料'
+      : input.dentureFee === 0
+        ? '請補義齒收據 + 缺牙數量（影響上限計算）'
+        : null
   return mkItem('dentureFee', '義齒費', input.dentureFee, approved, cap, reduction, hint)
 }
 
 function calcArtificialEye(input: CompulsoryMedicalInputs): CompulsoryItemResult {
   const cap = COMPULSORY_LIMITS.ARTIFICIAL_EYE
   const approved = Math.min(input.artificialEyeFee, cap)
-  const reduction = approved < input.artificialEyeFee ? '義眼費超出每顆 10,000 上限' : null
+  const reduction =
+    approved < input.artificialEyeFee
+      ? '義眼費超出每顆 10,000 上限'
+      : input.artificialEyeFee === 0
+        ? '未輸入義眼費'
+        : null
+  const hint = input.artificialEyeFee === 0 ? '請補義眼裝配證明' : null
   return mkItem(
     'artificialEyeFee',
     '義眼費',
@@ -162,7 +192,7 @@ function calcArtificialEye(input: CompulsoryMedicalInputs): CompulsoryItemResult
     approved,
     cap,
     reduction,
-    null,
+    hint,
   )
 }
 
