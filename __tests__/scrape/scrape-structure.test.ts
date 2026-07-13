@@ -56,15 +56,15 @@ describe('S8 v0.2.19 新鏈', () => {
   it('看護費 chain 完整（KEYWORDS/REGEX/FILE/LABEL 四處都有）', () => {
     expect(scrapeSource).toMatch(/nursing_care:\s*\[/)
     expect(scrapeSource).toContain('nursing_care: /看護')
-    expect(scrapeSource).toContain('nursing_care: "nursing-care.json"')
-    expect(scrapeSource).toContain('nursing_care: "看護費"')
+    expect(scrapeSource).toContain("nursing_care: 'nursing-care.json'")
+    expect(scrapeSource).toContain("nursing_care: '看護費'")
   })
 
   it('醫療費用 chain 完整（KEYWORDS/REGEX/FILE/LABEL 四處都有）', () => {
     expect(scrapeSource).toMatch(/medical_expense:\s*\[/)
     expect(scrapeSource).toContain('medical_expense: /(?:醫療|醫藥|住院|自費)')
-    expect(scrapeSource).toContain('medical_expense: "medical-expense.json"')
-    expect(scrapeSource).toContain('medical_expense: "醫療費用"')
+    expect(scrapeSource).toContain("medical_expense: 'medical-expense.json'")
+    expect(scrapeSource).toContain("medical_expense: '醫療費用'")
   })
 
   it('v0.2.20 死亡案件 + 交通 + 撫養 + 加班 4 條衝量新鏈都存在', () => {
@@ -80,9 +80,9 @@ describe('S8 v0.2.19 新鏈', () => {
         new RegExp(`^\\s{2}${key}(?=\\s*[:\\[])`, 'm'),
       )
       // CHAIN_FILE
-      expect(scrapeSource, `缺 CHAIN_FILE.${key}`).toContain(`${key}: "${file}"`)
+      expect(scrapeSource, `缺 CHAIN_FILE.${key}`).toContain(`${key}: '${file}'`)
       // CHAIN_LABEL
-      expect(scrapeSource, `缺 CHAIN_LABEL.${key}`).toContain(`${key}: "${label}"`)
+      expect(scrapeSource, `缺 CHAIN_LABEL.${key}`).toContain(`${key}: '${label}'`)
     }
   })
 
@@ -136,14 +136,14 @@ describe('S8 isCivilCase 行為（從 source 靜態掃）', () => {
     // 對齊 v0.2.15 鐵律：刑庭不要混進民事鏈
     const penalPatterns = ['附民', '交附民', '原附民', '簡附民', '刑附民', '易字', '交易', '自訴']
     for (const p of penalPatterns) {
-      expect(scrapeSource, `缺刑庭排除 pattern: ${p}`).toContain(`"${p}"`)
+      expect(scrapeSource, `缺刑庭排除 pattern: ${p}`).toContain(`'${p}'`)
     }
   })
 
   it('排除家事法庭案號關鍵字', () => {
     const familyPatterns = ['家親', '家聲', '家事']
     for (const p of familyPatterns) {
-      expect(scrapeSource, `缺家事排除 pattern: ${p}`).toContain(`"${p}"`)
+      expect(scrapeSource, `缺家事排除 pattern: ${p}`).toContain(`'${p}'`)
     }
   })
 
@@ -193,7 +193,7 @@ describe('S8 v0.2.21 — 年度範圍過濾 + SCRAPE_MAX_PAGES 預設 3', () => 
   })
 
   it('SCRAPE_MAX_PAGES 預設 6（v0.5.7 從 3 改 6 衝量）', () => {
-    expect(scrapeSource).toMatch(/SCRAPE_MAX_PAGES\s*\|\|\s*"6"/)
+    expect(scrapeSource).toMatch(/SCRAPE_MAX_PAGES\s*\|\|\s*'6'/)
   })
 
   it('year filter CLI flag --year-min / --year-max 解析', () => {
@@ -208,9 +208,9 @@ describe('S8 v0.2.21 — 年度範圍過濾 + SCRAPE_MAX_PAGES 預設 3', () => 
     expect(scrapeSource).toContain('isInYearRange')
     expect(scrapeSource).toContain('isCivilCase')
     // 用「呼叫點」檢查順序 (避免抓到函式定義)
-    // 函式定義:  "function isInYearRange(...)"
-    // 呼叫點:    "if (!isInYearRange("
-    const yearCallIdx = scrapeSource.indexOf('if (!isInYearRange(')
+    // 函式定義: "function isInYearRange(...)"
+    // 呼叫點: "!isInYearRange(hit.caseNo" — pattern 寬鬆允許 if + ! 跨行
+    const yearCallIdx = scrapeSource.search(/!\s*isInYearRange\(/)
     const detailIdx = scrapeSource.indexOf('getHtml(jar, hit.href')
     expect(yearCallIdx, 'isInYearRange 呼叫應在 getHtml detail 之後').toBeGreaterThan(detailIdx)
   })
@@ -220,15 +220,15 @@ describe('S8 v0.5.7 — 衝量 2 新鏈 (appeal_case + pain_suffering_basis)', (
   it('appeal_case chain 完整（KEYWORDS/REGEX/FILE/LABEL 四處都有）', () => {
     expect(scrapeSource).toMatch(/appeal_case:\s*\[/)
     expect(scrapeSource).toContain('appeal_case: /(?:上訴|二審|撤回上訴)')
-    expect(scrapeSource).toContain('appeal_case: "practice-cases.json"')
-    expect(scrapeSource).toContain('appeal_case: "訴訟終結"')
+    expect(scrapeSource).toContain("appeal_case: 'practice-cases.json'")
+    expect(scrapeSource).toContain("appeal_case: '訴訟終結'")
   })
 
   it('pain_suffering_basis chain 完整（KEYWORDS/REGEX/FILE/LABEL 四處都有）', () => {
     expect(scrapeSource).toMatch(/pain_suffering_basis:\s*\[/)
     expect(scrapeSource).toContain('pain_suffering_basis: /(?:精神)?慰撫金')
-    expect(scrapeSource).toContain('pain_suffering_basis: "taipei-mental-distress.json"')
-    expect(scrapeSource).toContain('pain_suffering_basis: "慰撫金計算基準"')
+    expect(scrapeSource).toContain("pain_suffering_basis: 'taipei-mental-distress.json'")
+    expect(scrapeSource).toContain("pain_suffering_basis: '慰撫金計算基準'")
   })
 
   it('既 4 Record keys 數量 v0.5.7 ≥ 15（13 + 2 新鏈）', () => {

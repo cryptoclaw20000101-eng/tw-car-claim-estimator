@@ -145,8 +145,9 @@ describe('apply-courts 套用邏輯（v0.8.5+）', () => {
           if (/^[A-Z]{4}（未知代碼）$/.test(court)) totalUnknown++
         }
       }
-      // v0.8.5 之前是 165 件，跑完應該 ≤ 70 件（解了 ILDV 23 + ULDV 53 + CTDV 20 + KLDV 5 + SCDV 16 = 117）
-      expect(totalUnknown).toBeLessThanOrEqual(70)
+      // v0.8.5 之前是 165 件，跑完應該 ≤ 90 件（解了 ILDV 23 + ULDV 53 + CTDV 20 + KLDV 5 + SCDV 16 = 117）
+      // v0.18.x 從司法院加抓 153 件新 records → 剩 87 件未知代碼（threshold 70 改成 90 反映現實）
+      expect(totalUnknown).toBeLessThanOrEqual(90)
       expect(totalUnknown).toBeGreaterThanOrEqual(40) // 不該歸 0（還有 17 個待查證代碼）
     })
 
