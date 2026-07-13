@@ -513,9 +513,19 @@ export default function NewClaimForm() {
         property: merged.property,
       }
       const result = estimateClaim(input)
+      // 估算編號：在 submit 時一次性產生，存進 sessionStorage 給結果頁讀
+      // 不在 render 時算（避免切精簡模式 / 狀態變更導致 ID 變動）
+      const estimateIdS = JSON.stringify(input) + Date.now()
+      let estimateH = 5381
+      for (let i = 0; i < estimateIdS.length; i++)
+        estimateH = ((estimateH << 5) + estimateH + estimateIdS.charCodeAt(i)) | 0
+      const estimateTs = new Date()
+      const estimateStamp = `${estimateTs.getFullYear()}${String(estimateTs.getMonth() + 1).padStart(2, '0')}${String(estimateTs.getDate()).padStart(2, '0')}`
+      const estimateId = `TCE-${estimateStamp}-${(estimateH >>> 0).toString(16).padStart(8, '0').slice(0, 8).toUpperCase()}`
       // 存進 sessionStorage 給結果頁讀
       sessionStorage.setItem('claim-input', JSON.stringify(input))
       sessionStorage.setItem('claim-result', JSON.stringify(result))
+      sessionStorage.setItem('estimate-id', estimateId)
       sessionStorage.setItem('claim-storage-version', 'v2') // v0.18.x+ 防舊版殘留
       sessionStorage.setItem('claim-storage-ts', String(Date.now())) // 過期檢查用
       router.push('/claims/result')

@@ -193,19 +193,13 @@ export default function ResultForm() {
   const result = hydrated.result
   const stale = hydrated.stale
 
-  // v0.16.x 完整 PDF 估算書：自動產生唯一估算編號（用 input + timestamp hash）
-  // 列印時跟時間戳印在封面，確保試算可追溯
-  const estimateId = input
-    ? (() => {
-        // 簡易 djb2 hash (input JSON 字串) → 8 字符 hex
-        const s = JSON.stringify(input) + Date.now()
-        let h = 5381
-        for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0
-        const ts = new Date()
-        const stamp = `${ts.getFullYear()}${String(ts.getMonth() + 1).padStart(2, '0')}${String(ts.getDate()).padStart(2, '0')}`
-        return `TCE-${stamp}-${(h >>> 0).toString(16).padStart(8, '0').slice(0, 8).toUpperCase()}`
-      })()
-    : null
+  // 估算編號：表單 submit 時一次性產生並存進 sessionStorage，這裡讀取
+  // 不在 render 時計算（避免切精簡模式 / 狀態變更導致 ID 變動）
+  // sessionStorage 由表單 submit 端寫入（see app/claims/new/_form.tsx submit handler）
+  const [estimateId] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null
+    return sessionStorage.getItem('estimate-id')
+  })
 
   // v0.12.0+ Phase B3：估算成功後自動寫入 localStorage 歷史（脫敏後）
   // v0.14.x：登入時改存 Supabase 雲端（fallback 到 localStorage）
