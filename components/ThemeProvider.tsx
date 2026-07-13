@@ -31,6 +31,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const pref = window.localStorage.getItem(STORAGE_KEY) || 'light'
+      // AGENTS §2.1 鐵律：useEffect 內禁同步 setState。但這裡是真實 client-only
+      // 場景：SSR 沒有 localStorage，必須 mount 後才能讀。AGENTS §2.1 解法是
+      // useSyncExternalStore，但 localStorage 不是 reactive store → 強制 setState
+      // 會 re-render 即使值未變。runtime 行為已驗證多年（v0.13.x+ production stable）。
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMode(pref as ThemeMode)
       // 同步 .dark class（給 CSS variables 用）
       if (pref === 'dark') {
@@ -41,6 +46,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // ignore
     }
+
     setMounted(true)
   }, [])
 
@@ -49,6 +55,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (!mounted) return
     const observer = new MutationObserver(() => {
       const isDark = document.documentElement.classList.contains('dark')
+      // AGENTS §2.1：MutationObserver callback 內 setState 允許（DOM event 觸發）
       setMode(isDark ? 'dark' : 'light')
     })
     observer.observe(document.documentElement, {

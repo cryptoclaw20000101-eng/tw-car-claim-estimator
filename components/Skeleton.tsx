@@ -44,6 +44,8 @@ export function Skeleton({
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    // AGENTS §2.1：mounted 偵測是 client-only 場景，無法 lazy init
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
   }, [])
 

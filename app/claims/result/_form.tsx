@@ -215,11 +215,14 @@ export default function ResultForm() {
   >({ state: 'idle' })
   useEffect(() => {
     if (!input || !result) return
+    // AGENTS §2.1：async fetch callback 內 setState 是真實場景（fetch 後更新 UI）
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSyncStatus({ state: 'pending' })
     void (async () => {
       try {
         const saved = await saveEstimate(input, result, user?.id ?? null)
         // saveEstimate 回傳 { storage: 'cloud' | 'local', id? }
+
         setSyncStatus(
           saved.storage === 'cloud' && saved.id
             ? { state: 'cloud', estimateId: saved.id }

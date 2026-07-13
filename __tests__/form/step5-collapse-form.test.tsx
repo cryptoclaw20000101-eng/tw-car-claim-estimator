@@ -9,6 +9,7 @@
 // 2. 即使 panel 折疊（透過 activeKey 切換），Form.validateFields 仍能拿到值
 // =====================================================================
 
+import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 import { renderToString } from 'react-dom/server'
 import { ConfigProvider } from 'antd'
@@ -42,10 +43,7 @@ const makeMockForm = () => {
 describe('Step5FeesAndProperty — Collapse forceRender 守護', () => {
   it('SSR render 包含 Form.Item name={["receipts", "nhiCopayment"]}', () => {
     // 不能直接 SSR 因為需要 Form.useFormInstance — 改測 component import 是否含關鍵字
-    const src = require('fs').readFileSync(
-      'app/claims/new/_steps/Step5FeesAndProperty.tsx',
-      'utf-8',
-    )
+    const src = readFileSync('app/claims/new/_steps/Step5FeesAndProperty.tsx', 'utf-8')
     expect(src).toContain("name={['receipts'")
     expect(src).toContain("name={['property'")
     expect(src).toContain('forceRender: true')
@@ -53,10 +51,7 @@ describe('Step5FeesAndProperty — Collapse forceRender 守護', () => {
 
   it('Collapse items 必須有 forceRender: true 才能讓 Form 收集到值', () => {
     // v0.20.4+ hotfix 守護：未來若有人移除 forceRender，這測試會 fail
-    const src = require('fs').readFileSync(
-      'app/claims/new/_steps/Step5FeesAndProperty.tsx',
-      'utf-8',
-    )
+    const src = readFileSync('app/claims/new/_steps/Step5FeesAndProperty.tsx', 'utf-8')
     const forceRenderCount = (src.match(/forceRender:\s*true/g) ?? []).length
     // 必須有兩個 forceRender（medical panel + property panel）
     expect(forceRenderCount).toBeGreaterThanOrEqual(2)

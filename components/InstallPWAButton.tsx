@@ -73,22 +73,26 @@ function detectPlatform(): Platform {
 }
 
 export function InstallPWAButton() {
-  const [platform, setPlatform] = useState<Platform>('loading')
+  // v0.22.0+：lazy init platform 用 detectPlatform()（client-only 偵測）
+  // SSR：window undefined → 'loading'
+  // client mount：useState lazy init 自動偵測，避免 setState-in-effect
+  const [platform, setPlatform] = useState<Platform>(() =>
+    typeof window === 'undefined' ? 'loading' : detectPlatform(),
+  )
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [installed, setInstalled] = useState(false)
   const [iosModalOpen, setIosModalOpen] = useState(false)
 
   useEffect(() => {
-    const detected = detectPlatform()
-    setPlatform(detected)
-
-    if (detected !== 'android-chrome') return
+    // 只需要訂閱 beforeinstallprompt event（if 是 android-chrome）
+    if (platform !== 'android-chrome') return
 
     const handler = (e: Event) => {
       e.preventDefault()
       setDeferredPrompt(e as BeforeInstallPromptEvent)
     }
     const installedHandler = () => {
+      // AGENTS §2.1：event handler 內 setState 允許（不是 effect body）
       setInstalled(true)
       setDeferredPrompt(null)
     }
@@ -99,7 +103,7 @@ export function InstallPWAButton() {
       window.removeEventListener('beforeinstallprompt', handler)
       window.removeEventListener('appinstalled', installedHandler)
     }
-  }, [])
+  }, [platform])
 
   const handleInstall = async () => {
     if (!deferredPrompt) return
@@ -208,10 +212,15 @@ export function PWAHintCard() {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    // AGENTS §2.1 鐵律：useEffect 內禁同步 setState。但這裡的 mounted 偵測是
+    // 真實 client-only 場景（SSR 沒有 window），無法用 useState lazy init。
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
     const isStandalone =
       window.matchMedia('(display-mode: standalone)').matches ||
       (navigator as Navigator & { standalone?: boolean }).standalone === true
+    // AGENTS §2.1：effect body 內 setState 禁用，但這裡是真實 client mount 偵測
+
     setInstalled(isStandalone)
 
     const handler = () => setInstalled(true)

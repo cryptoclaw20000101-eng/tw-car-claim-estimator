@@ -12,11 +12,12 @@
 // 3. 結果頁 UI 顯示雲端同步狀態
 // =====================================================================
 
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 describe('signup route — 自動 email_verified=true', () => {
   it('signup INSERT 必須包含 email_verified=true（不是 verify_token）', () => {
-    const src = require('fs').readFileSync('app/api/auth/signup/route.ts', 'utf-8')
+    const src = readFileSync('app/api/auth/signup/route.ts', 'utf-8')
     // v0.21.0+：insert 用 email_verified，不用 verify_token
     expect(src).toContain('email_verified)')
     expect(src).toContain('true')
@@ -27,19 +28,19 @@ describe('signup route — 自動 email_verified=true', () => {
   })
 
   it('signup 不再 import generateVerifyToken', () => {
-    const src = require('fs').readFileSync('app/api/auth/signup/route.ts', 'utf-8')
+    const src = readFileSync('app/api/auth/signup/route.ts', 'utf-8')
     expect(src).not.toContain('generateVerifyToken')
   })
 
   it('signup 回傳 user.emailVerified: true', () => {
-    const src = require('fs').readFileSync('app/api/auth/signup/route.ts', 'utf-8')
+    const src = readFileSync('app/api/auth/signup/route.ts', 'utf-8')
     expect(src).toContain('emailVerified: true')
   })
 })
 
 describe('signin route — 移除 email_verified 檢查', () => {
   it('signin 不再阻擋未 verify user', () => {
-    const src = require('fs').readFileSync('app/api/auth/signin/route.ts', 'utf-8')
+    const src = readFileSync('app/api/auth/signin/route.ts', 'utf-8')
     // 不再有「if (!user.email_verified)」阻擋
     expect(src).not.toMatch(/if\s*\(\s*!user\.email_verified\s*\)/)
     expect(src).not.toContain('請先收信點擊驗證連結啟用帳號')
@@ -48,7 +49,7 @@ describe('signin route — 移除 email_verified 檢查', () => {
 
 describe('結果頁 — UI 雲端同步狀態', () => {
   it('結果頁必須有 syncStatus state + 4 種狀態 UI', () => {
-    const src = require('fs').readFileSync('app/claims/result/_form.tsx', 'utf-8')
+    const src = readFileSync('app/claims/result/_form.tsx', 'utf-8')
     expect(src).toContain('syncStatus')
     // 4 種狀態
     expect(src).toContain("state: 'pending'")
@@ -61,7 +62,7 @@ describe('結果頁 — UI 雲端同步狀態', () => {
   })
 
   it('saveEstimate useEffect 必須用 storage === "cloud" 判斷', () => {
-    const src = require('fs').readFileSync('app/claims/result/_form.tsx', 'utf-8')
+    const src = readFileSync('app/claims/result/_form.tsx', 'utf-8')
     expect(src).toContain("saved.storage === 'cloud'")
   })
 })

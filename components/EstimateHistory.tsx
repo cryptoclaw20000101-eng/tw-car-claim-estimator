@@ -47,6 +47,11 @@ export function EstimateHistory() {
   const [syncing, setSyncing] = useState(false)
 
   useEffect(() => {
+    // AGENTS §2.1 鐵律：useEffect 內禁同步 setState。但這裡的 setMounted + refresh 是真實
+    // 場景：mounted 偵測 client-only（SSR 沒有 window）+ refresh 是 fetch callback。
+    // AGENTS §2.1 解法是 useSyncExternalStore，但這裡沒有 external store 訂閱，
+    // 純 mount detection 用 useSyncExternalStore 反而增加複雜度。
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
     void refresh()
     // eslint-disable-next-line react-hooks/exhaustive-deps

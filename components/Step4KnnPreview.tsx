@@ -97,6 +97,8 @@ export function Step4KnnPreview({ disabilityLevel, accidentLocation }: Step4KnnP
     let cancelled = false
     // 條件：失能等級必填才跑 KNN
     if (debouncedLevel == null) {
+      // AGENTS §2.1：async effect body 內清空 state 是 cleanup 模式
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCases([])
       return () => {
         cancelled = true

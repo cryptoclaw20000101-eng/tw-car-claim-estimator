@@ -13,23 +13,24 @@
 // 不做 runtime test：jsdom 對 history API 支援有限，source grep 守護足夠
 // =====================================================================
 
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 describe('mobile back button guard', () => {
   it('_form.tsx 必須註冊 popstate handler', () => {
-    const src = require('fs').readFileSync('app/claims/new/_form.tsx', 'utf-8')
+    const src = readFileSync('app/claims/new/_form.tsx', 'utf-8')
     expect(src).toMatch(/addEventListener\(\s*['"]popstate['"]/)
     expect(src).toMatch(/window\.history\.pushState/)
   })
 
   it('popstate handler 必須呼叫 message.warning 提示', () => {
-    const src = require('fs').readFileSync('app/claims/new/_form.tsx', 'utf-8')
+    const src = readFileSync('app/claims/new/_form.tsx', 'utf-8')
     expect(src).toMatch(/message\.warning/)
     expect(src).toContain('請完成表單')
   })
 
   it('popstate handler 必須把 history 推回 /claims/new', () => {
-    const src = require('fs').readFileSync('app/claims/new/_form.tsx', 'utf-8')
+    const src = readFileSync('app/claims/new/_form.tsx', 'utf-8')
     expect(src).toContain("window.history.pushState(null, '', '/claims/new')")
   })
 })

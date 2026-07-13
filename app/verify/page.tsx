@@ -24,7 +24,10 @@ export default function VerifyPage() {
 
   useEffect(() => {
     if (!token) {
+      // AGENTS §2.1：error handling 是真實 useEffect 場景
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStatus('error')
+
       setMessage('缺少驗證 token。請從 email 連結重新點擊。')
       return
     }

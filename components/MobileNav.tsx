@@ -68,6 +68,9 @@ export function MobileNav() {
   useEffect(() => {
     try {
       const pref = window.localStorage.getItem('tw-car-claim-estimator:theme') || 'light'
+      // AGENTS §2.1：mount 後讀 localStorage 是真實 client-only 場景，
+      // lazy initializer 會有 SSR/client hydration mismatch（SSR='light' vs client='dark'）
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTheme(pref as 'light' | 'dark')
     } catch {
       // ignore

@@ -74,3 +74,10 @@ next-env.d.ts
 # 加這兩條避免未來 rebuild 時新產物被誤 add，但既有 tracked 檔不受影響
 /scripts/scripts/
 /scripts/lib/
+
+# v0.20.1+ lib/ .js emit artifacts（AGENTS §19 紅線：不要 emit 到 lib/）
+# Next.js build 會 emit lib/**/*.ts → lib/**/*.js，污染業務 source tree
+# .gitignore 加這條防止 `git add -A` 時被 stage
+/lib/**/*.js
+/lib/**/*.js.map
+/lib/**/*.d.ts

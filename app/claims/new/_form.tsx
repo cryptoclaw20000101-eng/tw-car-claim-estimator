@@ -23,35 +23,12 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  Button,
-  Card,
-  Divider,
-  Form,
-  Input,
-  InputNumber,
-  Select,
-  Space,
-  Steps,
-  // v0.12.0+ Phase B2：自製進度條（取代 AntD Steps）
-  Switch,
-  message,
-  Alert,
-  Typography,
-  DatePicker,
-  Row,
-  Col,
-  Tag,
-} from 'antd'
+import { Button, Card, Form, InputNumber, Select, message, Tag, Typography, DatePicker } from 'antd'
 import { InfoAlert } from '@/components/InfoAlert'
-import { StepShell } from '@/components/StepShell'
-import { Step4KnnPreview } from '@/components/Step4KnnPreview'
 import { MobileStickyCTA } from '@/components/MobileStickyCTA'
 // v0.12.0+ Phase B2：自製進度條
 import { FormProgress } from '@/components/FormProgress'
 // v0.15.x Phase 4 + v0.19.0：Step 元件抽出（7 → 4 步）
-// Step 3 = 原 Step3Person + Step7Region（聲請人/對方居住地）
-// Step 4 = 原 Step4Medical + Step5Receipts + Step6Property
 import { Step1Basics } from './_steps/Step1Basics'
 import { Step2Fault } from './_steps/Step2Fault'
 import { Step3PersonalWork } from './_steps/Step3PersonalWork'
@@ -62,17 +39,7 @@ import {
   LeftOutlined,
   RightOutlined,
   CheckCircleOutlined,
-  CarOutlined,
-  UserOutlined,
-  MedicineBoxOutlined,
-  ToolOutlined,
-  EnvironmentOutlined,
   FileAddOutlined,
-  AuditOutlined,
-  FileTextOutlined,
-  ReadOutlined,
-  // v0.12.0+ Phase A3：表單欄位 tooltip icon
-  InfoCircleOutlined,
 } from '@ant-design/icons'
 import dayjs, { Dayjs } from 'dayjs'
 import type {
@@ -292,67 +259,6 @@ const EMPLOYMENT_OPTIONS: { value: EmploymentType; label: string }[] = [
   { value: 'retired', label: '退休' },
   { value: 'student', label: '學生' },
   { value: 'homemaker', label: '家管' },
-]
-
-const JOINT_OPTIONS: { value: JointName; label: string }[] = [
-  { value: 'shoulder', label: '肩' },
-  { value: 'elbow', label: '肘' },
-  { value: 'wrist', label: '腕' },
-  { value: 'hip', label: '髖' },
-  { value: 'knee', label: '膝' },
-  { value: 'ankle', label: '踝' },
-  { value: 'finger', label: '指' },
-  { value: 'toe', label: '趾' },
-  { value: 'cervical', label: '頸椎' },
-  { value: 'lumbar', label: '腰椎' },
-]
-
-const ROM_NORMAL: Record<JointName, number> = {
-  shoulder: 180,
-  elbow: 150,
-  wrist: 150,
-  hip: 130,
-  knee: 135,
-  ankle: 70,
-  finger: 90,
-  toe: 50,
-  cervical: 60,
-  lumbar: 60,
-}
-
-const SCAR_SEVERITY_OPTIONS: { value: 'mild' | 'moderate' | 'severe' | 'keloid'; label: string }[] =
-  [
-    { value: 'mild', label: '輕度（淺疤、不影響外觀）' },
-    { value: 'moderate', label: '中度（明顯疤痕，可能需 1 次雷射）' },
-    { value: 'severe', label: '嚴重（肥厚性 / 大面積 / 攣縮）' },
-    { value: 'keloid', label: '蟹足腫（會持續長大）' },
-  ]
-
-const SCAR_PROCEDURE_OPTIONS: {
-  value: 'laser' | 'revision_surgery' | 'facelift' | 'injection'
-  label: string
-  hint: string
-}[] = [
-  {
-    value: 'laser',
-    label: '雷射（染料 / CO2 / 飛梭）',
-    hint: '紅寶石雷射 3-5 次療程；基本費 + 每 cm²',
-  },
-  {
-    value: 'revision_surgery',
-    label: '修疤手術（Z 形整形 / W 形整形）',
-    hint: '外科切除，每公分 3,000-10,000 元',
-  },
-  {
-    value: 'facelift',
-    label: '拉皮手術（全臉 / 腹部）',
-    hint: '大面積疤痕或合併臉部鬆弛；20-40 萬',
-  },
-  {
-    value: 'injection',
-    label: '注射治療（蟹足腫 / PRP）',
-    hint: '蟹足腫注射 + 血小板生長因子（中地院 110 簡 202 判例 80 萬）',
-  },
 ]
 
 // ============== 表單 Schema ==============
