@@ -33,7 +33,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   // v0.9.0+：metadataBase 必須設定，否則 OG / Twitter image 解析會 fallback 到 localhost
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || 'https://tw-car-claim-estimator.vercel.app',
+    process.env.NEXT_PUBLIC_SITE_URL || 'https://tw-car-claim-estimator-production.up.railway.app',
   ),
   title: '台灣車禍理賠金額估算器',
   // v0.12.0+ Phase C3：結構化資料 JSON-LD（SoftwareApplication）
@@ -143,10 +143,10 @@ export default function RootLayout({
                       <p className="!mb-1 !text-xs !text-muted">
                         Email：
                         <a
-                          href="mailto:support@tw-car-claim-estimator.vercel.app"
+                          href="mailto:support@tw-car-claim-estimator-production.up.railway.app"
                           className="!text-accent hover:underline"
                         >
-                          support@tw-car-claim-estimator.vercel.app
+                          support@tw-car-claim-estimator-production.up.railway.app
                         </a>
                       </p>
                       <p className="!mb-1 !text-xs !text-muted">回覆時間：3 個工作天內</p>

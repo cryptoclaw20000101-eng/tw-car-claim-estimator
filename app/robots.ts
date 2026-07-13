@@ -11,7 +11,8 @@ import type { MetadataRoute } from 'next'
  * AGENTS §2.4：Next.js 16 native robots.ts (MetadataRoute.Robots)
  */
 export default function robots(): MetadataRoute.Robots {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tw-car-claim-estimator.vercel.app'
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || 'https://tw-car-claim-estimator-production.up.railway.app'
 
   return {
     rules: [

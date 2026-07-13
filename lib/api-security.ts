@@ -63,7 +63,6 @@ function getAllowedOrigins(): string[] {
   return [
     process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
     'http://localhost:3000',
-    'https://tw-car-claim-estimator.vercel.app',
     'https://tw-car-claim-estimator-production.up.railway.app',
   ]
 }

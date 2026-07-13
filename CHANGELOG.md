@@ -70,31 +70,7 @@
 
 ## [Unreleased]
 
-### Added
-
-- v0.13.x — 完整 GitHub Actions CI（lint + typecheck + test + build + e2e）
-- v0.13.x — vercel.json 部署配置（cache headers + redirect + HSTS + Service-Worker-Allowed）
-- v0.13.x — Playwright E2E 14 場景（home / navigation / business flow）
-- v0.13.x — Web Vitals 上報（LCP/CLS/INP/FCP/TTFB）+ Sentry-style ErrorTracker scaffold
-- v0.13.x — Service Worker 進階快取（HTML stale-while-revalidate + 靜態資源 TTL）
-- v0.13.x — ThemeProvider 動態切換 AntD darkAlgorithm
-- v0.12.0+ — Phase A-E 優化（25+ 項：文案 / 表單 / A11y / DX / 業務員）
-- v0.12.0 — Token consolidation（#be123c 4 處硬編 → tokens.ts 單一來源）
-- v0.11.0 — Hero 右側重排 + 結果頁 Stat 主視覺 + 自製 Skeleton
-- v0.10.0 — framer-motion polish + 7 個 B→A 元件升級
-- v0.9.0 — SEO baseline + page metadata + design tokens 模組
-
-### Changed
-
-- v0.13.x — 統一 Prettier 格式（154 個檔）
-- v0.12.0+ — AntD Drawer width → size 棄用修正
-- v0.12.0+ — TypeScript strict 加 2 個安全 flags（noImplicitOverride + noFallthroughCasesInSwitch）
-
-### Fixed
-
-- v0.13.x — AntD Drawer runtime deprecation warning
-- v0.12.0+ — `var(--font-geist-sans)` dead ref → `var(--font-body)`
-- v0.12.0+ — 移除 dev console.log
+（v0.19.0 已發布，後續工作項目另開 issue tracker）
 
 ## [v0.8.4] - 2026-07-01
 

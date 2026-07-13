@@ -20,7 +20,8 @@ const nextConfig: NextConfig = {
   // v0.5.0: 環境變數 prefix
   env: {
     NEXT_PUBLIC_SITE_URL:
-      process.env.NEXT_PUBLIC_SITE_URL || 'https://tw-car-claim-estimator.vercel.app',
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      'https://tw-car-claim-estimator-production.up.railway.app',
   },
   // v0.5.1: 允許 LAN 裝置（HMR / dev resources）— Next 16 預設只允 localhost
   // 手機/別台電腦用 http://<你的 IP>:3001 開的時候需要加，否則 webpack-hmr 會被擋
