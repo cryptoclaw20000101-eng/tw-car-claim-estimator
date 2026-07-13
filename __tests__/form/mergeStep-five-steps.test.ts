@@ -131,12 +131,12 @@ const makeReceipts = (over: Partial<CompulsoryMedicalInputs> = {}): CompulsoryMe
 })
 
 const makeProperty = (over: Partial<PropertyDamageInputs> = {}): PropertyDamageInputs => ({
-  vehicleRepairEstimate: 50000, // user 反饋：車損 5 萬必進入估算
-  vehicleRepairInvoice: 50000,
-  vehicleMarketValueBeforeAccident: 200000,
+  vehicleRepairEstimate: 0, // 預設全 0（對齊 _form.tsx DEFAULT_PROPERTY）
+  vehicleRepairInvoice: 0,
+  vehicleMarketValueBeforeAccident: 0,
   salvageValue: 0,
-  towingFee: 2000,
-  rentalCarFee: 3000,
+  towingFee: 0,
+  rentalCarFee: 0,
   phoneDamage: 0,
   helmetDamage: 0,
   clothingDamage: 0,
@@ -220,8 +220,8 @@ describe('mergeStep — 5 步對映', () => {
     }
     const result = mergeStep(prev, 4, updated)
     expect(result.receipts.emergencyFee).toBe(9999)
-    // property 沒動，仍是 prev 的 50000（不該被改成 0）
-    expect(result.property.vehicleRepairInvoice).toBe(50000)
+    // property 沒動，仍是 prev 的 0（mergeStep 不該清空）
+    expect(result.property.vehicleRepairInvoice).toBe(0)
   })
 
   it('step 4 冪等：同 values 連續 merge 兩次結果相同', () => {
