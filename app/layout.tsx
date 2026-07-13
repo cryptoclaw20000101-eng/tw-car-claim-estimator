@@ -36,8 +36,10 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_SITE_URL || 'https://tw-car-claim-estimator-production.up.railway.app',
   ),
   title: '台灣車禍理賠金額估算器',
-  // v0.12.0+ Phase C3：結構化資料 JSON-LD（SoftwareApplication）
+  // 結構化資料 JSON-LD（SoftwareApplication）
   // 幫助搜尋引擎理解這是「工具型 web app」而非「文章頁」
+  // 移除假 aggregateRating：v0.12.0+ §26 C3 標為 placeholder，但網站無真實評分系統
+  // AGENTS §0 法律邊界 + §6「憑空填值」紅線要求：未蒐集用戶評價前不應造假
   other: {
     'application/ld+json': JSON.stringify({
       '@context': 'https://schema.org',
@@ -52,11 +54,6 @@ export const metadata: Metadata = {
         '@type': 'Offer',
         price: '0',
         priceCurrency: 'TWD',
-      },
-      aggregateRating: {
-        '@type': 'AggregateRating',
-        ratingValue: '4.5',
-        ratingCount: '1', // 未來收集用戶回饋後更新
       },
     }),
   },
