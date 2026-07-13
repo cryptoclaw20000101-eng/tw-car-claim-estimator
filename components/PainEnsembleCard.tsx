@@ -246,23 +246,14 @@ export function PainEnsembleCard({
         </Paragraph>
       )}
 
-      {/* 人工複核旗標 */}
+      {/* 人工複核旗標（v0.19.x+：移除 dev token 計數，精簡文案） */}
       {painAdvisor.requiresHumanReview && (
         <InfoAlert
           type="error"
           showIcon
           className="!mt-2"
-          title="建議人工複核"
-          body={
-            <>
-              引擎判定此案件需保經業務員 / 律師親自 review，請以實際會客面談為準。
-              <br />
-              <Text type="secondary" className="!text-xs">
-                計算成本：{painAdvisor.promptTokens} prompt + {painAdvisor.completionTokens}{' '}
-                completion tokens
-              </Text>
-            </>
-          }
+          title="需人工複核"
+          body="以實際會客面談為準。"
         />
       )}
 

@@ -126,7 +126,7 @@ describe('PainEnsembleCard SSR HTML 結構', () => {
     expect(html).toContain('票數不足')
   })
 
-  it('requiresHumanReview=true → 渲染紅框「建議人工複核」', () => {
+  it('requiresHumanReview=true → 渲染紅框「需人工複核」', () => {
     const props: PainEnsembleCardProps = {
       ...baseProps,
       painAdvisor: {
@@ -138,13 +138,15 @@ describe('PainEnsembleCard SSR HTML 結構', () => {
       },
     }
     const html = renderToString(<PainEnsembleCard {...props} />)
-    expect(html).toContain('建議人工複核')
+    // v0.19.x+：文案精簡為「需人工複核 / 以實際會客面談為準」
+    expect(html).toContain('需人工複核')
+    expect(html).toContain('以實際會客面談為準')
     expect(html).toContain('風險高')
     expect(html).toContain('失能等級超過預期')
     expect(html).toContain('補失能鑑定報告')
   })
 
-  it('LLM token 數顯示在人工複核警示內', () => {
+  it('v0.19.x+：人工複核警示內不再顯示 LLM token 數（移除 dev 資訊外洩）', () => {
     const props: PainEnsembleCardProps = {
       ...baseProps,
       painAdvisor: {
@@ -155,12 +157,11 @@ describe('PainEnsembleCard SSR HTML 結構', () => {
       },
     }
     const html = renderToString(<PainEnsembleCard {...props} />)
-    // React 在 SSR 用 <!-- --> 分隔數字字面值（避免 hydration warning），
-    // 所以「350 prompt」不會連在一起。用獨立 substring 驗證
-    expect(html).toContain('350')
-    expect(html).toContain('prompt')
-    expect(html).toContain('180')
-    expect(html).toContain('completion')
+    // token 數不再外洩到 UI（避免 dev 資訊洩漏）
+    expect(html).not.toContain('350')
+    expect(html).not.toContain('prompt')
+    expect(html).not.toContain('180')
+    expect(html).not.toContain('completion')
   })
 
   it('disclaimer 永遠渲染（個資法 + 法律邊界）', () => {
