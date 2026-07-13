@@ -812,7 +812,7 @@
   {
     "id": "tw-medical_expense-115-11519",
     "caseNo": "115 年度 簡易 字第 19 號",
-    "court": "TNHV（未知代碼）",
+    "court": "臺灣高等法院臺南分院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "medical_expense",
@@ -824,13 +824,13 @@
       "defendant": 100
     },
     "gist": "醫療費用 140,075 元",
-    "source": "TNHV（未知代碼） 115 年度 簡易 字第 19 號",
+    "source": "臺灣高等法院臺南分院 115 年度 簡易 字第 19 號",
     "scrapedAt": "2026-07-11T01:07:29.384Z"
   },
   {
     "id": "tw-medical_expense-114-141328",
     "caseNo": "114 年度 訴 字第 1328 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "medical_expense",
@@ -842,7 +842,7 @@
       "defendant": 100
     },
     "gist": "醫療費用 244,102 元",
-    "source": "SCDV（未知代碼） 114 年度 訴 字第 1328 號",
+    "source": "臺灣新竹地方法院 114 年度 訴 字第 1328 號",
     "scrapedAt": "2026-07-11T01:38:51.713Z"
   },
   {
@@ -866,7 +866,7 @@
   {
     "id": "tw-medical_expense-115-115287",
     "caseNo": "115 年度 竹小 字第 287 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "medical_expense",
@@ -878,7 +878,7 @@
       "defendant": 100
     },
     "gist": "醫療費用 13,899 元",
-    "source": "SCDV（未知代碼） 115 年度 竹小 字第 287 號",
+    "source": "臺灣新竹地方法院 115 年度 竹小 字第 287 號",
     "scrapedAt": "2026-07-11T01:39:04.891Z"
   },
   {

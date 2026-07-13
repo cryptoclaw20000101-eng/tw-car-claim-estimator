@@ -722,7 +722,7 @@
   {
     "id": "tw-nursing_care-115-115202",
     "caseNo": "115 年度 竹簡 字第 202 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "nursing_care",
@@ -734,13 +734,13 @@
       "defendant": 100
     },
     "gist": "看護費 93,000 元",
-    "source": "SCDV（未知代碼） 115 年度 竹簡 字第 202 號",
+    "source": "臺灣新竹地方法院 115 年度 竹簡 字第 202 號",
     "scrapedAt": "2026-07-11T01:05:36.112Z"
   },
   {
     "id": "tw-nursing_care-114-11490",
     "caseNo": "114 年度 重訴 字第 90 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "nursing_care",
@@ -752,13 +752,13 @@
       "defendant": 100
     },
     "gist": "看護費 105,000 元",
-    "source": "ULDV（未知代碼） 114 年度 重訴 字第 90 號",
+    "source": "臺灣雲林地方法院 114 年度 重訴 字第 90 號",
     "scrapedAt": "2026-07-11T01:05:37.242Z"
   },
   {
     "id": "tw-nursing_care-114-11434",
     "caseNo": "114 年度 簡上 字第 34 號",
-    "court": "CTDV（未知代碼）",
+    "court": "臺灣橋頭地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "nursing_care",
@@ -770,7 +770,7 @@
       "defendant": 100
     },
     "gist": "看護費 22,000 元",
-    "source": "CTDV（未知代碼） 114 年度 簡上 字第 34 號",
+    "source": "臺灣橋頭地方法院 114 年度 簡上 字第 34 號",
     "scrapedAt": "2026-07-11T01:05:38.255Z"
   },
   {
@@ -794,7 +794,7 @@
   {
     "id": "tw-nursing_care-114-11493",
     "caseNo": "114 年度 簡 字第 93 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "nursing_care",
@@ -806,7 +806,7 @@
       "defendant": 100
     },
     "gist": "看護費 349,600 元",
-    "source": "ULDV（未知代碼） 114 年度 簡 字第 93 號",
+    "source": "臺灣雲林地方法院 114 年度 簡 字第 93 號",
     "scrapedAt": "2026-07-11T01:05:39.981Z"
   },
   {
@@ -866,7 +866,7 @@
   {
     "id": "tw-nursing_care-114-141328",
     "caseNo": "114 年度 訴 字第 1328 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "nursing_care",
@@ -878,7 +878,7 @@
       "defendant": 100
     },
     "gist": "看護費 288,000 元",
-    "source": "SCDV（未知代碼） 114 年度 訴 字第 1328 號",
+    "source": "臺灣新竹地方法院 114 年度 訴 字第 1328 號",
     "scrapedAt": "2026-07-11T01:05:52.974Z"
   },
   {

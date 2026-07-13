@@ -1587,7 +1587,7 @@
   {
     "id": "tw-labor_loss-115-115202",
     "caseNo": "115 年度 竹簡 字第 202 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "labor_loss",
@@ -1599,7 +1599,7 @@
       "defendant": 100
     },
     "gist": "工作損失 59,840 元",
-    "source": "SCDV（未知代碼） 115 年度 竹簡 字第 202 號",
+    "source": "臺灣新竹地方法院 115 年度 竹簡 字第 202 號",
     "scrapedAt": "2026-07-11T00:47:41.307Z"
   },
   {
@@ -1659,7 +1659,7 @@
   {
     "id": "tw-labor_loss-114-141328",
     "caseNo": "114 年度 訴 字第 1328 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "labor_loss",
@@ -1671,7 +1671,7 @@
       "defendant": 100
     },
     "gist": "工作損失 294,000 元",
-    "source": "SCDV（未知代碼） 114 年度 訴 字第 1328 號",
+    "source": "臺灣新竹地方法院 114 年度 訴 字第 1328 號",
     "scrapedAt": "2026-07-11T00:48:32.371Z"
   },
   {
@@ -1695,7 +1695,7 @@
   {
     "id": "tw-labor_loss-114-114176",
     "caseNo": "114 年度 訴 字第 176 號",
-    "court": "CTDV（未知代碼）",
+    "court": "臺灣橋頭地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "labor_loss",
@@ -1707,13 +1707,13 @@
       "defendant": 100
     },
     "gist": "工作損失 206,492 元",
-    "source": "CTDV（未知代碼） 114 年度 訴 字第 176 號",
+    "source": "臺灣橋頭地方法院 114 年度 訴 字第 176 號",
     "scrapedAt": "2026-07-11T00:48:38.036Z"
   },
   {
     "id": "tw-labor_loss_v2-115-115202",
     "caseNo": "115 年度 竹簡 字第 202 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "labor_loss_v2",
@@ -1725,13 +1725,13 @@
       "defendant": 100
     },
     "gist": "工作損失(勞減) 59,840 元",
-    "source": "SCDV（未知代碼） 115 年度 竹簡 字第 202 號",
+    "source": "臺灣新竹地方法院 115 年度 竹簡 字第 202 號",
     "scrapedAt": "2026-07-11T00:59:34.206Z"
   },
   {
     "id": "tw-labor_loss_v2-115-11551",
     "caseNo": "115 年度 簡上 字第 51 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "labor_loss_v2",
@@ -1743,7 +1743,7 @@
       "defendant": 100
     },
     "gist": "工作損失(勞減) 148,000 元",
-    "source": "SCDV（未知代碼） 115 年度 簡上 字第 51 號",
+    "source": "臺灣新竹地方法院 115 年度 簡上 字第 51 號",
     "scrapedAt": "2026-07-11T00:59:35.843Z"
   },
   {
@@ -1767,7 +1767,7 @@
   {
     "id": "tw-labor_loss_v2-115-115482",
     "caseNo": "115 年度 竹小 字第 482 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "labor_loss_v2",
@@ -1779,13 +1779,13 @@
       "defendant": 100
     },
     "gist": "工作損失(勞減) 96,641 元",
-    "source": "SCDV（未知代碼） 115 年度 竹小 字第 482 號",
+    "source": "臺灣新竹地方法院 115 年度 竹小 字第 482 號",
     "scrapedAt": "2026-07-11T00:59:37.990Z"
   },
   {
     "id": "tw-labor_loss_v2-114-11493",
     "caseNo": "114 年度 簡 字第 93 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "labor_loss_v2",
@@ -1797,7 +1797,7 @@
       "defendant": 100
     },
     "gist": "工作損失(勞減) 349,600 元",
-    "source": "ULDV（未知代碼） 114 年度 簡 字第 93 號",
+    "source": "臺灣雲林地方法院 114 年度 簡 字第 93 號",
     "scrapedAt": "2026-07-11T00:59:38.439Z"
   },
   {
@@ -1821,7 +1821,7 @@
   {
     "id": "tw-labor_loss_v2-114-141328",
     "caseNo": "114 年度 訴 字第 1328 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "labor_loss_v2",
@@ -1833,13 +1833,13 @@
       "defendant": 100
     },
     "gist": "工作損失(勞減) 294,000 元",
-    "source": "SCDV（未知代碼） 114 年度 訴 字第 1328 號",
+    "source": "臺灣新竹地方法院 114 年度 訴 字第 1328 號",
     "scrapedAt": "2026-07-11T00:59:42.057Z"
   },
   {
     "id": "tw-labor_loss_v2-114-141466",
     "caseNo": "114 年度 訴 字第 1466 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "labor_loss_v2",
@@ -1851,7 +1851,7 @@
       "defendant": 100
     },
     "gist": "工作損失(勞減) 81,260 元",
-    "source": "SCDV（未知代碼） 114 年度 訴 字第 1466 號",
+    "source": "臺灣新竹地方法院 114 年度 訴 字第 1466 號",
     "scrapedAt": "2026-07-11T01:00:12.479Z"
   },
   {
@@ -1875,7 +1875,7 @@
   {
     "id": "tw-labor_loss_v2-114-1148",
     "caseNo": "114 年度 訴 字第 8 號",
-    "court": "TNHV（未知代碼）",
+    "court": "臺灣高等法院臺南分院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "labor_loss_v2",
@@ -1887,7 +1887,7 @@
       "defendant": 100
     },
     "gist": "工作損失(勞減) 105,600 元",
-    "source": "TNHV（未知代碼） 114 年度 訴 字第 8 號",
+    "source": "臺灣高等法院臺南分院 114 年度 訴 字第 8 號",
     "scrapedAt": "2026-07-11T01:00:14.719Z"
   },
   {
@@ -1911,7 +1911,7 @@
   {
     "id": "tw-labor_loss_v2-113-11314",
     "caseNo": "113 年度 原訴 字第 14 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "labor_loss_v2",
@@ -1923,7 +1923,7 @@
       "defendant": 100
     },
     "gist": "工作損失(勞減) 572,133 元",
-    "source": "SCDV（未知代碼） 113 年度 原訴 字第 14 號",
+    "source": "臺灣新竹地方法院 113 年度 原訴 字第 14 號",
     "scrapedAt": "2026-07-11T01:00:17.582Z"
   },
   {

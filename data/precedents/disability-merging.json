@@ -788,7 +788,7 @@
   {
     "id": "tw-disability-113-1139",
     "caseNo": "113 年度 勞訴 字第 9 號",
-    "court": "KLDV（未知代碼）",
+    "court": "臺灣基隆地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "disability",
@@ -800,7 +800,7 @@
       "defendant": 100
     },
     "gist": "失能慰撫金 660,000 元",
-    "source": "KLDV（未知代碼） 113 年度 勞訴 字第 9 號",
+    "source": "臺灣基隆地方法院 113 年度 勞訴 字第 9 號",
     "scrapedAt": "2026-07-11T00:52:36.508Z"
   },
   {
@@ -842,7 +842,7 @@
   {
     "id": "tw-disability_v2-115-1155",
     "caseNo": "115 年度 保險 字第 5 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2026,
     "category": "disability",
     "chain": "disability_v2",
@@ -854,7 +854,7 @@
       "defendant": 100
     },
     "gist": "失能(後遺症) 1,500,000 元",
-    "source": "ULDV（未知代碼） 115 年度 保險 字第 5 號",
+    "source": "臺灣雲林地方法院 115 年度 保險 字第 5 號",
     "scrapedAt": "2026-07-11T01:01:46.927Z"
   },
   {

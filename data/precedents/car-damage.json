@@ -2379,7 +2379,7 @@
   {
     "id": "tw-car_damage-115-11593",
     "caseNo": "115 年度 基簡 字第 93 號",
-    "court": "KLDV（未知代碼）",
+    "court": "臺灣基隆地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "car_damage",
@@ -2391,7 +2391,7 @@
       "defendant": 100
     },
     "gist": "車損 116,583 元",
-    "source": "KLDV（未知代碼） 115 年度 基簡 字第 93 號",
+    "source": "臺灣基隆地方法院 115 年度 基簡 字第 93 號",
     "scrapedAt": "2026-07-11T00:49:26.973Z"
   },
   {
@@ -2451,7 +2451,7 @@
   {
     "id": "tw-car_damage-114-141328",
     "caseNo": "114 年度 訴 字第 1328 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "car_damage",
@@ -2463,7 +2463,7 @@
       "defendant": 100
     },
     "gist": "車損 313,682 元",
-    "source": "SCDV（未知代碼） 114 年度 訴 字第 1328 號",
+    "source": "臺灣新竹地方法院 114 年度 訴 字第 1328 號",
     "scrapedAt": "2026-07-11T00:49:41.584Z"
   },
   {
@@ -2559,7 +2559,7 @@
   {
     "id": "tw-car_damage_v2-115-115441",
     "caseNo": "115 年度 基小 字第 441 號",
-    "court": "KLDV（未知代碼）",
+    "court": "臺灣基隆地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "car_damage_v2",
@@ -2571,7 +2571,7 @@
       "defendant": 100
     },
     "gist": "車損(全損) 1,500 元",
-    "source": "KLDV（未知代碼） 115 年度 基小 字第 441 號",
+    "source": "臺灣基隆地方法院 115 年度 基小 字第 441 號",
     "scrapedAt": "2026-07-11T01:00:38.071Z"
   },
   {
@@ -2685,7 +2685,7 @@
   {
     "id": "tw-car_damage_v2-115-115467",
     "caseNo": "115 年度 基小 字第 467 號",
-    "court": "KLDV（未知代碼）",
+    "court": "臺灣基隆地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "car_damage_v2",
@@ -2697,7 +2697,7 @@
       "defendant": 100
     },
     "gist": "車損(全損) 107,612 元",
-    "source": "KLDV（未知代碼） 115 年度 基小 字第 467 號",
+    "source": "臺灣基隆地方法院 115 年度 基小 字第 467 號",
     "scrapedAt": "2026-07-11T01:01:06.099Z"
   },
   {
@@ -2811,7 +2811,7 @@
   {
     "id": "tw-car_damage_v2-115-115282",
     "caseNo": "115 年度 竹小 字第 282 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "car_damage_v2",
@@ -2823,13 +2823,13 @@
       "defendant": 100
     },
     "gist": "車損(全損) 1,500 元",
-    "source": "SCDV（未知代碼） 115 年度 竹小 字第 282 號",
+    "source": "臺灣新竹地方法院 115 年度 竹小 字第 282 號",
     "scrapedAt": "2026-07-11T01:01:21.184Z"
   },
   {
     "id": "tw-car_damage_v2-115-115133",
     "caseNo": "115 年度 竹小 字第 133 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "car_damage_v2",
@@ -2841,7 +2841,7 @@
       "defendant": 100
     },
     "gist": "車損(全損) 1,500 元",
-    "source": "SCDV（未知代碼） 115 年度 竹小 字第 133 號",
+    "source": "臺灣新竹地方法院 115 年度 竹小 字第 133 號",
     "scrapedAt": "2026-07-11T01:01:21.587Z"
   },
   {
@@ -2901,7 +2901,7 @@
   {
     "id": "tw-car_damage_v2-115-11551",
     "caseNo": "115 年度 簡上 字第 51 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "car_damage_v2",
@@ -2913,7 +2913,7 @@
       "defendant": 100
     },
     "gist": "車損(全損) 40,289 元",
-    "source": "SCDV（未知代碼） 115 年度 簡上 字第 51 號",
+    "source": "臺灣新竹地方法院 115 年度 簡上 字第 51 號",
     "scrapedAt": "2026-07-11T01:01:25.494Z"
   },
   {

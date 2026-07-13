@@ -956,7 +956,7 @@
   {
     "id": "tw-settlement_v2-115-11529",
     "caseNo": "115 年度 交簡上 字第 29 號",
-    "court": "TYDM（未知代碼）",
+    "court": "臺灣桃園地方法院",
     "year": 2026,
     "category": "minor_injury",
     "chain": "settlement_v2",
@@ -968,7 +968,7 @@
       "defendant": 100
     },
     "gist": "和解金(肇責) 80,000 元",
-    "source": "TYDM（未知代碼） 115 年度 交簡上 字第 29 號",
+    "source": "臺灣桃園地方法院 115 年度 交簡上 字第 29 號",
     "scrapedAt": "2026-07-11T01:04:34.935Z"
   },
   {
@@ -1082,7 +1082,7 @@
   {
     "id": "tw-appeal_case-114-11454",
     "caseNo": "114 年度 簡上 字第 54 號",
-    "court": "ILDV（未知代碼）",
+    "court": "臺灣宜蘭地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "appeal_case",
@@ -1094,7 +1094,7 @@
       "defendant": 100
     },
     "gist": "訴訟終結 15,958 元",
-    "source": "ILDV（未知代碼） 114 年度 簡上 字第 54 號",
+    "source": "臺灣宜蘭地方法院 114 年度 簡上 字第 54 號",
     "scrapedAt": "2026-07-11T05:07:23.508Z"
   }
 ]

@@ -362,7 +362,7 @@
   {
     "id": "tw-transport_fee-113-11314",
     "caseNo": "113 年度 原訴 字第 14 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "transport_fee",
@@ -374,7 +374,7 @@
       "defendant": 100
     },
     "gist": "交通費用 27,710 元",
-    "source": "SCDV（未知代碼） 113 年度 原訴 字第 14 號",
+    "source": "臺灣新竹地方法院 113 年度 原訴 字第 14 號",
     "scrapedAt": "2026-07-11T05:00:57.400Z"
   },
   {
@@ -434,7 +434,7 @@
   {
     "id": "tw-transport_fee-114-11442",
     "caseNo": "114 年度 簡上 字第 42 號",
-    "court": "ILDV（未知代碼）",
+    "court": "臺灣宜蘭地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "transport_fee",
@@ -446,7 +446,7 @@
       "defendant": 100
     },
     "gist": "交通費用 36,494 元",
-    "source": "ILDV（未知代碼） 114 年度 簡上 字第 42 號",
+    "source": "臺灣宜蘭地方法院 114 年度 簡上 字第 42 號",
     "scrapedAt": "2026-07-11T05:02:14.717Z"
   }
 ]

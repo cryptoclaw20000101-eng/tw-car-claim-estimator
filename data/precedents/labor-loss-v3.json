@@ -20,7 +20,7 @@
   {
     "id": "tw-labor_loss_v3-113-1139",
     "caseNo": "113 年度 勞訴 字第 9 號",
-    "court": "KLDV（未知代碼）",
+    "court": "臺灣基隆地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "labor_loss_v3",
@@ -32,7 +32,7 @@
       "defendant": 100
     },
     "gist": "失能/勞動能力減損 660,000 元",
-    "source": "KLDV（未知代碼） 113 年度 勞訴 字第 9 號",
+    "source": "臺灣基隆地方法院 113 年度 勞訴 字第 9 號",
     "scrapedAt": "2026-07-11T00:45:49.572Z"
   },
   {
@@ -56,7 +56,7 @@
   {
     "id": "tw-labor_loss_v3-114-11442",
     "caseNo": "114 年度 簡上 字第 42 號",
-    "court": "ILDV（未知代碼）",
+    "court": "臺灣宜蘭地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "labor_loss_v3",
@@ -68,13 +68,13 @@
       "defendant": 100
     },
     "gist": "失能/勞動能力減損 2,207,580 元",
-    "source": "ILDV（未知代碼） 114 年度 簡上 字第 42 號",
+    "source": "臺灣宜蘭地方法院 114 年度 簡上 字第 42 號",
     "scrapedAt": "2026-07-11T01:13:06.549Z"
   },
   {
     "id": "tw-labor_loss_v3-114-11422",
     "caseNo": "114 年度 勞上 字第 22 號",
-    "court": "TNHV（未知代碼）",
+    "court": "臺灣高等法院臺南分院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "labor_loss_v3",
@@ -86,7 +86,7 @@
       "defendant": 100
     },
     "gist": "失能/勞動能力減損 781,112 元",
-    "source": "TNHV（未知代碼） 114 年度 勞上 字第 22 號",
+    "source": "臺灣高等法院臺南分院 114 年度 勞上 字第 22 號",
     "scrapedAt": "2026-07-11T05:08:58.139Z"
   },
   {
@@ -164,7 +164,7 @@
   {
     "id": "tw-labor_loss_v3-114-11423",
     "caseNo": "114 年度 勞訴 字第 23 號",
-    "court": "ILDV（未知代碼）",
+    "court": "臺灣宜蘭地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "labor_loss_v3",
@@ -176,13 +176,13 @@
       "defendant": 100
     },
     "gist": "失能/勞動能力減損 1,200,780 元",
-    "source": "ILDV（未知代碼） 114 年度 勞訴 字第 23 號",
+    "source": "臺灣宜蘭地方法院 114 年度 勞訴 字第 23 號",
     "scrapedAt": "2026-07-11T05:09:24.939Z"
   },
   {
     "id": "tw-labor_loss_v3-112-11216",
     "caseNo": "112 年度 勞上 字第 16 號",
-    "court": "TNHV（未知代碼）",
+    "court": "臺灣高等法院臺南分院",
     "year": 2023,
     "category": "minor_injury",
     "chain": "labor_loss_v3",
@@ -194,13 +194,13 @@
       "defendant": 100
     },
     "gist": "失能/勞動能力減損 30,300 元",
-    "source": "TNHV（未知代碼） 112 年度 勞上 字第 16 號",
+    "source": "臺灣高等法院臺南分院 112 年度 勞上 字第 16 號",
     "scrapedAt": "2026-07-11T05:09:52.544Z"
   },
   {
     "id": "tw-labor_loss_v3-112-11212",
     "caseNo": "112 年度 醫 字第 12 號",
-    "court": "CTDV（未知代碼）",
+    "court": "臺灣橋頭地方法院",
     "year": 2023,
     "category": "minor_injury",
     "chain": "labor_loss_v3",
@@ -212,7 +212,7 @@
       "defendant": 100
     },
     "gist": "失能/勞動能力減損 80,000 元",
-    "source": "CTDV（未知代碼） 112 年度 醫 字第 12 號",
+    "source": "臺灣橋頭地方法院 112 年度 醫 字第 12 號",
     "scrapedAt": "2026-07-11T05:09:54.012Z"
   },
   {
@@ -326,7 +326,7 @@
   {
     "id": "tw-labor_loss_v3-114-11417",
     "caseNo": "114 年度 訴 字第 17 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "labor_loss_v3",
@@ -338,7 +338,7 @@
       "defendant": 100
     },
     "gist": "失能/勞動能力減損 29,500 元",
-    "source": "ULDV（未知代碼） 114 年度 訴 字第 17 號",
+    "source": "臺灣雲林地方法院 114 年度 訴 字第 17 號",
     "scrapedAt": "2026-07-11T05:10:15.333Z"
   },
   {
@@ -362,7 +362,7 @@
   {
     "id": "tw-labor_loss_v3-114-1141",
     "caseNo": "114 年度 原簡 字第 1 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "labor_loss_v3",
@@ -374,13 +374,13 @@
       "defendant": 100
     },
     "gist": "失能/勞動能力減損 41,110 元",
-    "source": "ULDV（未知代碼） 114 年度 原簡 字第 1 號",
+    "source": "臺灣雲林地方法院 114 年度 原簡 字第 1 號",
     "scrapedAt": "2026-07-11T05:10:16.568Z"
   },
   {
     "id": "tw-labor_loss_v3-113-113126",
     "caseNo": "113 年度 簡 字第 126 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "labor_loss_v3",
@@ -392,13 +392,13 @@
       "defendant": 100
     },
     "gist": "失能/勞動能力減損 35,000 元",
-    "source": "ULDV（未知代碼） 113 年度 簡 字第 126 號",
+    "source": "臺灣雲林地方法院 113 年度 簡 字第 126 號",
     "scrapedAt": "2026-07-11T05:10:21.378Z"
   },
   {
     "id": "tw-labor_loss_v3-113-113128",
     "caseNo": "113 年度 簡 字第 128 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "labor_loss_v3",
@@ -410,7 +410,7 @@
       "defendant": 100
     },
     "gist": "失能/勞動能力減損 1,695,755 元",
-    "source": "ULDV（未知代碼） 113 年度 簡 字第 128 號",
+    "source": "臺灣雲林地方法院 113 年度 簡 字第 128 號",
     "scrapedAt": "2026-07-11T05:10:24.343Z"
   },
   {
@@ -434,7 +434,7 @@
   {
     "id": "tw-labor_loss_v3-113-1131",
     "caseNo": "113 年度 重國 字第 1 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2024,
     "category": "minor_injury",
     "chain": "labor_loss_v3",
@@ -446,13 +446,13 @@
       "defendant": 100
     },
     "gist": "失能/勞動能力減損 27,470 元",
-    "source": "ULDV（未知代碼） 113 年度 重國 字第 1 號",
+    "source": "臺灣雲林地方法院 113 年度 重國 字第 1 號",
     "scrapedAt": "2026-07-11T05:10:25.435Z"
   },
   {
     "id": "tw-labor_loss_v3-112-112119",
     "caseNo": "112 年度 簡 字第 119 號",
-    "court": "ULDV（未知代碼）",
+    "court": "臺灣雲林地方法院",
     "year": 2023,
     "category": "minor_injury",
     "chain": "labor_loss_v3",
@@ -464,7 +464,7 @@
       "defendant": 100
     },
     "gist": "失能/勞動能力減損 55,000 元",
-    "source": "ULDV（未知代碼） 112 年度 簡 字第 119 號",
+    "source": "臺灣雲林地方法院 112 年度 簡 字第 119 號",
     "scrapedAt": "2026-07-11T05:10:26.957Z"
   },
   {
@@ -578,7 +578,7 @@
   {
     "id": "tw-labor_loss_v3-113-11310",
     "caseNo": "113 年度 醫 字第 10 號",
-    "court": "CTDV（未知代碼）",
+    "court": "臺灣橋頭地方法院",
     "year": 2024,
     "category": "death",
     "chain": "labor_loss_v3",
@@ -590,7 +590,7 @@
       "defendant": 100
     },
     "gist": "失能/勞動能力減損 24,000 元",
-    "source": "CTDV（未知代碼） 113 年度 醫 字第 10 號",
+    "source": "臺灣橋頭地方法院 113 年度 醫 字第 10 號",
     "scrapedAt": "2026-07-11T05:11:06.322Z"
   },
   {
@@ -614,7 +614,7 @@
   {
     "id": "tw-labor_loss_v3-114-11411",
     "caseNo": "114 年度 消債抗 字第 11 號",
-    "court": "SCDV（未知代碼）",
+    "court": "臺灣新竹地方法院",
     "year": 2025,
     "category": "minor_injury",
     "chain": "labor_loss_v3",
@@ -626,7 +626,7 @@
       "defendant": 100
     },
     "gist": "失能/勞動能力減損 44,778 元",
-    "source": "SCDV（未知代碼） 114 年度 消債抗 字第 11 號",
+    "source": "臺灣新竹地方法院 114 年度 消債抗 字第 11 號",
     "scrapedAt": "2026-07-11T05:11:13.891Z"
   }
 ]
