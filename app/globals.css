@@ -452,7 +452,8 @@ input[type='number'] {
     margin: 2cm 1.5cm;
     /* 頁尾加版本號與 URL（v0.12.0+） */
     @bottom-right {
-      content: 'tw-car-claim-estimator v0.12.0 · ' counter(page) ' / ' counter(pages);
+      /* v0.24.1+：列印 footer 改成「理賠顧問小鄭製作」 */
+      content: '理賠顧問小鄭製作 · tw-car-claim-estimator · ' counter(page) ' / ' counter(pages);
       font-size: 9pt;
       color: #666;
     }

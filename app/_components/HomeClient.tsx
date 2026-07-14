@@ -14,7 +14,9 @@ import Link from 'next/link'
 import { Button, Typography, Space } from 'antd'
 import { motion, useReducedMotion } from 'framer-motion'
 import { EstimateHistory } from '@/components/EstimateHistory'
-import { ArrowRightOutlined } from '@ant-design/icons'
+import { ArrowRightOutlined, UserAddOutlined } from '@ant-design/icons'
+// v0.23.1+：user 反饋「找不到登入鍵」，在 HomeClient 加 useAuth + 明顯登入 CTA
+import { useAuth } from '@/components/AuthProvider'
 
 const { Title, Text } = Typography
 
@@ -37,6 +39,8 @@ const THREE_RULES = [
 export default function HomeClient() {
   const reduce = useReducedMotion()
   const viewportOnce = { once: true, amount: 0.2 } as const
+  // v0.23.1+：user 反饋找不到登入鍵 — 在 Hero CTA 旁加明顯登入連結
+  const { user } = useAuth()
   return (
     <main id="main-content" className="dvh-screen flex flex-1 flex-col">
       {/* ============ Hero — 1 句話 + 1 CTA ============ */}
@@ -51,11 +55,23 @@ export default function HomeClient() {
           <Title level={1} className="!mb-8 !text-4xl !leading-tight md:!text-5xl">
             車禍理賠金額，5 分鐘算給你看。
           </Title>
-          <Link href="/claims/new">
-            <Button type="primary" size="large" icon={<ArrowRightOutlined />} iconPlacement="end">
-              開始估算
-            </Button>
-          </Link>
+          {/* v0.23.1+：Hero CTA 旁加登入 / 顯示已登入狀態（user 反饋找不到登入鍵） */}
+          <Space size={12} wrap className="!justify-center">
+            <Link href="/claims/new">
+              <Button type="primary" size="large" icon={<ArrowRightOutlined />} iconPosition="end">
+                開始估算
+              </Button>
+            </Link>
+            {user ? (
+              <Text className="!text-sm text-muted">已登入：{user.email ?? '用戶'}</Text>
+            ) : (
+              <Link href="/login">
+                <Button size="large" icon={<UserAddOutlined />} data-testid="hero-login-button">
+                  註冊 / 登入（雲端同步估算）
+                </Button>
+              </Link>
+            )}
+          </Space>
         </div>
       </motion.section>
 
@@ -91,7 +107,8 @@ export default function HomeClient() {
       >
         <div className="mx-auto max-w-2xl px-6 py-8">
           <div className="flex flex-col items-center gap-2 text-xs text-muted md:flex-row md:justify-between">
-            <Text className="!text-xs text-muted">© 2026 tw-car-claim-estimator</Text>
+            {/* v0.24.1+：footer 改成「理賠顧問小鄭製作」 */}
+            <Text className="!text-xs text-muted">© 2026 理賠顧問小鄭製作</Text>
             <Space size={12} wrap>
               <Link href="/about" className="!text-xs text-muted hover:text-accent">
                 關於
