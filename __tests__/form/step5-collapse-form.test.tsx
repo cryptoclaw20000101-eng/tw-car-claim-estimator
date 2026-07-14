@@ -10,35 +10,8 @@
 // =====================================================================
 
 import { readFileSync } from 'node:fs'
-import { describe, expect, it, vi } from 'vitest'
-import { renderToString } from 'react-dom/server'
-import { ConfigProvider } from 'antd'
-import zhTW from 'antd/locale/zh_TW'
-import { Step5FeesAndProperty } from '@/app/claims/new/_steps/Step5FeesAndProperty'
+import { describe, expect, it } from 'vitest'
 import { estimateClaim } from '@/lib/insurance'
-
-// 建立 mock form（包含 useForm 的 Form 實例）
-const makeMockForm = () => {
-  const form = {
-    setFieldValue: vi.fn(),
-    getFieldValue: vi.fn(),
-    getFieldsValue: vi.fn(),
-    setFieldsValue: vi.fn(),
-    resetFields: vi.fn(),
-    validateFields: vi.fn().mockResolvedValue({
-      receipts: {
-        emergencyFee: 1500,
-        nhiCopayment: 10000,
-      },
-      property: {
-        vehicleRepairInvoice: 50000,
-      },
-    }),
-    submit: vi.fn(),
-  }
-  // Step5FeesAndProperty 需要 form prop
-  return form
-}
 
 describe('Step5FeesAndProperty — Collapse forceRender 守護', () => {
   it('SSR render 包含 Form.Item name={["receipts", "nhiCopayment"]}', () => {

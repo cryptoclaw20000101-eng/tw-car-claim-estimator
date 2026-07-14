@@ -10,7 +10,7 @@
  * - 容錯處理（quota 超限 / parse 失敗）
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import type { ClaimInput, EstimationResult } from '@/lib/insurance/types'
 
 // Mock window / localStorage / navigator.clipboard
@@ -64,8 +64,7 @@ describe('estimate-history', () => {
   })
 
   it('save + get 正常運作', async () => {
-    const { saveEstimateHistory, getEstimateHistory, buildHistoryEntry } =
-      await import('@/lib/estimate-history')
+    const { saveEstimateHistory, getEstimateHistory } = await import('@/lib/estimate-history')
     const entry = {
       timestamp: '2026-07-03T00:00:00.000Z',
       compulsoryTotalEstimated: 80000,

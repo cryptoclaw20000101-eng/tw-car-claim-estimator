@@ -4,7 +4,7 @@
 // =====================================================================
 
 import type { ClaimInput, EstimationResult } from './types'
-import { computeCompulsoryMedical, computeCompulsoryMedicalByDate } from './compulsory'
+import { computeCompulsoryMedicalByDate } from './compulsory'
 import { computeDisability } from './disability'
 import {
   computePainAndSuffering,

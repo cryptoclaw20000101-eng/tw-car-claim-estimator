@@ -17,7 +17,6 @@ import {
   parseAdvisorResponse,
   mockLLMAdvisor,
   type AdvisorInput,
-  type AdvisorOutput,
 } from '@/lib/insurance/pain-advisor'
 
 function input(overrides: Partial<AdvisorInput> = {}): AdvisorInput {

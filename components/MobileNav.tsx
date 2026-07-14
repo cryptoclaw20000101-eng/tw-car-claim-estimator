@@ -30,8 +30,6 @@ import {
   CloseOutlined,
   HomeOutlined,
   CalculatorOutlined,
-  ReadOutlined,
-  ExperimentOutlined,
   FileSearchOutlined,
   // v0.12.0+ Phase B6：dark mode toggle icons
   SunOutlined,
@@ -248,14 +246,12 @@ export function MobileNav() {
 }
 
 // 避免 unused warning
-const _experimentIcon = <ExperimentOutlined />
 
 /**
  * v0.14.x：用戶登入選單（顯示登入狀態 + 切換）
  */
 function UserMenu() {
   const { user, signOut, loading } = useAuth()
-  const pathname = usePathname()
 
   if (loading) {
     return <Button type="text" icon={<UserOutlined />} disabled data-testid="user-menu" />

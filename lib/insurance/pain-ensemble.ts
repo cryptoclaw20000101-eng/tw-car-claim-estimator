@@ -73,7 +73,6 @@ export interface EnsembleOutput {
 // --- 共識度判定（純函式） -----------------------------------------------
 
 const STRONG_THRESHOLD = 0.2 // 20% 內視為「接近」
-const OUTLIER_THRESHOLD = 0.5 // 50% 以上視為 outlier
 
 /**
  * 判斷三票共識度 + 找出 outlier

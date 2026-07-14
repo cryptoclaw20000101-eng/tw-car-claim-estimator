@@ -614,6 +614,8 @@ function extractAmounts(
   return { amount, total, gist }
 }
 
+// AGENTS §2.1：_amount 保留以備未來金額加權分類（暫未使用）
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function categorizeByFacts(gist: string, _amount: number): FinalPrecedent['category'] {
   if (gist.includes('死亡') || gist.includes('致死')) return 'death'
   if (gist.includes('重傷') || gist.includes('重殘')) return 'severe_injury'

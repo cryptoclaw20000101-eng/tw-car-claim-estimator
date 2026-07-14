@@ -17,22 +17,6 @@
 import { describe, it, expect } from 'vitest'
 import { renderToString } from 'react-dom/server'
 import { Step4KnnPreview } from '@/components/Step4KnnPreview'
-import type { PracticeCaseWithKnn } from '@/lib/estimate/precedents'
-
-const makeCase = (overrides: Partial<PracticeCaseWithKnn> = {}): PracticeCaseWithKnn => ({
-  id: 'pc-1',
-  caseNo: '114 年度 訴字 第 100 號',
-  court: '臺灣臺中地方法院',
-  year: 2024,
-  category: 'practice_case',
-  facts: '汽車與機車碰撞',
-  injuries: '左腿骨折',
-  disabilities: [{ type: '下肢', level: '7', source: '初篩' }],
-  keyHoldings: [],
-  source: '理賠實務案例彙編#1',
-  scrapedAt: '2026-01-15T00:00:00Z',
-  ...overrides,
-})
 
 describe('Step4KnnPreview — SSR HTML 結構', () => {
   it('空 disabilityLevel → 提示「填入失能等級後預覽」', () => {

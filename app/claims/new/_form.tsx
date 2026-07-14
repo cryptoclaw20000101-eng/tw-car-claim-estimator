@@ -21,10 +21,9 @@
  * - 重構風險高於短期收益
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button, Card, Form, InputNumber, Select, message, Tag, Typography, DatePicker } from 'antd'
-import { InfoAlert } from '@/components/InfoAlert'
+import { Button, Form, message, Typography } from 'antd'
 import { MobileStickyCTA } from '@/components/MobileStickyCTA'
 // v0.12.0+ Phase B2：自製進度條
 import { FormProgress } from '@/components/FormProgress'
@@ -41,7 +40,7 @@ import {
   CheckCircleOutlined,
   FileAddOutlined,
 } from '@ant-design/icons'
-import dayjs, { Dayjs } from 'dayjs'
+import dayjs from 'dayjs'
 import type {
   AccidentBasics,
   AccidentType,
@@ -51,7 +50,6 @@ import type {
   FaultInfo,
   FaultSource,
   InjuredRole,
-  JointName,
   MedicalRecord,
   PersonalIncome,
   PropertyDamageInputs,
@@ -60,16 +58,7 @@ import { regionCourtMap } from '@/lib/insurance/region-court-map'
 import { estimateClaim } from '@/lib/insurance'
 // v0.14.x：載入舊案件
 import { consumeForLoad } from '@/lib/estimate-loader'
-import {
-  DISABILITY_CATEGORIES,
-  DISABILITY_LEVELS,
-  getDefaultLevel,
-  isCompulsoryExclusion,
-  needsMMSE,
-  type DisabilityCategory,
-  type DisabilityLevelValue,
-} from '@/lib/insurance/disability-categories'
-import { DISABILITY_LABOR_LOSS_PCT } from '@/lib/insurance/hoffmann'
+import {} from '@/lib/insurance/disability-categories'
 
 // 表單頁必須在 client runtime render（AntD Form useWatch / validateFields 依賴 client context）
 
@@ -381,7 +370,6 @@ export default function NewClaimForm() {
   }, [])
 
   // 監聽 basics.accidentCity 自動帶入 courtJurisdiction
-  const accidentCity = Form.useWatch('basics.accidentCity', form)
   const handleCityChange = (v: string) => {
     const court = regionCourtMap[v]
     if (court) {
@@ -463,7 +451,7 @@ export default function NewClaimForm() {
       sessionStorage.setItem('claim-storage-version', 'v2') // v0.18.x+ 防舊版殘留
       sessionStorage.setItem('claim-storage-ts', String(Date.now())) // 過期檢查用
       router.push('/claims/result')
-    } catch (e) {
+    } catch {
       message.error('請填寫完整資料')
     }
   }
@@ -606,47 +594,5 @@ export function mergeStep(prev: FormSchema, step: number, values: Partial<FormSc
 // ============== 失能保典 12 大類 sub-component ==============
 
 /** 即時顯示「失能等級 → 勞減比例」對照（依 DISABILITY_LABOR_LOSS_PCT 公式） */
-function DisabilityLevelTag() {
-  const form = Form.useFormInstance<FormSchema>()
-  const level = Form.useWatch(['medical', 'disabilityLevel'], form) as
-    DisabilityLevelValue | undefined
-  if (!level) return <Tag>未選</Tag>
-  const pct = DISABILITY_LABOR_LOSS_PCT[level] ?? 0
-  const color = level <= 3 ? 'red' : level <= 7 ? 'orange' : level <= 11 ? 'gold' : 'default'
-  return (
-    <Tag color={color}>
-      {level} 等 / 勞減 {pct}%
-    </Tag>
-  )
-}
 
 /** 即時顯示「12 大類」相關警示（黃底強制險排除 / 心理衡鑑） */
-function DisabilityCategoryHint() {
-  const form = Form.useFormInstance<FormSchema>()
-  const cat = Form.useWatch(['medical', 'disabilityCategory'], form) as
-    DisabilityCategory | undefined
-  if (!cat) return null
-  if (isCompulsoryExclusion(cat)) {
-    return (
-      <InfoAlert
-        type="error"
-        showIcon
-        className="!mt-2"
-        title="此類別部分項目強制險不給付（失能保典黃底）"
-        body="如胸腹部臟器之器官移植（7-10 等）。強制險不給付的失能，建議改走第三人責任險 + 民事慰撫金。"
-      />
-    )
-  }
-  if (needsMMSE(cat)) {
-    return (
-      <InfoAlert
-        type="info"
-        showIcon
-        className="!mt-2"
-        title="精神/神經類失能須附心理衡鑑報告"
-        body="失能保典 p.16-17：精神失能須 1-2 年治療期 + MMSE / WAIS / CDR 等最近 3 個月評估；憂鬱症須三線以上抗憂鬱藥物治療證明。"
-      />
-    )
-  }
-  return null
-}

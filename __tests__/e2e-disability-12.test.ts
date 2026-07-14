@@ -7,7 +7,6 @@ import {
   isCompulsoryExclusion,
   needsMMSE,
 } from '@/lib/insurance/disability-categories'
-import { DISABILITY_LABOR_LOSS_PCT } from '@/lib/insurance/hoffmann'
 import { estimateClaim } from '@/lib/insurance'
 import type { ClaimInput } from '@/lib/insurance/types'
 

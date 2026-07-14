@@ -3,7 +3,6 @@
 // 用 vitest-axe + 靜態 renderToString 跑規則檢查
 // @vitest-environment jsdom (axe-core 需要 DOM)
 import { describe, it, expect } from 'vitest'
-import { renderToString } from 'react-dom/server'
 import { configureAxe } from 'vitest-axe'
 import { axe } from 'vitest-axe'
 

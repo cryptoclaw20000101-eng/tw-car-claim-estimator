@@ -29,13 +29,7 @@
 import { useEffect, useState } from 'react'
 import { Alert, Button, Modal, Space, Typography } from 'antd'
 import { InfoAlert } from '@/components/InfoAlert'
-import {
-  DownloadOutlined,
-  ShareAltOutlined,
-  PlusSquareOutlined,
-  CloseOutlined,
-} from '@ant-design/icons'
-import { ACCENT } from '@/lib/design/tokens'
+import { DownloadOutlined } from '@ant-design/icons'
 
 const { Text, Paragraph } = Typography
 
@@ -76,9 +70,9 @@ export function InstallPWAButton() {
   // v0.22.0+：lazy init platform 用 detectPlatform()（client-only 偵測）
   // SSR：window undefined → 'loading'
   // client mount：useState lazy init 自動偵測，避免 setState-in-effect
-  const [platform, setPlatform] = useState<Platform>(() =>
-    typeof window === 'undefined' ? 'loading' : detectPlatform(),
-  )
+  // v0.23.0+：移除 setPlatform（已 lazy init 不需 useState — readonly 透過 [platform, setPlatform]
+  // 解構後只讀取 platform，不再 setState — 改用 const 直接呼叫 detectPlatform）
+  const platform: Platform = typeof window === 'undefined' ? 'loading' : detectPlatform()
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [installed, setInstalled] = useState(false)
   const [iosModalOpen, setIosModalOpen] = useState(false)
@@ -362,8 +356,3 @@ function IosAddToHomeIllustration() {
     </svg>
   )
 }
-
-// 避免 unused warning
-const _closeIcon = <CloseOutlined />
-const _shareIcon = <ShareAltOutlined />
-const _plusIcon = <PlusSquareOutlined />

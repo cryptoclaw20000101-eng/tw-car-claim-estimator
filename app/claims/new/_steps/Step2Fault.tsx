@@ -9,7 +9,7 @@ import { AuditOutlined } from '@ant-design/icons'
 import { StepShell } from '@/components/StepShell'
 import type { FormSchema } from '../_form'
 
-const { Title, Text } = Typography
+const { Title } = Typography
 
 export interface Step2FaultProps {
   form: ReturnType<typeof Form.useForm<FormSchema>>[0]

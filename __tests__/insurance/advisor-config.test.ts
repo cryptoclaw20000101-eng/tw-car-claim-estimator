@@ -12,7 +12,6 @@ import {
   loadAdvisorConfig,
   validatePromptForPII,
   estimateTokenCount,
-  type AdvisorConfig,
 } from '@/lib/insurance/advisor-config'
 
 // =====================================================================

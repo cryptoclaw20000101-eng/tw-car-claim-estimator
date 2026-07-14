@@ -14,12 +14,8 @@
 // =====================================================================
 
 import { describe, it, expect } from 'vitest'
-import {
-  ensembleEstimate,
-  computeConsensus,
-  type EnsembleInput,
-  type EnsembleOutput,
-} from '@/lib/insurance/pain-ensemble'
+import { ensembleEstimate, computeConsensus } from '@/lib/insurance/pain-ensemble'
+import type { EnsembleInput } from '@/lib/insurance/pain-ensemble'
 
 function input(overrides: Partial<EnsembleInput> = {}): EnsembleInput {
   return {

@@ -11,7 +11,7 @@
  */
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Button, Typography, Alert, message as antdMessage } from 'antd'
+import { Button, Typography, message as antdMessage } from 'antd'
 import { InfoAlert } from '@/components/InfoAlert'
 import {
   ReloadOutlined,

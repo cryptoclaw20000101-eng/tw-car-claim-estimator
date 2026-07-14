@@ -297,7 +297,6 @@ function buildHtml(args: {
       <h2>📚 Legacy / 補充檔 <span class="muted">(${legacy.length} 件)</span></h2>
       <ul class="muted">
         ${LEGACY_FILES.map((f) => {
-          const n = (chain.get(f)?.length ?? 0) + legacy.filter((r) => true).length
           return `<li>${esc(f)}：歸在 legacy 區段</li>`
         }).join('')}
       </ul>

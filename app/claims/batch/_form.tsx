@@ -11,8 +11,7 @@
  */
 
 import { useState } from 'react'
-import Link from 'next/link'
-import { Alert, Button, Card, Space, Table, Typography } from 'antd'
+import { Button, Card, Space, Table, Typography } from 'antd'
 import { InfoAlert } from '@/components/InfoAlert'
 // v0.13.x：共用 PageBreadcrumb 元件
 import { PageBreadcrumb } from '@/components/PageBreadcrumb'

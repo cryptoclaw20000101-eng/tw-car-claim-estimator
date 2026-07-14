@@ -9,7 +9,6 @@ import {
   levelFromRomLossOldLaw,
   lookupDisabilityLevelByDate,
   lookupLowerLimbLevel,
-  lookupUpperLimbLevel,
 } from '@/lib/insurance/disability-joint-mapping'
 
 describe('levelFromRomLossOldLaw — 舊法百分比段（v0.6.6 之前邏輯）', () => {

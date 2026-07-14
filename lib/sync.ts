@@ -18,7 +18,7 @@
  */
 
 import { getEstimateHistory, saveEstimateHistory, type HistoryEntry } from '@/lib/estimate-history'
-import { saveEstimate, loadEstimates, type CloudEstimate } from '@/lib/estimate-storage'
+import { loadEstimates, type CloudEstimate } from '@/lib/estimate-storage'
 
 export interface SyncResult {
   uploaded: number
@@ -41,7 +41,7 @@ export interface SyncResult {
  *
  * v0.16.x 規劃：本地也存完整 ClaimInput（不只脫敏）→ 可以補上傳
  */
-export async function uploadLocalToCloud(userId: string): Promise<SyncResult> {
+export async function uploadLocalToCloud(): Promise<SyncResult> {
   const local = getEstimateHistory()
   const result: SyncResult = {
     uploaded: 0,
@@ -50,7 +50,9 @@ export async function uploadLocalToCloud(userId: string): Promise<SyncResult> {
     errors: [],
   }
 
-  for (const entry of local) {
+  // v0.23.0+：`_` 真的 unused（只 iterate 計數），eslint 仍警告（TS for-of var rule）
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  for (const _ of local) {
     // v0.15.x 限制：本地只存脫敏資料，沒有完整 ClaimInput，無法上傳
     result.skipped++
   }

@@ -31,7 +31,7 @@
 
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Alert, Card, Empty, Space, Spin, Tag, Typography } from 'antd'
 import { BarChartOutlined, SearchOutlined } from '@ant-design/icons'
 import { motion, useReducedMotion } from 'framer-motion'

@@ -61,7 +61,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   let rawText: string
   try {
     rawText = await request.text()
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: '讀取 body 失敗' }, { status: 400 })
   }
 

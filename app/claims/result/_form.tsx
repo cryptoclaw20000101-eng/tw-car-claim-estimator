@@ -19,20 +19,10 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
-  Alert,
   Button,
-  Card,
-  Col,
-  Divider,
   Empty,
-  Row,
-  Space,
-  Statistic,
-  Table,
   Tabs,
-  Tag,
   Typography,
-  Collapse,
   // v0.12.0+ Phase B5：分享連結 toast
   message,
 } from 'antd'
@@ -41,8 +31,6 @@ import {
 const antdMessage = message
 import { InfoAlert } from '@/components/InfoAlert'
 import { LawVersionBadge } from '@/components/LawVersionBadge'
-import { PainEnsembleCard } from '@/components/PainEnsembleCard'
-import { KnnDebugPanel } from '@/components/KnnDebugPanel'
 import { MobileStickyCTA } from '@/components/MobileStickyCTA'
 // v0.13.x：共用 PageBreadcrumb 元件
 import { PageBreadcrumb } from '@/components/PageBreadcrumb'
@@ -62,13 +50,11 @@ import {
   BankOutlined,
   ReadOutlined,
   BarChartOutlined,
-  CheckCircleOutlined,
   // v0.12.0+ Phase E2/E3/B5：下載 PDF + 客戶精簡模式 + 分享連結
   FilePdfOutlined,
   CompressOutlined,
   ExpandOutlined,
   ShareAltOutlined,
-  WarningOutlined,
   EditOutlined,
   EyeOutlined,
 } from '@ant-design/icons'
@@ -77,20 +63,11 @@ import dynamic from 'next/dynamic'
 import type { ClaimInput, EstimationResult } from '@/lib/insurance/types'
 import { estimateClaim } from '@/lib/insurance'
 import { SAMPLE_INPUT } from '@/lib/insurance/sample'
-import {
-  getMedianCourtCompensation,
-  getCaseReferencesByCategory,
-} from '@/lib/data-sources/judicial'
-import { findRelatedPrecedents, findRelatedPracticeCases } from '@/lib/estimate/precedents'
-// v0.12.0+ Phase B3：localStorage 歷史記錄
-import { saveEstimateHistory, buildHistoryEntry } from '@/lib/estimate-history'
 // v0.14.x：雲端持久化（Supabase + localStorage fallback）
 import { saveEstimate } from '@/lib/estimate-storage'
 // v0.14.x：登入狀態
 import { useAuth } from '@/components/AuthProvider'
-import { getAverageFoiCompensation } from '@/lib/data-sources/foi'
 import { listLegalReferences, isLegalReferenceStale } from '@/lib/data-sources/legal-reference'
-import type { LegalReference } from '@/lib/data-sources/types'
 // v0.18.x+ 動態載入 8 個 Section 元件（每 section 獨立 chunk；只有當前 tab 才 mount）
 // 比起 destroyOnHidden 更進一步：完全 lazy load，減少首次 result page 的 JS bundle
 const CompulsorySection = dynamic(

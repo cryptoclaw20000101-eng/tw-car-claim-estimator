@@ -60,7 +60,7 @@ function loadPrecedentsSync(): ScrapedPrecedent[] {
     // v0.20.2+：用 lazy require 避免把 node:fs / node:path 拉進 client bundle
     // （Top-level import 會破 Next.js Turbopack client build）
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { readdirSync, readFileSync, existsSync } = require('node:fs') as typeof import('node:fs')
+    const { readFileSync, existsSync } = require('node:fs') as typeof import('node:fs')
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { join } = require('node:path') as typeof import('node:path')
     // 嘗試多個路徑（cwd 在不同 context 不一樣）

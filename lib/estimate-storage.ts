@@ -89,6 +89,8 @@ export async function loadEstimates(
 /**
  * 刪除雲端估算
  */
+// AGENTS §2.1：_userId 保留以備未來 per-user 隔離（暫未使用）
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function deleteCloudEstimate(id: string, _userId: string): Promise<boolean> {
   try {
     const res = await fetch(`/api/estimates/${id}`, {

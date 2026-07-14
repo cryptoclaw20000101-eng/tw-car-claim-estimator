@@ -24,7 +24,7 @@ import {
   MAX_PROMPT_TOKENS,
   type AdvisorConfig,
 } from './advisor-config'
-import { getCachedAdvisor, setCachedAdvisor, type AdvisorCacheConfig } from './advisor-cache'
+import { getCachedAdvisor, setCachedAdvisor } from './advisor-cache'
 
 // --- 型別 ---------------------------------------------------------------
 

@@ -243,6 +243,8 @@ export function extractDiagnosisFeatures(text: string): DiagnosisFeatures {
 
 // --- Helper: 從 regex match 附近找 joint -------------------------------
 
+// AGENTS §2.1：_pattern 保留以備未來 regex 模式（暫未使用）
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function findJointInContext(text: string, _pattern: RegExp | null): JointName | null {
   for (const { pattern, joint } of JOINT_MAP) {
     if (pattern.test(text)) return joint

@@ -238,6 +238,8 @@ export function runDisabilityRuleEngine(input: RuleEngineInput): RuleEngineOutpu
       const matched = lookupLowerLimbLevel(summary, otherLimb)
       if (matched) {
         baseLevel = matched.level
+        // AGENTS §2.1：articleId 是條號追蹤佔位變數（v0.6.6 新增，暫時寫入未讀取）
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         articleId = matched.articleId
         notes.push(
           `強制險附表 ${matched.articleId}：第 ${matched.level} 級（單一關節 ${severity}）`,

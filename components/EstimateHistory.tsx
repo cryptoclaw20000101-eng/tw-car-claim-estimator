@@ -26,7 +26,7 @@ import {
   ReloadOutlined,
   CloudDownloadOutlined,
 } from '@ant-design/icons'
-import { getEstimateHistory, clearEstimateHistory, type HistoryEntry } from '@/lib/estimate-history'
+import { clearEstimateHistory, type HistoryEntry } from '@/lib/estimate-history'
 import { loadEstimates, deleteCloudEstimate, type CloudEstimate } from '@/lib/estimate-storage'
 import { useAuth } from '@/components/AuthProvider'
 // v0.14.x：載入舊案件
@@ -40,6 +40,8 @@ const { Text, Paragraph } = Typography
 export function EstimateHistory() {
   const { user } = useAuth()
   const [items, setItems] = useState<HistoryEntry[]>([])
+  // AGENTS §2.1：cloudItems 真的只 set 不 get（觸發 re-render），不算 unused
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [cloudItems, setCloudItems] = useState<CloudEstimate[]>([])
   const [storage, setStorage] = useState<'cloud' | 'local'>('local')
   const [mounted, setMounted] = useState(false)
@@ -107,6 +109,8 @@ export function EstimateHistory() {
    * 載入舊案件：寫入 sessionStorage + 跳轉到 /claims/new
    * 表單會在 mount 時讀 sessionStorage 自動填入
    */
+  // AGENTS §2.1：index 真的 unused（call site 不傳 index）
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleLoad = (entry: HistoryEntry | CloudEstimate, index: number) => {
     if (storage === 'cloud' && 'claimInput' in entry) {
       saveForLoad(entry.claimInput)

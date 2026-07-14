@@ -3,11 +3,11 @@
  * 清掉 auth_token cookie
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 
-export async function POST(_req: NextRequest) {
+export async function POST() {
   const res = NextResponse.json({ ok: true })
   res.cookies.set('auth_token', '', {
     httpOnly: true,

@@ -21,7 +21,6 @@ import {
   getAdvisorCacheStats,
   getAdvisorCacheHitRate,
   cacheKey,
-  type AdvisorCacheConfig,
 } from '@/lib/insurance/advisor-cache'
 import type { AdvisorApiResult } from '@/lib/insurance/advisor-api'
 import type { AdvisorInput } from '@/lib/insurance/pain-advisor'
@@ -233,4 +232,3 @@ describe('cacheKey 純函式', () => {
 })
 
 // 避免 TS unused 警告
-const _cfg: AdvisorCacheConfig = {}

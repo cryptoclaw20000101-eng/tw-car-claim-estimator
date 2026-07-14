@@ -17,7 +17,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, Card, Collapse, Form, Row, Typography } from 'antd'
+import { Button, Collapse, Form, Row, Typography } from 'antd'
 import { FileTextOutlined, PlusOutlined, ToolOutlined } from '@ant-design/icons'
 import { InfoAlert } from '@/components/InfoAlert'
 import { R2C } from './_R2C'
@@ -29,7 +29,9 @@ export interface Step5FeesAndPropertyProps {
   form: ReturnType<typeof Form.useForm<FormSchema>>[0]
 }
 
-export function Step5FeesAndProperty(_: Step5FeesAndPropertyProps) {
+// AGENTS §2.1：_props 真的 unused（型別只給 React component contract）
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function Step5FeesAndProperty(_props: Step5FeesAndPropertyProps) {
   const [showMedicalAdvanced, setShowMedicalAdvanced] = useState(false)
   const [showPropertyAdvanced, setShowPropertyAdvanced] = useState(false)
 
