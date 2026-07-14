@@ -226,7 +226,8 @@ export interface PropertyDamageInputs {
   // 之後每年 +10%（cap 70%）
   // 為 optional — 未填寫就不折舊（直接用 vehicleMarketValueBeforeAccident）
   vehicleManufactureYear?: number | null // 出廠年份（西元）
-  vehicleCategory?: 'car' | 'motorcycle' | null // 車輛種類
+  // v0.24.2+：改為折舊年限（平均法 / 直線折舊）
+  vehicleDepreciationYears?: number | null // 完整折舊年限（汽車預設 5、機車 3；範圍 3 ~ 10）
 
   towingFee: number
   rentalCarFee: number

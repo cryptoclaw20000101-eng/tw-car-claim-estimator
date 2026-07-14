@@ -183,7 +183,7 @@ const DEFAULT_PROPERTY: PropertyDamageInputs = {
   otherPropertyDamage: 0,
   // v0.24.0+：折舊計算欄位（optional）
   vehicleManufactureYear: null,
-  vehicleCategory: null,
+  vehicleDepreciationYears: null,
 }
 
 // ============== 選項常數 ==============

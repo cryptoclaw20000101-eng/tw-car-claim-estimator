@@ -91,13 +91,17 @@ export function Step5FeesAndProperty(_props: Step5FeesAndPropertyProps) {
       name: 'vehicleMarketValueBeforeAccident',
     },
     { key: 'salvageValue', label: '殘值', name: 'salvageValue' },
-    // v0.24.0+：折舊計算欄位（選填；填了會代入保險通用折舊率）
+    // v0.24.2+：折舊計算欄位（選填；填了會代入平均法 / 直線折舊）
     {
       key: 'vehicleManufactureYear',
       label: '出廠年份（西元，選填）',
       name: 'vehicleManufactureYear',
     },
-    { key: 'vehicleCategory', label: '車輛種類（汽/機車，選填）', name: 'vehicleCategory' },
+    {
+      key: 'vehicleDepreciationYears',
+      label: '折舊年限（汽車預設 5、機車 3）',
+      name: 'vehicleDepreciationYears',
+    },
     { key: 'rentalCarFee', label: '代步費', name: 'rentalCarFee' },
     { key: 'phoneDamage', label: '手機損壞', name: 'phoneDamage' },
     { key: 'helmetDamage', label: '安全帽損壞', name: 'helmetDamage' },

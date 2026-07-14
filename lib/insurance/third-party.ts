@@ -132,61 +132,70 @@ export function computeThirdParty(input: ThirdPartyInput): ThirdPartyEstimate {
 // --- 車損計算（spec §六 Step 6） -------------------------------------
 
 /**
- * 車輛折舊率計算（v0.24.0+ 新增）
+ * 車輛折舊率計算（v0.24.2+ 統一用平均法 / 直線法）
  *
- * 採用台灣保險業通用線性累進公式：
- * - 汽車：第一年折舊 10%，之後每年 +10%（最高 70%）
- * - 機車：第一年折舊 18%，之後每年 +10%（最高 70%）
+ * 採用台灣保險業通用「平均折舊法（straight-line）」：
+ * - 每年折舊金額固定（折舊年限分成等額）
+ * - 公式：折舊後價值 = 市場價 - (市場價 / 折舊年限) × 使用年數
+ * - 折舊率 = 使用年數 / 折舊年限（最多 100%）
+ * - 例：折舊年限 5 年、車價 50 萬 → 每年折 10 萬，第 3 年折 30 萬 = 60%
+ *
+ * v0.24.0a 線性累進（汽車/機車分開不同比例）→ v0.24.2+ 統一改成平均法
  *
  * 來源：強制汽車責任保險理賠實務 + 保發中心車輛折舊參考表
+ * 預設折舊年限 5 年（台灣強制險汽車實務；機車實務 3 年）
  *
  * @param yearsOld 已使用年數（事故年 - 出廠年，可為 0）
- * @param category 'car' | 'motorcycle'
- * @returns 折舊率（0.0 ~ 0.7）
+ * @param depreciationYears 完整折舊年限（預設 5 年；範圍 3 ~ 10）
+ * @returns 折舊率（0.0 ~ 1.0）
  */
 export function computeVehicleDepreciationRate(
   yearsOld: number,
-  category: 'car' | 'motorcycle',
+  depreciationYears: number = 5,
 ): number {
   if (yearsOld <= 0) return 0
-  const firstYearDepreciation = category === 'motorcycle' ? 0.18 : 0.1
-  const subsequentAnnual = 0.1
-  const cap = 0.7
-  const rate = firstYearDepreciation + (yearsOld - 1) * subsequentAnnual
-  return Math.min(rate, cap)
+  if (!Number.isFinite(depreciationYears) || depreciationYears <= 0) return 0
+  const safeYears = Math.min(Math.max(depreciationYears, 3), 10)
+  return Math.min(yearsOld / safeYears, 1)
 }
 
 /**
  * 折舊後車輛價值（v0.24.0+）
  *
- * 若有 vehicleManufactureYear + vehicleCategory 欄位 → 用折舊公式計算
+ * 若有 vehicleManufactureYear + vehicleDepreciationYears 欄位 → 用平均法計算
  * 否則 → 直接用 vehicleMarketValueBeforeAccident（向後相容）
  */
 export function computeDepreciatedVehicleValue(
   marketValueBeforeAccident: number,
   manufactureYear: number | null | undefined,
-  category: 'car' | 'motorcycle' | null | undefined,
+  depreciationYears: number | null | undefined,
   accidentYear: number,
-): { value: number; depreciationRate: number; yearsOld: number } {
-  if (manufactureYear == null || category == null || !Number.isFinite(manufactureYear)) {
+): { value: number; depreciationRate: number; yearsOld: number; depreciationYears: number } {
+  if (manufactureYear == null || depreciationYears == null || !Number.isFinite(manufactureYear)) {
     // 沒資料 → 不折舊
-    return { value: marketValueBeforeAccident, depreciationRate: 0, yearsOld: 0 }
+    return {
+      value: marketValueBeforeAccident,
+      depreciationRate: 0,
+      yearsOld: 0,
+      depreciationYears: 0,
+    }
   }
   const yearsOld = Math.max(0, accidentYear - manufactureYear)
-  const depreciationRate = computeVehicleDepreciationRate(yearsOld, category)
+  const years = depreciationYears ?? 5
+  const depreciationRate = computeVehicleDepreciationRate(yearsOld, years)
   const value = Math.round(marketValueBeforeAccident * (1 - depreciationRate))
-  return { value, depreciationRate, yearsOld }
+  return { value, depreciationRate, yearsOld, depreciationYears: years }
 }
 
 export function computeVehicleDamage(input: PropertyDamageInputs): number {
   const repairCost = input.vehicleRepairInvoice || input.vehicleRepairEstimate
   if (repairCost === 0) return 0
   const accidentYear = new Date().getFullYear()
-  // v0.24.0+：折舊計算（若有出廠年 + 車輛種類）
+  // v0.24.2+：折舊計算（若有出廠年 + 折舊年限，採用平均法 / 直線折舊）
   const depreciated = computeDepreciatedVehicleValue(
     input.vehicleMarketValueBeforeAccident,
     input.vehicleManufactureYear,
-    input.vehicleCategory,
+    input.vehicleDepreciationYears,
     accidentYear,
   )
   const maxByMarket = depreciated.value - input.salvageValue
