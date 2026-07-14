@@ -131,10 +131,65 @@ export function computeThirdParty(input: ThirdPartyInput): ThirdPartyEstimate {
 
 // --- 車損計算（spec §六 Step 6） -------------------------------------
 
+/**
+ * 車輛折舊率計算（v0.24.0+ 新增）
+ *
+ * 採用台灣保險業通用線性累進公式：
+ * - 汽車：第一年折舊 10%，之後每年 +10%（最高 70%）
+ * - 機車：第一年折舊 18%，之後每年 +10%（最高 70%）
+ *
+ * 來源：強制汽車責任保險理賠實務 + 保發中心車輛折舊參考表
+ *
+ * @param yearsOld 已使用年數（事故年 - 出廠年，可為 0）
+ * @param category 'car' | 'motorcycle'
+ * @returns 折舊率（0.0 ~ 0.7）
+ */
+export function computeVehicleDepreciationRate(
+  yearsOld: number,
+  category: 'car' | 'motorcycle',
+): number {
+  if (yearsOld <= 0) return 0
+  const firstYearDepreciation = category === 'motorcycle' ? 0.18 : 0.1
+  const subsequentAnnual = 0.1
+  const cap = 0.7
+  const rate = firstYearDepreciation + (yearsOld - 1) * subsequentAnnual
+  return Math.min(rate, cap)
+}
+
+/**
+ * 折舊後車輛價值（v0.24.0+）
+ *
+ * 若有 vehicleManufactureYear + vehicleCategory 欄位 → 用折舊公式計算
+ * 否則 → 直接用 vehicleMarketValueBeforeAccident（向後相容）
+ */
+export function computeDepreciatedVehicleValue(
+  marketValueBeforeAccident: number,
+  manufactureYear: number | null | undefined,
+  category: 'car' | 'motorcycle' | null | undefined,
+  accidentYear: number,
+): { value: number; depreciationRate: number; yearsOld: number } {
+  if (manufactureYear == null || category == null || !Number.isFinite(manufactureYear)) {
+    // 沒資料 → 不折舊
+    return { value: marketValueBeforeAccident, depreciationRate: 0, yearsOld: 0 }
+  }
+  const yearsOld = Math.max(0, accidentYear - manufactureYear)
+  const depreciationRate = computeVehicleDepreciationRate(yearsOld, category)
+  const value = Math.round(marketValueBeforeAccident * (1 - depreciationRate))
+  return { value, depreciationRate, yearsOld }
+}
+
 export function computeVehicleDamage(input: PropertyDamageInputs): number {
   const repairCost = input.vehicleRepairInvoice || input.vehicleRepairEstimate
   if (repairCost === 0) return 0
-  const maxByMarket = input.vehicleMarketValueBeforeAccident - input.salvageValue
+  const accidentYear = new Date().getFullYear()
+  // v0.24.0+：折舊計算（若有出廠年 + 車輛種類）
+  const depreciated = computeDepreciatedVehicleValue(
+    input.vehicleMarketValueBeforeAccident,
+    input.vehicleManufactureYear,
+    input.vehicleCategory,
+    accidentYear,
+  )
+  const maxByMarket = depreciated.value - input.salvageValue
   if (maxByMarket <= 0) return 0
   return Math.min(repairCost, maxByMarket)
 }

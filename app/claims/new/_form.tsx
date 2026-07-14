@@ -181,6 +181,9 @@ const DEFAULT_PROPERTY: PropertyDamageInputs = {
   clothingDamage: 0,
   glassesDamage: 0,
   otherPropertyDamage: 0,
+  // v0.24.0+：折舊計算欄位（optional）
+  vehicleManufactureYear: null,
+  vehicleCategory: null,
 }
 
 // ============== 選項常數 ==============

@@ -221,6 +221,13 @@ export interface PropertyDamageInputs {
   vehicleMarketValueBeforeAccident: number // 事故前車價
   salvageValue: number // 殘值
 
+  // v0.24.0+：折舊計算（保險通用線性累進）
+  // 第一年：汽車 10% / 機車 18%
+  // 之後每年 +10%（cap 70%）
+  // 為 optional — 未填寫就不折舊（直接用 vehicleMarketValueBeforeAccident）
+  vehicleManufactureYear?: number | null // 出廠年份（西元）
+  vehicleCategory?: 'car' | 'motorcycle' | null // 車輛種類
+
   towingFee: number
   rentalCarFee: number
 
