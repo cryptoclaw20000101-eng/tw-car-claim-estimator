@@ -22,6 +22,7 @@ import {
   ReloadOutlined,
   UserOutlined,
   FileTextOutlined,
+  WechatOutlined,
 } from '@ant-design/icons'
 import { useAuth } from '@/components/AuthProvider'
 
@@ -46,13 +47,25 @@ interface EstimateRow {
   createdAt: string
 }
 
+interface LeadRow {
+  id: string
+  contactType: 'line' | 'threads'
+  contactHandle: string
+  message: string | null
+  consent: boolean
+  userEmail: string | null
+  createdAt: string
+}
+
 export default function AdminPage() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
   const [users, setUsers] = useState<UserRow[]>([])
   const [estimates, setEstimates] = useState<EstimateRow[]>([])
+  const [leads, setLeads] = useState<LeadRow[]>([])
   const [loadingUsers, setLoadingUsers] = useState(false)
   const [loadingEstimates, setLoadingEstimates] = useState(false)
+  const [loadingLeads, setLoadingLeads] = useState(false)
 
   // Auth 守護：未登入導向 /login
   useEffect(() => {
@@ -87,12 +100,26 @@ export default function AdminPage() {
     }
   }
 
+  const fetchLeads = async () => {
+    setLoadingLeads(true)
+    try {
+      const res = await fetch('/api/admin/leads', { credentials: 'include' })
+      if (res.ok) {
+        const data = (await res.json()) as { items: LeadRow[] }
+        setLeads(data.items)
+      }
+    } finally {
+      setLoadingLeads(false)
+    }
+  }
+
   useEffect(() => {
     if (user) {
       // AGENTS §2.1：fetchUsers/fetchEstimates 內的 setState 在 async callback 裡跑（不是 effect body）
       // eslint-disable-next-line react-hooks/set-state-in-effect
       void fetchUsers()
       void fetchEstimates()
+      void fetchLeads()
     }
   }, [user])
 
@@ -262,6 +289,89 @@ export default function AdminPage() {
                     },
                     {
                       title: '建立時間',
+                      dataIndex: 'createdAt',
+                      key: 'createdAt',
+                      width: 180,
+                      render: (v: string) => new Date(v).toLocaleString('zh-TW'),
+                    },
+                  ]}
+                />
+              </Card>
+            ),
+          },
+          {
+            key: 'leads',
+            label: (
+              <span>
+                <WechatOutlined /> Leads（{leads.length}）
+              </span>
+            ),
+            children: (
+              <Card>
+                <div className="mb-3 flex justify-end">
+                  <Button
+                    icon={<ReloadOutlined />}
+                    onClick={() => void fetchLeads()}
+                    loading={loadingLeads}
+                    size="small"
+                  >
+                    重新整理
+                  </Button>
+                </div>
+                <Table<LeadRow>
+                  rowKey="id"
+                  dataSource={leads}
+                  loading={loadingLeads}
+                  locale={{
+                    emptyText: <Empty description="尚無聯絡記錄" />,
+                  }}
+                  pagination={{ pageSize: 20 }}
+                  columns={[
+                    {
+                      title: '聯絡類型',
+                      dataIndex: 'contactType',
+                      key: 'contactType',
+                      width: 100,
+                      render: (v: string) =>
+                        v === 'line' ? (
+                          <Tag color="green">LINE</Tag>
+                        ) : (
+                          <Tag color="blue">Threads</Tag>
+                        ),
+                    },
+                    {
+                      title: '帳號',
+                      dataIndex: 'contactHandle',
+                      key: 'contactHandle',
+                      width: 200,
+                      ellipsis: true,
+                    },
+                    {
+                      title: '想問的問題',
+                      dataIndex: 'message',
+                      key: 'message',
+                      ellipsis: true,
+                      render: (v: string | null) => v ?? '—',
+                    },
+                    {
+                      title: '來源',
+                      dataIndex: 'userEmail',
+                      key: 'userEmail',
+                      width: 220,
+                      render: (v: string | null) => v ?? '（訪客未登入）',
+                      ellipsis: true,
+                    },
+                    {
+                      title: '同意',
+                      dataIndex: 'consent',
+                      key: 'consent',
+                      width: 80,
+                      align: 'center',
+                      render: (v: boolean) =>
+                        v ? <Tag color="green">已同意</Tag> : <Tag color="red">否</Tag>,
+                    },
+                    {
+                      title: '提交時間',
                       dataIndex: 'createdAt',
                       key: 'createdAt',
                       width: 180,

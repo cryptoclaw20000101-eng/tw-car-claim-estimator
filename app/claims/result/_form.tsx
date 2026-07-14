@@ -36,6 +36,8 @@ import { MobileStickyCTA } from '@/components/MobileStickyCTA'
 import { PageBreadcrumb } from '@/components/PageBreadcrumb'
 // v0.12.0+ Phase B7：多肇責比例並排比較
 import { MultiFaultCompare } from '@/components/MultiFaultCompare'
+// v0.24.0c+：聯絡 CTA（LINE / Threads 帳號收集）
+import { ContactCTA } from './_components/ContactCTA'
 // v0.20.0+：結果頁區間卡（user 反饋「不要只顯示單一金額」+ AGENTS §0 不保證金額精神）
 import { EstimationRangeCard } from './_sections/EstimationRangeCard'
 // v0.12.0+ Phase B5：分享連結
@@ -481,6 +483,9 @@ export default function ResultForm() {
           bodilyInjuryAmount={(result.civilMedicalExpense ?? 0) + (result.workLoss ?? 0)}
           propertyDamageAmount={result.propertyDamage ?? 0}
         />
+
+        {/* v0.24.0c+：ContactCTA — 留下 LINE / Threads 帳號讓業務員免費諮詢 */}
+        <ContactCTA estimateId={estimateId} />
 
         {/* v0.20.0+：合理求償區間卡（保守/一般/積極 + 完整度 + 缺件 + 人工判斷項）*/}
         {result.painAndSuffering && (
