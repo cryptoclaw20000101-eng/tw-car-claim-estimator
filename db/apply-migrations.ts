@@ -36,10 +36,8 @@ export async function applyMigrations(): Promise<string[]> {
       try {
         await client.query(sql)
         applied.push(file)
-        // eslint-disable-next-line no-console
         console.log(`[migrations] ✓ ${file}`)
       } catch (e) {
-        // eslint-disable-next-line no-console
         console.error(`[migrations] ✗ ${file}:`, (e as Error).message)
         throw e
       }
@@ -55,11 +53,9 @@ export async function applyMigrations(): Promise<string[]> {
 if (process.argv[1]?.endsWith('apply-migrations.ts')) {
   applyMigrations()
     .then((files) => {
-      // eslint-disable-next-line no-console
       console.log(`[migrations] 完成 ${files.length} 個 migration`)
     })
     .catch((e) => {
-      // eslint-disable-next-line no-console
       console.error('[migrations] 失敗:', e)
       process.exit(1)
     })

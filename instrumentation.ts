@@ -15,11 +15,9 @@ export async function register() {
     try {
       const applied = await applyMigrations()
       if (applied.length > 0) {
-        // eslint-disable-next-line no-console
         console.log(`[instrumentation] ✓ 跑了 ${applied.length} 個 migrations:`, applied.join(', '))
       }
     } catch (e) {
-      // eslint-disable-next-line no-console
       console.error('[instrumentation] migration 失敗:', (e as Error).message)
       // 不 throw — 讓 app 啟動，但 logs 顯示錯誤（方便 debug）
     }
