@@ -16,13 +16,26 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Button, Card, Empty, Space, Spin, Table, Tabs, Tag, Typography } from 'antd'
+import {
+  Button,
+  Card,
+  Empty,
+  Popconfirm,
+  Space,
+  Spin,
+  Table,
+  Tabs,
+  Tag,
+  Typography,
+  message,
+} from 'antd'
 import {
   ArrowLeftOutlined,
   ReloadOutlined,
   UserOutlined,
   FileTextOutlined,
   WechatOutlined,
+  DeleteOutlined,
 } from '@ant-design/icons'
 import { useAuth } from '@/components/AuthProvider'
 
@@ -110,6 +123,25 @@ export default function AdminPage() {
       }
     } finally {
       setLoadingLeads(false)
+    }
+  }
+
+  // v0.26.0a+：AGENTS §6 個資風格守護 — 刪除 lead
+  const handleDeleteLead = async (id: string) => {
+    try {
+      const res = await fetch(`/api/leads/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+      if (res.ok) {
+        message.success('Lead 已刪除')
+        void fetchLeads()
+      } else {
+        const data = (await res.json().catch(() => null)) as { error?: string } | null
+        message.error(data?.error ?? '刪除失敗')
+      }
+    } catch {
+      message.error('網路錯誤，請稍後重試')
     }
   }
 
@@ -369,6 +401,33 @@ export default function AdminPage() {
                       align: 'center',
                       render: (v: boolean) =>
                         v ? <Tag color="green">已同意</Tag> : <Tag color="red">否</Tag>,
+                    },
+                    {
+                      // v0.26.0a+：AGENTS §6 個資風格守護 — 業務員可刪除 lead
+                      title: '操作',
+                      key: 'actions',
+                      width: 100,
+                      align: 'center',
+                      render: (_, record: LeadRow) => (
+                        <Popconfirm
+                          title="刪除此 lead？"
+                          description="刪除後無法復原（個資風格守護）"
+                          okText="刪除"
+                          okType="danger"
+                          cancelText="取消"
+                          onConfirm={() => void handleDeleteLead(record.id)}
+                        >
+                          <Button
+                            type="text"
+                            danger
+                            size="small"
+                            icon={<DeleteOutlined />}
+                            data-testid="delete-lead-button"
+                          >
+                            刪除
+                          </Button>
+                        </Popconfirm>
+                      ),
                     },
                     {
                       title: '提交時間',
