@@ -20,22 +20,6 @@ import { useAuth } from '@/components/AuthProvider'
 
 const { Title, Text } = Typography
 
-/** AGENTS §1 三條鐵律（v0.20.0+ 補實作；§24 A2 文件 vs code drift 修復） */
-const THREE_RULES = [
-  {
-    title: '強制險無過失不乘肇責',
-    reason: '強制險為無過失責任，肇責比例只影響第三人責任險',
-  },
-  {
-    title: '精神慰撫金 / 工作損失 / 車損不進強制險',
-    reason: '強制險 §27 列舉的給付項目限定醫療 / 失能 / 死亡三類',
-  },
-  {
-    title: '資料不足不硬算',
-    reason: '估算金額會影響保戶決策，缺資料時硬給數字比老實說更負責任',
-  },
-] as const
-
 export default function HomeClient() {
   const reduce = useReducedMotion()
   const viewportOnce = { once: true, amount: 0.2 } as const
@@ -74,26 +58,6 @@ export default function HomeClient() {
           </Space>
         </div>
       </motion.section>
-
-      {/* ============ 三條鐵律（AGENTS §1）============ */}
-      {/* v0.20.0+：補實作文件/程式碼 drift；§24 A2 描述的「為什麼」附帶 reason */}
-      <section className="border-b border-border bg-surface-subtle">
-        <div className="mx-auto max-w-2xl px-6 py-12">
-          <Text className="!text-xs !uppercase !tracking-wider text-muted">
-            我們的承諾（三條鐵律）
-          </Text>
-          <ul className="!mt-3 space-y-2 !text-sm text-foreground">
-            {THREE_RULES.map((rule, i) => (
-              <li key={rule.title} className="flex flex-col gap-0.5 md:flex-row md:gap-2">
-                <span className="font-medium text-accent">
-                  {['①', '②', '③'][i]} {rule.title}
-                </span>
-                <span className="text-muted">— {rule.reason}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
 
       <EstimateHistory />
 
