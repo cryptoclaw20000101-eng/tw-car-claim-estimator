@@ -46,7 +46,63 @@ import { mockLLMAdvisor, type AdvisorInput } from './pain-advisor'
  * @see AGENTS.md §1 三條鐵律（強制險無過失 / 不併精神慰撫金 / 資料不足不硬算）
  */
 export function estimateClaim(input: ClaimInput): EstimationResult {
-  const { basics, fault, person, medical, medicalReceipts, property } = input
+  let { basics, fault, person, medical, medicalReceipts, property } = input
+
+  // v0.26.0e+：AGENTS §1 鐵律 ④「未受傷 → 精神慰撫金 = 0」
+  // 在入口把 medical / medicalReceipts 傷相關欄位歸 0，讓所有引擎 cascade 自然得到 0
+  // （不需在每個引擎顯式覆寫；包含 painAndSuffering 因為依賴 medical severity）
+  // 不動：basics.accidentLocation / fault / person（跟受傷與否無關，但 person 仍需傳遞給 work-loss 引擎）
+  //       property（車損跟受傷無關）
+  // 註：用 === false 嚴格判定（undefined 視為 true）以維持 `as unknown as ClaimInput` cast 測試向後相容
+  if (basics.isInjured === false) {
+    medical = {
+      ...medical,
+      hospitalizationDays: 0,
+      hasSurgery: false,
+      hasRehabilitation: false,
+      requiresNursingCare: false,
+      nursingDays: 0,
+      hasFracture: false,
+      hasDislocation: false,
+      hasLigamentInjury: false,
+      hasNerveDamage: false,
+      hasAmputation: false,
+      hasOrganDamage: false,
+      hasRangeOfMotionLimitation: false,
+      romLossDegree: 0,
+      hasMuscleWeakness: false,
+      hasSensoryLoss: false,
+      hasPermanentImpairment: false,
+      hasScar: false,
+      scarLengthCm: 0,
+      scarAreaCm2: 0,
+      disabilityLevel: undefined,
+    }
+    medicalReceipts = {
+      ...medicalReceipts,
+      emergencyFee: 0,
+      ambulanceFee: 0,
+      nhiCopayment: 0,
+      registrationFee: 0,
+      diagnosisCertificateFee: 0,
+      nonNhiNecessaryMedicalFee: 0,
+      wardFeeDifference: 0,
+      wardFeeDays: 0,
+      mealFee: 0,
+      mealDays: 0,
+      prosthesisFee: 0,
+      dentureFee: 0,
+      missingTeethCount: 0,
+      artificialEyeFee: 0,
+      medicalMaterialFee: 0,
+      specialMaterialFee: 0,
+      assistiveDeviceFee: 0,
+      transportationFee: 0,
+      nursingFee: 0,
+      nursingDays: 0,
+      otherNecessaryMedicalFee: 0,
+    }
+  }
 
   // 1) 強制險醫療（v0.8.2+：依事故日切換新/舊法）
   const compulsory = computeCompulsoryMedicalByDate(medicalReceipts, basics.accidentDate)
@@ -213,7 +269,7 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
   // 12) 強制險總額（醫療 + 失能 + 死亡）
   const compulsoryTotalEstimated = compulsory.approved + disability.possibleAmount
 
-  return {
+  const result: EstimationResult = {
     compulsoryItems: compulsory.items,
     compulsoryMedicalSubtotal: compulsory.subtotal,
     compulsoryMedicalApproved: compulsory.approved,
@@ -335,6 +391,92 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
       confidenceLevel: region.confidenceLevel,
     },
   }
+
+  // v0.26.0e+：AGENTS §1 鐵律 ④「未受傷 → 精神慰撫金 = 0」，靠 cascade 自然處理
+  // 醫療 / 看護 / 失能相關欄位強制歸 0；精神慰撫金因為依賴 medical severity，
+  // 上面 cascaded 成 0 後這裡也 = 0；不需顯式覆寫 painAndSuffering
+  // 車損 / 第三人責任險 / region 不變（跟「受傷與否」無關）
+  // 註：同上 === false 嚴格判定
+  if (basics.isInjured === false) {
+    return {
+      ...result,
+      compulsoryItems: result.compulsoryItems.map((item) => ({
+        ...item,
+        applied: 0,
+        approved: 0,
+        reductionReason: '未受傷',
+        supplementHint: null,
+      })),
+      compulsoryMedicalSubtotal: 0,
+      compulsoryMedicalApproved: 0,
+      compulsoryDisabilityAmount: 0,
+      compulsoryTotalEstimated: 0,
+      // 失能初篩：未受傷 → null
+      disability: {
+        ...result.disability,
+        possibleLevel: null,
+        possibleAmount: 0,
+        signals: [],
+      },
+      // 民事醫療 / 看護 / 接送：全 0
+      civilMedicalExpense: 0,
+      civilNursingFeeLow: 0,
+      civilNursingFeeMid: 0,
+      civilNursingFeeHigh: 0,
+      civilTransportationFee: 0,
+      // 工作損失：歸 0
+      workLoss: 0,
+      workLossExtended: {
+        ...result.workLossExtended,
+        amount: 0,
+        calculationType: 'none',
+      },
+      laborCapacityLossEstimate: 0,
+      laborCapacityLossHint: '未受傷，無勞動能力減損',
+      // 精神慰撫金：基於 AGENTS §1 鐵律 ④ 顯式歸 0（base floor 不會因 medical=0 而歸 0）
+      // painML / painEnsemble / painAdvisor 跟著歸 0
+      painAndSuffering: {
+        ...result.painAndSuffering,
+        baseLow: 0,
+        baseMid: 0,
+        baseHigh: 0,
+        regionalLow: 0,
+        regionalMid: 0,
+        regionalHigh: 0,
+        adjustedLow: 0,
+        adjustedMid: 0,
+        adjustedHigh: 0,
+      },
+      painML: {
+        ...result.painML,
+        lower: 0,
+        mid: 0,
+        upper: 0,
+        p10: 0,
+        p50: 0,
+        p90: 0,
+      },
+      painEnsemble: {
+        ...result.painEnsemble,
+        consensusAmount: 0,
+        rulesAmount: 0,
+        mlAmount: 0,
+        knnAmount: 0,
+        suggestedRange: { low: 0, high: 0 },
+      },
+      // scarRevision 跟除疤相關，未受傷時也是 0
+      scarRevision: {
+        ...result.scarRevision,
+        amount: 0,
+        estimate: 0,
+        estimateLow: 0,
+        estimateHigh: 0,
+        range: { low: 0, mid: 0, high: 0 },
+      },
+    }
+  }
+
+  return result
 }
 
 export * from './types'

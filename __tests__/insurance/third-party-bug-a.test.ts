@@ -18,6 +18,7 @@ const case2Basics: AccidentBasics = {
   accidentLocation: '台中市西屯區',
   accidentType: 'car_to_motorcycle',
   injuredRole: 'driver_motorcycle',
+  isInjured: true, // v0.26.0e+
   isAutomobileAccident: true,
   hasPolicePreliminaryReport: true,
   hasAccidentAppraisal: false,

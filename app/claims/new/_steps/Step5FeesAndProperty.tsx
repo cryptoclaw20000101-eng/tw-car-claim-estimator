@@ -27,11 +27,13 @@ const { Title } = Typography
 
 export interface Step5FeesAndPropertyProps {
   form: ReturnType<typeof Form.useForm<FormSchema>>[0]
+  /** v0.26.0e+：是否有人受傷。true 時掛號費必填（受傷一定會掛號至少一次） */
+  isInjured: boolean
 }
 
 // AGENTS §2.1：_props 真的 unused（型別只給 React component contract）
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function Step5FeesAndProperty(_props: Step5FeesAndPropertyProps) {
+export function Step5FeesAndProperty({ isInjured }: Step5FeesAndPropertyProps) {
   const [showMedicalAdvanced, setShowMedicalAdvanced] = useState(false)
   const [showPropertyAdvanced, setShowPropertyAdvanced] = useState(false)
 
@@ -141,7 +143,13 @@ export function Step5FeesAndProperty(_props: Step5FeesAndPropertyProps) {
                 </Title>
                 <Row gutter={16} className="!mb-3">
                   {medicalItems[0].items.map((f) => (
-                    <R2C key={f.key} name={['receipts', f.name]} label={f.label} />
+                    <R2C
+                      key={f.key}
+                      name={['receipts', f.name]}
+                      label={f.label}
+                      // v0.26.0e+：受傷時掛號費必填（未受傷就沒掛號問題）
+                      required={f.key === 'registrationFee' ? isInjured : false}
+                    />
                   ))}
                 </Row>
 

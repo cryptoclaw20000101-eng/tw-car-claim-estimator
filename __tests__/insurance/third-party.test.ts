@@ -26,6 +26,7 @@ const BASICS: AccidentBasics = {
   accidentLocation: '臺北市信義區',
   accidentType: 'car_to_car',
   injuredRole: 'driver_car',
+  isInjured: true, // v0.26.0e+
   isAutomobileAccident: true,
   hasPolicePreliminaryReport: true,
   hasAccidentAppraisal: false,

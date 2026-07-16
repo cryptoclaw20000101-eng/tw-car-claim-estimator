@@ -78,6 +78,13 @@ export interface AccidentBasics {
   accidentLocation: string
   accidentType: AccidentType
   injuredRole: InjuredRole
+  /**
+   * v0.26.0e+：是否有人受傷（鐵律 ④：無受傷 → 精神慰撫金 0，靠 cascade 自然處理，不在 UI 顯示）
+   * - true：有受傷（預設）→ 走原有 6 大引擎
+   * - false：未受傷 → 醫療相關欄位強制 0，painAndSuffering 因依賴醫療嚴重度自然 = 0
+   * - 表單必填（Step 1 Radio.Group）
+   */
+  isInjured: boolean
   isAutomobileAccident: boolean
 
   hasPolicePreliminaryReport: boolean

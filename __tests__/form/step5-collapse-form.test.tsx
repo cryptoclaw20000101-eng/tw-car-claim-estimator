@@ -39,6 +39,7 @@ describe('production submit flow → 強制險必進入估算', () => {
         accidentLocation: '臺中市西區',
         accidentType: 'car_to_car',
         injuredRole: 'driver_car',
+        isInjured: true, // v0.26.0e+
         isAutomobileAccident: true,
         hasPolicePreliminaryReport: true,
         hasAccidentAppraisal: false,

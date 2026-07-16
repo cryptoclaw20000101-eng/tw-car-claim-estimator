@@ -125,6 +125,7 @@ const defaultBasics = {
   accidentLocation: '臺中市',
   accidentType: 'car_to_car' as const,
   injuredRole: 'driver_car' as const,
+  isInjured: true, // v0.26.0e+ 預設有受傷（沿用既有測試行為）
   isAutomobileAccident: true,
   hasPolicePreliminaryReport: true,
   hasAccidentAppraisal: false,

@@ -6,7 +6,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { Col, DatePicker, Form, Input, Row, Select, Switch, Typography } from 'antd'
+import { Col, DatePicker, Form, Input, Radio, Row, Select, Switch, Typography } from 'antd'
 import { CarOutlined } from '@ant-design/icons'
 import dayjs, { Dayjs } from 'dayjs'
 import { StepShell } from '@/components/StepShell'
@@ -63,13 +63,9 @@ export function Step1Basics({
           </Form.Item>
         </Col>
         <Col xs={24} md={12}>
-          <Form.Item
-            label="事故地點 *"
-            name={['basics', 'accidentLocation']}
-            rules={[{ required: true }]}
-          >
+          <Form.Item label="事故地點" name={['basics', 'accidentLocation']}>
             <Input
-              placeholder="例：臺中市西區美村路與五權路口"
+              placeholder="例：臺中市西區美村路與五權路口（選填）"
               autoComplete="street-address"
               inputMode="text"
               enterKeyHint="next"
@@ -94,6 +90,21 @@ export function Step1Basics({
             rules={[{ required: true }]}
           >
             <Select options={injuredRoleOptions} />
+          </Form.Item>
+        </Col>
+      </Row>
+      {/* v0.26.0e+：有無受傷必填。選「未受傷」時傷相關引擎強制 0（AGENTS §1 鐵律 ④）*/}
+      <Row gutter={16}>
+        <Col xs={24} md={12}>
+          <Form.Item
+            label="是否有受傷 *"
+            name={['basics', 'isInjured']}
+            rules={[{ required: true, message: '請選擇是否有受傷' }]}
+          >
+            <Radio.Group>
+              <Radio value={true}>有受傷</Radio>
+              <Radio value={false}>未受傷</Radio>
+            </Radio.Group>
           </Form.Item>
         </Col>
       </Row>

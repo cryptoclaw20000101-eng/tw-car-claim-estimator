@@ -73,6 +73,7 @@ const DEFAULT_BASICS: AccidentBasics = {
   accidentLocation: '',
   accidentType: 'car_to_car',
   injuredRole: 'driver_car',
+  isInjured: true, // v0.26.0e+：預設有受傷（沿用既有行為），form 必填
   isAutomobileAccident: true,
   hasPolicePreliminaryReport: true,
   hasAccidentAppraisal: false,
@@ -525,7 +526,13 @@ export default function NewClaimForm() {
             <Step4Diagnosis form={form} accidentLocationForKnn={data.basics.accidentLocation} />
           )}
           {/* ====== Step 5：費用與財損（v0.20.0+：從原 Step4Medical 下半段拆出） ====== */}
-          {current === 4 && <Step5FeesAndProperty form={form} />}
+          {current === 4 && (
+            <Step5FeesAndProperty
+              form={form}
+              // v0.26.0e+：從 form 即時讀 isInjured，受傷=true 時掛號費必填
+              isInjured={Form.useWatch(['basics', 'isInjured'], form) ?? true}
+            />
+          )}
         </Form>
 
         {/* v0.8.1+：手機 sticky CTA（桌機保留原本 flex 排版） */}

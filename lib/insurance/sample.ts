@@ -23,6 +23,7 @@ export const SAMPLE_INPUT: ClaimInput = {
     accidentLocation: '台中市西屯區台灣大道三段與河南路口',
     accidentType: 'car_to_motorcycle',
     injuredRole: 'driver_motorcycle',
+    isInjured: true, // v0.26.0e+：sample 維持有受傷（既有意義）
     isAutomobileAccident: true,
     hasPolicePreliminaryReport: true,
     hasAccidentAppraisal: false,
