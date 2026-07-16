@@ -1,6 +1,6 @@
 {
   "name": "tw-car-claim-estimator",
-  "version": "0.26.0b",
+  "version": "0.26.0c",
   "private": true,
   "scripts": {
     "dev": "next dev",
