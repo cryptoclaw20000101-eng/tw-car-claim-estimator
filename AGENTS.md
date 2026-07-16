@@ -1561,3 +1561,67 @@ CMD ["pnpm", "start"]
 - pnpm test 792 passed
 - pnpm build 27 routes（21 page/static + 6 API dynamic）
 - Railway production E2E 完整跑通
+
+## §32 ErrorTracker → Sentry 整合（v0.26.0b+）
+
+> **檔案**：`sentry.client.config.ts` + `sentry.server.config.ts` + `next.config.ts` + `app/api/errors/route.ts` + `app/error.tsx` + `.env.example`
+> **套件**：`@sentry/nextjs ^10.65.0`
+> **測試**：error.tsx 仍渲染原本 UI（v0.26.0b 沒加 test — Sentry SDK 行為由 Sentry 維護，project 端只驗 wire-up）
+
+### 為什麼做這個改動
+
+- v0.13.x 加了 `/api/errors` route + ErrorTracker component，但只 `console.error`，沒真的接監控
+- v0.16.x+ railway serverful 部署讓 serverful route 跑得起來（不再受 `output: export` 限制）
+- v0.26.0a 後需要集中監控 production 錯誤趨勢（不是只看 log，而是要看錯誤率、release 關聯、user impact）
+
+### 4 層 wire-up
+
+1. **`sentry.client.config.ts`**（v0.26.0b+ 新檔）
+   - 讀 `NEXT_PUBLIC_SENTRY_DSN` env，沒設則不 init（Sentry SDK 為 no-op）
+   - `tracesSampleRate: 0.1`（10% performance 追蹤，避免過載）
+   - `browserTracingIntegration()` 自動接 Web Vitals
+
+2. **`sentry.server.config.ts`**（v0.26.0b+ 新檔）
+   - 讀 `SENTRY_DSN` env，同上條件式 init
+   - `tracesSampleRate: 0.1`（server side）
+
+3. **`next.config.ts`** 加 `withSentryConfig` 條件式 wrap
+   - **條件**：`process.env.SENTRY_DSN` 有設才 wrap（dev / 本地 build 不觸發 source map upload / instrumentation）
+   - **silent**：沒設 `SENTRY_AUTH_TOKEN` 就靜默（避免 build log 噴警告）
+   - **sourcemaps.disable**：沒設 `SENTRY_AUTH_TOKEN` 就跳過 source map upload（local build 不需要）
+   - **目的**：本地 build 不會因缺 org/project 而 fail
+
+4. **runtime 接點**
+   - **`app/api/errors/route.ts`**：POST 收到 ErrorPayload → console.error + `Sentry.captureMessage`（level=error, tags+extra）
+   - **`app/error.tsx`**：`useEffect` 內 `Sentry.captureException(error, { tags: { digest } })` — 客戶端 Error Boundary 自動上報
+   - 兩處都不傳 stack 避免個資 / 路徑外洩（與 console 策略一致）
+
+### 環境變數（`.env.example` 增補）
+
+| 變數                     | 必要 | 用途                                     |
+| ------------------------ | ---- | ---------------------------------------- |
+| `SENTRY_DSN`             | 是   | Server-side error 上報 DSN               |
+| `NEXT_PUBLIC_SENTRY_DSN` | 是   | Client-side error 上報 DSN               |
+| `SENTRY_ORG`             | 選填 | Sentry org slug（source map upload）     |
+| `SENTRY_PROJECT`         | 選填 | Sentry project slug（source map upload） |
+| `SENTRY_AUTH_TOKEN`      | 選填 | Sentry API token（CI / production only） |
+
+不設任一 DSN → Sentry 完全不啟動；只設 DSN 沒設 token → runtime 監控運作但 build 不上傳 source map。
+
+### 紅線
+
+- ❌ **不要在 `Sentry.captureMessage` / `captureException` 內傳 stack / 個資** — 與 console.error 策略一致，避免 PII 上雲端
+- ❌ **不要移除 `if (!process.env.SENTRY_DSN) return` 守護** — dev 環境應該走 console.error 而非 Sentry
+- ❌ **不要把 `sentry.{client,server}.config.ts` 改成 `.js`** — Next.js 16 + Turbopack 只認 .ts 自動載入
+- ❌ **不要在 CI 之外設 `SENTRY_AUTH_TOKEN`** — token 應只在 CI / production build env 出現，避免 local dev 意外上傳
+
+### 已完成（v0.26.0b 範圍）
+
+- v0.26.0b Sentry SDK 整合（deps + 2 config + next.config wrap + /api/errors + app/error.tsx + .env.example + AGENTS §32）
+
+### 後續 v0.26.x 候選
+
+1. **Vercel Cron 自動清理 stale issues** — 超過 7 天未解決自動 close
+2. **Sentry Alerts 規則** — 5xx rate > 1% → Slack 通知
+3. **Release health tracking** — 透過 `Sentry.setTag('release', pkg.version)` 追蹤每版錯誤率
+4. **Source map upload CI 整合** — GitHub Actions 上傳 `.next/` build artifact 的 sourcemap

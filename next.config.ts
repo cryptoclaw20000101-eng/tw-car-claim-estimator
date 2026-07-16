@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next'
 import bundleAnalyzer from '@next/bundle-analyzer'
+import { withSentryConfig } from '@sentry/nextjs'
 
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
@@ -53,4 +54,20 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default withBundleAnalyzer(nextConfig)
+// v0.26.0b+：Sentry build-time wiring（條件式 wrap）
+// - 沒設 SENTRY_DSN → 跳過（dev / 本地 build 不觸發 source map upload）
+// - 有設 SENTRY_AUTH_TOKEN → 上傳 source map + 顯示 build log
+// - 只有 SENTRY_DSN → silent=true + 跳過 source map（runtime-only）
+// 參考：AGENTS.md §32 ErrorTracker → Sentry 整合
+const sentryEnabled = Boolean(process.env.SENTRY_DSN)
+
+export default withBundleAnalyzer(
+  sentryEnabled
+    ? withSentryConfig(nextConfig, {
+        org: process.env.SENTRY_ORG,
+        project: process.env.SENTRY_PROJECT,
+        silent: !process.env.SENTRY_AUTH_TOKEN,
+        sourcemaps: { disable: !process.env.SENTRY_AUTH_TOKEN },
+      })
+    : nextConfig,
+)

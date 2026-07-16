@@ -8,6 +8,9 @@
  * - dev 模式才顯示錯誤細節（防洩漏到 prod）
  * - 零 emoji
  * - dev 模式額外提供「複製錯誤訊息」按鈕（給技術用戶貼 GitHub issue）
+ *
+ * v0.26.0b+：useEffect 串接 Sentry（init 由 sentry.client.config.ts 自動載入）
+ * 參考：AGENTS.md §32 ErrorTracker → Sentry 整合
  */
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -22,6 +25,7 @@ import {
   CheckOutlined,
 } from '@ant-design/icons'
 import { motion } from 'framer-motion'
+import * as Sentry from '@sentry/nextjs'
 
 const { Title, Paragraph, Text } = Typography
 
@@ -34,8 +38,12 @@ export default function ErrorPage({
 }) {
   const [copied, setCopied] = useState(false)
   useEffect(() => {
-    // 送到監控（這裡先 console.error；正式接 Sentry 之類再改）
+    // v0.26.0b+：console.error + 串接 Sentry（已 init via sentry.client.config.ts）
+    // 注意：沒設 NEXT_PUBLIC_SENTRY_DSN 時 Sentry.captureException 為 no-op
     console.error('[app/error.tsx] 全站錯誤捕獲：', error)
+    Sentry.captureException(error, {
+      tags: { digest: error.digest ?? '' },
+    })
   }, [error])
 
   const handleCopy = async () => {
