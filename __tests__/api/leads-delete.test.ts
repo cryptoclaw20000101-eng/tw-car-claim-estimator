@@ -17,9 +17,10 @@ vi.mock('@/lib/auth', () => ({
 import { DELETE } from '@/app/api/leads/[id]/route'
 import { query } from '@/lib/db'
 import { getUserFromRequest } from '@/lib/auth'
+import type { NextRequest } from 'next/server'
 
 // Next.js 16 dynamic route params 是 Promise
-const fakeReq = {} as unknown as Request
+const fakeReq = {} as unknown as NextRequest
 const fakeParams = (id: string) => ({ params: Promise.resolve({ id }) })
 
 describe('DELETE /api/leads/[id] — v0.26.0a lead 刪除', () => {
