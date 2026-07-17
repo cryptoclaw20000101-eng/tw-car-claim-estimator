@@ -132,7 +132,6 @@ describe('測試案例 2：有請假損失', () => {
         transportationFee: 0,
         nursingFee: 0,
         nursingDays: 0,
-        otherNecessaryMedicalFee: 0,
       },
       property: {
         vehicleRepairEstimate: 0,
@@ -219,7 +218,6 @@ describe('測試案例 3：右踝 20 度 + 疤痕 10cm + 看護 10 日', () => {
         transportationFee: 3_000,
         nursingFee: 12_000,
         nursingDays: 10,
-        otherNecessaryMedicalFee: 0,
       },
       property: {
         vehicleRepairEstimate: 0,
@@ -364,7 +362,6 @@ describe('測試案例 5：看護 40 日 + 體傷 100 萬 / 財損 50 萬', () =
         transportationFee: 5_000,
         nursingFee: 48_000, // 40 日 × 1,200
         nursingDays: 40,
-        otherNecessaryMedicalFee: 0,
       },
       property: {
         vehicleRepairEstimate: 120_000,
@@ -446,7 +443,6 @@ describe('測試案例 6：因果關係爭議', () => {
         transportationFee: 0,
         nursingFee: 0,
         nursingDays: 0,
-        otherNecessaryMedicalFee: 0,
       },
       property: {
         vehicleRepairEstimate: 0,

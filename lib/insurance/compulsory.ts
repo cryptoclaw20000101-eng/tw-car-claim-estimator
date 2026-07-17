@@ -280,18 +280,6 @@ function calcNursing(input: CompulsoryMedicalInputs): CompulsoryItemResult {
   return mkItem('nursingFee', '看護費用', input.nursingFee, approved, cap, reduction, null)
 }
 
-function calcOther(input: CompulsoryMedicalInputs): CompulsoryItemResult {
-  return mkItem(
-    'otherNecessaryMedicalFee',
-    '其他必要醫療費',
-    input.otherNecessaryMedicalFee,
-    input.otherNecessaryMedicalFee,
-    null,
-    null,
-    input.otherNecessaryMedicalFee > 0 ? '需檢附醫師必要性證明與收據' : null,
-  )
-}
-
 // --- 主計算 ----------------------------------------------------------
 
 export function computeCompulsoryMedical(input: CompulsoryMedicalInputs): CompulsoryComputeResult {
@@ -310,7 +298,6 @@ export function computeCompulsoryMedical(input: CompulsoryMedicalInputs): Compul
     calcMedicalMaterial(input),
     calcTransportation(input),
     calcNursing(input),
-    calcOther(input),
   ]
 
   const subtotal = items.reduce((sum, it) => sum + it.approved, 0)
@@ -490,7 +477,6 @@ export function computeCompulsoryMedicalByDate(
       calcMedicalMaterialOldLaw(input),
       calcTransportation(input),
       calcNursing(input),
-      calcOther(input),
     ]
     const subtotal = items.reduce((sum, it) => sum + it.approved, 0)
     const approved = Math.min(subtotal, COMPULSORY_LIMITS.TOTAL_MEDICAL_CAP)

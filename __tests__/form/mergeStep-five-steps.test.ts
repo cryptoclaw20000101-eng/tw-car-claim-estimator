@@ -126,7 +126,6 @@ const makeReceipts = (over: Partial<CompulsoryMedicalInputs> = {}): CompulsoryMe
   transportationFee: 0,
   nursingFee: 0,
   nursingDays: 0,
-  otherNecessaryMedicalFee: 0,
   ...over,
 })
 

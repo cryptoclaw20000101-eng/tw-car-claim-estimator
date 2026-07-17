@@ -58,7 +58,6 @@ describe('CLI 串接計算引擎 — v0.8.4', () => {
       transportationFee: 0,
       nursingFee: 0,
       nursingDays: 0,
-      otherNecessaryMedicalFee: 0,
     })
 
     it('差異案例（special 8000 + general 15000 + assistive 7000）：舊法 20000 / 新法 15000', () => {

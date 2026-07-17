@@ -112,7 +112,6 @@ export const SAMPLE_INPUT: ClaimInput = {
     transportationFee: 4_200,
     nursingFee: 24_000,
     nursingDays: 14,
-    otherNecessaryMedicalFee: 1_800,
   },
   property: {
     vehicleRepairEstimate: 86_000,

@@ -102,7 +102,6 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
       transportationFee: 0,
       nursingFee: 0,
       nursingDays: 0,
-      otherNecessaryMedicalFee: 0,
     }
   }
 
@@ -133,8 +132,7 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
     (medicalReceipts.specialMaterialFee ?? 0) + // v0.2.5+：特殊材料費也算醫療單據總額
     medicalReceipts.assistiveDeviceFee +
     medicalReceipts.transportationFee +
-    medicalReceipts.nursingFee +
-    medicalReceipts.otherNecessaryMedicalFee
+    medicalReceipts.nursingFee
 
   const civilMedicalExpense = computeCivilMedicalExpense(totalMedicalReceipts, compulsory.approved)
 

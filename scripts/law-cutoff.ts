@@ -153,7 +153,6 @@ const EMPTY_MEDICAL_INPUT: CompulsoryMedicalInputs = {
   transportationFee: 0,
   nursingFee: 0,
   nursingDays: 0,
-  otherNecessaryMedicalFee: 0,
 }
 
 function computeMedicalDiff(args: CliArgs): MedicalMaterialDiff | null {

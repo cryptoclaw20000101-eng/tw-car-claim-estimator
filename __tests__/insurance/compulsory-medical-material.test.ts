@@ -34,7 +34,6 @@ const HIGH_INPUT: CompulsoryMedicalInputs = {
   transportationFee: 0,
   nursingFee: 0,
   nursingDays: 0,
-  otherNecessaryMedicalFee: 0,
 }
 
 // 差異案例：special 15000 + generalMaterial 30000 + assistive 5000
@@ -80,7 +79,6 @@ const EMPTY_INPUT: CompulsoryMedicalInputs = {
   transportationFee: 0,
   nursingFee: 0,
   nursingDays: 0,
-  otherNecessaryMedicalFee: 0,
 }
 
 describe('calcMedicalMaterialOldLaw — 舊法版（事故日 < 2026-07-01）', () => {

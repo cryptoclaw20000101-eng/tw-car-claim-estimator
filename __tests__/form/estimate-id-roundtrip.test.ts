@@ -130,7 +130,6 @@ const makeMinimalInput = (over: Partial<FormSchema> = {}): FormSchema => ({
     transportationFee: 0,
     nursingFee: 0,
     nursingDays: 0,
-    otherNecessaryMedicalFee: 0,
   },
   property: {
     vehicleRepairEstimate: 0,

@@ -126,7 +126,6 @@ describe('production submit flow → 強制險必進入估算', () => {
         transportationFee: 0,
         nursingFee: 0,
         nursingDays: 0,
-        otherNecessaryMedicalFee: 0,
       },
       property: {
         vehicleRepairEstimate: 0,

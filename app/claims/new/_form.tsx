@@ -166,7 +166,6 @@ const DEFAULT_RECEIPTS: CompulsoryMedicalInputs = {
   transportationFee: 0,
   nursingFee: 0,
   nursingDays: 0,
-  otherNecessaryMedicalFee: 0,
 }
 
 const DEFAULT_PROPERTY: PropertyDamageInputs = {

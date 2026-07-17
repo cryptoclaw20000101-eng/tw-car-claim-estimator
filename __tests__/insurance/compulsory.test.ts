@@ -27,7 +27,6 @@ const zero: CompulsoryMedicalInputs = {
   transportationFee: 0,
   nursingFee: 0,
   nursingDays: 0,
-  otherNecessaryMedicalFee: 0,
 }
 
 describe('強制險傷害醫療細項 — 零輸入', () => {
@@ -35,7 +34,7 @@ describe('強制險傷害醫療細項 — 零輸入', () => {
     const r = computeCompulsoryMedical(zero)
     expect(r.approved).toBe(0)
     expect(r.subtotal).toBe(0)
-    expect(r.items).toHaveLength(15)
+    expect(r.items).toHaveLength(14) // v0.28.5+：移除 otherNecessaryMedicalFee（15→14）
   })
 })
 

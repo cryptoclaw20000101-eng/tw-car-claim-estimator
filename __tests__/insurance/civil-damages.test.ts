@@ -64,7 +64,6 @@ const EMPTY_RECEIPTS: CompulsoryMedicalInputs = {
   transportationFee: 0,
   nursingFee: 0,
   nursingDays: 0,
-  otherNecessaryMedicalFee: 0,
 }
 
 const SAMPLE_PERSON: PersonalIncome = {

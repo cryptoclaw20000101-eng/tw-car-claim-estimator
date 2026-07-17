@@ -75,7 +75,6 @@ export function Step5FeesAndProperty({ isInjured }: Step5FeesAndPropertyProps) {
     },
     { key: 'assistiveDeviceFee', label: '輔具費（拐杖/輪椅/支架）', name: 'assistiveDeviceFee' },
     { key: 'transportationFee', label: '接送費', name: 'transportationFee' },
-    { key: 'otherNecessaryMedicalFee', label: '其他必要醫療', name: 'otherNecessaryMedicalFee' },
   ]
 
   const propertyCommonItems: { key: string; label: string; name: string }[] = [

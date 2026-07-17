@@ -51,7 +51,6 @@ describe('UI 整合 E2E：scarRevision / workLossExtended / laborCapacityRetirem
         assistiveDeviceFee: 0,
         transportationFee: 0,
         nursingFee: 0,
-        otherNecessaryMedicalFee: 0,
       },
       property: {
         vehicleRepairCost: 0,
@@ -132,7 +131,6 @@ describe('UI 整合 E2E：scarRevision / workLossExtended / laborCapacityRetirem
         assistiveDeviceFee: 0,
         transportationFee: 0,
         nursingFee: 0,
-        otherNecessaryMedicalFee: 0,
       },
       property: {
         vehicleRepairCost: 0,
@@ -201,7 +199,6 @@ describe('UI 整合 E2E：scarRevision / workLossExtended / laborCapacityRetirem
         assistiveDeviceFee: 0,
         transportationFee: 0,
         nursingFee: 0,
-        otherNecessaryMedicalFee: 0,
       },
       property: {
         vehicleRepairCost: 0,

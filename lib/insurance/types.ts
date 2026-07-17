@@ -215,8 +215,6 @@ export interface CompulsoryMedicalInputs {
 
   nursingFee: number // 看護費
   nursingDays: number
-
-  otherNecessaryMedicalFee: number
 }
 
 // --- 車損財損（Step 6） -----------------------------------------------

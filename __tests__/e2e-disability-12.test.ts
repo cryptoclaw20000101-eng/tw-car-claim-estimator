@@ -205,7 +205,6 @@ const defaultReceipts = {
   transportationFee: 0,
   nursingFee: 0,
   nursingDays: 0,
-  otherNecessaryMedicalFee: 0,
 }
 const defaultProperty = {
   vehicleRepairEstimate: 0,

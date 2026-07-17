@@ -128,7 +128,6 @@ function makeReceipts(overrides: Partial<CompulsoryMedicalInputs> = {}): Compuls
     transportationFee: 0,
     nursingFee: 0,
     nursingDays: 0,
-    otherNecessaryMedicalFee: 0,
     ...overrides,
   }
 }

@@ -87,7 +87,6 @@ function buildInput(overrides: Partial<ClaimInput> = {}): ClaimInput {
       assistiveDeviceFee: 0,
       transportationFee: 0,
       nursingFee: 0,
-      otherNecessaryMedicalFee: 0,
       ...overrides.medicalReceipts,
     } as ClaimInput['medicalReceipts'],
     property: {
