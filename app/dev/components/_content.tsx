@@ -128,11 +128,7 @@ function ResultSection({ dark }: { dark: boolean }) {
   return (
     <Space direction="vertical" size="large" className="!w-full">
       <Section title="MultiFaultCompare（多肇責比較）" dark={dark}>
-        <MultiFaultCompare
-          civilMidBaseline={100000}
-          bodilyInjuryAmount={50000}
-          propertyDamageAmount={20000}
-        />
+        <MultiFaultCompare bodilyInjuryAmount={50000} propertyDamageAmount={20000} />
       </Section>
 
       <Section title="Skeleton 單塊" dark={dark}>

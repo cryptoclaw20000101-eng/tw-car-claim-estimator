@@ -30,7 +30,6 @@ import {
 // v0.12.0+ Phase B5：分享成功 / 失敗 toast
 const antdMessage = message
 import { InfoAlert } from '@/components/InfoAlert'
-import { LawVersionBadge } from '@/components/LawVersionBadge'
 import { MobileStickyCTA } from '@/components/MobileStickyCTA'
 // v0.13.x：共用 PageBreadcrumb 元件
 import { PageBreadcrumb } from '@/components/PageBreadcrumb'
@@ -395,9 +394,6 @@ export default function ResultForm() {
         <Paragraph type="secondary" className="!mb-4">
           事故地點：{input.basics.accidentLocation || '（未填）'} · {input.basics.accidentDate} ·
           管轄法院：{result.region.courtName}
-          <span className="ml-2">
-            <LawVersionBadge accidentDate={input.basics.accidentDate} />
-          </span>
         </Paragraph>
 
         {stale && (
@@ -477,9 +473,8 @@ export default function ResultForm() {
           </div>
         </div>
 
-        {/* v0.12.0+ Phase B7：多肇責比例並排比較 */}
+        {/* v0.12.0+ Phase B7：多肇責比例並排比較（v0.28.1+ 移除 civilMidBaseline prop）*/}
         <MultiFaultCompare
-          civilMidBaseline={result.thirdParty?.civilDamageTotalMid ?? 0}
           bodilyInjuryAmount={(result.civilMedicalExpense ?? 0) + (result.workLoss ?? 0)}
           propertyDamageAmount={result.propertyDamage ?? 0}
         />

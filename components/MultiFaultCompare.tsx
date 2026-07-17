@@ -22,15 +22,12 @@ import { FieldTimeOutlined } from '@ant-design/icons'
 const { Text, Paragraph } = Typography
 
 interface MultiFaultCompareProps {
-  /** 民事損害賠償中標（不受肇責影響的基準金額）*/
-  civilMidBaseline: number
   /** 體傷 / 財損分開的金額（從現有 result 拿）*/
   bodilyInjuryAmount?: number
   propertyDamageAmount?: number
 }
 
 export function MultiFaultCompare({
-  civilMidBaseline,
   bodilyInjuryAmount = 0,
   propertyDamageAmount = 0,
 }: MultiFaultCompareProps) {
@@ -102,11 +99,6 @@ export function MultiFaultCompare({
           )
         })}
       </div>
-
-      <Paragraph type="secondary" className="!mb-0 !mt-4 !text-xs">
-        註：以上為民事損害基準 ${civilMidBaseline.toLocaleString()} 的簡化試算，實際金額還要看體傷 /
-        財損 cap 與保單上限。
-      </Paragraph>
     </Card>
   )
 }

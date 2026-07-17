@@ -78,11 +78,7 @@ describe('Skeleton SSR', () => {
 describe('MultiFaultCompare SSR', () => {
   it('渲染 3 個肇責情境', () => {
     const html = renderToString(
-      <MultiFaultCompare
-        civilMidBaseline={100000}
-        bodilyInjuryAmount={50000}
-        propertyDamageAmount={20000}
-      />,
+      <MultiFaultCompare bodilyInjuryAmount={50000} propertyDamageAmount={20000} />,
     )
     // React 在 text node 之間插入 <!-- -->，所以分開檢查數字
     expect(html).toContain('己方')
@@ -96,15 +92,13 @@ describe('MultiFaultCompare SSR', () => {
   })
 
   it('金額顯示 tabular-nums', () => {
-    const html = renderToString(
-      <MultiFaultCompare civilMidBaseline={100000} bodilyInjuryAmount={50000} />,
-    )
+    const html = renderToString(<MultiFaultCompare bodilyInjuryAmount={50000} />)
     expect(html).toContain('tabular-nums')
     expect(html).toContain('$')
   })
 
   it('零金額不崩潰', () => {
-    const html = renderToString(<MultiFaultCompare civilMidBaseline={0} />)
+    const html = renderToString(<MultiFaultCompare />)
     expect(html).toBeTruthy()
   })
 })
