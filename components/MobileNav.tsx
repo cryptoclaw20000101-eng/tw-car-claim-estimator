@@ -270,10 +270,21 @@ function UserMenu() {
   }
 
   // v0.28.0+：已登入的 user menu 改成 dropdown（含 admin 入口 if isAdmin）
+  // v0.28.2+：用 Next Link 包 label（v0.28.0 用 href 屬性但 AntD Dropdown 不認）
   const userMenuItems = [
-    { key: 'estimate', icon: <CalculatorOutlined />, label: '開始估算', href: '/claims/new' },
+    {
+      key: 'estimate',
+      icon: <CalculatorOutlined />,
+      label: <Link href="/claims/new">開始估算</Link>,
+    },
     ...(user.isAdmin === true
-      ? [{ key: 'admin', icon: <SafetyOutlined />, label: '進入後台', href: '/admin' }]
+      ? [
+          {
+            key: 'admin',
+            icon: <SafetyOutlined />,
+            label: <Link href="/admin">進入後台</Link>,
+          },
+        ]
       : []),
     { type: 'divider' as const },
     { key: 'signout', icon: <LogoutOutlined />, label: '登出', onClick: () => signOut() },
