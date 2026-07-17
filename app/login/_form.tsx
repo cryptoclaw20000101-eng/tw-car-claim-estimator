@@ -129,8 +129,11 @@ export default function LoginForm() {
             <Space direction="vertical" size="middle" className="!w-full">
               <Input
                 size="large"
-                type="email"
-                placeholder="you@example.com"
+                // v0.27.3+：登入用 text（讓非 @ 帳號如 cryptoclaw20000101 能登入），
+                // 註冊用 email（HTML5 強制 email 格式避免垃圾註冊）
+                type={isSignUp ? 'email' : 'text'}
+                autoComplete="username"
+                placeholder={isSignUp ? 'you@example.com' : 'email 或帳號'}
                 prefix={<MailOutlined />}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
