@@ -14,7 +14,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Alert, Button, Card, Checkbox, Input, Progress, Space, Typography } from 'antd'
-import { LockOutlined, MailOutlined } from '@ant-design/icons'
+import { LockOutlined, MailOutlined, SafetyOutlined } from '@ant-design/icons'
 import { useAuth } from '@/components/AuthProvider'
 
 const { Title, Paragraph, Text } = Typography
@@ -96,10 +96,18 @@ export default function LoginForm() {
             已登入
           </Title>
           <Paragraph className="!mb-4">{user.email}</Paragraph>
-          <Space>
+          <Space wrap>
             <Link href="/claims/new">
               <Button type="primary">開始估算</Button>
             </Link>
+            {/* v0.27.5+：admin 登入後顯示「進入後台」按鈕（v0.27.0 起的 /admin 入口）*/}
+            {user.isAdmin === true && (
+              <Link href="/admin">
+                <Button icon={<SafetyOutlined />} data-testid="login-admin-button">
+                  進入後台
+                </Button>
+              </Link>
+            )}
             <Button onClick={signOut}>登出</Button>
           </Space>
         </Card>
