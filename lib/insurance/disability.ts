@@ -341,9 +341,6 @@ export function runDisabilityRuleEngine(input: RuleEngineInput): RuleEngineOutpu
   if (textHits.length > 0 && !medical.hasDisabilityCertificate) {
     needsSupplement.push('依診斷書關鍵字建議向骨科/復健科申請失能鑑定')
   }
-  if (medical.hasPermanentImpairment && !medical.hasClassADiagnosisCertificate) {
-    needsSupplement.push('建議申請甲種診斷證明書（記載較完整）')
-  }
 
   // 重要提醒：ROM 喪失 ≠ 失能
   if (romLossPercent !== null && screening !== 'D') {

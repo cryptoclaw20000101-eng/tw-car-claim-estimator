@@ -126,7 +126,6 @@ const DEFAULT_MEDICAL: MedicalRecord = {
   nursingDays: 0,
   isSymptomFixed: false,
   hasDisabilityCertificate: false,
-  hasClassADiagnosisCertificate: false,
   // disabilityCategory / disabilityLevel 為 optional（不預設）
   hasFracture: false,
   hasDislocation: false,

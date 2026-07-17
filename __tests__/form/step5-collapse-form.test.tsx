@@ -88,7 +88,6 @@ describe('production submit flow → 強制險必進入估算', () => {
         nursingDays: 0,
         isSymptomFixed: true,
         hasDisabilityCertificate: false,
-        hasClassADiagnosisCertificate: false,
         hasFracture: false,
         hasDislocation: false,
         hasLigamentInjury: true,

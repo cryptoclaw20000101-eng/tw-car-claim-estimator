@@ -21,7 +21,6 @@ const baseMedical: MedicalRecord = {
   nursingDays: 0,
   isSymptomFixed: false,
   hasDisabilityCertificate: false,
-  hasClassADiagnosisCertificate: false,
   hasFracture: false,
   hasDislocation: false,
   hasLigamentInjury: false,

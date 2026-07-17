@@ -150,7 +150,6 @@ export interface MedicalRecord {
 
   isSymptomFixed: boolean
   hasDisabilityCertificate: boolean
-  hasClassADiagnosisCertificate: boolean // 甲種診斷書
   /** 12 大類失能種類（失能保典 + 強制險失能給付標準附表） */
   disabilityCategory?: string // e.g. '01_mental' | '07_thoracic_organ' | '11_upper_limb' ...
   /** 失能等級 1-15（使用者自選；選大類時自動帶出該類常見等級，可手改） */

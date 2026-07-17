@@ -554,22 +554,7 @@ export function Step4Diagnosis({ form, accidentLocationForKnn }: Step4DiagnosisP
             <Switch />
           </Form.Item>
         </Col>
-        <Col xs={12} md={6}>
-          <Form.Item
-            label={
-              <Space>
-                <span>A 型診斷書</span>
-                <Tooltip title="身心障礙鑑定 A 型（舊制，極重度）會影響勞減比例 80-100%。">
-                  <QuestionCircleOutlined />
-                </Tooltip>
-              </Space>
-            }
-            name={['medical', 'hasClassADiagnosisCertificate']}
-            valuePropName="checked"
-          >
-            <Switch />
-          </Form.Item>
-        </Col>
+        {/* v0.28.3+：移除 A 型診斷書欄位（user 2026-07-17：任何診斷書本來就可以，不需區分）*/}
       </Row>
 
       {/* 強制險排除警示（v0.2.5+） */}

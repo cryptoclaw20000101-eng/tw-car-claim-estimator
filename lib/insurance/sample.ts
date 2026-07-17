@@ -72,7 +72,6 @@ export const SAMPLE_INPUT: ClaimInput = {
     nursingDays: 14,
     isSymptomFixed: true,
     hasDisabilityCertificate: false,
-    hasClassADiagnosisCertificate: true,
     hasFracture: true,
     hasDislocation: false,
     hasLigamentInjury: true,

@@ -87,7 +87,6 @@ function makeMedical(overrides: Partial<MedicalRecord> = {}): MedicalRecord {
     nursingDays: 0,
     isSymptomFixed: true,
     hasDisabilityCertificate: false,
-    hasClassADiagnosisCertificate: true,
     hasFracture: false,
     hasDislocation: false,
     hasLigamentInjury: false,

@@ -92,7 +92,6 @@ const makeMinimalInput = (over: Partial<FormSchema> = {}): FormSchema => ({
     nursingDays: 0,
     isSymptomFixed: true,
     hasDisabilityCertificate: false,
-    hasClassADiagnosisCertificate: false,
     hasFracture: false,
     hasDislocation: false,
     hasLigamentInjury: true,

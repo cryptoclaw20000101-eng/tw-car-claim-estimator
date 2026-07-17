@@ -111,7 +111,8 @@ export function Step1Basics({
       <Row gutter={16}>
         <Col xs={24} md={8}>
           <Form.Item
-            label="是否為汽車交通事故 *"
+            // v0.28.3+：移除 * 必填 — 這是車禍理賠工具，永遠是汽車交通事故
+            label="是否為汽車交通事故"
             name={['basics', 'isAutomobileAccident']}
             valuePropName="checked"
           >
