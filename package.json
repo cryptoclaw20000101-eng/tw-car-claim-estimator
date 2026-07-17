@@ -1,6 +1,6 @@
 {
   "name": "tw-car-claim-estimator",
-  "version": "0.27.7",
+  "version": "0.27.8",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -22,6 +22,8 @@
     "scrape": "node scripts/scrape-judgments.js",
     "scrape:cron": "node scripts/scrape-judgments.js --quiet",
     "scrape:cron-dry": "node scripts/scrape-judgments.js --dry-run --quiet",
+    "scrape:all": "node scripts/scrape-judgments.js --all --delay-between 60 --quiet",
+    "scrape:all-auto": "node scripts/scrape-judgments.js --all --delay-between 60 --quiet --auto-deploy",
     "report:build": "tsc -p scripts/tsconfig.json",
     "report:precedents": "node scripts/report-precedents.js",
     "report:rebuild-hero": "bash scripts/rebuild-hero.sh",

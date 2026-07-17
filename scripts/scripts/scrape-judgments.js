@@ -674,9 +674,11 @@ function isInYearRange(caseNo, yearMin, yearMax) {
     return year >= yearMin && year <= yearMax;
 }
 async function main() {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f;
     // CLI: --dry-run = 不寫檔，只跑流程; --chain <name> = 只跑單鏈; --quiet = 精簡輸出（給 cron 用）
     //       --retry <N> = fetch 重試次數（預設 3，設 0 關閉）; --retry-delay <ms> = 起始退避毫秒（預設 500，指數倍增）
+    //       --all = 跑所有 chain（覆寫 --chain）；--delay-between <sec> = 每個 job 間 sleep（預設 0）
+    //       --auto-deploy = 跑完後自動 git add+commit+push+railway up（v0.27.8+，給背景排程用）
     const isDryRun = process.argv.includes('--dry-run');
     const isQuiet = process.argv.includes('--quiet');
     retryConfig.quiet = isQuiet;
@@ -692,11 +694,21 @@ async function main() {
         const ms = parseInt((_b = process.argv[retryDelayArgIdx + 1]) !== null && _b !== void 0 ? _b : '500', 10);
         retryConfig.baseDelayMs = isNaN(ms) ? 500 : Math.max(100, ms);
     }
+    // v0.27.8+：跑全 chain 模式（覆寫 --chain filter）
+    const runAll = process.argv.includes('--all');
+    // v0.27.8+：每個 (chain, keyword) job 結束後 sleep N 秒（防司法院 rate limit）
+    // 預設 0（單 chain 跑不需 sleep）；--all 跑建議 60~90 秒
+    const delayBetweenArgIdx = process.argv.indexOf('--delay-between');
+    const delayBetweenSec = delayBetweenArgIdx >= 0
+        ? parseInt((_c = process.argv[delayBetweenArgIdx + 1]) !== null && _c !== void 0 ? _c : '0', 10)
+        : 0;
+    // v0.27.8+：跑完後自動 commit + push + force rebuild deploy
+    const autoDeploy = process.argv.includes('--auto-deploy');
     // v0.2.21+ — 年度範圍過濾（民國年），預設不限。例: --year-min 109 --year-max 111
     const yearMinArgIdx = process.argv.indexOf('--year-min');
     const yearMaxArgIdx = process.argv.indexOf('--year-max');
-    const yearMin = yearMinArgIdx >= 0 ? parseInt((_c = process.argv[yearMinArgIdx + 1]) !== null && _c !== void 0 ? _c : '0', 10) : null;
-    const yearMax = yearMaxArgIdx >= 0 ? parseInt((_d = process.argv[yearMaxArgIdx + 1]) !== null && _d !== void 0 ? _d : '0', 10) : null;
+    const yearMin = yearMinArgIdx >= 0 ? parseInt((_d = process.argv[yearMinArgIdx + 1]) !== null && _d !== void 0 ? _d : '0', 10) : null;
+    const yearMax = yearMaxArgIdx >= 0 ? parseInt((_e = process.argv[yearMaxArgIdx + 1]) !== null && _e !== void 0 ? _e : '0', 10) : null;
     const hasYearFilter = yearMin !== null && !isNaN(yearMin) && yearMax !== null && !isNaN(yearMax);
     if (!isQuiet) {
         if (isDryRun)
@@ -710,11 +722,19 @@ async function main() {
     const jobs = Object.keys(KEYWORDS)
         .filter((c) => !chainFilter || c === chainFilter)
         .flatMap((chain) => KEYWORDS[chain].map((keyword) => ({ chain, keyword })));
+    if (runAll)
+        console.log(`[scrape] 🌐 跑全部 ${jobs.length} 個 jobs，chain 間隔 ${delayBetweenSec}s`);
     const allHits = [];
     let totalScraped = 0;
     let totalSkipped = 0;
     let totalErrors = 0;
-    for (const { chain, keyword: kw } of jobs) {
+    for (let i = 0; i < jobs.length; i++) {
+        const { chain, keyword: kw } = jobs[i];
+        // v0.27.8+：每個 job 結束後 sleep N 秒（防司法院 rate limit）
+        if (i > 0 && delayBetweenSec > 0) {
+            console.log(`[scrape] 💤 sleep ${delayBetweenSec}s ...`);
+            await new Promise((r) => setTimeout(r, delayBetweenSec * 1000));
+        }
         console.log(`[scrape] === ${CHAIN_LABEL[chain]} / "${kw}" ===`);
         const jar = newJar();
         // 1. GET 拿 ViewState + cookies
@@ -776,7 +796,7 @@ async function main() {
                     totalSkipped++;
                     continue;
                 }
-                const yearInt = parseInt(((_e = hit.caseNo.match(/(\d+)/)) === null || _e === void 0 ? void 0 : _e[1]) || '0', 10);
+                const yearInt = parseInt(((_f = hit.caseNo.match(/(\d+)/)) === null || _f === void 0 ? void 0 : _f[1]) || '0', 10);
                 const category = categorizeByFacts(amts.gist, amts.amount);
                 allHits.push(Object.assign({}, hit));
                 // 直接寫進 precedents（dry-run 跳過）
@@ -834,9 +854,37 @@ async function main() {
     console.log(`[scrape]   命中總數: ${allHits.length} 件`);
     if (chainFilter)
         console.log(`[scrape] 🔗 限定鏈: ${chainFilter}`);
+    if (runAll)
+        console.log(`[scrape] 🌐 全自動模式 — 已跑完所有 chain`);
     if (isDryRun)
         console.log(`[scrape] 🧪 DRY RUN — 未寫入任何檔案`);
     console.log('═══════════════════════════════════════');
+    // v0.27.8+：auto-deploy 模式（背景排程用）
+    if (autoDeploy && !isDryRun) {
+        console.log('[scrape] 🚀 auto-deploy 模式啟動');
+        const { execSync } = await import('node:child_process');
+        try {
+            // 1. git add + commit
+            execSync('git add -A', { stdio: 'inherit' });
+            const status = execSync('git status --porcelain', { encoding: 'utf8' });
+            if (status.trim()) {
+                execSync(`git commit -m "chore(dx): v0.27.8 scrape 全部 chain 跑完 (+${totalScraped})"`, { stdio: 'inherit' });
+                // 2. tag
+                execSync('git tag v0.27.8', { stdio: 'inherit' });
+                // 3. push
+                execSync('git push origin main --tags', { stdio: 'inherit' });
+                // 4. force rebuild deploy
+                execSync('railway up --service 31759164-7453-4a51-a0ff-987cddb9764e --detach -m "force rebuild v0.27.8 scrape all"', { stdio: 'inherit' });
+                console.log('[scrape] ✅ auto-deploy 完成');
+            }
+            else {
+                console.log('[scrape] ℹ️  沒有新資料需要 commit');
+            }
+        }
+        catch (e) {
+            console.error('[scrape] ✗ auto-deploy 失敗:', e.message);
+        }
+    }
 }
 // 直接跑 main 才執行（避免 import 時跑）
 if ((_a = process.argv[1]) === null || _a === void 0 ? void 0 : _a.endsWith('scrape-judgments.js')) {
