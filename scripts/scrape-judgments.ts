@@ -683,6 +683,37 @@ function isCivilCase(caseNo: string): boolean {
 }
 
 /**
+ * isCarAccidentCase — v0.27.7+ — 案號是否為車禍相關民事案件
+ * 排除（user 2026-07-17 要求「只抓車禍類別」）：
+ * - 勞訴/竹勞簡專調/勞（勞工法案件，例：資遣費、加班費）
+ * - 婚（離婚案件）
+ * - 家繼（繼承案件）
+ * - 國（涉外案件，例外要手動加白名單）
+ * - 消/消簡上（消費者保護案件，多半非車禍）
+ * 保留：
+ * - 訴/簡/重訴/簡上/小上（純民事，常見車禍）
+ * - 車/交通（明確車禍）
+ */
+function isCarAccidentCase(caseNo: string): boolean {
+  if (!caseNo) return true
+  // 排除清單（按 user 2026-07-17 需求）
+  const nonTrafficPatterns = [
+    '勞訴', // 勞動訴訟
+    '勞簡', // 勞動簡式訴訟
+    '竹勞簡專調', // 新竹勞工專庭調解
+    '婚', // 離婚
+    '家繼', // 繼承
+    '家事', // 家事法庭
+    '國', // 涉外
+    '消', // 消費者保護
+  ]
+  for (const pat of nonTrafficPatterns) {
+    if (caseNo.includes(pat)) return false
+  }
+  return true
+}
+
+/**
  * isInYearRange — v0.2.21+ — 案號是否在指定民國年範圍內
  * 用例: SCRAPE_MIN_YEAR=109 SCRAPE_MAX_YEAR=111 → 只抓 109~111 年案件
  * 案號格式: "{year} 年度 {caseType} 字第 {caseNum} 號"
@@ -837,6 +868,12 @@ async function main() {
           // 過濾刑事/家事案件（純民事車禍估算器用不到）
           if (!isCivilCase(hit.caseNo)) {
             console.log(`[scrape]       ⏭️  [刑庭/家事] 排除 ${hit.caseNo}`)
+            totalSkipped++
+            continue
+          }
+          // v0.27.7+：過濾非車禍案件（勞訴/婚/家繼/國/消等）
+          if (!isCarAccidentCase(hit.caseNo)) {
+            console.log(`[scrape]       ⏭️  [非車禍] 排除 ${hit.caseNo}`)
             totalSkipped++
             continue
           }

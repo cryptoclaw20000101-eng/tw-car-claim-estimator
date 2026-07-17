@@ -53,9 +53,9 @@ async function getHtml(jar, url, referer) {
             return await res.text();
         }
         catch (e) {
-            lastErr = e;
+            lastErr = e instanceof Error ? e : new Error(String(e));
             if (i === 2)
-                throw e;
+                throw lastErr;
             await sleep(500 * 2 ** i);
         }
     }

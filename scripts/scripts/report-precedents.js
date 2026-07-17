@@ -15,6 +15,7 @@
  *   - 零外部 deps
  *   - 適合給 cron 跑完後看
  */
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.main = main;
 exports.buildHtml = buildHtml;
@@ -84,20 +85,22 @@ function stats(nums) {
     };
 }
 function topCourts(rows, k = 5) {
+    var _a;
     const m = new Map();
     for (const r of rows) {
         const c = r.court || '(unknown)';
-        m.set(c, (m.get(c) ?? 0) + 1);
+        m.set(c, ((_a = m.get(c)) !== null && _a !== void 0 ? _a : 0) + 1);
     }
     return Array.from(m.entries())
         .sort((a, b) => b[1] - a[1])
         .slice(0, k);
 }
 function categoryDist(rows) {
+    var _a;
     const m = new Map();
     for (const r of rows) {
         const c = String(r.category || '(none)');
-        m.set(c, (m.get(c) ?? 0) + 1);
+        m.set(c, ((_a = m.get(c)) !== null && _a !== void 0 ? _a : 0) + 1);
     }
     return Array.from(m.entries()).sort((a, b) => b[1] - a[1]);
 }
@@ -196,17 +199,18 @@ function fmtDate(iso) {
     return iso.replace('T', ' ').slice(0, 16);
 }
 function buildHtml(args) {
+    var _a, _b;
     const { chain, legacy, generatedAt } = args;
     const totalChain = Array.from(chain.values()).reduce((s, r) => s + r.length, 0);
     const grand = totalChain + legacy.length;
     // Ensemble 健康度（v0.6.8+）— 插在 6 鏈 section 之前
-    const ensembleSection = renderEnsembleSection((0, pain_ensemble_health_1.computeEnsembleHealth)(chain.get('taipei-mental-distress.json') ?? []));
+    const ensembleSection = renderEnsembleSection((0, pain_ensemble_health_1.computeEnsembleHealth)((_a = chain.get('taipei-mental-distress.json')) !== null && _a !== void 0 ? _a : []));
     // 6 鏈摘要
     const chainSections = [];
     for (const [file, label] of Object.entries(CHAIN_FILE_TO_LABEL)) {
-        const rows = chain.get(file) ?? [];
+        const rows = (_b = chain.get(file)) !== null && _b !== void 0 ? _b : [];
         const amounts = rows
-            .map((r) => Number(r.amount ?? r.mentalDistressAmount ?? 0))
+            .map((r) => { var _a, _b; return Number((_b = (_a = r.amount) !== null && _a !== void 0 ? _a : r.mentalDistressAmount) !== null && _b !== void 0 ? _b : 0); })
             .filter((n) => n > 0);
         const st = stats(amounts);
         const courts = topCourts(rows, 5);
@@ -248,13 +252,16 @@ function buildHtml(args) {
         <thead><tr><th>抓取時間</th><th>鏈</th><th>法院</th><th>案號</th><th>金額</th></tr></thead>
         <tbody>
           ${recent
-            .map((r) => `<tr>
+            .map((r) => {
+            var _a, _b, _c, _d, _e, _f;
+            return `<tr>
                 <td>${esc(fmtDate(r.scrapedAt))}</td>
-                <td>${esc(String(r.chain ?? r.category ?? ''))}</td>
-                <td>${esc(String(r.court ?? ''))}</td>
-                <td>${esc(String(r.caseNo ?? ''))}</td>
-                <td class="num">${Number(r.amount ?? r.mentalDistressAmount ?? 0).toLocaleString()}</td>
-              </tr>`)
+                <td>${esc(String((_b = (_a = r.chain) !== null && _a !== void 0 ? _a : r.category) !== null && _b !== void 0 ? _b : ''))}</td>
+                <td>${esc(String((_c = r.court) !== null && _c !== void 0 ? _c : ''))}</td>
+                <td>${esc(String((_d = r.caseNo) !== null && _d !== void 0 ? _d : ''))}</td>
+                <td class="num">${Number((_f = (_e = r.amount) !== null && _e !== void 0 ? _e : r.mentalDistressAmount) !== null && _f !== void 0 ? _f : 0).toLocaleString()}</td>
+              </tr>`;
+        })
             .join('')}
         </tbody>
       </table>`;
@@ -264,7 +271,6 @@ function buildHtml(args) {
       <h2>📚 Legacy / 補充檔 <span class="muted">(${legacy.length} 件)</span></h2>
       <ul class="muted">
         ${LEGACY_FILES.map((f) => {
-        const n = (chain.get(f)?.length ?? 0) + legacy.filter((r) => true).length;
         return `<li>${esc(f)}：歸在 legacy 區段</li>`;
     }).join('')}
       </ul>
@@ -340,6 +346,6 @@ function main() {
     (0, node_fs_1.writeFileSync)(OUT_FILE, html, 'utf-8');
     console.log(`[report] ✅ 寫出 ${OUT_FILE} (${html.length} bytes)`);
 }
-if (process.argv[1]?.endsWith('report-precedents.js')) {
+if ((_a = process.argv[1]) === null || _a === void 0 ? void 0 : _a.endsWith('report-precedents.js')) {
     main();
 }
