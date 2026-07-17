@@ -14,13 +14,15 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Button,
   Card,
+  DatePicker,
   Empty,
+  Input,
   Popconfirm,
   Space,
   Spin,
@@ -30,6 +32,8 @@ import {
   Typography,
   message,
 } from 'antd'
+import { SearchOutlined, ClearOutlined } from '@ant-design/icons'
+import dayjs, { type Dayjs } from 'dayjs'
 import {
   ArrowLeftOutlined,
   ReloadOutlined,
@@ -82,6 +86,9 @@ export default function AdminPage() {
   const [loadingUsers, setLoadingUsers] = useState(false)
   const [loadingEstimates, setLoadingEstimates] = useState(false)
   const [loadingLeads, setLoadingLeads] = useState(false)
+  // v0.27.0+：估算查詢 / 篩選（client-side filter，200 筆內 OK）
+  const [emailFilter, setEmailFilter] = useState('')
+  const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null)
 
   // Auth 守護：未登入導向 /login
   useEffect(() => {
@@ -128,6 +135,21 @@ export default function AdminPage() {
       setLoadingLeads(false)
     }
   }
+
+  // v0.27.0+：套用 email + 日期範圍 filter
+  const filteredEstimates = useMemo(() => {
+    return estimates.filter((row) => {
+      if (emailFilter && !row.email.toLowerCase().includes(emailFilter.toLowerCase())) {
+        return false
+      }
+      if (dateRange?.[0] || dateRange?.[1]) {
+        const rowDate = dayjs(row.createdAt)
+        if (dateRange[0] && rowDate.isBefore(dateRange[0], 'day')) return false
+        if (dateRange[1] && rowDate.isAfter(dateRange[1], 'day')) return false
+      }
+      return true
+    })
+  }, [estimates, emailFilter, dateRange])
 
   // v0.26.0a+：AGENTS §6 個資風格守護 — 刪除 lead
   const handleDeleteLead = async (id: string) => {
@@ -285,7 +307,38 @@ export default function AdminPage() {
             ),
             children: (
               <Card>
-                <div className="mb-3 flex justify-end">
+                <Space size="middle" wrap className="!mb-3 !w-full">
+                  <Input
+                    placeholder="搜尋 email"
+                    prefix={<SearchOutlined />}
+                    value={emailFilter}
+                    onChange={(e) => setEmailFilter(e.target.value)}
+                    allowClear
+                    style={{ width: 240 }}
+                    data-testid="admin-email-filter"
+                  />
+                  <DatePicker.RangePicker
+                    value={dateRange}
+                    onChange={(dates) => setDateRange(dates)}
+                    placeholder={['起始日', '結束日']}
+                    data-testid="admin-date-range"
+                  />
+                  <Button
+                    icon={<ClearOutlined />}
+                    onClick={() => {
+                      setEmailFilter('')
+                      setDateRange(null)
+                    }}
+                    disabled={!emailFilter && !dateRange}
+                    data-testid="admin-filter-reset"
+                  >
+                    重置
+                  </Button>
+                  <div className="ml-auto text-xs text-muted">
+                    {emailFilter || dateRange?.[0] || dateRange?.[1]
+                      ? `篩選後 ${filteredEstimates.length} / ${estimates.length} 筆`
+                      : `共 ${estimates.length} 筆`}
+                  </div>
                   <Button
                     icon={<ReloadOutlined />}
                     onClick={() => void fetchEstimates()}
@@ -294,10 +347,10 @@ export default function AdminPage() {
                   >
                     重新整理
                   </Button>
-                </div>
+                </Space>
                 <Table<EstimateRow>
                   rowKey="id"
-                  dataSource={estimates}
+                  dataSource={filteredEstimates}
                   loading={loadingEstimates}
                   locale={{
                     emptyText: <Empty description="尚無估算記錄" />,
