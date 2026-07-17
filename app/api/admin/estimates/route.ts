@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { query } from '@/lib/db'
 import { getAdminFromRequest } from '@/lib/auth'
+import { estimateClaim } from '@/lib/insurance'
 
 export const dynamic = 'force-dynamic'
 
@@ -44,8 +45,19 @@ export async function GET(req: NextRequest) {
        LIMIT 200`,
     )
 
-    return NextResponse.json({
-      items: rows.map((r) => ({
+    // v0.28.6+：用最新引擎重算（拿到 painAndSuffering 等）
+    // 不存 DB 是因為：1. 引擎邏輯會演化 2. 200 筆 × 6 引擎 CPU 可接受 3. 避免 schema 變更
+    const enriched = rows.map((r) => {
+      let painAndSuffering: number | null = null
+      let workLoss: number | null = null
+      try {
+        const result = estimateClaim(r.claim_input as never)
+        painAndSuffering = result.painAndSuffering?.regionalMid ?? null
+        workLoss = result.workLoss ?? null
+      } catch {
+        // 引擎 throw 或資料不足 → 留 null（後台顯示 —）
+      }
+      return {
         id: r.id,
         userId: r.user_id,
         email: r.email ?? '(deleted user)',
@@ -56,8 +68,13 @@ export async function GET(req: NextRequest) {
         createdAt: r.created_at.toISOString(),
         // v0.27.0+：完整 claim_input JSON（後台要看到完整民眾查詢）
         claimInput: r.claim_input,
-      })),
+        // v0.28.6+：re-calculate 用最新引擎
+        painAndSuffering,
+        workLoss,
+      }
     })
+
+    return NextResponse.json({ items: enriched })
   } catch (e) {
     console.error('[api/admin/estimates]', e)
     return NextResponse.json({ error: 'server error' }, { status: 500 })

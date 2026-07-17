@@ -49,6 +49,46 @@ describe('disabilityBenefitTable — 常數表', () => {
   it('新制 1 級應為最高額（300 萬）', () => {
     expect(disabilityBenefitTableNew[1]).toBe(3_000_000)
   })
+
+  // v0.28.6+：守護新制金額（2026-07-01 修法後）精確值
+  // 來源：強制汽車責任保險給付標準（115-07-01 施行版）
+  it('新制金額精確值（2026-07-01 修法後）', () => {
+    expect(disabilityBenefitTableNew[1]).toBe(3_000_000)
+    expect(disabilityBenefitTableNew[2]).toBe(2_500_000)
+    expect(disabilityBenefitTableNew[3]).toBe(2_100_000)
+    expect(disabilityBenefitTableNew[4]).toBe(1_850_000)
+    expect(disabilityBenefitTableNew[5]).toBe(1_600_000)
+    expect(disabilityBenefitTableNew[6]).toBe(1_350_000)
+    expect(disabilityBenefitTableNew[7]).toBe(1_100_000)
+    expect(disabilityBenefitTableNew[8]).toBe(900_000)
+    expect(disabilityBenefitTableNew[9]).toBe(700_000)
+    expect(disabilityBenefitTableNew[10]).toBe(550_000)
+    expect(disabilityBenefitTableNew[11]).toBe(400_000)
+    expect(disabilityBenefitTableNew[12]).toBe(250_000)
+    expect(disabilityBenefitTableNew[13]).toBe(150_000)
+    expect(disabilityBenefitTableNew[14]).toBe(100_000)
+    expect(disabilityBenefitTableNew[15]).toBe(80_000)
+  })
+
+  // v0.28.6+：守護舊制金額精確值（之前 70-80% 估算值有 1-7 萬誤差）
+  // 來源：強制汽車責任保險給付標準（101 年 3 月 1 日修正版，2026 修法前適用）
+  it('舊制金額精確值（2026-07-01 修法前）', () => {
+    expect(disabilityBenefitTableOld[1]).toBe(2_000_000)
+    expect(disabilityBenefitTableOld[2]).toBe(1_670_000)
+    expect(disabilityBenefitTableOld[3]).toBe(1_400_000)
+    expect(disabilityBenefitTableOld[4]).toBe(1_230_000)
+    expect(disabilityBenefitTableOld[5]).toBe(1_070_000)
+    expect(disabilityBenefitTableOld[6]).toBe(900_000)
+    expect(disabilityBenefitTableOld[7]).toBe(730_000)
+    expect(disabilityBenefitTableOld[8]).toBe(600_000)
+    expect(disabilityBenefitTableOld[9]).toBe(470_000)
+    expect(disabilityBenefitTableOld[10]).toBe(370_000)
+    expect(disabilityBenefitTableOld[11]).toBe(270_000)
+    expect(disabilityBenefitTableOld[12]).toBe(170_000)
+    expect(disabilityBenefitTableOld[13]).toBe(100_000)
+    expect(disabilityBenefitTableOld[14]).toBe(70_000)
+    expect(disabilityBenefitTableOld[15]).toBe(50_000)
+  })
 })
 
 // =====================================================================

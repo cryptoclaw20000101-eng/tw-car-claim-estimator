@@ -65,6 +65,10 @@ interface EstimateRow {
   createdAt: string
   /** v0.27.0+：完整 ClaimInput JSON（展開看）*/
   claimInput?: Record<string, unknown>
+  /** v0.28.6+：re-calculate 用最新引擎的結果（精神慰撫金中標）*/
+  painAndSuffering?: number | null
+  /** v0.28.6+：re-calculate 的工作損失金額 */
+  workLoss?: number | null
 }
 
 interface LeadRow {
@@ -389,6 +393,16 @@ export default function AdminPage() {
                       width: 140,
                       align: 'right',
                       render: (v: number | null) =>
+                        v == null ? '—' : `NT$ ${v.toLocaleString('zh-TW')}`,
+                    },
+                    {
+                      // v0.28.6+：re-calculate 用最新引擎的精神慰撫金中標
+                      title: '精神慰撫金',
+                      dataIndex: 'painAndSuffering',
+                      key: 'painAndSuffering',
+                      width: 140,
+                      align: 'right',
+                      render: (v: number | null | undefined) =>
                         v == null ? '—' : `NT$ ${v.toLocaleString('zh-TW')}`,
                     },
                     {
