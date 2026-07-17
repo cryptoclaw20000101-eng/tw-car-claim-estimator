@@ -246,11 +246,8 @@ export default function LoginForm() {
             <Link href="/" className="text-accent hover:underline">
               ← 回首頁
             </Link>
-            {' · '}
-            {/* v0.27.3+：管理員後台入口（從 /login 也能直接進）*/}
-            <Link href="/admin" className="text-muted hover:text-accent hover:underline">
-              管理員後台
-            </Link>
+            {/* v0.27.6+：管理員後台入口從 /login 登入前頁面移除
+                （只在登入後 user.isAdmin === true 才顯示「進入後台」按鈕）*/}
           </Paragraph>
         </Space>
       </Card>
