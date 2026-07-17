@@ -298,6 +298,9 @@ export default function NewClaimForm() {
   const router = useRouter()
   const [current, setCurrent] = useState(0)
   const [form] = Form.useForm<FormSchema>()
+  // v0.27.2+：Form.useWatch 必須在 component 頂層呼叫（React Rules of Hooks）
+  // 用於 Step5FeesAndProperty 即時讀 isInjured 來切換 registrationFee 必填
+  const isInjured = Form.useWatch(['basics', 'isInjured'], form)
   // v0.18.x+ 自動草稿：onChange debounce 500ms 存 localStorage（防誤關瀏覽器）
   // mount 時若 1 小時內有 draft 自動還原
   const DRAFT_KEY = 'tw-claim-form-draft'
@@ -530,7 +533,8 @@ export default function NewClaimForm() {
             <Step5FeesAndProperty
               form={form}
               // v0.26.0e+：從 form 即時讀 isInjured，受傷=true 時掛號費必填
-              isInjured={Form.useWatch(['basics', 'isInjured'], form) ?? true}
+              // v0.27.2+：Form.useWatch 已上移到 component 頂層（React Rules of Hooks）
+              isInjured={isInjured ?? true}
             />
           )}
         </Form>

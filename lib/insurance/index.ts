@@ -46,7 +46,9 @@ import { mockLLMAdvisor, type AdvisorInput } from './pain-advisor'
  * @see AGENTS.md §1 三條鐵律（強制險無過失 / 不併精神慰撫金 / 資料不足不硬算）
  */
 export function estimateClaim(input: ClaimInput): EstimationResult {
-  let { basics, fault, person, medical, medicalReceipts, property } = input
+  const { basics, fault, person, property } = input
+  // medical / medicalReceipts 在 isInjured 短路時需 reassign 為 0，故用 let
+  let { medical, medicalReceipts } = input
 
   // v0.26.0e+：AGENTS §1 鐵律 ④「未受傷 → 精神慰撫金 = 0」
   // 在入口把 medical / medicalReceipts 傷相關欄位歸 0，讓所有引擎 cascade 自然得到 0

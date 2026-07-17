@@ -31,8 +31,6 @@ export interface Step5FeesAndPropertyProps {
   isInjured: boolean
 }
 
-// AGENTS §2.1：_props 真的 unused（型別只給 React component contract）
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function Step5FeesAndProperty({ isInjured }: Step5FeesAndPropertyProps) {
   const [showMedicalAdvanced, setShowMedicalAdvanced] = useState(false)
   const [showPropertyAdvanced, setShowPropertyAdvanced] = useState(false)
