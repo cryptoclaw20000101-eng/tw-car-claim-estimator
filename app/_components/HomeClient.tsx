@@ -14,7 +14,7 @@ import Link from 'next/link'
 import { Button, Typography, Space } from 'antd'
 import { motion, useReducedMotion } from 'framer-motion'
 import { EstimateHistory } from '@/components/EstimateHistory'
-import { ArrowRightOutlined, UserAddOutlined } from '@ant-design/icons'
+import { ArrowRightOutlined, UserAddOutlined, SafetyOutlined } from '@ant-design/icons'
 // v0.23.1+：user 反饋「找不到登入鍵」，在 HomeClient 加 useAuth + 明顯登入 CTA
 import { useAuth } from '@/components/AuthProvider'
 
@@ -74,6 +74,14 @@ export default function HomeClient() {
             {/* v0.24.1+：footer 改成「理賠顧問小鄭製作」 */}
             <Text className="!text-xs text-muted">© 2026 理賠顧問小鄭製作</Text>
             <Space size={12} wrap>
+              {/* v0.27.3+：管理員後台入口（隱私：不顯示在用戶明顯處，僅 footer 小字） */}
+              <Link
+                href="/admin"
+                className="!text-xs text-muted hover:text-accent"
+                data-testid="admin-entry-footer"
+              >
+                <SafetyOutlined /> 管理員後台
+              </Link>
               <Link href="/about" className="!text-xs text-muted hover:text-accent">
                 關於
               </Link>
