@@ -1,0 +1,200 @@
+[
+  {
+    "id": "tw-traffic_accident_civil_5y-114-11412",
+    "caseNo": "114 年度 國 字第 12 號",
+    "court": "臺灣嘉義地方法院",
+    "year": 2025,
+    "category": "minor_injury",
+    "chain": "traffic_accident_civil_5y",
+    "facts": "原告之訴駁回。訴訟費用由原告沈清泉負擔47％，餘由原告劉怡君負擔53％。事實及理由壹、程序方面依本法請求損害賠償時，應先以書面向賠償義務機關請求之；賠償義務機關拒絕賠償，請求權人得提起損害賠償之訴，國家賠償法第10條第1項、第11條第1項前",
+    "amount": 2000000,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "5 年內民事車禍 2,000,000 元",
+    "source": "臺灣嘉義地方法院 114 年度 國 字第 12 號",
+    "scrapedAt": "2026-07-17T06:58:47.633Z"
+  },
+  {
+    "id": "tw-traffic_accident_civil_5y-115-1154",
+    "caseNo": "115 年度 簡上 字第 4 號",
+    "court": "CTDV（未知代碼）",
+    "year": 2026,
+    "category": "minor_injury",
+    "chain": "traffic_accident_civil_5y",
+    "facts": "原判決關於命上訴人給付被上訴人逾新臺幣97,229元本息部分，及該部分假執行之宣告，暨訴訟費用（除確定部分外）之裁判均廢棄。上開廢棄部分，被上訴人在第一審之訴及假執行之聲請均駁回。其餘上訴駁回。第一審（除確定部分外）、第二審訴訟費用由上訴人",
+    "amount": 97229,
+    "totalAward": 97229,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "5 年內民事車禍 97,229 元",
+    "source": "CTDV（未知代碼） 115 年度 簡上 字第 4 號",
+    "scrapedAt": "2026-07-17T06:58:48.135Z"
+  },
+  {
+    "id": "tw-traffic_accident_civil_5y-114-114339",
+    "caseNo": "114 年度 簡上 字第 339 號",
+    "court": "臺灣臺南地方法院",
+    "year": 2025,
+    "category": "minor_injury",
+    "chain": "traffic_accident_civil_5y",
+    "facts": "上訴駁回。第二審訴訟費用新台幣2,445元由上訴人負擔。事實及理由壹、程序事項（本件無發回原法院更審之必要）：按第一審之訴訟程序有重大之瑕疵者，因維持審級制度認為必要時，民事訴訟法第451條第1項規定，原則上固賦與第二審法院是否廢棄原判決，",
+    "amount": 66000,
+    "totalAward": 2445,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "5 年內民事車禍 66,000 元",
+    "source": "臺灣臺南地方法院 114 年度 簡上 字第 339 號",
+    "scrapedAt": "2026-07-17T06:58:49.143Z"
+  },
+  {
+    "id": "tw-traffic_accident_civil_5y-115-1156",
+    "caseNo": "115 年度 簡上 字第 6 號",
+    "court": "臺灣新北地方法院",
+    "year": 2026,
+    "category": "minor_injury",
+    "chain": "traffic_accident_civil_5y",
+    "facts": "上訴駁回。第二審訴訟費用由上訴人負擔。事實及理由一、被上訴人主張：上訴人於民國113年2月7日13時54分許，騎乘普通重型機車沿新北市板橋區公館街往智樂路方向行駛，行經公館街與金華街10巷交岔路口前，疏未注意車輛應按車道線及車道遵循方向行駛",
+    "amount": 300000,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "5 年內民事車禍 300,000 元",
+    "source": "臺灣新北地方法院 115 年度 簡上 字第 6 號",
+    "scrapedAt": "2026-07-17T06:58:49.782Z"
+  },
+  {
+    "id": "tw-traffic_accident_civil_5y-114-11417",
+    "caseNo": "114 年度 國 字第 17 號",
+    "court": "臺灣臺南地方法院",
+    "year": 2025,
+    "category": "minor_injury",
+    "chain": "traffic_accident_civil_5y",
+    "facts": "一、被告臺南市新市區公所應給付原告新臺幣195,169元，及自民國114年11月26日起至清償日止，按週年利率5％計算之利息。二、被告廣泰營造有限公司、蔡宗頴、黃子倫應連帶給付原告新臺幣195,169元，及自民國114年11月26日起至清償",
+    "amount": 650562,
+    "totalAward": 195169,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "5 年內民事車禍 650,562 元",
+    "source": "臺灣臺南地方法院 114 年度 國 字第 17 號",
+    "scrapedAt": "2026-07-17T06:58:50.732Z"
+  },
+  {
+    "id": "tw-traffic_accident_civil_5y-113-11362",
+    "caseNo": "113 年度 簡上 字第 62 號",
+    "court": "臺灣桃園地方法院",
+    "year": 2024,
+    "category": "death",
+    "chain": "traffic_accident_civil_5y",
+    "facts": "上訴駁回。第二審訴訟費用由上訴人負擔。事實及理由壹、程序部分一、按當事人死亡者，訴訟程序在有繼承人、遺產管理人或其他依法令應續行訴訟之人承受其訴訟以前當然停止。前開所定第168條至第172條及前條所定之承受訴訟人，於得為承受時，應即為承受之",
+    "amount": 100000,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "5 年內民事車禍 100,000 元",
+    "source": "臺灣桃園地方法院 113 年度 簡上 字第 62 號",
+    "scrapedAt": "2026-07-17T06:58:52.126Z"
+  },
+  {
+    "id": "tw-traffic_accident_civil_5y-115-115202",
+    "caseNo": "115 年度 竹簡 字第 202 號",
+    "court": "SCDV（未知代碼）",
+    "year": 2026,
+    "category": "minor_injury",
+    "chain": "traffic_accident_civil_5y",
+    "facts": "被告應給付原告新臺幣186,111元，及自民國114年10月14日起至清償日止，按週年利率百分之5計算之利息。原告其餘之訴駁回。訴訟費用新臺幣1,500元由被告負擔新臺幣150元，及自本判決確定之翌日起至清償日止，加給按週年利率百分之5計算",
+    "amount": 186111,
+    "totalAward": 186111,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "5 年內民事車禍 186,111 元",
+    "source": "SCDV（未知代碼） 115 年度 竹簡 字第 202 號",
+    "scrapedAt": "2026-07-17T06:58:53.769Z"
+  },
+  {
+    "id": "tw-traffic_accident_civil_5y-113-113634",
+    "caseNo": "113 年度 簡上 字第 634 號",
+    "court": "臺灣新北地方法院",
+    "year": 2024,
+    "category": "minor_injury",
+    "chain": "traffic_accident_civil_5y",
+    "facts": "原判決關於駁回上訴人後開第二項之訴部分及該部分假執行之聲請，暨訴訟費用之裁判均廢棄。被上訴人應給付上訴人新臺幣貳萬壹仟柒佰捌拾陸元，及自民國一百一十二年十二月十四日起，至清償日止，按週年利率百分之五計算之利息。其餘上訴駁回。第一、二審訴訟費",
+    "amount": 75000,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "5 年內民事車禍 75,000 元",
+    "source": "臺灣新北地方法院 113 年度 簡上 字第 634 號",
+    "scrapedAt": "2026-07-17T06:58:54.482Z"
+  },
+  {
+    "id": "tw-traffic_accident_civil_5y-113-11387",
+    "caseNo": "113 年度 簡上 字第 87 號",
+    "court": "臺灣苗栗地方法院",
+    "year": 2024,
+    "category": "minor_injury",
+    "chain": "traffic_accident_civil_5y",
+    "facts": "一、原判決關於命上訴人給付超過新臺幣953,310元本息部分及該部分假執行之宣告，暨訴訟費用（確定部分除外）之裁判均廢棄。二、上開廢棄部分，被上訴人在第一審之訴駁回。三、上訴人其餘上訴駁回。四、第一審、第二審訴訟費用（確定部分除外），均由被",
+    "amount": 953310,
+    "totalAward": 953310,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "5 年內民事車禍 953,310 元",
+    "source": "臺灣苗栗地方法院 113 年度 簡上 字第 87 號",
+    "scrapedAt": "2026-07-17T06:59:00.317Z"
+  },
+  {
+    "id": "tw-traffic_accident_civil_5y-113-113325",
+    "caseNo": "113 年度 簡上 字第 325 號",
+    "court": "臺灣新北地方法院",
+    "year": 2024,
+    "category": "minor_injury",
+    "chain": "traffic_accident_civil_5y",
+    "facts": "一、上訴駁回。二、原判決主文第1項關於「民國112年8月19日」之記載，應更正為「民國112年8月21日」。三、原判決關於駁回附帶上訴人後開第四項之訴部分，暨訴訟費用之裁判均廢棄。四、附帶被上訴人應再給付附帶上訴人新臺幣10,839元，及自",
+    "amount": 102900,
+    "totalAward": 10839,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "5 年內民事車禍 102,900 元",
+    "source": "臺灣新北地方法院 113 年度 簡上 字第 325 號",
+    "scrapedAt": "2026-07-17T06:59:03.185Z"
+  },
+  {
+    "id": "tw-traffic_accident_civil_5y-115-115309",
+    "caseNo": "115 年度 苗小 字第 309 號",
+    "court": "臺灣苗栗地方法院",
+    "year": 2026,
+    "category": "minor_injury",
+    "chain": "traffic_accident_civil_5y",
+    "facts": "被告應給付原告新臺幣壹萬玖仟肆佰貳拾捌元，及自民國一一五年五月二十三日起至清償日止，按週年利率百分之五計算之利息。原告其餘之訴駁回。訴訟費用由被告負擔；被告應給付原告之訴訟費用額確定為新臺幣壹仟伍佰元，及自本判決確定之翌日起至清償日止，按週",
+    "amount": 19428,
+    "totalAward": 0,
+    "ratio": {
+      "plaintiff": 0,
+      "defendant": 100
+    },
+    "gist": "5 年內民事車禍 19,428 元",
+    "source": "臺灣苗栗地方法院 115 年度 苗小 字第 309 號",
+    "scrapedAt": "2026-07-17T06:59:04.455Z"
+  }
+]

@@ -148,7 +148,8 @@ describe('apply-courts 套用邏輯（v0.8.5+）', () => {
       // v0.8.5 之前是 165 件，跑完應該 ≤ 90 件（解了 ILDV 23 + ULDV 53 + CTDV 20 + KLDV 5 + SCDV 16 = 117）
       // v0.18.x 從司法院加抓 153 件新 records → 剩 87 件未知代碼（threshold 70 改成 90 反映現實）
       // v0.27.7+ 從司法院加抓 + 清掉非車禍 records → 剩 94 件（threshold 90 改成 100 反映現實）
-      expect(totalUnknown).toBeLessThanOrEqual(100)
+      // v0.27.8+ scrape:all 跑全部 chain 22 chains → 剩 107 件（threshold 100 改成 120 反映現實）
+      expect(totalUnknown).toBeLessThanOrEqual(120)
       expect(totalUnknown).toBeGreaterThanOrEqual(40) // 不該歸 0（還有 17 個待查證代碼）
     })
 
