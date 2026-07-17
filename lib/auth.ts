@@ -20,6 +20,7 @@
 
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+import { query } from '@/lib/db'
 
 const BCRYPT_COST = 10
 const JWT_EXPIRES_IN = '7d'
@@ -183,4 +184,22 @@ export function getUserFromRequest(req: Request): JwtPayload | null {
   const token = getTokenFromRequest(req)
   if (!token) return null
   return verifyToken(token)
+}
+
+/**
+ * v0.27.0+：取得 user + is_admin（admin 路由用）
+ * JWT 只放 userId / email，is_admin 從 DB 查（保持 fresh，可隨時撤銷）
+ *
+ * 注意：每次 request 都會多一次 DB query，只用在 /api/admin/* 路由
+ */
+export async function getAdminFromRequest(
+  req: Request,
+): Promise<(JwtPayload & { isAdmin: boolean }) | null> {
+  const payload = getUserFromRequest(req)
+  if (!payload) return null
+  const { rows } = await query<{ is_admin: boolean }>(
+    'select is_admin from public.users where id = $1',
+    [payload.userId],
+  )
+  return { ...payload, isAdmin: rows[0]?.is_admin ?? false }
 }

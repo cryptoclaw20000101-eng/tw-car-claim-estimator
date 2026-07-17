@@ -9,15 +9,18 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { query } from '@/lib/db'
-import { getUserFromRequest } from '@/lib/auth'
+import { getAdminFromRequest } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
-  // Auth 守護
-  const user = getUserFromRequest(req)
+  // v0.27.0+：admin 守護 — 未登入 401，非 admin 403
+  const user = await getAdminFromRequest(req)
   if (!user) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  }
+  if (!user.isAdmin) {
+    return NextResponse.json({ error: 'forbidden: admin only' }, { status: 403 })
   }
 
   try {
@@ -51,6 +54,8 @@ export async function GET(req: NextRequest) {
         courtName: r.court_name,
         selfFaultRatio: r.self_fault_ratio,
         createdAt: r.created_at.toISOString(),
+        // v0.27.0+：完整 claim_input JSON（後台要看到完整民眾查詢）
+        claimInput: r.claim_input,
       })),
     })
   } catch (e) {

@@ -13,7 +13,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Alert, Button, Card, Input, Progress, Space, Typography } from 'antd'
+import { Alert, Button, Card, Checkbox, Input, Progress, Space, Typography } from 'antd'
 import { LockOutlined, MailOutlined } from '@ant-design/icons'
 import { useAuth } from '@/components/AuthProvider'
 
@@ -56,6 +56,8 @@ export default function LoginForm() {
   const [isSignUp, setIsSignUp] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // v0.27.0+：註冊需勾選「個資及隱私權同意書」（AGENTS §6 紅線）
+  const [privacyConsent, setPrivacyConsent] = useState(false)
 
   const strength = checkPasswordStrength(password)
 
@@ -70,6 +72,10 @@ export default function LoginForm() {
       }
       if (password !== confirmPassword) {
         setError('兩次密碼輸入不一致，請重新輸入')
+        return
+      }
+      if (!privacyConsent) {
+        setError('請先閱讀並同意個資及隱私權同意書')
         return
       }
     }
@@ -177,13 +183,33 @@ export default function LoginForm() {
                   </Text>
                 </div>
               )}
+              {isSignUp && (
+                // v0.27.0+：個資及隱私權同意書（依個人資料保護法 §8 / 民法 §18）
+                <Checkbox
+                  checked={privacyConsent}
+                  onChange={(e) => setPrivacyConsent(e.target.checked)}
+                  data-testid="privacy-consent"
+                >
+                  <Text className="!text-sm">
+                    我已閱讀並同意{' '}
+                    <Link
+                      href="/privacy"
+                      target="_blank"
+                      rel="noopener"
+                      className="text-accent hover:underline"
+                    >
+                      個資及隱私權同意書
+                    </Link>
+                  </Text>
+                </Checkbox>
+              )}
               <Button
                 type="primary"
                 size="large"
                 htmlType="submit"
                 block
                 loading={submitting}
-                disabled={!email || !password}
+                disabled={!email || !password || (isSignUp && !privacyConsent)}
                 data-testid="login-submit"
               >
                 {isSignUp ? '註冊' : '登入'}
@@ -194,6 +220,7 @@ export default function LoginForm() {
                 onClick={() => {
                   setIsSignUp(!isSignUp)
                   setConfirmPassword('')
+                  setPrivacyConsent(false)
                   setError(null)
                 }}
               >

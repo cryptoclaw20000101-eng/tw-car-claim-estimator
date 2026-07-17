@@ -31,7 +31,7 @@ export default function PrivacyContent() {
           隱私權政策
         </Title>
         <Paragraph type="secondary" className="!mb-6 !text-sm">
-          最後更新：2026-07-06
+          最後更新：2026-07-17
         </Paragraph>
 
         <Card>
@@ -200,6 +200,19 @@ export default function PrivacyContent() {
                   <Link href="/" className="text-accent hover:underline">
                     ← 回首頁
                   </Link>
+                </Paragraph>
+              }
+            />
+
+            {/* v0.27.0+：使用者要求 — 約定管轄法院（避免日後跨境訴訟困擾）*/}
+            <Section
+              title="管轄法院"
+              icon={<LockOutlined />}
+              content={
+                <Paragraph>
+                  本同意書之準據法為中華民國（臺灣）法律。 雙方同意因本同意書所生之爭議，
+                  <strong>以臺灣臺中地方法院為第一審管轄法院</strong>。
+                  如日後涉訟，概以臺中地方法院為一審審判法院。
                 </Paragraph>
               }
             />

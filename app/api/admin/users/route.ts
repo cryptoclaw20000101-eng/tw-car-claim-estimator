@@ -7,15 +7,18 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { query } from '@/lib/db'
-import { getUserFromRequest } from '@/lib/auth'
+import { getAdminFromRequest } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
-  // Auth 守護：未登入直接 401
-  const user = getUserFromRequest(req)
+  // v0.27.0+：admin 守護 — 未登入 401，非 admin 403
+  const user = await getAdminFromRequest(req)
   if (!user) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  }
+  if (!user.isAdmin) {
+    return NextResponse.json({ error: 'forbidden: admin only' }, { status: 403 })
   }
 
   try {

@@ -2,11 +2,12 @@
  * /admin — 後台 dashboard（v0.24.0+）
  *
  * 顯示：
- * - 註冊 user 清單（email / 驗證狀態 / 建立時間 / 最後登入）
- * - 估算清單（強制險估算金額 / 失能等級 / 法院 / 肇責比例 / 建立時間）
+ * - 註冊 user 清單（email / 驗證狀態 / 建立時間 / 最後登入 / 失敗次數）
+ * - 估算清單（強制險估算金額 / 失能等級 / 法院 / 肇責比例 / 建立時間 + 完整 claim_input）
+ * - Leads（聯絡記錄 + 用戶 + 同意狀態）
  *
- * Auth：需要登入（業務員或 admin 用）
- * 任何登入 user 可看（v0.24.0+ 簡化：不分 role；未來加 admin role 欄位）
+ * Auth（v0.27.0+）：限定 admin 才能看（/api/admin/* + 此頁 client-side 守護）
+ * 不是 admin → 顯示 403 而非 redirect（保留路由供 debug）
  *
  * 設計紀律：ag-grid 太大（v0.13.x 換過太重）→ 用 AntD Table 即可
  */
@@ -58,6 +59,8 @@ interface EstimateRow {
   courtName: string | null
   selfFaultRatio: number | null
   createdAt: string
+  /** v0.27.0+：完整 ClaimInput JSON（展開看）*/
+  claimInput?: Record<string, unknown>
 }
 
 interface LeadRow {
@@ -176,6 +179,25 @@ export default function AdminPage() {
     )
   }
 
+  // v0.27.0+：admin 守護 — 不是 admin 顯示 403（保留路由方便 debug）
+  if (user.isAdmin !== true) {
+    return (
+      <main id="main-content" className="flex flex-1 items-center justify-center">
+        <Card>
+          <Title level={3} className="!mb-3">
+            403 — 後台權限不足
+          </Title>
+          <Paragraph>
+            此後台限定管理員存取。您的帳號 <Text code>{user.email}</Text> 不是 admin。
+          </Paragraph>
+          <Link href="/">
+            <Button type="primary">回首頁</Button>
+          </Link>
+        </Card>
+      </main>
+    )
+  }
+
   return (
     <main id="main-content" className="mx-auto max-w-6xl px-6 py-8">
       <div className="mb-6 flex items-center justify-between">
@@ -281,6 +303,25 @@ export default function AdminPage() {
                     emptyText: <Empty description="尚無估算記錄" />,
                   }}
                   pagination={{ pageSize: 20 }}
+                  // v0.27.0+：展開看完整 claim_input（user 要求「完整讓我看到民眾查詢的資訊」）
+                  expandable={{
+                    expandedRowRender: (record) => (
+                      <pre
+                        style={{
+                          background: 'var(--surface-subtle, #fafaf9)',
+                          padding: 12,
+                          borderRadius: 6,
+                          fontSize: 12,
+                          maxHeight: 480,
+                          overflow: 'auto',
+                          margin: 0,
+                        }}
+                      >
+                        {JSON.stringify(record.claimInput ?? {}, null, 2)}
+                      </pre>
+                    ),
+                    rowExpandable: (record) => Boolean(record.claimInput),
+                  }}
                   columns={[
                     {
                       title: 'Email',

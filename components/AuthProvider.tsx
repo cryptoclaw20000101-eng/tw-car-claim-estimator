@@ -21,6 +21,8 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 export interface AuthUser {
   id: string
   email: string
+  // v0.27.0+：後台權限分流
+  isAdmin?: boolean
 }
 
 interface AuthContextValue {

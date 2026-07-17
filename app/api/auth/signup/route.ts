@@ -19,13 +19,22 @@ export async function POST(req: NextRequest) {
   if (guard) return guard
 
   try {
-    const { email, password, displayName } = (await req.json()) as {
+    const body = (await req.json()) as {
       email?: string
       password?: string
       displayName?: string
+      // v0.27.0+：用戶可能嘗試傳 is_admin / isAdmin 提權，拒絕
+      isAdmin?: unknown
+      is_admin?: unknown
     }
+    const { email, password, displayName } = body
     if (!email || !password) {
       return NextResponse.json({ error: 'email + password 必填' }, { status: 400 })
+    }
+    // v0.27.0+：安全 — 拒絕 body 傳 is_admin（privilege escalation 防禦）
+    // admin 只能透過 SQL 直接設定，signup API 永遠不寫入 is_admin
+    if (body.isAdmin === true || body.is_admin === true) {
+      return NextResponse.json({ error: 'isAdmin 不可由 signup 設定' }, { status: 400 })
     }
     if (password.length < 8) {
       return NextResponse.json({ error: '密碼至少 8 字符' }, { status: 400 })
