@@ -23,7 +23,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Button, Drawer, Space, Tooltip, Typography } from 'antd'
+import { Button, Dropdown, Drawer, Space, Tooltip, Typography } from 'antd'
 import { CarOutlined } from '@ant-design/icons'
 import {
   MenuOutlined,
@@ -38,6 +38,8 @@ import {
   UserOutlined,
   LoginOutlined,
   LogoutOutlined,
+  // v0.28.0+：admin 入口 icon
+  SafetyOutlined,
 } from '@ant-design/icons'
 import { motion, useReducedMotion } from 'framer-motion'
 import { useAuth } from '@/components/AuthProvider'
@@ -267,15 +269,21 @@ function UserMenu() {
     )
   }
 
+  // v0.28.0+：已登入的 user menu 改成 dropdown（含 admin 入口 if isAdmin）
+  const userMenuItems = [
+    { key: 'estimate', icon: <CalculatorOutlined />, label: '開始估算', href: '/claims/new' },
+    ...(user.isAdmin === true
+      ? [{ key: 'admin', icon: <SafetyOutlined />, label: '進入後台', href: '/admin' }]
+      : []),
+    { type: 'divider' as const },
+    { key: 'signout', icon: <LogoutOutlined />, label: '登出', onClick: () => signOut() },
+  ]
+
   return (
-    <Tooltip title={`已登入：${user.email ?? '用戶'}（點擊登出）`}>
-      <Button
-        type="text"
-        icon={<LogoutOutlined />}
-        onClick={() => signOut()}
-        data-testid="user-menu"
-        aria-label="登出"
-      />
-    </Tooltip>
+    <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
+      <Tooltip title={`已登入：${user.email ?? '用戶'}`}>
+        <Button type="text" icon={<UserOutlined />} data-testid="user-menu" aria-label="用戶選單" />
+      </Tooltip>
+    </Dropdown>
   )
 }
