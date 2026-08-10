@@ -10,6 +10,7 @@ import { ErrorTracker } from '@/components/ErrorTracker'
 // v0.14.x：Supabase 認證 context
 import { AuthProvider } from '@/components/AuthProvider'
 import { ACCENT } from '@/lib/design/tokens'
+import { SITE_URL } from '@/lib/seo'
 import './globals.css'
 
 /**
@@ -32,31 +33,12 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   // v0.9.0+：metadataBase 必須設定，否則 OG / Twitter image 解析會 fallback 到 localhost
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || 'https://tw-car-claim-estimator-production.up.railway.app',
-  ),
+  metadataBase: new URL(SITE_URL),
   title: '台灣車禍理賠金額估算器',
-  // 結構化資料 JSON-LD（SoftwareApplication）
-  // 幫助搜尋引擎理解這是「工具型 web app」而非「文章頁」
-  // 移除假 aggregateRating：v0.12.0+ §26 C3 標為 placeholder，但網站無真實評分系統
-  // AGENTS §0 法律邊界 + §6「憑空填值」紅線要求：未蒐集用戶評價前不應造假
-  other: {
-    'application/ld+json': JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'SoftwareApplication',
-      name: '台灣車禍理賠金額估算器',
-      description:
-        '依強制汽車責任保險法、民法侵權行為及 6 個直轄市地方法院實務，快速估算體傷理賠金額。',
-      applicationCategory: 'FinanceApplication',
-      operatingSystem: 'Web',
-      inLanguage: 'zh-Hant',
-      offers: {
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'TWD',
-      },
-    }),
-  },
+  authors: [{ name: '理賠顧問小鄭' }],
+  creator: '理賠顧問小鄭',
+  publisher: '理賠顧問小鄭',
+  category: '車禍理賠試算工具',
   description: '依強制汽車責任保險法、民法侵權行為及法院實務，快速估算體傷理賠金額',
   applicationName: '車禍理賠估算器',
   appleWebApp: {
@@ -174,6 +156,11 @@ export default function RootLayout({
                         <li>
                           <a href="/claims/batch" className="!text-muted hover:!text-foreground">
                             批次估算
+                          </a>
+                        </li>
+                        <li>
+                          <a href="/guides" className="!text-muted hover:!text-foreground">
+                            車禍理賠指南
                           </a>
                         </li>
                         <li>
