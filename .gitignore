@@ -81,3 +81,6 @@ next-env.d.ts
 /lib/**/*.js
 /lib/**/*.js.map
 /lib/**/*.d.ts
+
+# SEO skill shared analysis cache (local evidence, never commit)
+/.seo-cache/
