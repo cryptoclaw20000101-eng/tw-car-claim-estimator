@@ -19,26 +19,13 @@ import type {
   AccidentBasics,
   ThirdPartyEstimate,
   PainAndSufferingResult,
+  ClaimCalculationMode,
+  ThirdPartyCoverageStatus,
 } from './types'
 import { getRegionAdjustment } from './region-adjustments'
 
-export type ClaimCalculationMode = 'mediation' | 'litigation'
-export type ThirdPartyCoverageStatus = 'unknown' | 'yes' | 'no'
-
-type LegalAuditBasics = AccidentBasics & {
-  /** 調解／法院兩套扣抵順序；舊資料未提供時預設 mediation */
-  calculationMode?: ClaimCalculationMode
-  /** 已實際領取、在本案欲扣抵的強制險給付；法院模式只扣實際已領金額 */
-  compulsoryActuallyPaid?: number
-  /** 第三人責任險狀態；unknown 代表尚未取得保單資料 */
-  thirdPartyCoverageStatus?: ThirdPartyCoverageStatus
-  /** 第三人責任險每人體傷限額 */
-  thirdPartyBodilyLimit?: number
-  /** 第三人責任險財損限額 */
-  thirdPartyPropertyLimit?: number
-  /** 超額責任險可用限額（本工具採合併剩餘責任簡化試算） */
-  excessLiabilityLimit?: number
-}
+// 保留原本從 third-party.ts 匯入 type 的相容性；canonical 定義在 types.ts。
+export type { ClaimCalculationMode, ThirdPartyCoverageStatus } from './types'
 
 export interface CivilDamageInput {
   /** 已扣除強制險醫療認列額的醫療差額 */
@@ -67,11 +54,11 @@ function nonNegative(value: unknown): number {
   return Number.isFinite(n) && n > 0 ? n : 0
 }
 
-function resolveMode(basics: LegalAuditBasics): ClaimCalculationMode {
+function resolveMode(basics: AccidentBasics): ClaimCalculationMode {
   return basics.calculationMode === 'litigation' ? 'litigation' : 'mediation'
 }
 
-function resolveCoverageStatus(basics: LegalAuditBasics): ThirdPartyCoverageStatus {
+function resolveCoverageStatus(basics: AccidentBasics): ThirdPartyCoverageStatus {
   const value = basics.thirdPartyCoverageStatus
   return value === 'yes' || value === 'no' ? value : 'unknown'
 }
@@ -180,7 +167,7 @@ function computeLiabilityBand(args: {
 function applyInsuranceCoverage(
   bodilyLiable: number,
   propertyLiable: number,
-  basics: LegalAuditBasics,
+  basics: AccidentBasics,
 ): number {
   const status = resolveCoverageStatus(basics)
 
@@ -205,7 +192,7 @@ function applyInsuranceCoverage(
 
 export function computeThirdParty(input: ThirdPartyInput): ThirdPartyEstimate {
   const { civil, otherFaultRatio } = input
-  const basics = input.basics as LegalAuditBasics
+  const basics = input.basics
   const mode = resolveMode(basics)
   const ratio = Math.min(Math.max(otherFaultRatio, 0), 100) / 100
 
