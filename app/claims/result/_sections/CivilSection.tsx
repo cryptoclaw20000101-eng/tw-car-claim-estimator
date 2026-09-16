@@ -1,11 +1,9 @@
 /**
- * CivilSection — 民事損害（v0.15.x+ 從 _form.tsx 抽出，234 行）
- * 從 result/_form.tsx 拆出
+ * CivilSection — 民事損害
  *
- * 排序邏輯（理賠時的閱讀順序）：
- *   ① 民事醫療 + 民事看護 → ② 除疤 / 修疤 → ③ 精神慰撫金（Ensemble）
- *   ④ 勞動能力減損（失能延伸）→ ⑤ 工作損失（擴充版）→ ⑥ 車損 / 財損
- * ※ 基本「工作損失」與「擴充版」合併為一，避免重複顯示。
+ * accounting audit 原則：
+ * - 「納入責任總額」：與 computeThirdParty 使用的欄位一致。
+ * - 「情境參考」：尚未自動納入第三人責任總額，避免把模型推估誤當已成立損害。
  */
 
 'use client'
@@ -41,11 +39,17 @@ export function CivilSection({ result }: { result: EstimationResult }) {
         </Col>
       </Row>
 
-      <Divider>除疤 / 修疤費用（4 術式 · 北中南）</Divider>
+      <Divider>除疤 / 修疤費用（情境參考）</Divider>
+      <InfoAlert
+        type="warning"
+        showIcon
+        className="!mb-3"
+        title="此區為未來治療費用情境估算，目前未自動納入第三人責任總額。實際主張前應確認醫療必要性、醫囑／治療計畫、療程次數與費用證明，避免把預設術式估算誤當已成立損害。"
+      />
       <Row gutter={16}>
         <Col xs={24} md={8}>
           <Statistic
-            title="估算金額（中）"
+            title="參考估算（中）"
             value={result.scarRevision.estimate}
             formatter={(v) => dollar(Number(v))}
             styles={{ content: { color: 'var(--accent)' } }}
@@ -53,14 +57,14 @@ export function CivilSection({ result }: { result: EstimationResult }) {
         </Col>
         <Col xs={8}>
           <Statistic
-            title="低標"
+            title="參考低標"
             value={result.scarRevision.estimateLow}
             formatter={(v) => dollar(Number(v))}
           />
         </Col>
         <Col xs={8}>
           <Statistic
-            title="高標"
+            title="參考高標"
             value={result.scarRevision.estimateHigh}
             formatter={(v) => dollar(Number(v))}
           />
@@ -69,7 +73,7 @@ export function CivilSection({ result }: { result: EstimationResult }) {
       <Row gutter={16} className="!mt-2">
         <Col xs={12} md={6}>
           <Statistic
-            title="採用術式"
+            title="假設術式"
             value={
               result.scarRevision.procedure === 'revision_surgery'
                 ? '修疤手術'
@@ -103,7 +107,7 @@ export function CivilSection({ result }: { result: EstimationResult }) {
       )}
       {result.scarRevision.precedents.length > 0 && (
         <Paragraph type="secondary" className="!mt-2 !text-xs">
-          依據：{result.scarRevision.precedents.join('；')}
+          估算依據：{result.scarRevision.precedents.join('；')}
         </Paragraph>
       )}
       {result.scarRevision.notes.length > 0 && (
@@ -134,8 +138,6 @@ export function CivilSection({ result }: { result: EstimationResult }) {
         {pas.regionalMultiplier}· 嚴重度評分 {pas.severityScore} / 100（{pas.severityLevel}）
       </Paragraph>
 
-      {/* v0.6.7 精神慰撫金 Ensemble 三票共識 + LLM 顧問複核 */}
-      {/* v0.7.3+ KNN debug：多呼叫一次拿 withKnnDebug=true 給 PainEnsembleCard 顯示推薦理由 */}
       <PainEnsembleCard
         painEnsemble={result.painEnsemble}
         painAdvisor={result.painAdvisor}
@@ -149,19 +151,32 @@ export function CivilSection({ result }: { result: EstimationResult }) {
         )}
       />
 
-      <Divider>工作損失（擴充版：短期/長期/退休分流）</Divider>
+      <Divider>工作損失</Divider>
+      <InfoAlert
+        type="info"
+        showIcon
+        className="!mb-3"
+        title="第三人責任總額目前採用『基本工作損失』：以收入證明、實際請假日數與醫囑休養日數計算。下方擴充版屬短期／長期情境參考，目前未自動取代核心責任金額。"
+      />
       <Row gutter={16}>
         <Col xs={24} md={8}>
           <Statistic
-            title="擴充版估算"
-            value={result.workLossExtended.amount}
+            title="納入責任總額"
+            value={result.workLoss}
             formatter={(v) => dollar(Number(v))}
             styles={{ content: { color: 'var(--accent)' } }}
           />
         </Col>
+        <Col xs={24} md={8}>
+          <Statistic
+            title="擴充情境參考"
+            value={result.workLossExtended.amount}
+            formatter={(v) => dollar(Number(v))}
+          />
+        </Col>
         <Col xs={12} md={4}>
           <Statistic
-            title="計算類型"
+            title="情境類型"
             value={
               result.workLossExtended.calculationType === 'short_term'
                 ? '短期（日薪）'
@@ -174,12 +189,6 @@ export function CivilSection({ result }: { result: EstimationResult }) {
           />
         </Col>
         <Col xs={12} md={4}>
-          <Statistic title="霍夫曼年數" value={result.workLossExtended.hoffmannYears} />
-        </Col>
-        <Col xs={12} md={4}>
-          <Statistic title="休養月數" value={result.workLossExtended.restMonths} />
-        </Col>
-        <Col xs={12} md={4}>
           <Statistic
             title="證據強度"
             value={
@@ -190,6 +199,14 @@ export function CivilSection({ result }: { result: EstimationResult }) {
                   : '不足'
             }
           />
+        </Col>
+      </Row>
+      <Row gutter={16} className="!mt-2">
+        <Col xs={12} md={6}>
+          <Statistic title="霍夫曼年數" value={result.workLossExtended.hoffmannYears} />
+        </Col>
+        <Col xs={12} md={6}>
+          <Statistic title="休養月數" value={result.workLossExtended.restMonths} />
         </Col>
       </Row>
       {result.workLossExtended.hint && (
