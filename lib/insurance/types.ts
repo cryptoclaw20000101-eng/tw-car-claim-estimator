@@ -60,6 +60,12 @@ export type FaultSource =
   | 'both_sides_agreed' // 雙方和解
   | 'unclear' // 不明
 
+/** 民事責任中強制險扣抵的試算情境。 */
+export type ClaimCalculationMode = 'mediation' | 'litigation'
+
+/** 對方第三人責任險資料是否已確認。 */
+export type ThirdPartyCoverageStatus = 'unknown' | 'yes' | 'no'
+
 // 受僱類型
 export type EmploymentType =
   | 'full_time_salary'
@@ -89,10 +95,22 @@ export interface AccidentBasics {
 
   hasPolicePreliminaryReport: boolean
   hasAccidentAppraisal: boolean
-  // v0.5.2: 拿掉 isSettled / hasThirdPartyInsurance / thirdPartyBodilyLimit /
-  // thirdPartyPropertyLimit / excessLiabilityLimit — 表單永遠當有第三人險、無保額上限
-
   hasCompulsoryInsurance: boolean
+
+  // === legal-audit：計算情境與責任險資料 ===
+  // optional 是為了相容既有已儲存案件；新表單會明確寫入預設值。
+  /** 未提供時由引擎依 faultSource 推定；非法院判決預設 mediation。 */
+  calculationMode?: ClaimCalculationMode
+  /** 法院模式使用：本案已實際領取、欲於民事責任中扣抵的強制險金額。 */
+  compulsoryActuallyPaid?: number
+  /** 未提供時視為 unknown，僅顯示責任金額參考，不宣稱保險公司必然負擔。 */
+  thirdPartyCoverageStatus?: ThirdPartyCoverageStatus
+  /** 第三人責任險每人體傷限額；僅 coverageStatus=yes 時套用。 */
+  thirdPartyBodilyLimit?: number
+  /** 第三人責任險財損限額；僅 coverageStatus=yes 時套用。 */
+  thirdPartyPropertyLimit?: number
+  /** 超額責任險可用限額（目前採合併剩餘責任的簡化試算）。 */
+  excessLiabilityLimit?: number
 
   // === v2 新增：地區欄位 ===
   accidentCity: string
@@ -330,9 +348,10 @@ export interface ThirdPartyEstimate {
   thirdPartyEstimateMid: number
   thirdPartyEstimateHigh: number
 
-  // v0.5.2: 拿掉 bodilyCap / propertyCap / usedBodilyCap / usedPropertyCap
-  // 無保額上限，永遠是 1：1 對方肇責比例
-
+  /**
+   * civilDamageTotal = 扣抵前的整體民事損害；liableAmount = 依模式完成肇責與強制險扣抵後的責任金額；
+   * thirdPartyEstimate = 再依已知第三人責任險 / 超額保額套用後的保險可負擔額。
+   */
   notes: string[]
 }
 
@@ -358,8 +377,8 @@ export interface EstimationResult {
   workLoss: number
   workLossEvidenceStrength: 'low' | 'medium' | 'high'
   /**
-   * 工作損失（擴充版）：短期 ≤6 月 vs 長期 >6 月 vs 退休分流。
-   * 提供完整版明細供 UI 展開；前端可用 `type` 判斷走「日薪」/「霍夫曼」/「慰撫金」分支。
+   * 工作損失擴充情境：短期 / 長期試算與證據提示。
+   * 目前 UI 明確標為情境參考；核心第三人責任總額仍採 workLoss。
    */
   workLossExtended: {
     amount: number
