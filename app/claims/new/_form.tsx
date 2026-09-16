@@ -78,7 +78,13 @@ const DEFAULT_BASICS: AccidentBasics = {
   hasPolicePreliminaryReport: true,
   hasAccidentAppraisal: false,
   hasCompulsoryInsurance: true,
-  // v0.5.2: 拿掉 isSettled / hasThirdPartyInsurance / 3 個保額欄位（永遠有第三人險、無保額上限）
+  // legal-audit：新案件明確保存計算模式與責任險狀態；舊案件仍由 optional 欄位相容。
+  calculationMode: 'mediation',
+  compulsoryActuallyPaid: 0,
+  thirdPartyCoverageStatus: 'unknown',
+  thirdPartyBodilyLimit: 0,
+  thirdPartyPropertyLimit: 0,
+  excessLiabilityLimit: 0,
   accidentCity: '臺中市',
   accidentDistrict: '',
   claimantResidenceCity: '臺中市',
@@ -266,7 +272,7 @@ export interface FormSchema {
 
 // v0.20.0+：表單 7 步 → 5 步重構（user 反饋「最後一步負擔過大」）
 // - Step 1：事故基本（日期/地點/類型）
-// - Step 2：肇責（己方/對方 + 來源）
+// - Step 2：肇責 + 調解/法院模式 + 責任險資料
 // - Step 3：人身 / 工作（合併原 Step3 人身 + Step7 聲請人/對方居住地 + 法院）
 // - Step 4：傷勢與診斷（原 Step4 失能保典 12 大類 + 傷勢細節）
 // - Step 5：費用與財損（原 Step5 醫療收據 + Step6 車損；可展開區塊）
@@ -512,7 +518,7 @@ export default function NewClaimForm() {
               injuredRoleOptions={INJURED_ROLE_OPTIONS}
             />
           )}
-          {/* ====== Step 2：肇責 ====== */}
+          {/* ====== Step 2：肇責／計算情境／責任險 ====== */}
           {current === 1 && <Step2Fault form={form} faultSourceOptions={FAULT_SOURCE_OPTIONS} />}
           {/* ====== Step 3：人身 / 工作（v0.19.0+：合併原 Step3 + Step7 居住地） ====== */}
           {current === 2 && (
@@ -569,10 +575,22 @@ export default function NewClaimForm() {
 
 // ============== 淺合併工具 ==============
 // 4 步 → 5 步重構配套：
-// - step 0/1/2/3 各合併對應 section
+// - step 0 合併 basics
+// - step 1 同時合併 fault + basics（計算情境/強制險實領/第三人險保額也在 Step 2）
+// - step 2/3 各合併 person / medical
 // - step 4 = 「費用與財損」panel，同時合併 receipts + property 兩個 section
 // - export 給 __tests__/form/mergeStep-five-steps.test.ts 用
 export function mergeStep(prev: FormSchema, step: number, values: Partial<FormSchema>): FormSchema {
+  // Step 2（肇責／計算情境／責任險）：同時合併 fault + basics。
+  // 不依賴 onValuesChange 的 React state 時序，確保按「下一步」時原子保存法律試算欄位。
+  if (step === 1) {
+    return {
+      ...prev,
+      basics: { ...prev.basics, ...(values.basics ?? {}) },
+      fault: { ...prev.fault, ...(values.fault ?? {}) },
+    }
+  }
+
   // Step 5（費用與財損）：同時合併 receipts + property
   if (step === 4) {
     return {
