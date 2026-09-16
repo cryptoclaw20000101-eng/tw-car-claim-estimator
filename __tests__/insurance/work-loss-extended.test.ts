@@ -1,5 +1,5 @@
 // =====================================================================
-// 工作損失擴充版 — 單元測試
+// 工作損失擴充情境 — 單元測試
 // =====================================================================
 
 import { describe, it, expect } from 'vitest'
@@ -44,34 +44,30 @@ describe('computeWorkLossExtended', () => {
       courtName: '臺灣臺中地方法院',
     })
     expect(r.calculationType).toBe('short_term')
-    // 6 月均薪 / 30 = 40000/30 ≈ 1333/日
-    // 60 日 × 1333 = 80,000
     expect(r.breakdown.dailyIncome).toBe(1333)
-    // 80000 × 1.0 (台中係數) = 80,000
     expect(r.amount).toBe(80_000)
+    expect(r.regionalMultiplier).toBe(1)
   })
 
-  it('240 日 (8 月) 休養 → 長期 → 撫養費式霍夫曼', () => {
+  it('240 日 (8 月) 休養 → 長期 → 霍夫曼情境', () => {
     const r = computeWorkLossExtended({
       person: { ...basePerson, actualLeaveDays: 240, doctorOrderedRestDays: 240 },
       courtName: '臺灣臺中地方法院',
     })
     expect(r.calculationType).toBe('long_term')
-    // 休養 8 月、35 歲 → 霍夫曼年數 min(65-35=30, max(0.66, 1)=1) = 1
-    // 但休養 < 1 年 → 走 hoffmannFraction(0.66) ≈ 0.66/0.05 × ...（按公式）
-    expect(r.hoffmannYears).toBe(1) // min(30, max(0.66, 1))
+    expect(r.hoffmannYears).toBe(1)
     expect(r.hoffmannFactor).toBeGreaterThan(0)
-    expect(r.amount).toBeGreaterThan(50_000) // 至少有年損失 × 比例
+    expect(r.amount).toBeGreaterThan(50_000)
   })
 
-  it('症狀固定 → 強制長期計算', () => {
+  it('症狀固定本身不強制切換長期；永久減損另走勞減模組', () => {
     const r = computeWorkLossExtended({
       person: { ...basePerson, actualLeaveDays: 30, doctorOrderedRestDays: 30 },
       courtName: '臺灣臺中地方法院',
       isSymptomFixed: true,
     })
-    expect(r.calculationType).toBe('long_term')
-    expect(r.hint).toContain('症狀固定')
+    expect(r.calculationType).toBe('short_term')
+    expect(r.notes.join('|')).toContain('不因此自動延長')
   })
 
   it('日領者 → 用日薪', () => {
@@ -85,28 +81,33 @@ describe('computeWorkLossExtended', () => {
       courtName: '臺灣臺中地方法院',
     })
     expect(r.breakdown.dailyIncome).toBe(1_500)
-    // 1500 × 60 = 90,000
     expect(r.amount).toBe(90_000)
   })
 
-  it('臺北地院（係數 1.10）→ 短期加成 10%', () => {
-    const r = computeWorkLossExtended({
+  it('不同法院不應用精神慰撫金地區倍率改變同一薪資損失', () => {
+    const taichung = computeWorkLossExtended({
+      person: basePerson,
+      courtName: '臺灣臺中地方法院',
+    })
+    const taipei = computeWorkLossExtended({
       person: basePerson,
       courtName: '臺灣臺北地方法院',
     })
-    expect(r.regionalMultiplier).toBe(1.1)
-    // 80000 × 1.10 = 88,000
-    expect(r.amount).toBe(88_000)
+
+    expect(taichung.regionalMultiplier).toBe(1)
+    expect(taipei.regionalMultiplier).toBe(1)
+    expect(taipei.amount).toBe(taichung.amount)
+    expect(taipei.amount).toBe(80_000)
   })
 
-  it('65 歲 → 霍夫曼年數 0 → 提示退休', () => {
+  it('65 歲且進入長期情境 → 不自動改稱慰撫金，改提示人工確認工作狀態', () => {
     const r = computeWorkLossExtended({
       person: { ...basePerson, age: 65, actualLeaveDays: 240, doctorOrderedRestDays: 240 },
       courtName: '臺灣臺中地方法院',
     })
     expect(r.amount).toBe(0)
-    expect(r.notes.some((n) => n.includes('退休') || n.includes('慰撫金'))).toBe(true)
-    expect(r.hint).toContain('退休')
+    expect(r.notes.join('|')).toContain('人工確認')
+    expect(r.hint).toContain('實際就業')
   })
 
   it('WORK_LOSS_SHORT_TERM_MONTHS = 6（API 穩定性）', () => {

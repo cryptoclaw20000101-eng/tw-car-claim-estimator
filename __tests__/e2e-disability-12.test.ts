@@ -45,7 +45,7 @@ describe('12 大類失能保典 E2E：常數表', () => {
   })
 })
 
-describe('12 大類 → 勞減引擎 E2E：吃 disabilityLevel', () => {
+describe('12 大類 → 勞減引擎 E2E：吃已證明 disabilityLevel', () => {
   it('輸入 disabilityCategory=11_upper_limb + disabilityLevel=9 → 勞減 60%', () => {
     const input = {
       basics: { ...defaultBasics },
@@ -81,7 +81,7 @@ describe('12 大類 → 勞減引擎 E2E：吃 disabilityLevel', () => {
     expect(r.laborCapacityLossNotes.join('|')).toContain('9')
   })
 
-  it('輸入 disabilityLevel=1（最重）→ 勞減金額遠大於 15 等（最輕）', () => {
+  it('有失能證明時，disabilityLevel=1（最重）→ 勞減金額遠大於 15 等（最輕）', () => {
     const baseInput = {
       basics: { ...defaultBasics },
       fault: {
@@ -104,12 +104,24 @@ describe('12 大類 → 勞減引擎 E2E：吃 disabilityLevel', () => {
     const r1 = estimateClaim({
       ...baseInput,
       person: baseInput.person,
-      medical: { ...defaultMedical, disabilityCategory: '11_upper_limb', disabilityLevel: 1 },
+      medical: {
+        ...defaultMedical,
+        disabilityCategory: '11_upper_limb',
+        disabilityLevel: 1,
+        hasDisabilityCertificate: true,
+        hasPermanentImpairment: true,
+      },
     } as unknown as ClaimInput)
     const r15 = estimateClaim({
       ...baseInput,
       person: baseInput.person,
-      medical: { ...defaultMedical, disabilityCategory: '11_upper_limb', disabilityLevel: 15 },
+      medical: {
+        ...defaultMedical,
+        disabilityCategory: '11_upper_limb',
+        disabilityLevel: 15,
+        hasDisabilityCertificate: true,
+        hasPermanentImpairment: true,
+      },
     } as unknown as ClaimInput)
     // 1 等 (100%) 應遠大於 15 等 (5%)
     expect(r1.laborCapacityLossEstimate).toBeGreaterThan(r15.laborCapacityLossEstimate * 5)

@@ -1,6 +1,5 @@
 // =====================================================================
-// 失能規則引擎測試
-// 涵蓋：關鍵字掃描、ROM 比例、截肢、神經損傷、永久障害、4 級初篩
+// 失能規則引擎 — legal-audit regression tests
 // =====================================================================
 
 import { describe, it, expect } from 'vitest'
@@ -38,114 +37,107 @@ const blankMedical: MedicalRecord = {
   hasPermanentImpairment: false,
 }
 
-describe('失能引擎 — 零輸入（無任何線索）', () => {
-  it('A 級，無等級，confidence 0', () => {
+describe('零輸入', () => {
+  it('A 級、無等級、confidence 0', () => {
     const r = runDisabilityRuleEngine({ medical: blankMedical, accidentDate: '2026-08-01' })
     expect(r.screening).toBe('A')
     expect(r.finalLevel).toBeNull()
     expect(r.confidenceScore).toBe(0)
-    expect(r.signals).toHaveLength(0)
   })
 })
 
-describe('失能引擎 — spec §六 案例：右踝關節活動角度喪失 20 度', () => {
-  it('A 級 — 有失能線索但資料不足', () => {
+describe('ROM 關節障害初篩', () => {
+  it('右踝 ROM 喪失 20 度可初篩對應第 13 級條目', () => {
     const m: MedicalRecord = {
       ...blankMedical,
       diagnosisText: '右踝關節活動角度喪失 20 度',
       jointName: 'ankle',
       hasRangeOfMotionLimitation: true,
       romLossDegree: 20,
-      // 缺：isSymptomFixed, hasDisabilityCertificate
     }
     const r = runDisabilityRuleEngine({ medical: m, accidentDate: '2026-08-01' })
-    // v0.6.6 真實附表：踝關節 ROM 20°/50° = 40% → motion（33%-50%）
-    // 三大關節中有一大關節遺存運動障害 → 12-35 第 13 級
     expect(r.romLossPercent).toBeCloseTo(40, 0)
     expect(r.baseLevel).toBe(13)
-    // 40% ROM 喪失 → 進 C 級（高度可能需申請失能診斷），
-    // 因為角度喪失本身是強烈線索，但缺症狀固定/失能診斷書
+    expect(r.finalLevel).toBe(13)
     expect(['B', 'C']).toContain(r.screening)
-    expect(r.needsSupplement.length).toBeGreaterThan(0)
   })
 
-  it('加上症狀固定 + 永久障害 → D 級（已具失能申請基礎）', () => {
+  it('明確失能診斷書等級優先於 ROM 初篩', () => {
     const m: MedicalRecord = {
       ...blankMedical,
-      diagnosisText: '右踝關節活動角度喪失 20 度，症狀固定，永久障害',
+      diagnosisText: '右踝活動受限',
       jointName: 'ankle',
       hasRangeOfMotionLimitation: true,
       romLossDegree: 20,
-      isSymptomFixed: true,
-      hasPermanentImpairment: true,
       hasDisabilityCertificate: true,
+      disabilityLevel: 11,
     }
     const r = runDisabilityRuleEngine({ medical: m, accidentDate: '2026-08-01' })
+    expect(r.baseLevel).toBe(13)
+    expect(r.finalLevel).toBe(11)
     expect(r.screening).toBe('D')
-    // v0.6.6 真實附表對應第 13 級（不再是舊版第 6 級）
-    expect(r.finalLevel).toBe(13)
   })
 })
 
-describe('失能引擎 — 截肢直接第 1 級', () => {
-  it('hasAmputation → level 1', () => {
+describe('非 ROM 線索不得自動升級', () => {
+  it('截肢但沒有明確失能條目／等級，不得直接判第 1 級', () => {
     const m: MedicalRecord = {
       ...blankMedical,
       diagnosisText: '右下肢膝下截肢',
       hasAmputation: true,
     }
     const r = runDisabilityRuleEngine({ medical: m, accidentDate: '2026-08-01' })
-    expect(r.finalLevel).toBe(1)
-    // 截肢本身 confidence +0.3，未含其他佐證屬合理
-    expect(r.confidenceScore).toBeGreaterThanOrEqual(0.3)
-    expect(r.signals).toContain('截肢')
+    expect(r.finalLevel).toBeNull()
+    expect(r.screening).toBe('C')
+    expect(r.needsSupplement.some((x) => x.includes('失能給付標準表'))).toBe(true)
   })
-})
 
-describe('失能引擎 — 神經損傷等級加重', () => {
-  it('神經損傷 + ROM 喪失 → 等級加重', () => {
+  it('神經損傷不得把 ROM 等級自動加重 2 級', () => {
     const m: MedicalRecord = {
       ...blankMedical,
-      diagnosisText: '右腕神經損傷，關節活動受限 30 度',
+      diagnosisText: '右腕神經損傷，關節活動受限',
       jointName: 'wrist',
       hasRangeOfMotionLimitation: true,
-      romLossDegree: 30,
+      romLossDegree: 60, // 40% loss → 單一關節 motion → 13 級
       hasNerveDamage: true,
     }
     const r = runDisabilityRuleEngine({ medical: m, accidentDate: '2026-08-01' })
-    // v0.6.6 真實附表：腕關節 ROM 30°/150° = 20% < 33% → 無明顯障害（severity=none, level=15）
-    // + 神經損傷 shift=-2 → 13 級
-    expect(r.baseLevel).toBe(15)
+    expect(r.baseLevel).toBe(13)
     expect(r.finalLevel).toBe(13)
+    expect(r.notes.some((x) => x.includes('不得以固定'))).toBe(true)
   })
 })
 
-describe('失能引擎 — 角度喪失 < 5% 視為不明顯', () => {
-  it('小角度喪失不構成失能線索', () => {
-    const m: MedicalRecord = {
-      ...blankMedical,
-      diagnosisText: '右肩不適 5 度活動受限',
-      jointName: 'shoulder',
-      hasRangeOfMotionLimitation: true,
-      romLossDegree: 5, // 5/180 = 2.78%
-    }
-    const r = runDisabilityRuleEngine({ medical: m, accidentDate: '2026-08-01' })
-    expect(r.romLossPercent).toBeCloseTo(2.78, 1)
-    // 仍會被偵測到關節活動受限 signal
-    expect(r.signals).toContain('關節活動受限')
+describe('computeDisability — 金額', () => {
+  it('沒有明確等級時不得因截肢直接算 300 萬', () => {
+    const r = computeDisability({ ...blankMedical, hasAmputation: true }, '2026-08-01')
+    expect(r.possibleLevel).toBeNull()
+    expect(r.possibleAmount).toBe(0)
   })
-})
 
-describe('computeDisability — 金額表對應', () => {
-  it('新制第 1 級 300 萬', () => {
-    const m: MedicalRecord = { ...blankMedical, hasAmputation: true }
-    const r = computeDisability(m, '2026-08-01')
+  it('有失能診斷書且明確第 1 級，新制 300 萬', () => {
+    const r = computeDisability(
+      {
+        ...blankMedical,
+        hasAmputation: true,
+        hasDisabilityCertificate: true,
+        disabilityLevel: 1,
+      },
+      '2026-08-01',
+    )
+    expect(r.possibleLevel).toBe(1)
     expect(r.possibleAmount).toBe(3_000_000)
   })
 
-  it('舊制（2026-07-01 前）第 1 級 200 萬', () => {
-    const m: MedicalRecord = { ...blankMedical, hasAmputation: true }
-    const r = computeDisability(m, '2026-01-01')
+  it('同樣第 1 級在舊制為 200 萬', () => {
+    const r = computeDisability(
+      {
+        ...blankMedical,
+        hasDisabilityCertificate: true,
+        disabilityLevel: 1,
+      },
+      '2026-01-01',
+    )
     expect(r.possibleAmount).toBe(2_000_000)
   })
 })
