@@ -23,19 +23,6 @@ import { predictPainRange, reconcileWithRules } from './pain-ml'
 import { ensembleEstimate } from './pain-ensemble'
 import { mockLLMAdvisor, type AdvisorInput } from './pain-advisor'
 
-/**
- * legal-audit 相容欄位。
- * 先以 intersection 方式支援新欄位，避免舊儲存資料立即失效；後續再正式併入 schema migration。
- */
-type LegalAuditBasics = ClaimInput['basics'] & {
-  calculationMode?: 'mediation' | 'litigation'
-  compulsoryActuallyPaid?: number
-  thirdPartyCoverageStatus?: 'unknown' | 'yes' | 'no'
-  thirdPartyBodilyLimit?: number
-  thirdPartyPropertyLimit?: number
-  excessLiabilityLimit?: number
-}
-
 type PainDamages = {
   painAndSuffering?: number
 }
@@ -208,7 +195,11 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
 
   // 7) 工作損失
   const workLoss = computeWorkLoss(person, courtName)
-  const workLossExtended = computeWorkLossExtended({ person, courtName })
+  const workLossExtended = computeWorkLossExtended({
+    person,
+    courtName,
+    isSymptomFixed: medical.isSymptomFixed,
+  })
 
   // 8) 勞動能力減損
   // 明確失能診斷書等級優先；否則才採規則引擎的 ROM 初篩結果。
@@ -293,21 +284,15 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
   const propertyDamage = computePropertyDamage(property)
 
   // 10) 調解／法院責任計算
-  const legalBasics = basics as LegalAuditBasics
   const inferredMode =
-    legalBasics.calculationMode ??
+    basics.calculationMode ??
     (fault.faultSource === 'court_judgment' ? 'litigation' : 'mediation')
 
   const thirdParty = computeThirdParty({
     basics: {
       ...basics,
       calculationMode: inferredMode,
-      compulsoryActuallyPaid: legalBasics.compulsoryActuallyPaid,
-      thirdPartyCoverageStatus: legalBasics.thirdPartyCoverageStatus,
-      thirdPartyBodilyLimit: legalBasics.thirdPartyBodilyLimit,
-      thirdPartyPropertyLimit: legalBasics.thirdPartyPropertyLimit,
-      excessLiabilityLimit: legalBasics.excessLiabilityLimit,
-    } as ClaimInput['basics'],
+    },
     civil: {
       civilMedicalExpense,
       civilNursingFeeLow: nursing.low,
