@@ -10,11 +10,6 @@ import type { ClaimInput, EstimationResult } from '@/lib/insurance/types'
 const { Title, Paragraph } = Typography
 const dollar = (n: number) => `NT$ ${(n ?? 0).toLocaleString('zh-TW')}`
 
-type LegalAuditBasics = ClaimInput['basics'] & {
-  calculationMode?: 'mediation' | 'litigation'
-  thirdPartyCoverageStatus?: 'unknown' | 'yes' | 'no'
-}
-
 export function ThirdPartySection({
   result,
   input,
@@ -23,7 +18,7 @@ export function ThirdPartySection({
   input: ClaimInput
 }) {
   const t = result.thirdParty
-  const basics = input.basics as LegalAuditBasics
+  const basics = input.basics
   const mode =
     basics.calculationMode ??
     (input.fault.faultSource === 'court_judgment' ? 'litigation' : 'mediation')
