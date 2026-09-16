@@ -44,6 +44,46 @@ type PracticeCaseWithPainTarget = ReturnType<typeof findRelatedPracticeCases>[nu
   damages?: PainDamages
 }
 
+type CompulsoryAllocation = {
+  medical: number
+  transportation: number
+  nursing: number
+}
+
+/**
+ * 將強制險傷害醫療總認列額拆回「一般醫療／接送／看護」三個民事損害桶。
+ *
+ * 目的不是宣稱保險公司有法定分配順位，而是避免本工具在民事端把同一筆
+ * 看護／接送費同時計入「醫療差額」與獨立項目造成重複計算。
+ *
+ * 若細項認列 subtotal 超過傷害醫療總額上限，按細項認列額比例縮放；
+ * 最後把 rounding remainder 留在一般醫療桶，確保三桶加總精確等於 approved。
+ */
+function allocateCompulsoryMedicalDeduction(
+  compulsory: ReturnType<typeof computeCompulsoryMedicalByDate>,
+  hasCompulsoryInsurance: boolean,
+): CompulsoryAllocation {
+  if (!hasCompulsoryInsurance || compulsory.approved <= 0 || compulsory.subtotal <= 0) {
+    return { medical: 0, transportation: 0, nursing: 0 }
+  }
+
+  const scale = compulsory.approved / compulsory.subtotal
+  const transportationItem = compulsory.items.find((item) => item.key === 'transportationFee')
+  const nursingItem = compulsory.items.find((item) => item.key === 'nursingFee')
+
+  const transportation = Math.min(
+    Math.round((transportationItem?.approved ?? 0) * scale),
+    compulsory.approved,
+  )
+  const nursing = Math.min(
+    Math.round((nursingItem?.approved ?? 0) * scale),
+    Math.max(compulsory.approved - transportation, 0),
+  )
+  const medical = Math.max(compulsory.approved - transportation - nursing, 0)
+
+  return { medical, transportation, nursing }
+}
+
 export function estimateClaim(input: ClaimInput): EstimationResult {
   const { basics, fault, person, property } = input
   let { medical, medicalReceipts } = input
@@ -108,7 +148,8 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
   const region = getRegionAdjustment(courtName)
 
   // 4) 民事醫療差額
-  const totalMedicalReceipts =
+  // 看護費與接送費在民事端有獨立項目，因此不能再次塞進「醫療差額」。
+  const baseMedicalReceipts =
     medicalReceipts.emergencyFee +
     medicalReceipts.ambulanceFee +
     medicalReceipts.nhiCopayment +
@@ -122,19 +163,39 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
     medicalReceipts.artificialEyeFee +
     (medicalReceipts.medicalMaterialFee ?? 0) +
     (medicalReceipts.specialMaterialFee ?? 0) +
-    medicalReceipts.assistiveDeviceFee +
-    medicalReceipts.transportationFee +
-    medicalReceipts.nursingFee
+    medicalReceipts.assistiveDeviceFee
 
-  // 沒有強制險時，不能先扣理論上的強制險認列額。
+  const compulsoryAllocation = allocateCompulsoryMedicalDeduction(
+    compulsory,
+    basics.hasCompulsoryInsurance,
+  )
+
   const compulsoryMedicalDeduction = basics.hasCompulsoryInsurance ? compulsory.approved : 0
   const civilMedicalExpense = computeCivilMedicalExpense(
-    totalMedicalReceipts,
-    compulsoryMedicalDeduction,
+    baseMedicalReceipts,
+    compulsoryAllocation.medical,
   )
 
   // 5) 看護費
-  const nursing = computeCivilNursingFee(medicalReceipts, medical, courtName)
+  // 先算民事合理行情 gross，再扣本次強制險總上限分配到看護的部分。
+  // 將 nursingFee 暫設 0，可沿用 computeCivilNursingFee 的地區日額與醫囑日數邏輯，
+  // 同時避免該 helper 再自行扣一次強制險看護費。
+  const nursingGross = computeCivilNursingFee(
+    { ...medicalReceipts, nursingFee: 0 },
+    medical,
+    courtName,
+  )
+  const nursing = {
+    low: Math.max(nursingGross.low - compulsoryAllocation.nursing, 0),
+    mid: Math.max(nursingGross.mid - compulsoryAllocation.nursing, 0),
+    high: Math.max(nursingGross.high - compulsoryAllocation.nursing, 0),
+  }
+
+  // 接送費同樣只保留強制險扣抵後的民事差額。
+  const civilTransportationFee = Math.max(
+    medicalReceipts.transportationFee - compulsoryAllocation.transportation,
+    0,
+  )
 
   // 6) 精神慰撫金規則引擎
   const pas = computePainAndSuffering(medical, courtName)
@@ -252,7 +313,7 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
       civilNursingFeeLow: nursing.low,
       civilNursingFeeMid: nursing.mid,
       civilNursingFeeHigh: nursing.high,
-      civilTransportationFee: medicalReceipts.transportationFee,
+      civilTransportationFee,
       workLoss: workLoss.amount,
       laborCapacityLossEstimate: labor.estimate,
       painAndSuffering: pas,
@@ -285,7 +346,7 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
     civilNursingFeeLow: nursing.low,
     civilNursingFeeMid: nursing.mid,
     civilNursingFeeHigh: nursing.high,
-    civilTransportationFee: medicalReceipts.transportationFee,
+    civilTransportationFee,
     workLoss: workLoss.amount,
     workLossEvidenceStrength: workLoss.evidenceStrength,
     workLossExtended: {
