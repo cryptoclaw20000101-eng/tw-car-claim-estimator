@@ -37,7 +37,7 @@ import { PageBreadcrumb } from '@/components/PageBreadcrumb'
 import { MultiFaultCompare } from '@/components/MultiFaultCompare'
 // v0.24.0c+：聯絡 CTA（LINE / Threads 帳號收集）
 import { ContactCTA } from './_components/ContactCTA'
-// v0.20.0+：結果頁區間卡（user 反饋「不要只顯示單一金額」+ AGENTS §0 不保證金額精神）
+// v0.20.0+：精神慰撫金區間卡
 import { EstimationRangeCard } from './_sections/EstimationRangeCard'
 // v0.12.0+ Phase B5：分享連結
 import { encodeShareHash } from '@/lib/share-link'
@@ -226,7 +226,7 @@ export default function ResultForm() {
               <div className="!mt-2">
                 <Text className="!block !text-base !text-foreground">尚無估算資料</Text>
                 <Text type="secondary" className="!mt-1 !block !text-sm">
-                  請先填寫 7 步表單以產生估算結果。
+                  請先填寫 5 步表單以產生估算結果。
                 </Text>
               </div>
             }
@@ -234,7 +234,7 @@ export default function ResultForm() {
           <div className="!mt-2 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link href="/claims/new">
               <Button type="primary" size="large" icon={<EditOutlined />}>
-                開始估算（7 步表單）
+                開始估算（5 步表單）
               </Button>
             </Link>
             <Button
@@ -414,11 +414,9 @@ export default function ResultForm() {
           body="本結果為依使用者輸入及公開法源/案例之初步估算，非最終理賠金額。實際理賠須依保險公司審核、醫療資料、肇事責任、保單條款、評議/判決結果及雙方和解結果為準。"
         />
 
-        {/* ============ Hero Stat — 4 大關鍵數字 (v0.11.0+ 主數字放大 2x + accent ring) ============ */}
+        {/* ============ Hero Stat — 4 大關鍵數字 ============ */}
         <div className="!mb-6 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-border bg-border transition-all duration-200 hover:shadow-md md:grid-cols-4">
-          {/* 主格 2fr：強制險總估算 — 放大 2x + accent 左邊條 + accent text */}
           <div className="relative bg-surface p-5 md:col-span-2 md:p-6">
-            {/* v0.11.0+：主格 accent 左邊條強調主視覺 */}
             <span aria-hidden className="absolute left-0 top-0 h-full w-1 bg-accent" />
             <div className="mb-2 flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-accent">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent" />
@@ -433,9 +431,10 @@ export default function ResultForm() {
               {dollar(result.compulsoryDeathAmount)}
             </div>
           </div>
-          {/* 副格 1：民事中標 — 縮小到 text-base */}
           <div className="bg-surface p-5">
-            <div className="mb-2 text-xs uppercase tracking-[0.18em] text-muted">民事中標</div>
+            <div className="mb-2 text-xs uppercase tracking-[0.18em] text-muted">
+              精神慰撫金中標
+            </div>
             <div className="tabular-nums text-base font-semibold tracking-tight text-foreground">
               {dollar(result.painAndSuffering.regionalMid)}
             </div>
@@ -443,8 +442,6 @@ export default function ResultForm() {
               精神慰撫金 × {result.region.courtName} 係數
             </div>
           </div>
-          {/* 副格 2：失能初篩 — 縮小到 text-base
-              v0.19.x+：當沒信號時顯示「資料不足」而非「分級 A」（避免誤導）*/}
           <div className="bg-surface p-5">
             <div className="mb-2 text-xs uppercase tracking-[0.18em] text-muted">失能初篩</div>
             <div className="text-base font-semibold tracking-tight">
@@ -473,16 +470,24 @@ export default function ResultForm() {
           </div>
         </div>
 
-        {/* v0.12.0+ Phase B7：多肇責比例並排比較（v0.28.1+ 移除 civilMidBaseline prop）*/}
+        {/* 肇責比例比較：使用完整「強制險扣抵前」民事損害基準，不冒充實際保險理賠額。 */}
         <MultiFaultCompare
-          bodilyInjuryAmount={(result.civilMedicalExpense ?? 0) + (result.workLoss ?? 0)}
-          propertyDamageAmount={result.propertyDamage ?? 0}
+          bodilyInjuryAmount={
+            (result.civilMedicalExpense ?? 0) +
+            (result.civilNursingFeeMid ?? 0) +
+            (result.civilTransportationFee ?? 0) +
+            (result.workLoss ?? 0) +
+            (result.laborCapacityLossEstimate ?? 0) +
+            (result.painAndSuffering.regionalMid ?? 0) +
+            (result.compulsoryMedicalApproved ?? 0)
+          }
+          propertyDamageAmount={(result.vehicleDamage ?? 0) + (result.propertyDamage ?? 0)}
         />
 
         {/* v0.24.0c+：ContactCTA — 留下 LINE / Threads 帳號讓業務員免費諮詢 */}
         <ContactCTA estimateId={estimateId} />
 
-        {/* v0.20.0+：合理求償區間卡（保守/一般/積極 + 完整度 + 缺件 + 人工判斷項）*/}
+        {/* 精神慰撫金參考區間卡（不是整案總求償） */}
         {result.painAndSuffering && (
           <EstimationRangeCard
             pas={{
@@ -620,7 +625,6 @@ export default function ResultForm() {
           />
         </div>
 
-        {/* v0.8.1+：結果頁底部手機 sticky CTA（避免長結果頁要滑回頂部操作） */}
         <MobileStickyCTA
           left={
             <Link href="/claims/new">
@@ -642,7 +646,6 @@ export default function ResultForm() {
   )
 }
 
-// ============== ① 強制險 ==============
 function TabContent({ children }: { children: React.ReactNode }) {
   const reduce = useReducedMotion()
   return (
