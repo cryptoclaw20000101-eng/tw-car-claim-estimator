@@ -1,23 +1,8 @@
 /**
- * 結果頁區間卡（v0.20.0+ 新增）
+ * 精神慰撫金參考區間卡
  *
- * 對應 user 反饋「結果頁不要只強調單一金額」：
- * - 顯示合理求償區間（保守/一般/積極）取代單一數字
- * - 顯示資料完整度（UI 推導百分比）
- * - 顯示缺件清單（從 missingDocuments）
- * - 顯示需人工判斷項（從 painAdvisor.requiresHumanReview）
- *
- * 對齊 AGENTS.md §0「不保證金額」+ §1「資料不足不硬算」精神：
- * - 區間呈現 > 單一金額（降低使用者把結果當保證金額的風險）
- * - 完整度 + 缺件 + 人工複核：讓使用者 / 業務員 / 律師清楚看到「這個估算的
- *   不確定性在哪裡」
- *
- * 設計決定：
- * - 不新建 estimationCompleteness 欄位：在 UI 層即時推導（保持
- *   EstimationResult 介面向後相容，零 snapshot 測試破壞）
- * - 完整度公式（保守版）：100 - missingDocuments.length * 12 -
- *   (painEnsemble.mlConfidence === 'low' ? 15 : 'medium' ? 5 : 0)
- *   // TODO: review formula with user
+ * 重要：本元件接收的 low / mid / high 全部來自 painAndSuffering，
+ * 因此不得標示為「整案合理求償區間」。整案責任金額請看第三人責任區塊。
  */
 
 'use client'
@@ -41,22 +26,15 @@ export interface EstimationRangeCardProps {
     consensusAmount: number | null
     mlConfidence?: 'low' | 'medium' | 'high'
   }
-  /** LLM 顧問複核結果（containsHumanReview + riskFactors） */
   painAdvisor: {
     requiresHumanReview: boolean
     riskFactors: string[]
     disclaimer: string
   }
-  /** 缺件清單 */
   missingDocuments: string[]
-  /** 金額格式化函式 */
   dollar: (n: number) => string
 }
 
-/**
- * 推導資料完整度（UI 層即時算，不污染 EstimationResult）
- * TODO: review formula with user（v0.20.0 保守版）
- */
 function deriveCompleteness(
   missingDocumentsCount: number,
   mlConfidence: 'low' | 'medium' | 'high' | undefined,
@@ -84,7 +62,7 @@ export function EstimationRangeCard({
       title={
         <span className="!text-base">
           <Title level={4} className="!mb-0 !inline-block">
-            合理求償區間
+            精神慰撫金參考區間
           </Title>
           <Tag color={completenessColor} icon={completenessIcon} className="!ml-3">
             資料完整度 {completeness}%
@@ -92,10 +70,17 @@ export function EstimationRangeCard({
         </span>
       }
     >
+      <InfoAlert
+        type="info"
+        showIcon
+        className="!mb-3"
+        title="此卡只顯示精神慰撫金估算，不是整案總求償金額。整案民事責任與第三人責任險估算請以下方責任區塊為準。"
+      />
+
       <Row gutter={16}>
         <Col xs={8}>
           <Statistic
-            title="保守估算"
+            title="慰撫金保守值"
             value={pas.regionalLow}
             formatter={(v) => dollar(Number(v))}
             data-testid="range-conservative"
@@ -103,7 +88,7 @@ export function EstimationRangeCard({
         </Col>
         <Col xs={8}>
           <Statistic
-            title="一般估算"
+            title="慰撫金一般值"
             value={pas.regionalMid}
             formatter={(v) => dollar(Number(v))}
             styles={{ content: { color: 'var(--accent)' } }}
@@ -112,7 +97,7 @@ export function EstimationRangeCard({
         </Col>
         <Col xs={8}>
           <Statistic
-            title="積極求償區間"
+            title="慰撫金積極值"
             value={pas.regionalHigh}
             formatter={(v) => dollar(Number(v))}
             data-testid="range-aggressive"
@@ -121,12 +106,11 @@ export function EstimationRangeCard({
       </Row>
 
       <Paragraph type="secondary" className="!mt-3 !text-xs">
-        目前合理求償區間：
+        目前精神慰撫金參考區間：
         {dollar(pas.regionalLow)} ~ {dollar(pas.regionalHigh)}
         （共識度：{painEnsemble.consensus}）
       </Paragraph>
 
-      {/* 缺件清單：列舉 missingDocuments */}
       {missingDocuments.length > 0 && (
         <InfoAlert
           type="warning"
@@ -146,7 +130,6 @@ export function EstimationRangeCard({
         />
       )}
 
-      {/* 人工判斷項：painAdvisor.requiresHumanReview 時顯示 */}
       {painAdvisor.requiresHumanReview && (
         <InfoAlert
           type="error"
@@ -168,8 +151,8 @@ export function EstimationRangeCard({
           type="success"
           showIcon
           className="!mt-3"
-          title="資料充足、無重大不確定因素"
-          body="可參考上方區間作為初步求償依據，但實際金額仍須依保險公司 / 評議 / 法院認定為準。"
+          title="目前慰撫金估算所需資料較完整"
+          body="可參考上方區間作為精神慰撫金初步估算；實際認定仍須依個案證據、協商、評議或法院判斷。"
         />
       )}
     </Card>
