@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { computeThirdParty, computeVehicleDamage } from '@/lib/insurance/third-party'
-import type { AccidentBasics, PainAndSufferingResult, PropertyDamageInputs } from '@/lib/insurance/types'
+import type {
+  AccidentBasics,
+  PainAndSufferingResult,
+  PropertyDamageInputs,
+} from '@/lib/insurance/types'
 
 const pas: PainAndSufferingResult = {
   baseLow: 0,
@@ -57,18 +61,20 @@ function civil() {
 }
 
 describe('legal-audit：調解／法院雙模式', () => {
-  it('調解模式：先扣強制險，再乘肇責', () => {
+  it('調解模式：責任基準先做過失相抵；淨額先扣強制險再乘肇責', () => {
     const result = computeThirdParty({
       basics: { ...baseBasics, calculationMode: 'mediation' } as AccidentBasics,
       civil: civil(),
       compulsoryTotalApproved: 20_000,
       otherFaultRatio: 50,
     })
-    // gross bodily 100,000；調解：(100,000 - 20,000) × 50% = 40,000
-    expect(result.liableAmountMid).toBe(40_000)
+    // gross bodily 100,000；責任基準 = 100,000 × 50% = 50,000
+    expect(result.liableAmountMid).toBe(50_000)
+    // 調解淨額：(100,000 - 20,000) × 50% = 40,000
+    expect(result.thirdPartyEstimateMid).toBe(40_000)
   })
 
-  it('法院模式：先過失相抵，再扣實際已領強制險', () => {
+  it('法院模式：責任基準先做過失相抵；淨額再扣實際已領強制險', () => {
     const result = computeThirdParty({
       basics: {
         ...baseBasics,
@@ -79,8 +85,10 @@ describe('legal-audit：調解／法院雙模式', () => {
       compulsoryTotalApproved: 20_000,
       otherFaultRatio: 50,
     })
-    // gross bodily 100,000；法院：100,000 × 50% - 20,000 = 30,000
-    expect(result.liableAmountMid).toBe(30_000)
+    // gross bodily 100,000；責任基準 = 100,000 × 50% = 50,000
+    expect(result.liableAmountMid).toBe(50_000)
+    // 法院淨額：100,000 × 50% - 20,000 = 30,000
+    expect(result.thirdPartyEstimateMid).toBe(30_000)
   })
 
   it('法院模式未實際領取時，不扣預估強制險', () => {
@@ -95,6 +103,7 @@ describe('legal-audit：調解／法院雙模式', () => {
       otherFaultRatio: 50,
     })
     expect(result.liableAmountMid).toBe(50_000)
+    expect(result.thirdPartyEstimateMid).toBe(50_000)
   })
 })
 
