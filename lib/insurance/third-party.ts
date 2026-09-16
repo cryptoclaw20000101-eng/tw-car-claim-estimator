@@ -7,6 +7,8 @@
 //
 // 注意：
 // - 強制險只處理人身，不得拿去扣車損／其他財損。
+// - liableAmount = 過失相抵後、強制險扣抵前的「責任基準」。
+// - thirdPartyEstimate = 依所選模式完成強制險扣抵後，再套保額所得的估算。
 // - 第三人責任險的「保險可負擔額」受體傷、財損與超額保額限制。
 // - 舊案件沒有 coverage 欄位時維持向後相容，但會明確標示為「責任金額參考」，
 //   不宣稱保險公司一定會全額負擔。
@@ -116,6 +118,7 @@ interface LiabilityBand {
   civilDamageTotal: number
   bodilyLiable: number
   propertyLiable: number
+  /** 過失相抵後、強制險扣抵前責任基準 */
   liableAmount: number
 }
 
@@ -123,7 +126,11 @@ interface LiabilityBand {
  * 計算單一 low/mid/high band 的民事責任。
  *
  * civilBodilyNet 是既有 caller 傳入的「已扣強制險醫療認列額」人身差額。
- * 因此先 + compulsoryEstimated 還原未扣抵前的人身損害，再依模式決定順序。
+ * 因此先 + compulsoryEstimated 還原未扣抵前的人身損害，再依模式決定扣抵順序。
+ *
+ * 重要：
+ * - liableAmount 保留「總損害 × 肇責」的過失相抵責任基準，方便調解／訴訟對照。
+ * - bodilyLiable/propertyLiable 是完成所選模式扣抵後，真正送進保額計算的淨責任。
  */
 function computeLiabilityBand(args: {
   civilBodilyNet: number
@@ -144,6 +151,7 @@ function computeLiabilityBand(args: {
 
   const grossBodilyDamage = Math.max(civilBodilyNet + compulsoryEstimated, 0)
   const civilDamageTotal = grossBodilyDamage + propertyTotal
+  const liableAmount = Math.round(civilDamageTotal * ratio)
 
   let bodilyLiable: number
   if (mode === 'litigation') {
@@ -165,7 +173,7 @@ function computeLiabilityBand(args: {
     civilDamageTotal,
     bodilyLiable,
     propertyLiable,
-    liableAmount: bodilyLiable + propertyLiable,
+    liableAmount,
   }
 }
 
@@ -265,7 +273,7 @@ export function computeThirdParty(input: ThirdPartyInput): ThirdPartyEstimate {
 
   const coverageStatus = resolveCoverageStatus(basics)
   if (coverageStatus === 'unknown') {
-    notes.push('尚未取得第三人責任險保額資料；目前「第三人責任險估算」僅沿用責任金額參考，不代表保險公司一定全額負擔。')
+    notes.push('尚未取得第三人責任險保額資料；目前「第三人責任險估算」僅沿用扣抵後責任金額參考，不代表保險公司一定全額負擔。')
   } else if (coverageStatus === 'no') {
     notes.push('已標示對方無第三人責任險；保險可負擔額為 0，剩餘民事責任原則上由責任人自行負擔。')
   } else {
@@ -334,7 +342,7 @@ export function computeDepreciatedVehicleValue(
 
 /**
  * 車損試算。
- * v0.29 legal-audit：優先使用事故日期，而不是「執行試算當年度」，避免同一案件隔年重算金額改變。
+ * v0.29 legal-audit：優先使用事故日期，而不是「執行試算當年度」，避免同一案件隔年重算車齡改變。
  * accidentDate 可由第二參數或 property 上的相容欄位帶入。
  */
 export function computeVehicleDamage(input: PropertyDamageInputs, accidentDate?: string): number {
