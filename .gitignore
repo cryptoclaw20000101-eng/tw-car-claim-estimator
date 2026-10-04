@@ -84,3 +84,6 @@ next-env.d.ts
 
 # SEO skill shared analysis cache (local evidence, never commit)
 /.seo-cache/
+
+# Local SEO audit evidence (screenshots, browser dumps, generated reports)
+/reports/seo-baseline-2026-08-10/

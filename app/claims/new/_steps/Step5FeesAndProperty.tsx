@@ -44,24 +44,28 @@ export function Step5FeesAndProperty({ isInjured }: Step5FeesAndPropertyProps) {
         { key: 'registrationFee', label: '掛號費', name: 'registrationFee' },
         { key: 'wardFeeDifference', label: '病房費差額', name: 'wardFeeDifference' },
         { key: 'wardFeeDays', label: '病房費天數', name: 'wardFeeDays' },
-        { key: 'nursingFee', label: '看護費', name: 'nursingFee' },
-        { key: 'nursingDays', label: '看護天數', name: 'nursingDays' },
+        { key: 'nursingFee', label: '看護費（強制險上限 36,000）', name: 'nursingFee' },
+        { key: 'nursingDays', label: '看護天數（最多採計 30 日）', name: 'nursingDays' },
       ],
     },
   ]
 
   const medicalAdvancedItems: { key: string; label: string; name: string }[] = [
-    { key: 'diagnosisCertificateFee', label: '診斷書費', name: 'diagnosisCertificateFee' },
     {
-      key: 'nonNhiNecessaryMedicalFee',
-      label: '非健保必要醫療',
-      name: 'nonNhiNecessaryMedicalFee',
+      key: 'diagnosisCertificateFee',
+      label: '診斷證明書費（每次限 1 份）',
+      name: 'diagnosisCertificateFee',
+    },
+    {
+      key: 'medicalRecordSummaryFee',
+      label: '病歷摘要費（每次限 1 份）',
+      name: 'medicalRecordSummaryFee',
     },
     { key: 'mealFee', label: '膳食費', name: 'mealFee' },
     { key: 'mealDays', label: '膳食天數', name: 'mealDays' },
     { key: 'prosthesisFee', label: '義肢費', name: 'prosthesisFee' },
-    { key: 'dentureFee', label: '義齒費', name: 'dentureFee' },
-    { key: 'missingTeethCount', label: '缺牙數', name: 'missingTeethCount' },
+    { key: 'dentureFee', label: '義齒費（每顆 10,000）', name: 'dentureFee' },
+    { key: 'missingTeethCount', label: '缺牙數（最高採計 5 顆）', name: 'missingTeethCount' },
     { key: 'artificialEyeFee', label: '義眼費', name: 'artificialEyeFee' },
     {
       key: 'specialMaterialFee',
@@ -114,12 +118,12 @@ export function Step5FeesAndProperty({ isInjured }: Step5FeesAndPropertyProps) {
       <InfoAlert
         type="info"
         showIcon
-        title="依強制汽車責任保險給付標準 §2 細項填寫；看護費有 1,200 元/日、30 日硬上限（會自動套用）。"
-        body="本表單只收醫療相關；精神慰撫金 / 工作損失 / 車損請勿填入醫療區（法律強制不併入強制險）。"
+        title="依強制汽車責任保險給付標準 §2 細項填寫；看護費以每日 1,200 元、最多 30 日、總額 36,000 元為上限。"
+        body="義齒每顆上限 10,000 元，最高採計 5 顆（總額 50,000 元）；病房費差額以 1,500 元／日計算。診斷證明書、病歷摘要每次各限 1 份。"
       />
 
       <Collapse
-        defaultActiveKey={['medical', 'property']}
+        defaultActiveKey={['medical']}
         items={[
           {
             key: 'medical',

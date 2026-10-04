@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test'
  *
  * 守護：
  * - 首頁 SSR 沒崩
- * - 關鍵區塊都在（hero / 5 區塊 / FAQ / 免責）
+ * - 關鍵區塊都在（hero / 估算方式 / FAQ / 資料來源）
  * - Skip Links 可以用（鍵盤 a11y）
  * - Dark mode toggle 正常運作
  */
@@ -15,19 +15,17 @@ test.describe('首頁', () => {
     await page.goto('/')
 
     // Hero
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('車禍理賠金額')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('車禍理賠，先做一份初步試算。')
 
-    // 5 區塊（強制險同時出現在多處，用 heading 限定到 BentoCell）
-    await expect(page.getByRole('heading', { name: '強制險', level: 3 })).toBeVisible()
-    await expect(page.getByRole('heading', { name: '失能初篩', level: 3 })).toBeVisible()
-
-    // 鐵律
-    await expect(page.getByRole('heading', { name: '三條鐵律', level: 2 })).toBeVisible()
-    await expect(page.getByText('強制險採無過失主義')).toBeVisible()
+    // 核心方法與資料責任
+    await expect(
+      page.getByRole('heading', { name: '車禍理賠金額怎麼估算？', level: 2 }),
+    ).toBeVisible()
+    await expect(page.getByRole('heading', { name: '資料來源與責任', level: 2 })).toBeVisible()
 
     // FAQ
     await expect(page.getByRole('heading', { name: '常見問題', level: 2 })).toBeVisible()
-    await expect(page.getByText('為什麼我的估算金額跟鄰居不一樣？')).toBeVisible()
+    await expect(page.getByText('試算結果就是最後理賠金額嗎？')).toBeVisible()
   })
 
   test('Skip Links 鍵盤可達', async ({ page }) => {
@@ -60,17 +58,14 @@ test.describe('首頁', () => {
     await expect(html).not.toHaveClass(/dark/)
   })
 
-  test('FAQ 區所有 6 題', async ({ page }) => {
+  test('FAQ 區所有 3 題', async ({ page }) => {
     await page.goto('/')
     // 用 selector 限定在 FAQ section
     const faqSection = page.locator('section').filter({ hasText: '常見問題' })
     const faqs = [
-      '為什麼我的估算金額跟鄰居不一樣？',
-      '強制險是什麼？跟第三人責任險差在哪？',
-      '精神慰撫金怎麼算？為什麼這麼高？',
-      '失能等級怎麼認定？我自己填準嗎？',
-      '資料不足怎麼辦？工具會給假數字嗎？',
-      '理賠結果不如預期，可以去哪裡申訴？',
+      '試算結果就是最後理賠金額嗎？',
+      '強制險會依肇責比例減少嗎？',
+      '資料不完整也可以開始嗎？',
     ]
     for (const q of faqs) {
       await expect(faqSection.getByText(q)).toBeVisible()

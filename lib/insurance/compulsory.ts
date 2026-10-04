@@ -16,12 +16,14 @@ export const COMPULSORY_LIMITS = {
   MEAL_FEE_DAILY_CAP: 180, // 膳食費每日上限
   PROSTHESIS_PER_LIMB: 50_000, // 義肢器材每一上或下肢上限
   DENTURE_PER_TOOTH: 10_000, // 義齒每缺一齒上限
-  DENTURE_TOTAL_CAP: 50_000, // 義齒五齒以上總上限
+  DENTURE_TEETH_CAP: 5, // 義齒最高採計五齒
+  DENTURE_TOTAL_CAP: 50_000, // 義齒總上限（10,000 × 5）
   ARTIFICIAL_EYE: 10_000, // 義眼每顆上限
   MEDICAL_MATERIAL_ASSISTIVE: 20_000, // 醫療材料/輔具/裝具總上限
   TRANSPORTATION: 20_000, // 接送費用總上限
   NURSING_DAILY: 1_200, // 看護費每日上限
   NURSING_DAYS_CAP: 30, // 看護費最高 30 日
+  NURSING_TOTAL_CAP: 36_000, // 看護費總上限（1,200 × 30）
 } as const
 
 interface CompulsoryComputeResult {
@@ -87,7 +89,7 @@ function calcRegistration(input: CompulsoryMedicalInputs): CompulsoryItemResult 
 function calcDiagnosisCertificate(input: CompulsoryMedicalInputs): CompulsoryItemResult {
   return mkItem(
     'diagnosisCertificateFee',
-    '診斷證明書費',
+    '診斷證明書費（每次限 1 份）',
     input.diagnosisCertificateFee,
     input.diagnosisCertificateFee,
     null,
@@ -96,17 +98,16 @@ function calcDiagnosisCertificate(input: CompulsoryMedicalInputs): CompulsoryIte
   )
 }
 
-function calcNonNhi(input: CompulsoryMedicalInputs): CompulsoryItemResult {
+function calcMedicalRecordSummary(input: CompulsoryMedicalInputs): CompulsoryItemResult {
+  const fee = input.medicalRecordSummaryFee ?? 0
   return mkItem(
-    'nonNhiNecessaryMedicalFee',
-    '非健保必要醫療費',
-    input.nonNhiNecessaryMedicalFee,
-    input.nonNhiNecessaryMedicalFee,
+    'medicalRecordSummaryFee',
+    '病歷摘要費（每次限 1 份）',
+    fee,
+    fee,
     null,
-    input.nonNhiNecessaryMedicalFee === 0 ? '未輸入非健保自費項目' : null,
-    input.nonNhiNecessaryMedicalFee === 0
-      ? '請補收據 + 醫師證明必要性（強制險需醫療必要性文件）'
-      : '非健保自費項目需檢附醫師證明必要性',
+    fee === 0 ? '未輸入病歷摘要費' : null,
+    fee === 0 ? '如有申請，請補醫院開立的病歷摘要收據（每次以 1 份為限）' : null,
   )
 }
 
@@ -157,12 +158,13 @@ function calcProsthesis(input: CompulsoryMedicalInputs): CompulsoryItemResult {
 }
 
 function calcDenture(input: CompulsoryMedicalInputs): CompulsoryItemResult {
-  const byTeeth = input.missingTeethCount * COMPULSORY_LIMITS.DENTURE_PER_TOOTH
+  const eligibleTeeth = Math.min(input.missingTeethCount, COMPULSORY_LIMITS.DENTURE_TEETH_CAP)
+  const byTeeth = eligibleTeeth * COMPULSORY_LIMITS.DENTURE_PER_TOOTH
   const cap = Math.min(byTeeth, COMPULSORY_LIMITS.DENTURE_TOTAL_CAP)
   const approved = Math.min(input.dentureFee, cap)
   const reduction =
     approved < input.dentureFee
-      ? `義齒費超出 ${input.missingTeethCount} 齒上限（每齒 10,000，最多 50,000）`
+      ? `義齒費超出每齒 10,000 元、最高採計 5 齒（總額 50,000 元）上限`
       : input.dentureFee === 0
         ? '未輸入義齒費'
         : null
@@ -204,7 +206,7 @@ function calcMedicalMaterial(input: CompulsoryMedicalInputs): CompulsoryItemResu
   //   - 特殊材料 = 骨材/鋼板/人工關節/特材（非健保給付）
   //   - 輔具 = 拐杖/輪椅/支架（非具積極治療性裝具）
   //
-  // 「一般醫材」（紗布/縫線/注射耗材）= 健保已給付，歸入「健保自付額」/「非健保必要醫療」，無 2 萬上限
+  // 一般醫材（紗布/縫線/注射耗材）不另列為強制險「非健保必要醫療」給付項目。
   const special = input.specialMaterialFee ?? 0
   const assistive = input.assistiveDeviceFee
   const subtotal = special + assistive
@@ -272,10 +274,13 @@ function calcTransportation(input: CompulsoryMedicalInputs): CompulsoryItemResul
 
 function calcNursing(input: CompulsoryMedicalInputs): CompulsoryItemResult {
   const eligibleDays = Math.min(input.nursingDays, COMPULSORY_LIMITS.NURSING_DAYS_CAP)
-  const cap = COMPULSORY_LIMITS.NURSING_DAILY * eligibleDays
+  const cap = Math.min(
+    COMPULSORY_LIMITS.NURSING_DAILY * eligibleDays,
+    COMPULSORY_LIMITS.NURSING_TOTAL_CAP,
+  )
   const approved = Math.min(input.nursingFee, cap)
   const reduction =
-    approved < input.nursingFee ? `看護費超出 1,200 × ${eligibleDays} 日上限（最高 30 日）` : null
+    approved < input.nursingFee ? `看護費超出每日 1,200 元、最多 30 日、總額 36,000 元上限` : null
   // requiresNursingCare 提示需由外層串接 medical.requiresNursingCare
   return mkItem('nursingFee', '看護費用', input.nursingFee, approved, cap, reduction, null)
 }
@@ -289,7 +294,7 @@ export function computeCompulsoryMedical(input: CompulsoryMedicalInputs): Compul
     calcNhiCopayment(input),
     calcRegistration(input),
     calcDiagnosisCertificate(input),
-    calcNonNhi(input),
+    calcMedicalRecordSummary(input),
     calcWardFee(input),
     calcMealFee(input),
     calcProsthesis(input),
@@ -468,7 +473,7 @@ export function computeCompulsoryMedicalByDate(
       calcNhiCopayment(input),
       calcRegistration(input),
       calcDiagnosisCertificate(input),
-      calcNonNhi(input),
+      calcMedicalRecordSummary(input),
       calcWardFee(input),
       calcMealFee(input),
       calcProsthesis(input),

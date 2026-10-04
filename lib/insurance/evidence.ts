@@ -36,6 +36,9 @@ export function generateEvidence(
       missing.push('補診斷書醫囑休養天數')
     }
   }
+  if (!input.medical.requiresNursingCare && input.medicalReceipts.nursingFee > 0) {
+    missing.push('補醫師開立之看護必要性與期間證明；未確認前看護費不列入主估算')
+  }
 
   // 2. 失能相關（從 disability 結果帶入）
   for (const sup of disability.needsSupplement) {
@@ -110,7 +113,11 @@ export function generateEvidence(
 
   // 9. 失能
   if (disability.screening === 'B') {
-    risks.push('失能初篩為 B 級（有線索但資料不足），建議補診斷書與關節量測')
+    risks.push(
+      input.medical.hasRangeOfMotionLimitation
+        ? '失能初篩為 B 級（有線索但資料不足），建議補失能診斷書及關節活動度量測'
+        : '失能初篩為 B 級（有線索但資料不足），建議依附表項次補失能診斷書與相應專科檢查資料',
+    )
   } else if (disability.screening === 'C') {
     risks.push('失能初篩為 C 級（高度可能），建議向骨科/復健科申請失能鑑定')
   } else if (disability.screening === 'D') {

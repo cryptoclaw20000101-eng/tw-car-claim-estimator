@@ -19,7 +19,6 @@ import { computeThirdParty, computeVehicleDamage, computePropertyDamage } from '
 import { generateEvidence } from './evidence'
 import { lookupCourt } from './region-court-map'
 import { getRegionAdjustment } from './region-adjustments'
-import { findRelatedPracticeCases } from '@/lib/estimate/precedents'
 import { predictPainRange, reconcileWithRules } from './pain-ml'
 import { ensembleEstimate } from './pain-ensemble'
 import { mockLLMAdvisor, type AdvisorInput } from './pain-advisor'
@@ -34,7 +33,7 @@ import { mockLLMAdvisor, type AdvisorInput } from './pain-advisor'
  * 4) 民事醫療差額
  * 5) 第三人責任險
  * 6) 補件與風險
- * + 精神慰撫金 Ensemble（規則 + ML + KNN 三票共識）
+ * + 精神慰撫金交叉檢核（規則 + 同類慰撫金判例統計）
  * + LLM 理賠顧問 mock
  *
  * @param input - 完整案件輸入（事故基本 / 肇責 / 人事 / 醫療 / 收據 / 車損）
@@ -87,6 +86,7 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
       nhiCopayment: 0,
       registrationFee: 0,
       diagnosisCertificateFee: 0,
+      medicalRecordSummaryFee: 0,
       nonNhiNecessaryMedicalFee: 0,
       wardFeeDifference: 0,
       wardFeeDays: 0,
@@ -100,6 +100,16 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
       specialMaterialFee: 0,
       assistiveDeviceFee: 0,
       transportationFee: 0,
+      nursingFee: 0,
+      nursingDays: 0,
+    }
+  }
+
+  // 看護（特別是居家看護）須有醫師認定必要性。未確認時，連同強制險與民事差額
+  // 一併暫不列入，避免看護收據透過「醫療差額」路徑被間接計入。
+  if (medical.requiresNursingCare === false) {
+    medicalReceipts = {
+      ...medicalReceipts,
       nursingFee: 0,
       nursingDays: 0,
     }
@@ -122,7 +132,7 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
     medicalReceipts.nhiCopayment +
     medicalReceipts.registrationFee +
     medicalReceipts.diagnosisCertificateFee +
-    medicalReceipts.nonNhiNecessaryMedicalFee +
+    (medicalReceipts.medicalRecordSummaryFee ?? 0) +
     medicalReceipts.wardFeeDifference +
     medicalReceipts.mealFee +
     medicalReceipts.prosthesisFee +
@@ -159,40 +169,23 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
   const workLossExtended = computeWorkLossExtended({
     person,
     courtName,
+    isSymptomFixed: medical.isSymptomFixed,
   })
 
   // 8) 勞動能力減損
-  // v0.6.6 重大改動：失能等級優先順序改為 ROM 細算 > 手填 > null
-  // 原因：v0.6.5 之前 `medical.disabilityLevel`（手填或 12 大類 defaultLevel）
-  // 蓋掉 `disability.possibleLevel`（ROM 細算結果），導致
-  // 「踝關節 ROM 20°」被 12 大類 defaultLevel=9 蓋掉，誤判為第 9 級。
-  // 真實附表（v0.6.6）：踝關節 20° = 40% motion → 12-35 第 13 級。
-  //
-  // 新優先序：
-  //   1. ROM 細算（disability.possibleLevel）— 真實附表對照，最精確
-  //   2. user 手填 disabilityLevel（且 ROM 細算沒跑時的 fallback）
-  //   3. null（都沒資料）
-  //
-  // 型別收斂：number → 1-15 literal union（執行期已在 form 驗證）
-  const rawLevel: number | null = disability.possibleLevel ?? medical.disabilityLevel ?? null
+  // 初篩 ROM 或傷勢標記只供補件提示，不得直接當成強制險或勞減的已認定等級。
+  // 僅在症狀固定、持失能診斷書且填入附表等級後，才使用第 4 條合併規則的結果。
+  const rawLevel: number | null = disability.isPayable ? disability.recognizedLevel : null
   const finalDisabilityLevel:
     1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | null =
     rawLevel !== null && rawLevel >= 1 && rawLevel <= 15
       ? (rawLevel as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15)
       : null
 
-  // 6c) 精神慰撫金 Ensemble 三票共識（v0.6.2+）
-  // 規則 + ML + KNN 三票共識，呼應 iPAS 第 2 課 Ensemble 概念
-  // 放在 finalDisabilityLevel 之後才能用 KNN
-  const practiceCases = findRelatedPracticeCases(courtName, finalDisabilityLevel, 3)
+  // 6c) 精神慰撫金交叉檢核
+  // 相似案例的 civilSettlement / totalInsurerPayout 是「全部損害」而非單獨慰撫金，
+  // 不可混入慰撫金加權平均。待資料庫有可核對的單獨慰撫金欄位後才開啟第三票。
   const knnCases: Array<{ caseNo: string; amount: number }> = []
-  for (const c of practiceCases) {
-    const settlement = c.settlement as
-      { totalInsurerPayout?: number; civilSettlement?: number } | undefined
-    if (!settlement) continue
-    const amount = settlement.civilSettlement ?? settlement.totalInsurerPayout ?? 0
-    if (amount > 0) knnCases.push({ caseNo: c.caseNo, amount })
-  }
   const painEnsemble = ensembleEstimate({
     rulesMid: pas.regionalMid,
     mlP50: painML.p50,
@@ -226,6 +219,10 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
     person,
     courtName,
     disabilityLevel: finalDisabilityLevel,
+    assessedLossPercent:
+      medical.laborCapacityLossPercent === undefined
+        ? undefined
+        : medical.laborCapacityLossPercent / 100,
   })
 
   // 8b) 除疤 / 修疤費用（4 術式 × 北中南 × 疤痕長度）
@@ -241,7 +238,10 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
   })
 
   // 9) 車損財損
-  const vehicleDamage = computeVehicleDamage(property)
+  const accidentYear = /^\d{4}-\d{2}-\d{2}$/.test(basics.accidentDate)
+    ? Number(basics.accidentDate.slice(0, 4))
+    : undefined
+  const vehicleDamage = computeVehicleDamage(property, accidentYear)
   const propertyDamage = computePropertyDamage(property)
 
   // 10) 第三人責任險
@@ -253,7 +253,8 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
       civilNursingFeeMid: nursing.mid,
       civilNursingFeeHigh: nursing.high,
       civilTransportationFee: medicalReceipts.transportationFee,
-      workLoss: workLoss.amount,
+      // 第三人責任總額採實際選用的短期／長期工作損失，避免結果頁與總額不同。
+      workLoss: workLossExtended.amount,
       laborCapacityLossEstimate: labor.estimate,
       painAndSuffering: pas,
       vehicleDamage,
@@ -261,6 +262,7 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
     },
     compulsoryTotalApproved: compulsory.approved,
     otherFaultRatio: fault.otherFaultRatio,
+    faultIsProvisional: fault.isFaultDisputed || fault.faultSource === 'unclear',
   })
 
   // 11) 補件與風險
@@ -283,6 +285,8 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
     civilNursingFeeLow: nursing.low,
     civilNursingFeeMid: nursing.mid,
     civilNursingFeeHigh: nursing.high,
+    civilNursingRequiresMedicalProof: nursing.requiresMedicalProof,
+    civilNursingNotes: nursing.notes,
     civilTransportationFee: medicalReceipts.transportationFee,
     workLoss: workLoss.amount,
     workLossEvidenceStrength: workLoss.evidenceStrength,
@@ -304,6 +308,7 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
     },
     laborCapacityLossEstimate: labor.estimate,
     laborCapacityLossHint: labor.hint,
+    laborCapacityLossIsReference: labor.isReferenceEstimate ?? false,
     laborCapacityRetirementAge: labor.retirementAge,
     laborCapacityLossNotes: labor.notes,
 
@@ -423,6 +428,8 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
       civilNursingFeeLow: 0,
       civilNursingFeeMid: 0,
       civilNursingFeeHigh: 0,
+      civilNursingRequiresMedicalProof: false,
+      civilNursingNotes: [],
       civilTransportationFee: 0,
       // 工作損失：歸 0
       workLoss: 0,
@@ -433,6 +440,7 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
       },
       laborCapacityLossEstimate: 0,
       laborCapacityLossHint: '未受傷，無勞動能力減損',
+      laborCapacityLossIsReference: false,
       // 精神慰撫金：基於 AGENTS §1 鐵律 ④ 顯式歸 0（base floor 不會因 medical=0 而歸 0）
       // painML / painEnsemble / painAdvisor 跟著歸 0
       painAndSuffering: {

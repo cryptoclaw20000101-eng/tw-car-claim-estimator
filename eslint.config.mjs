@@ -11,6 +11,9 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "coverage/**",
+    "playwright-report/**",
+    "test-results/**",
     "next-env.d.ts",
     // v0.20.0+：tsc emit artifacts（不要 lint 已編譯的 .js）
     "**/.law-cutoff-build/**",

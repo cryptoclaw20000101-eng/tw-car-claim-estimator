@@ -8,8 +8,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # tw-car-claim-estimator — 專案層級規則
 
 > **適用對象**: 在本專案執行任務的所有 AI agent (Claude / Codex / Hermes / 其他)
-> **生效版本**: v0.20.0 (2026-07-13)
-> **同步於**: `package.json` version + git tag
+> **目前程式版本**: v0.28.7（以 `package.json` 為準；規則整理於 2026-10-04）
+> **版本依據**: `package.json`；既有 tag 為歷史 release，不代表尚未發布的本機整理
 > **優先序**: `AGENTS.md` > commit message > 自由發揮。若有衝突以本檔為準。
 
 ---
@@ -77,11 +77,17 @@ UI 結果頁頂部永遠顯示這 3 條 + 完整免責聲明（見 `app/page.tsx
 - **改任何 lib/insurance 必跑**:
   ```bash
   pnpm tsc --noEmit                    # 0 錯
-  pnpm test                            # 59 檔 / 705 測試全綠（v0.8.4 期待值）
-  pnpm build                           # 6 routes 靜態 build 全綠
+  pnpm test                            # 執行目前完整測試；歷史測試數不是驗收門檻
+  pnpm build                           # 標準 serverful Next.js build（.next/）
   ```
 - **新增規則必先寫測試** (TDD: RED → GREEN → REFACTOR) — 沒測試的改動 revert
 - **scrape 改動必先 `--dry-run`** — `pnpm scrape:dry --chain <name> --retry 0` 看 stdout 確認 regex 沒爆掉
+
+### 現行架構與歷史紀錄
+
+- v0.16.x 起採標準 serverful Next.js；現行部署契約見 `docs/adr/0003-serverful-nextjs.md`。
+- 下方各版本段落保留作為歷史紀錄。§13、§20 等 static export / `out/` 描述只適用當時版本，不得用來覆蓋現行架構。
+- 現行安全與執行方式以程式碼、測試及 ADR 為準；整理工作目錄不等同發布 release，不自動新增 tag 或推送。
 
 ---
 

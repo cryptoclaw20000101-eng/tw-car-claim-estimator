@@ -45,8 +45,6 @@ import type { JointName } from '@/lib/insurance/types'
 import {
   DISABILITY_CATEGORIES,
   DISABILITY_LEVELS,
-  getDefaultLevel,
-  isCompulsoryExclusion,
   needsMMSE,
   type DisabilityCategory,
 } from '@/lib/insurance/disability-categories'
@@ -55,6 +53,7 @@ import {
   recommendDisabilityLevel,
   type LevelRecommendation,
 } from '@/lib/insurance/diagnosis-parser'
+import { DISABILITY_STANDARD_ITEMS } from '@/lib/insurance/disability-standard'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -109,17 +108,47 @@ export function Step4Diagnosis({ form, accidentLocationForKnn }: Step4DiagnosisP
     }
   })
 
-  // 失能保典 12 大類（v0.5.0+ 用 Cascader 選大類 + 等級兩步選）
-  // v0.2.5+：選大類會自動帶出該類常見等級
+  // 失能保典 12 大類（用於協助選擇診斷書對應部位）
   const disabilityCategory = Form.useWatch(['medical', 'disabilityCategory'], form) as
     DisabilityCategory | undefined
+  const selectedTableItemIds =
+    (Form.useWatch(['medical', 'disabilityTableItemIds'], form) as string[] | undefined) ?? []
+  const selectedTableItems = DISABILITY_STANDARD_ITEMS.filter((item) =>
+    selectedTableItemIds.includes(item.id),
+  )
+  const selectedCategorySeries = disabilityCategory ? Number(disabilityCategory.slice(0, 2)) : null
+  const tableItemOptions = DISABILITY_STANDARD_ITEMS.filter(
+    (item) =>
+      selectedCategorySeries === null || Number(item.id.split('-')[0]) === selectedCategorySeries,
+  ).map((item) => ({
+    value: item.id,
+    label: `${item.id}｜第 ${item.level} 級｜${item.status}`,
+  }))
+
+  const syncTableItems = (ids: string[]) => {
+    const items = DISABILITY_STANDARD_ITEMS.filter((item) => ids.includes(item.id)).sort(
+      (a, b) => a.level - b.level,
+    )
+    const levels = items.map((item) => item.level)
+    form.setFieldValue(['medical', 'disabilityLevel'], levels[0])
+    form.setFieldValue(['medical', 'additionalDisabilityLevels'], levels.slice(1))
+
+    const seriesNumbers = new Set(items.map((item) => Number(item.id.split('-')[0])))
+    if (seriesNumbers.size === 1) {
+      const series = [...seriesNumbers][0]!
+      const category = DISABILITY_CATEGORIES.find(
+        (item) => Number(item.value.slice(0, 2)) === series,
+      )
+      if (category) form.setFieldValue(['medical', 'disabilityCategory'], category.value)
+    }
+  }
 
   return (
     <StepShell
       icon={<MedicineBoxOutlined />}
       title="傷勢與診斷"
       alertType="info"
-      alertTitle="失能保典 12 大類（如骨骼／神經／眼耳等），從大類選完會自動帶出該類常見等級，可手改。"
+      alertTitle="失能部位與等級以症狀固定後的診斷書為準；系統只作初步整理與補件提醒。"
       stepNumber={4}
     >
       <Row gutter={16}>
@@ -127,7 +156,7 @@ export function Step4Diagnosis({ form, accidentLocationForKnn }: Step4DiagnosisP
           <Form.Item
             label="診斷描述"
             name={['medical', 'diagnosisText']}
-            tooltip="貼上診斷書全文或關鍵段落，點「AI 推薦」自動建議失能等級"
+            tooltip="貼上診斷書全文或關鍵段落，點「AI 推薦」取得初篩線索；仍須依診斷書選擇正式附表項次。"
           >
             <Input.TextArea
               rows={2}
@@ -136,9 +165,9 @@ export function Step4Diagnosis({ form, accidentLocationForKnn }: Step4DiagnosisP
           </Form.Item>
         </Col>
         <Col xs={24} md={12}>
-          {/* v0.19.0+：AI 推薦失能等級按鈕 + 結果面板 */}
-          <Form.Item label="AI 推薦失能等級（rule-based）">
-            <Space direction="vertical" className="!w-full" size="small">
+          {/* AI 僅提供初篩線索，給付仍須由 204 項正式附表核對。 */}
+          <Form.Item label="AI 初篩等級線索（rule-based）">
+            <Space orientation="vertical" className="!w-full" size="small">
               <Button
                 icon={<ThunderboltOutlined />}
                 onClick={() => {
@@ -160,11 +189,11 @@ export function Step4Diagnosis({ form, accidentLocationForKnn }: Step4DiagnosisP
               </Button>
               {aiRecommendation && (
                 <Card size="small" className="!bg-accent-soft/30">
-                  <Space direction="vertical" size="small" className="!w-full">
+                  <Space orientation="vertical" size="small" className="!w-full">
                     <Space>
                       {aiRecommendation.level !== null ? (
                         <Tag color="blue" className="!text-sm">
-                          建議第 {aiRecommendation.level} 級
+                          初篩第 {aiRecommendation.level} 級
                         </Tag>
                       ) : (
                         <Tag className="!text-sm">資料不足</Tag>
@@ -200,7 +229,7 @@ export function Step4Diagnosis({ form, accidentLocationForKnn }: Step4DiagnosisP
                           }
                           data-testid="ai-adopt-button"
                         >
-                          採用建議
+                          帶入供核對
                         </Button>
                       )}
                     </Space>
@@ -215,7 +244,7 @@ export function Step4Diagnosis({ form, accidentLocationForKnn }: Step4DiagnosisP
                       </ol>
                     </details>
                     <Text type="secondary" className="!text-xs !mt-1">
-                      {aiRecommendation.disclaimer}
+                      {aiRecommendation.disclaimer} 不會取代正式附表項次的核對。
                     </Text>
                   </Space>
                 </Card>
@@ -323,48 +352,79 @@ export function Step4Diagnosis({ form, accidentLocationForKnn }: Step4DiagnosisP
         type="info"
         showIcon
         className="!mb-4"
-        title="選大類會自動帶出該類常見等級（可手改）。精神/神經類需附心理衡鑑報告；胸腹部臟器類強制險部分項目不給付。"
+        title="失能等級必須以症狀固定後的失能診斷書所列附表項目為準。選大類只用來縮小選項；精神、神經與胸腹部臟器均依各項審核基準與專科資料認定。"
       />
       <Row gutter={16}>
-        <Col xs={24} md={12}>
-          <Form.Item label="失能種類（12 大類）" name={['medical', 'disabilityCategory']}>
+        <Col xs={24} md={8}>
+          <Form.Item label="失能種類（用來縮小附表選項）" name={['medical', 'disabilityCategory']}>
             <Select
               allowClear
-              placeholder="選大類"
+              placeholder="可先選系列"
               options={DISABILITY_CATEGORIES.map((c) => ({ value: c.value, label: c.label }))}
-              onChange={(v) => {
-                if (v) {
-                  const defaultLvl = getDefaultLevel(v as DisabilityCategory)
-                  form.setFieldValue(['medical', 'disabilityLevel'], defaultLvl)
-                } else {
-                  form.setFieldValue(['medical', 'disabilityLevel'], undefined)
-                }
-              }}
             />
           </Form.Item>
         </Col>
-        <Col xs={24} md={6}>
+        <Col xs={24} md={16}>
           <Form.Item
-            label={
-              <Space>
-                <span>失能等級（1=最重 / 15=最輕）</span>
-                <Tooltip title="失能等級須由醫院開立「失能診斷書」並經保險公司 / 評議 / 法院認定，本欄為初步篩選用途。">
-                  <QuestionCircleOutlined />
-                </Tooltip>
+            label="診斷書附表項次（204 項，可複選）"
+            name={['medical', 'disabilityTableItemIds']}
+            tooltip="請選診斷書載明的正式附表項次。系統會以官方表核對等級；同一事故多項失能可複選。"
+          >
+            <Select
+              mode="multiple"
+              allowClear
+              showSearch
+              optionFilterProp="label"
+              placeholder="例：12-29｜第 11 級｜一下肢三大關節中，有一大關節遺存顯著運動障害"
+              options={tableItemOptions}
+              onChange={syncTableItems}
+            />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={24} md={16}>
+          <Card size="small" className="!mb-4 !bg-accent-soft/30">
+            {selectedTableItems.length > 0 ? (
+              <Space orientation="vertical" size={2}>
+                <Text strong>
+                  已核對 {selectedTableItems.length} 項：
+                  {selectedTableItems.map((item) => `${item.id}（第 ${item.level} 級）`).join('、')}
+                </Text>
+                <Text type="secondary" className="!text-xs">
+                  失能等級與同一事故的多項合併規則，會由所選附表項次自動帶入。
+                </Text>
               </Space>
-            }
-            name={['medical', 'disabilityLevel']}
+            ) : (
+              <Text type="secondary">選擇診斷書附表項次後，系統才會啟用失能給付試算。</Text>
+            )}
+          </Card>
+        </Col>
+        <Col xs={24} md={8}>
+          <Form.Item
+            label="事故前同部位既有失能等級（選填）"
+            name={['medical', 'preExistingDisabilityLevel']}
+            tooltip="僅在同一障害部位原已有失能時填寫。系統會依第 5 條扣除既有失能給付標準。"
           >
             <Select
               allowClear
-              placeholder="選大類後自動帶出"
-              options={DISABILITY_LEVELS.map((l) => ({ value: l.value, label: l.label }))}
+              placeholder="無既有失能則留白"
+              options={DISABILITY_LEVELS.map((level) => ({
+                value: level.value,
+                label: level.label,
+              }))}
             />
           </Form.Item>
         </Col>
-        <Col xs={24} md={6}>
-          <Form.Item label="對應勞減比例">
-            <DisabilityLevelTag />
+      </Row>
+      <Row gutter={16}>
+        <Col xs={24} md={8}>
+          <Form.Item
+            label="鑑定／職務分析勞減率（選填）"
+            name={['medical', 'laborCapacityLossPercent']}
+            tooltip="請填醫療鑑定或職務分析認定的百分比。未填時，系統僅以強制險失能等級提供參考值。"
+          >
+            <InputNumber min={0} max={100} precision={1} addonAfter="%" className="!w-full" />
           </Form.Item>
         </Col>
       </Row>
@@ -557,25 +617,14 @@ export function Step4Diagnosis({ form, accidentLocationForKnn }: Step4DiagnosisP
         {/* v0.28.3+：移除 A 型診斷書欄位（user 2026-07-17：任何診斷書本來就可以，不需區分）*/}
       </Row>
 
-      {/* 強制險排除警示（v0.2.5+） */}
-      {disabilityCategory && isCompulsoryExclusion(disabilityCategory) && (
-        <Alert
-          type="warning"
-          showIcon
-          className="!mt-3"
-          message={`${disabilityCategory} 屬於強制險部分項目排除範圍`}
-          description="此類型在強制汽車責任保險法 §27 給付標準中可能部分排除，建議改用第三人責任險估算。"
-        />
-      )}
-
       {/* 心理衡鑑警示（v0.2.6+） */}
       {disabilityCategory && needsMMSE(disabilityCategory) && (
         <Alert
           type="info"
           showIcon
           className="!mt-3"
-          message="此類型需附心理衡鑑報告"
-          description="精神 / 神經類失能認定需 MMSE 或其他心理評估報告佐證，請向醫院申請完整評估。"
+          message="此類型的專科審核資料依附表項次而定"
+          description="精神或神經類障害應依所選項次的審核基準提供專科評估；並非所有案件都以 MMSE 或 ROM 為必要資料。"
         />
       )}
 
@@ -587,20 +636,11 @@ export function Step4Diagnosis({ form, accidentLocationForKnn }: Step4DiagnosisP
             （正常活動度 {ROM_NORMAL[jointName]} 度）
           </Title>
           <Paragraph className="!text-xs !text-muted">
-            輸入「現在能動到的最大角度」會自動算 ROM 損失比（影響失能等級認定）
+            輸入「現在能動到的最大角度」會計算 ROM
+            初篩線索與補件提示；給付等級仍以診斷書附表項次為準。
           </Paragraph>
         </Card>
       )}
     </StepShell>
   )
-}
-
-/**
- * 即時顯示「失能等級 → 勞減比例」對照（依 DISABILITY_LABOR_LOSS_PCT 公式）
- */
-function DisabilityLevelTag() {
-  const form = Form.useFormInstance<FormSchema>()
-  const level = Form.useWatch(['medical', 'disabilityLevel'], form) as number | undefined
-  if (level == null) return <Tag>未選</Tag>
-  return <Tag color="default">{level} 級</Tag>
 }

@@ -63,19 +63,11 @@ test.describe('業務流程', () => {
     await expect(toggle).toContainText(/展開技術細節/)
   })
 
-  test('表單：7 步驟進度條', async ({ page }) => {
+  test('表單：5 步驟進度條', async ({ page }) => {
     await page.goto('/claims/new')
     await expect(page.getByTestId('form-progress')).toBeVisible()
-    // 7 個步驟標題都顯示
-    for (const title of [
-      '事故基本',
-      '肇責',
-      '人身 / 工作',
-      '診斷書',
-      '醫療收據',
-      '車損 / 財損',
-      '地區 / 法院',
-    ]) {
+    // 與 app/claims/new/_form.tsx 的 STEPS 保持一致。
+    for (const title of ['事故基本', '肇責', '人身 / 工作', '傷勢與診斷', '費用與財損']) {
       await expect(page.getByText(title, { exact: true })).toBeVisible()
     }
   })

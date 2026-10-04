@@ -30,6 +30,11 @@ describe('CLI 串接計算引擎 — v0.8.4', () => {
     it('CLI 場景 4: 未填事故日 → 保守預設新法', () => {
       expect(isNewLaw(null)).toBe(true)
     })
+
+    it('不存在的日曆日期 → 舊法，避免字串排序誤套新法', () => {
+      expect(isNewLaw('2026-02-30')).toBe(false)
+      expect(isNewLaw('2026-13-01')).toBe(false)
+    })
   })
 
   describe('醫材費差異估算（CLI 主功能）', () => {

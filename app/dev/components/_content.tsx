@@ -84,8 +84,8 @@ export default function ComponentsShowcase() {
 
 function FormSection({ dark }: { dark: boolean }) {
   return (
-    <Space direction="vertical" size="large" className="!w-full">
-      <Section title="FormProgress（7 步驟進度條）" dark={dark}>
+    <Space orientation="vertical" size="large" className="!w-full">
+      <Section title="FormProgress（5 步驟進度條）" dark={dark}>
         <FormProgress
           steps={[
             { title: '事故基本' },
@@ -126,7 +126,7 @@ function FormSection({ dark }: { dark: boolean }) {
 
 function ResultSection({ dark }: { dark: boolean }) {
   return (
-    <Space direction="vertical" size="large" className="!w-full">
+    <Space orientation="vertical" size="large" className="!w-full">
       <Section title="MultiFaultCompare（多肇責比較）" dark={dark}>
         <MultiFaultCompare bodilyInjuryAmount={50000} propertyDamageAmount={20000} />
       </Section>
@@ -144,7 +144,7 @@ function ResultSection({ dark }: { dark: boolean }) {
 
 function MiscSection({ dark }: { dark: boolean }) {
   return (
-    <Space direction="vertical" size="large" className="!w-full">
+    <Space orientation="vertical" size="large" className="!w-full">
       <Section title="AntD Tag 變體" dark={dark}>
         <Space wrap>
           <Tag color="blue">藍色</Tag>
@@ -157,7 +157,7 @@ function MiscSection({ dark }: { dark: boolean }) {
       </Section>
 
       <Section title="AntD Alert 變體" dark={dark}>
-        <Space direction="vertical" className="!w-full">
+        <Space orientation="vertical" className="!w-full">
           <Alert type="info" message="Info 訊息" />
           <Alert type="success" message="Success 訊息" />
           <Alert type="warning" message="Warning 訊息" />
@@ -181,8 +181,10 @@ function Section({
     <Card
       title={title}
       className={dark ? '!bg-zinc-800 !border-zinc-700' : ''}
-      headStyle={dark ? { color: '#fafafa' } : undefined}
-      bodyStyle={dark ? { backgroundColor: 'transparent' } : undefined}
+      styles={{
+        header: dark ? { color: '#fafafa' } : undefined,
+        body: dark ? { backgroundColor: 'transparent' } : undefined,
+      }}
     >
       <div className={dark ? 'text-zinc-100' : ''}>{children}</div>
     </Card>

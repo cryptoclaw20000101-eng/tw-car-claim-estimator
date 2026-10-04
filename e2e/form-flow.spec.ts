@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test'
  *   → 核心邏輯已搬到 Vitest（__tests__/form/mergeStep-five-steps.test.ts +
  *     __tests__/form/estimate-id-roundtrip.test.ts），因為 AntD 6 Select 在
  *     Playwright headless 對 option click 有 pre-existing 環境問題
- *   → E2E 表單流程測試改用 test.skip() 預備結構，等 AntD 6 環境修好再啟用
+ *   → v0.28.6+ 已重新納入 production-browser E2E
  *
  * 仍 PASS 的 E2E 測試：
  * - 結果頁 tab 切換（不依賴 form submit）
@@ -23,44 +23,38 @@ import { test, expect } from '@playwright/test'
 
 test.describe('完整表單業務流程（v0.20.0+ 5 步版）', () => {
   // =========================================================================
-  // 5 步表單逐欄填寫 — v0.20.0+ 結構預備（test.skip() 等 AntD 6 e2e 環境修）
+  // 5 步表單未受傷情境 — 核心轉換流程，CI 不可略過。
   // =========================================================================
-  test.skip('5 步表單逐欄填寫 → 送出 → 結果頁', async ({ page }) => {
+  test('5 步表單未受傷情境 → 送出 → 結果頁', async ({ page }) => {
     await page.goto('/claims/new')
 
     // === Step 1: 事故基本 ===
+    // 日期、縣市、事故類型與身分已有安全預設值；明確選擇「未受傷」
+    // 來驗證不應產生人傷理賠的完整主流程。
     await page.getByLabel('事故日期 *').fill('2026-03-15')
-    await page.getByLabel('事故地點 *').fill('臺中市西區')
-    await page.getByLabel('事故類型 *').click()
-    await page.getByRole('option', { name: /車對/ }).first().click()
-    await page.getByLabel('受害人身分 *').click()
-    await page.getByRole('option', { name: /駕駛/ }).first().click()
+    await page.getByRole('radio', { name: '未受傷' }).check()
     await page.getByRole('button', { name: /下一步/ }).click()
 
     // === Step 2: 肇責 ===
-    // 己方肇責 30% → 對方自動 70%
-    await page.getByLabel('己方肇責 (%) *').fill('30')
-    await page.getByLabel('肇責來源').click()
-    await page.getByRole('option', { name: /警方/ }).first().click()
+    await expect(page.getByText('肇事責任比例（自動同步對方比例）')).toBeVisible()
     await page.getByRole('button', { name: /下一步/ }).click()
 
     // === Step 3: 人身 / 工作 ===
-    await page.getByLabel('受僱類型 *').click()
-    await page.getByRole('option', { name: /正職/ }).first().click()
-    await page.getByLabel('事故前 6 月平均月薪（元）').fill('50000')
+    await expect(page.getByText('受害人身分與工作')).toBeVisible()
     await page.getByRole('button', { name: /下一步/ }).click()
 
     // === Step 4: 傷勢與診斷（v0.20.0+：從原 Step4 拆出上半段） ===
     // 確認 Step 4 顯示（不再走 Step 5 醫療收據 + Step 6 車損）
-    await expect(page.getByText(/失能部位與等級/)).toBeVisible()
-    // 不選失能等級（保持 null）
+    await expect(
+      page.getByRole('heading', { name: '失能部位與等級（失能保典 12 大類）' }),
+    ).toBeVisible()
     await page.getByRole('button', { name: /下一步/ }).click()
 
     // === Step 5: 費用與財損（v0.20.0+：合併原 Step5 醫療收據 + Step6 車損） ===
     // 確認 Collapse 兩 panel 都展開
     await expect(page.getByText(/醫療收據.*強制險/)).toBeVisible()
     await expect(page.getByText(/車損 \/ 財損/)).toBeVisible()
-    // 全部留 0（不影響流程）
+    // 全部留 0，驗證未受傷案件可安全完成且不硬算人傷金額。
     await page.getByRole('button', { name: /送出並估算/ }).click()
 
     // 跳轉到結果頁

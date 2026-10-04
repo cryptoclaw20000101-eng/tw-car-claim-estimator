@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * 7 步驟估算表單（v0.14.x — 1518 lines）
+ * 5 步驟估算表單（v0.14.x — 1518 lines）
  *
  * ⚠️ 此檔案過大，建議 v0.15.x 拆 Step 元件到 _steps/ 子目錄：
  *   - _steps/Step1Basics.tsx
@@ -78,7 +78,10 @@ const DEFAULT_BASICS: AccidentBasics = {
   hasPolicePreliminaryReport: true,
   hasAccidentAppraisal: false,
   hasCompulsoryInsurance: true,
-  // v0.5.2: 拿掉 isSettled / hasThirdPartyInsurance / 3 個保額欄位（永遠有第三人險、無保額上限）
+  thirdPartyCoverageStatus: 'unknown',
+  thirdPartyBodilyLimit: null,
+  thirdPartyPropertyLimit: null,
+  excessLiabilityLimit: null,
   accidentCity: '臺中市',
   accidentDistrict: '',
   claimantResidenceCity: '臺中市',
@@ -126,6 +129,9 @@ const DEFAULT_MEDICAL: MedicalRecord = {
   nursingDays: 0,
   isSymptomFixed: false,
   hasDisabilityCertificate: false,
+  additionalDisabilityLevels: [],
+  disabilityTableItemIds: [],
+  preExistingDisabilityLevel: undefined,
   // disabilityCategory / disabilityLevel 為 optional（不預設）
   hasFracture: false,
   hasDislocation: false,
@@ -151,6 +157,7 @@ const DEFAULT_RECEIPTS: CompulsoryMedicalInputs = {
   nhiCopayment: 0,
   registrationFee: 0,
   diagnosisCertificateFee: 0,
+  medicalRecordSummaryFee: 0,
   nonNhiNecessaryMedicalFee: 0,
   wardFeeDifference: 0,
   wardFeeDays: 0,
@@ -346,9 +353,6 @@ export default function NewClaimForm() {
     if (!current.basics?.accidentDate) {
       patch.basics = { ...current.basics, accidentDate: dayjs() }
     }
-    if (!current.person?.birthDate) {
-      patch.person = { ...current.person, birthDate: dayjs('1990-01-01') }
-    }
     if (!current.medical?.emergencyDate) {
       patch.medical = { ...current.medical, emergencyDate: dayjs() }
     }
@@ -464,9 +468,9 @@ export default function NewClaimForm() {
   return (
     <main
       id="main-content"
-      className="flex flex-1 flex-col items-center px-6 py-8 bg-surface-subtle"
+      className="flex flex-1 flex-col items-center bg-surface-subtle px-4 py-6 sm:px-6 sm:py-8"
     >
-      <div className="w-full max-w-3xl">
+      <div className="w-full max-w-5xl">
         <Title level={2} className="!mb-2">
           <FileAddOutlined className="mr-2" />
           新增理賠估算
@@ -516,11 +520,7 @@ export default function NewClaimForm() {
           {current === 1 && <Step2Fault form={form} faultSourceOptions={FAULT_SOURCE_OPTIONS} />}
           {/* ====== Step 3：人身 / 工作（v0.19.0+：合併原 Step3 + Step7 居住地） ====== */}
           {current === 2 && (
-            <Step3PersonalWork
-              form={form}
-              employmentOptions={EMPLOYMENT_OPTIONS}
-              courtJurisdiction={data.basics.courtJurisdiction}
-            />
+            <Step3PersonalWork form={form} employmentOptions={EMPLOYMENT_OPTIONS} />
           )}
           {/* ====== Step 4：傷勢與診斷（v0.20.0+：從原 Step4Medical 上半段拆出） ====== */}
           {current === 3 && (

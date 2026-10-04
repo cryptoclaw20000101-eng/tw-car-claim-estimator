@@ -33,6 +33,8 @@ export interface ThirdPartyInput {
   civil: CivilDamageInput
   compulsoryTotalApproved: number
   otherFaultRatio: number
+  /** 肇責仍有爭議或來源不明時，保留金額但標示為暫定情境。 */
+  faultIsProvisional?: boolean
 }
 
 // --- 體傷 / 財損 分項打包 --------------------------------------------
@@ -76,7 +78,10 @@ export function computeThirdParty(input: ThirdPartyInput): ThirdPartyEstimate {
   const { civil, otherFaultRatio } = input
   // v0.5.2: compulsoryTotalApproved 已隱含在 civilDamage 裡（caller 已扣過），不再使用
   void input.compulsoryTotalApproved
-  const ratio = otherFaultRatio / 100
+  const normalizedFaultRatio = Number.isFinite(otherFaultRatio)
+    ? Math.min(100, Math.max(0, otherFaultRatio))
+    : 0
+  const ratio = normalizedFaultRatio / 100
 
   const bodilyLow = packBodilyCivil(civil, 'Low')
   const bodilyMid = packBodilyCivil(civil, 'Mid')
@@ -97,8 +102,8 @@ export function computeThirdParty(input: ThirdPartyInput): ThirdPartyEstimate {
   const liableAmountMid = Math.round(civilDamageTotalMid * ratio)
   const liableAmountHigh = Math.round(civilDamageTotalHigh * ratio)
 
-  // 第三人險可賠 = 對方依法應賠（CivilDamageInput 已是差額，已扣過 compulsory）
-  // v0.5.2: 拿掉保額上限，民事差額全由第三人險吸收；不再二次扣 compulsory（Bug A）
+  // Legacy 欄位維持「對方民事有責金額」，不再將其敘述為保險一定會支付。
+  // 保險給付另依保單狀態與人傷／財損保額分項計算，避免把民事責任誤當保額無限的保險金。
   const thirdPartyEstimateLow = liableAmountLow
   const thirdPartyEstimateMid = liableAmountMid
   const thirdPartyEstimateHigh = liableAmountHigh
@@ -108,11 +113,42 @@ export function computeThirdParty(input: ThirdPartyInput): ThirdPartyEstimate {
   const finalHigh = thirdPartyEstimateHigh
 
   const notes: string[] = []
-  if (otherFaultRatio === 0) {
+  if (normalizedFaultRatio !== otherFaultRatio) {
+    notes.push('肇責比例輸入無效，已限制於 0% 至 100% 的範圍')
+  }
+  if (normalizedFaultRatio === 0) {
     notes.push('對方肇責比例為 0，第三人責任險不會理賠')
   }
-  if (otherFaultRatio < 100) {
-    notes.push(`對方肇責 ${otherFaultRatio}%，第三人險僅理賠該比例`)
+  if (normalizedFaultRatio < 100) {
+    notes.push(`對方肇責 ${normalizedFaultRatio}%，民事可主張金額已按該比例計算`)
+  }
+  if (input.faultIsProvisional) {
+    notes.push('肇責尚未確認；本頁金額僅依目前輸入比例的情境試算，應以初判、鑑定、和解或判決校正')
+  }
+
+  const coverageStatus = input.basics.thirdPartyCoverageStatus ?? 'unknown'
+  const bodilyLimit = Math.max(
+    0,
+    (input.basics.thirdPartyBodilyLimit ?? 0) + (input.basics.excessLiabilityLimit ?? 0),
+  )
+  const propertyLimit = Math.max(0, input.basics.thirdPartyPropertyLimit ?? 0)
+  const hasKnownLimits =
+    coverageStatus === 'insured' &&
+    input.basics.thirdPartyBodilyLimit != null &&
+    input.basics.thirdPartyPropertyLimit != null
+
+  const insurerPayableFor = (bodily: number) =>
+    Math.min(bodily, bodilyLimit) + Math.min(propertyTotal * ratio, propertyLimit)
+  const insurerPayableLow = hasKnownLimits ? insurerPayableFor(bodilyTotalLow * ratio) : null
+  const insurerPayableMid = hasKnownLimits ? insurerPayableFor(bodilyTotalMid * ratio) : null
+  const insurerPayableHigh = hasKnownLimits ? insurerPayableFor(bodilyTotalHigh * ratio) : null
+
+  if (coverageStatus === 'unknown') {
+    notes.push('未確認對方任意第三人責任險與保額；目前僅能試算對方民事責任，非保險可賠金額')
+  } else if (coverageStatus === 'uninsured') {
+    notes.push('已標示對方未投保任意第三人責任險；民事責任仍可能由對方自行負擔')
+  } else if (!hasKnownLimits) {
+    notes.push('已知對方有第三人責任險，但未填完整人傷／財損保額，暫不估算保險支付額')
   }
 
   return {
@@ -125,6 +161,14 @@ export function computeThirdParty(input: ThirdPartyInput): ThirdPartyEstimate {
     thirdPartyEstimateLow: finalLow,
     thirdPartyEstimateMid: finalMid,
     thirdPartyEstimateHigh: finalHigh,
+    insuranceCoverageStatus: coverageStatus,
+    insurerPayableLow,
+    insurerPayableMid,
+    insurerPayableHigh,
+    uninsuredGapLow: insurerPayableLow === null ? null : liableAmountLow - insurerPayableLow,
+    uninsuredGapMid: insurerPayableMid === null ? null : liableAmountMid - insurerPayableMid,
+    uninsuredGapHigh: insurerPayableHigh === null ? null : liableAmountHigh - insurerPayableHigh,
+    isFaultProvisional: input.faultIsProvisional ?? false,
     notes,
   }
 }
@@ -187,16 +231,18 @@ export function computeDepreciatedVehicleValue(
   return { value, depreciationRate, yearsOld, depreciationYears: years }
 }
 
-export function computeVehicleDamage(input: PropertyDamageInputs): number {
+export function computeVehicleDamage(input: PropertyDamageInputs, accidentYear?: number): number {
   const repairCost = input.vehicleRepairInvoice || input.vehicleRepairEstimate
   if (repairCost === 0) return 0
-  const accidentYear = new Date().getFullYear()
+  // 歷史案件必須依事故日，而非使用者重算當天的年份決定折舊。
+  // 未提供時保留舊 API 行為，供單獨使用的元件向後相容。
+  const effectiveAccidentYear = accidentYear ?? new Date().getFullYear()
   // v0.24.2+：折舊計算（若有出廠年 + 折舊年限，採用平均法 / 直線折舊）
   const depreciated = computeDepreciatedVehicleValue(
     input.vehicleMarketValueBeforeAccident,
     input.vehicleManufactureYear,
     input.vehicleDepreciationYears,
-    accidentYear,
+    effectiveAccidentYear,
   )
   const maxByMarket = depreciated.value - input.salvageValue
   if (maxByMarket <= 0) return 0

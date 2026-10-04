@@ -19,6 +19,8 @@ import { resolve } from 'node:path'
 
 const sourcePath = resolve(__dirname, '../../components/ServiceWorkerRegistrar.tsx')
 const source = readFileSync(sourcePath, 'utf-8')
+const workerPath = resolve(__dirname, '../../public/sw.js')
+const workerSource = readFileSync(workerPath, 'utf-8')
 
 describe('S1.5 PWA ServiceWorkerRegistrar', () => {
   it('元件存在且有 export', () => {
@@ -62,5 +64,16 @@ describe('S1.5 PWA ServiceWorkerRegistrar', () => {
     // 否則 addEventListener('load', ...)
     expect(source).toMatch(/document\.readyState === ['"]complete['"]/)
     expect(source).toMatch(/addEventListener\(['"]load['"]/)
+  })
+
+  it('頁面與 RSC 採 network-first，避免跨部署混用舊 HTML 與新版 chunk', () => {
+    expect(workerSource).toContain('const isRsc')
+    expect(workerSource).toMatch(/if \(isNavigation \|\| isRsc\)[\s\S]*networkFirst\(request\)/)
+    expect(workerSource).not.toContain('staleWhileRevalidate')
+  })
+
+  it('app shell 不預先快取頁面 HTML', () => {
+    expect(workerSource).not.toMatch(/['"]\/claims\/new['"]/)
+    expect(workerSource).not.toMatch(/['"]\/claims\/result['"]/)
   })
 })

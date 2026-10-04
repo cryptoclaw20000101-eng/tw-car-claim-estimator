@@ -3,10 +3,9 @@
  *
  * 進階快取策略（v0.13.x 升級）：
  *
- * 1) HTML（首頁 / 表單 / 結果）— Stale-While-Revalidate：
- *    - 立刻回 cache（秒開）
- *    - 背景 fetch 新版本，更新 cache
- *    - 下次訪問自動用新版本
+ * 1) HTML / RSC（首頁 / 表單 / 結果）— Network-First：
+ *    - 部署後 HTML 與 JavaScript chunk 必須是同一個 build
+ *    - 離線才回 fallback，不能用舊頁面混搭新版 chunk
  *
  * 2) 靜態資源（JS / CSS chunks）— Cache-First with TTL：
  *    - 30 天 cache，命中率高
@@ -21,12 +20,8 @@
  *
  * 升級策略：CACHE_VERSION bump 時自動清舊 cache。
  */
-const CACHE_VERSION = 'tw-claim-v0.13.0-20260706'
+const CACHE_VERSION = 'tw-claim-v0.28.7-20260729'
 const APP_SHELL = [
-  '/',
-  '/claims/new',
-  '/claims/result',
-  '/claims/batch',
   '/manifest.webmanifest',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
@@ -79,39 +74,33 @@ self.addEventListener('fetch', (event) => {
 
   // 判斷資源類型
   const isImage = /\.(png|jpg|jpeg|svg|gif|webp|ico)$/i.test(url.pathname)
-  const isHTML = request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')
+  const isNavigation = request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')
+  const isRsc = request.headers.get('rsc') === '1' || url.searchParams.has('_rsc')
   const isStaticAsset = /\/_next\/static\//.test(url.pathname)
 
-  if (isHTML) {
-    // HTML：Stale-While-Revalidate
-    event.respondWith(staleWhileRevalidate(request))
+  if (isNavigation || isRsc) {
+    // 頁面與 App Router RSC payload 不可跨 build 使用舊快取，否則會出現
+    // "module factory is not available"。
+    event.respondWith(networkFirst(request))
   } else if (isImage || isStaticAsset) {
     // 靜態資源 / 圖片：Cache-First with TTL
     event.respondWith(cacheFirstWithTTL(request, isImage ? IMAGE_TTL_MS : STATIC_TTL_MS))
   } else {
-    // 其他：Cache-First basic
-    event.respondWith(cacheFirstBasic(request))
+    // 其他回應一律走網路，避免把 Router payload 或 redirect 誤存入快取。
+    event.respondWith(networkFirst(request))
   }
 })
 
 /**
- * Stale-While-Revalidate：立刻回 cache（命中），背景 fetch 更新 cache
+ * Network-First：確保文件與 RSC payload 一律來自目前部署版本。
+ * 發生網路錯誤時才使用離線 fallback，不會回傳舊 HTML。
  */
-async function staleWhileRevalidate(request) {
-  const cache = await caches.open(CACHE_VERSION)
-  const cached = await cache.match(request)
-  // 不論有沒有命中，背景 fetch 新版本
-  const networkPromise = fetch(request)
-    .then((response) => {
-      if (response && response.status === 200 && response.type === 'basic') {
-        cache.put(request, response.clone())
-      }
-      return response
-    })
-    .catch(() => null)
-
-  // 有 cache 立刻回（背景更新），沒有 cache 等 network
-  return cached || (await networkPromise) || offlineFallback(request)
+async function networkFirst(request) {
+  try {
+    return await fetch(request)
+  } catch {
+    return offlineFallback(request)
+  }
 }
 
 /**
@@ -130,7 +119,7 @@ async function cacheFirstWithTTL(request, ttlMs) {
   // 過期或沒命中：fetch
   try {
     const response = await fetch(request)
-    if (response && response.status === 200) {
+    if (response && response.status === 200 && response.type === 'basic') {
       // 加 sw-cache-date header 後存
       const cloned = response.clone()
       const headers = new Headers(cloned.headers)
@@ -150,30 +139,14 @@ async function cacheFirstWithTTL(request, ttlMs) {
 }
 
 /**
- * Cache-First basic：命中就回，沒命中走 network
- */
-async function cacheFirstBasic(request) {
-  const cache = await caches.open(CACHE_VERSION)
-  const cached = await cache.match(request)
-  if (cached) return cached
-  try {
-    const response = await fetch(request)
-    if (response && response.status === 200 && response.type === 'basic') {
-      cache.put(request, response.clone())
-    }
-    return response
-  } catch {
-    return cached || offlineFallback(request)
-  }
-}
-
-/**
- * 離線 fallback：HTML 回首頁，其他回 503
+ * 離線 fallback：不回傳可能屬於上一個 build 的 HTML。
  */
 async function offlineFallback(request) {
   if (request.mode === 'navigate') {
-    const cache = await caches.open(CACHE_VERSION)
-    return (await cache.match('/')) || new Response('Offline', { status: 503 })
+    return new Response('目前無法連線，請恢復網路後再試。', {
+      status: 503,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    })
   }
   return new Response('Offline', { status: 503, statusText: 'Offline' })
 }

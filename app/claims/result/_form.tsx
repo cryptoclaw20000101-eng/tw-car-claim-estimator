@@ -466,9 +466,11 @@ export default function ResultForm() {
               )}
             </div>
             <div className="mt-1 text-xs text-muted">
-              {result.disability.possibleLevel
-                ? `可能等級：第 ${result.disability.possibleLevel} 級`
-                : '需補失能診斷書 + ROM 才能評估'}
+              {result.disability.isPayable && result.disability.recognizedLevel
+                ? `給付試算：第 ${result.disability.recognizedLevel} 級`
+                : result.disability.possibleLevel
+                  ? `初篩線索：第 ${result.disability.possibleLevel} 級（未列入給付）`
+                  : '需依附表項次補失能診斷與審核資料'}
             </div>
           </div>
         </div>
@@ -479,7 +481,7 @@ export default function ResultForm() {
           propertyDamageAmount={result.propertyDamage ?? 0}
         />
 
-        {/* v0.24.0c+：ContactCTA — 留下 LINE / Threads 帳號讓業務員免費諮詢 */}
+        {/* v0.24.0c+：ContactCTA：留下 LINE / Threads 帳號取得一般流程說明 */}
         <ContactCTA estimateId={estimateId} />
 
         {/* v0.20.0+：合理求償區間卡（保守/一般/積極 + 完整度 + 缺件 + 人工判斷項）*/}

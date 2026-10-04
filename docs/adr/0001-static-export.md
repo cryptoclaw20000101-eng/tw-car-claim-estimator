@@ -2,7 +2,7 @@
 
 ## 狀態
 
-已採用（v0.5.0+）
+已被 [ADR 0003](./0003-serverful-nextjs.md) 取代（v0.16.x 起）
 
 ## 背景
 
@@ -64,3 +64,4 @@ tw-car-claim-estimator 是車禍理賠估算工具，使用情境：
 - 2026-05-15 — 採用 Next.js static export（v0.5.0）
 - 2026-07-03 — 加 SEO / metadata / per-page OG（v0.9.0+）
 - 2026-07-06 — 加 Service Worker 進階快取（v0.13.x）
+- 2026-08-10 — 因 API、登入與資料庫需求改採 serverful Next.js；本 ADR 保留為歷史紀錄

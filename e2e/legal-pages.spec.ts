@@ -44,8 +44,8 @@ test.describe('法律頁面 E2E', () => {
     await page.goto('/')
     // 滾到 footer
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-    await expect(page.getByRole('link', { name: '關於我們' })).toBeVisible()
-    await expect(page.getByRole('link', { name: '隱私權政策' })).toBeVisible()
-    await expect(page.getByRole('link', { name: '服務條款' })).toBeVisible()
+    await expect(page.getByRole('link', { name: '關於', exact: true })).toBeVisible()
+    await expect(page.getByRole('link', { name: '隱私', exact: true })).toBeVisible()
+    await expect(page.getByRole('link', { name: '條款', exact: true })).toBeVisible()
   })
 })

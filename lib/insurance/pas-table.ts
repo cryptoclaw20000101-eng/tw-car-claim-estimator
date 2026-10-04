@@ -1,22 +1,18 @@
 // =====================================================================
-// pas-table.ts — 15 級精神慰撫金區間表 + Personal Factors multiplier
+// pas-table.ts — 50 級精神慰撫金傷勢區間表 + Personal Factors multiplier
 // (v0.18.x+ 共用模組，pain-ml.ts + civil-damages.ts 都從這 import)
 //
 // 設計：
-//   - 15 等級（v0.6.0 是 8 等級，v0.18.x 擴為 15 細分傷勢）
-//   - Personal Factors multiplier 整合 4 維度：
-//       1. 年齡 (13/18/30/65 切 4 段)
-//       2. 職業 (10 類: professional/manager/employed/service/farmer/student/unemployed/retired/homemaker/other)
-//       3. 扶養人 (0/1/2-3/4+ 4 段)
-//       4. 勞動力減損 (hasLaborLoss +30%)
-//   - 法院依法 (§195 民法) 會斟酌「兩造身分、地位、職業、教育程度、財力、年齡、性別、傷勢程度」
-//     → 個人因子反映這些 non-medical 維度
+//   - 50 等級：從 10,000 至 2,000,000 元，依傷勢嚴重度的不均等門檻與金額錨點分級。
+//   - 年齡、職業、扶養人與勞動能力減損屬法院個案審酌事項，不使用固定係數自動加減額。
+//     僅保留欄位以維持輸入相容性，並在有完整證據時交由人工複核。
 //
-// 觸發特徵表：
-//   Lv 1-3  擦挫/軟組織：無疤，門診少
-//   Lv 4-7  疤/撕裂：縫合或疤痕
-//   Lv 8-12 骨折/韌帶/神經/脊椎：住院 + 開刀
-//   Lv 13-15 永久失能：失能 11-15 / 7-10 / 1-6 級
+// 傷勢群組：
+//   Lv 1-8   擦挫、短期門診、無持續功能影響
+//   Lv 9-16  軟組織、疤痕、復健與短期住院
+//   Lv 17-28 骨折、手術、韌帶與較長療程
+//   Lv 29-40 神經、脊椎、臟器或永久功能影響
+//   Lv 41-50 失能、截肢及重度生活功能障害
 //
 // 金額依據：民法 §195 精神慰撫金酌定基準 + 司法院真實判決 median (N=153)
 // 死亡/截肢多肢/植物人 → 走 death_case / scar-revision chain 特殊 path
@@ -25,7 +21,7 @@
 // --- 15 級區間表 --------------------------------------------------------
 
 export interface PasLevelRow {
-  level: number // 1-15
+  level: number // 1-50
   label: string
   low: number
   mid: number
@@ -34,134 +30,124 @@ export interface PasLevelRow {
   trigger: string
 }
 
-export const PAS_TABLE: PasLevelRow[] = [
-  {
-    level: 1,
-    label: '極輕微擦挫',
-    trigger: '門診 1-2 次，無疤，無骨折',
-    low: 10_000,
-    mid: 20_000,
-    high: 30_000,
-  },
-  {
-    level: 2,
-    label: '輕微擦挫',
-    trigger: '門診 3-5 次，無疤',
-    low: 30_000,
-    mid: 50_000,
-    high: 70_000,
-  },
-  {
-    level: 3,
-    label: '中度擦挫',
-    trigger: '門診 5+ 次 / 敷藥 1 週+',
-    low: 50_000,
-    mid: 70_000,
-    high: 100_000,
-  },
-  {
-    level: 4,
-    label: '軟組織拉傷',
-    trigger: '復健 5-10 次，無疤',
-    low: 70_000,
-    mid: 100_000,
-    high: 150_000,
-  },
-  {
-    level: 5,
-    label: '撕裂傷+小疤',
-    trigger: '縫合 ≤ 3 針，疤 < 3cm',
-    low: 100_000,
-    mid: 150_000,
-    high: 200_000,
-  },
-  {
-    level: 6,
-    label: '撕裂傷+明疤',
-    trigger: '縫合 4+ 針 / 疤 3-10cm',
-    low: 150_000,
-    mid: 250_000,
-    high: 350_000,
-  },
-  {
-    level: 7,
-    label: '顏面疤/長疤',
-    trigger: '疤 > 10cm 或顏面位置',
-    low: 200_000,
-    mid: 300_000,
-    high: 500_000,
-  },
-  {
-    level: 8,
-    label: '簡單骨折',
-    trigger: '單一骨折，住院 ≤ 14 天，開刀 0-1 次',
-    low: 300_000,
-    mid: 500_000,
-    high: 700_000,
-  },
-  {
-    level: 9,
-    label: '複雜骨折',
-    trigger: '多處/粉碎骨折，住院 15-30 天，開刀 1-2 次',
-    low: 500_000,
-    mid: 800_000,
-    high: 1_200_000,
-  },
-  {
-    level: 10,
-    label: '韌帶/關節',
-    trigger: '開刀 + 復健 20+ 次，關節活動受限',
-    low: 600_000,
-    mid: 1_000_000,
-    high: 1_500_000,
-  },
-  {
-    level: 11,
-    label: '神經/肌腱',
-    trigger: '神經/肌腱斷裂，住院 1 月+',
-    low: 800_000,
-    mid: 1_300_000,
-    high: 2_000_000,
-  },
-  {
-    level: 12,
-    label: '脊椎/腦傷',
-    trigger: '住院 > 30 天，復健 6 月+',
-    low: 1_200_000,
-    mid: 2_000_000,
-    high: 3_000_000,
-  },
-  {
-    level: 13,
-    label: '失能輕度',
-    trigger: '失能 11-15 級，永久障害',
-    low: 1_000_000,
-    mid: 1_800_000,
-    high: 3_000_000,
-  },
-  {
-    level: 14,
-    label: '失能中度',
-    trigger: '失能 7-10 級，永久障害',
-    low: 2_000_000,
-    mid: 3_500_000,
-    high: 5_000_000,
-  },
-  {
-    level: 15,
-    label: '失能重度/極重',
-    trigger: '失能 1-6 級 / 截肢 / 癱瘓',
-    low: 3_000_000,
-    mid: 5_000_000,
-    high: 8_000_000,
-  },
-]
+export const PAIN_AMOUNT_MIN = 10_000
+export const PAIN_AMOUNT_MAX = 2_000_000
+
+/**
+ * 各級中位錨點。級距刻意不採等差或等比：輕傷緩升、結構性傷害加速、
+ * 已確認永久功能影響與重度失能再拉開差距。
+ */
+const PAS_MIDPOINTS = [
+  10_000, 15_000, 20_000, 25_000, 30_000, 35_000, 40_000, 45_000, 50_000, 60_000, 70_000, 80_000,
+  90_000, 100_000, 115_000, 130_000, 145_000, 160_000, 180_000, 200_000, 225_000, 250_000, 280_000,
+  310_000, 340_000, 380_000, 420_000, 460_000, 500_000, 550_000, 600_000, 650_000, 700_000, 760_000,
+  820_000, 880_000, 950_000, 1_020_000, 1_100_000, 1_180_000, 1_270_000, 1_360_000, 1_460_000,
+  1_570_000, 1_680_000, 1_800_000, 1_900_000, 1_960_000, 1_990_000, 2_000_000,
+] as const
+
+/** 0-200 嚴重度分數對應 50 級的不均等門檻。 */
+const PAS_SCORE_CEILINGS = [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  8,
+  10,
+  12,
+  14,
+  16,
+  18,
+  20,
+  23,
+  26,
+  29,
+  32,
+  35,
+  38,
+  42,
+  46,
+  50,
+  54,
+  58,
+  63,
+  68,
+  73,
+  78,
+  83,
+  89,
+  95,
+  101,
+  108,
+  115,
+  122,
+  130,
+  138,
+  146,
+  154,
+  162,
+  170,
+  178,
+  185,
+  191,
+  195,
+  198,
+  199,
+  200,
+  Number.POSITIVE_INFINITY,
+] as const
+
+function injuryMeta(level: number): Pick<PasLevelRow, 'label' | 'trigger'> {
+  if (level <= 8)
+    return {
+      label: `第 ${level} 級：擦挫與短期門診`,
+      trigger: '擦挫、挫傷或短期門診，無結構性傷害與持續功能影響',
+    }
+  if (level <= 16)
+    return {
+      label: `第 ${level} 級：軟組織與疤痕治療`,
+      trigger: '拉傷、撕裂、疤痕、復健或短期住院，依療程與客觀傷勢分級',
+    }
+  if (level <= 28)
+    return {
+      label: `第 ${level} 級：骨折、手術與長療程`,
+      trigger: '骨折、手術、韌帶或關節傷害，依治療強度、住院與復健影響分級',
+    }
+  if (level <= 40)
+    return {
+      label: `第 ${level} 級：神經、脊椎或永久影響`,
+      trigger: '神經、脊椎、臟器或永久功能影響，須以專科診斷與客觀資料佐證',
+    }
+  return {
+    label: `第 ${level} 級：重度失能與生活功能障害`,
+    trigger: '已確認失能、截肢或重度生活功能障害，須依失能診斷、生活影響與個案證據審酌',
+  }
+}
+
+export const PAS_TABLE: PasLevelRow[] = PAS_MIDPOINTS.map((mid, index) => {
+  const level = index + 1
+  const meta = injuryMeta(level)
+  return {
+    level,
+    ...meta,
+    low: index === 0 ? PAIN_AMOUNT_MIN : PAS_MIDPOINTS[index - 1],
+    mid,
+    high: index === PAS_MIDPOINTS.length - 1 ? PAIN_AMOUNT_MAX : PAS_MIDPOINTS[index + 1],
+  }
+})
 
 /** 從 1-based level 取 0-based index */
 export function pasLevelIndex(level: number): number {
   if (level < 1) return 0
-  if (level > 15) return 14
+  if (level > PAS_TABLE.length) return PAS_TABLE.length - 1
   return level - 1
+}
+
+export function pasLevelIndexFromScore(score: number): number {
+  const normalized = Math.max(0, Math.min(200, score))
+  return PAS_SCORE_CEILINGS.findIndex((ceiling) => normalized <= ceiling)
 }
 
 // --- Personal Factors (4 維度，民法 §195 酌定因子) -----------------------
@@ -190,7 +176,7 @@ export interface PersonalFactors {
 }
 
 export interface PersonalFactorResult {
-  /** 總 multiplier（預期 0.7-1.6） */
+  /** 固定為 1。個人條件不得以預設倍率自動調整慰撫金。 */
   multiplier: number
   /** 各維度細項（給 UI 顯示「為什麼會加成」） */
   ageFactor: number
@@ -203,95 +189,25 @@ export interface PersonalFactorResult {
   laborLossNote: string | null
 }
 
-const DEFAULT_OCCUPATION_FACTORS: Record<OccupationCategory, number> = {
-  professional: 1.3,
-  manager: 1.2,
-  employed: 1.0,
-  service: 1.0,
-  farmer: 0.9,
-  student: 0.9,
-  unemployed: 0.85,
-  retired: 0.9,
-  homemaker: 0.9,
-  other: 1.0,
-}
-
-const OCCUPATION_LABELS: Record<OccupationCategory, string> = {
-  professional: '專業人士（律師/醫師/教授）',
-  manager: '高階主管',
-  employed: '一般受僱',
-  service: '服務業',
-  farmer: '農業',
-  student: '學生',
-  unemployed: '待業',
-  retired: '退休',
-  homemaker: '家管',
-  other: '其他',
-}
-
 /**
- * 計算 Personal Factors multiplier
+ * 個人條件的人工複核占位。
  *
- * 設計原則：
- * - 各維度 0.85-1.3 之間，不會極端放大或縮小
- * - 4 維度相乘（不是相加）以避免單一極端值
- * - 全部維度都中位 → multiplier = 1.0（不調整）
+ * 民法第 195 條的慰撫金屬相當金額，實務上須綜合兩造身分、資力、過失、
+ * 傷勢與證據判斷。年齡、職業或扶養人數沒有法定換算倍率，因此不自動調整。
  */
 export function personalFactorMultiplier(factors: PersonalFactors): PersonalFactorResult {
-  // 年齡
-  let ageFactor = 1.0
-  let ageNote: string | null = null
-  if (factors.age < 13) {
-    ageFactor = 1.3
-    ageNote = `未滿 13 歲 ×1.3（人格法益保護加強）`
-  } else if (factors.age < 18) {
-    ageFactor = 1.2
-    ageNote = `13-17 歲少年 ×1.2`
-  } else if (factors.age < 30) {
-    ageFactor = 1.1
-    ageNote = `18-29 歲青年 ×1.1`
-  } else if (factors.age > 65) {
-    ageFactor = 0.9
-    ageNote = `65 歲以上高齡 ×0.9（壽命預期酌減）`
-  }
-
-  // 職業
-  const occupationFactor = DEFAULT_OCCUPATION_FACTORS[factors.occupation] ?? 1.0
-  const occupationNote =
-    occupationFactor !== 1.0
-      ? `${OCCUPATION_LABELS[factors.occupation]} ×${occupationFactor}`
-      : null
-
-  // 扶養人
-  let dependentFactor = 1.0
-  let dependentNote: string | null = null
-  if (factors.dependentCount >= 4) {
-    dependentFactor = 1.25
-    dependentNote = `扶養 4+ 人 ×1.25`
-  } else if (factors.dependentCount >= 2) {
-    dependentFactor = 1.15
-    dependentNote = `扶養 2-3 人 ×1.15`
-  } else if (factors.dependentCount >= 1) {
-    dependentFactor = 1.05
-    dependentNote = `扶養 1 人 ×1.05`
-  }
-
-  // 勞減
-  const laborLossFactor = factors.hasLaborLoss ? 1.3 : 1.0
-  const laborLossNote = factors.hasLaborLoss ? '有勞動力減損（失能/永久障害）×1.3' : null
-
-  const multiplier = ageFactor * occupationFactor * dependentFactor * laborLossFactor
-
+  // 保留輸入以維持呼叫端相容性；不得以其自動換算金額。
+  void factors
   return {
-    multiplier,
-    ageFactor,
-    ageNote,
-    occupationFactor,
-    occupationNote,
-    dependentFactor,
-    dependentNote,
-    laborLossFactor,
-    laborLossNote,
+    multiplier: 1,
+    ageFactor: 1,
+    ageNote: null,
+    occupationFactor: 1,
+    occupationNote: null,
+    dependentFactor: 1,
+    dependentNote: null,
+    laborLossFactor: 1,
+    laborLossNote: null,
   }
 }
 

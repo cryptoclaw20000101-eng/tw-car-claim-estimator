@@ -10,6 +10,10 @@
 export async function register() {
   // 只在 Node.js runtime 跑（Edge / browser 不適用）
   if (process.env.NEXT_RUNTIME === 'nodejs') {
+    // Production-browser E2E 不需要資料庫；明確略過，避免測試 log 被預期中的
+    // DATABASE_URL 缺失淹沒。正式環境不設定此旗標，仍會照常 migration。
+    if (process.env.SKIP_DB_MIGRATIONS === 'true') return
+
     // dynamic import 避免 build time 嘗試連線
     const { applyMigrations } = await import('./db/apply-migrations')
     try {

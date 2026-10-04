@@ -19,7 +19,7 @@ export function R2C({
   required?: boolean
 }) {
   return (
-    <Col xs={12} md={8}>
+    <Col xs={24} sm={12} md={8}>
       <Form.Item
         label={required ? `${label} *` : label}
         name={name}

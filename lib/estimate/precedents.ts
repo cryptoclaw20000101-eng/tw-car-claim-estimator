@@ -11,13 +11,16 @@
  *   → 那是示意資料，使用者要求「真實判決」，我們用爬蟲抓的真實 16+ 件
  *
  * 設計：
- *   - SSR 安全：動態 import + try/catch，檔案不存在回空陣列
+ *   - 建置期靜態匯入，避免 client component 在 runtime 讀取 node:fs
  *   - 去識別化：只存 金額/案情/法院/案號，不存個資
  *   - 篩選：依 法院 + 嚴重度區間（金額區間）找最相關 1-3 件
  */
 
 import type { CourtCaseReference } from '@/lib/data-sources/types'
 import { courtToCity } from '@/lib/insurance/region-court-map'
+import mentalDistressRows from '@/data/precedents/taipei-mental-distress.json'
+import practiceCaseRows from '@/data/precedents/practice-cases.json'
+import disabilityMergingRows from '@/data/precedents/disability-merging.json'
 import {
   precedentDistance,
   computeDimensionDistances,
@@ -48,41 +51,12 @@ interface ScrapedPrecedent {
 let _cache: ScrapedPrecedent[] | null = null
 
 /**
- * 載入真實判決（惰性 + 快取）
- * 失敗回空陣列（檔案不存在 → 視同無資料，不影響主流程）
- *
- * 同步版：因為「client component 不能 await server-side fs.readFile」
- * 改用 require 在第一次呼叫時同步讀取
+ * 載入真實判決。資料以 JSON 靜態匯入，能安全提供給 client component。
  */
 function loadPrecedentsSync(): ScrapedPrecedent[] {
   if (_cache !== null) return _cache
-  try {
-    // v0.20.2+：用 lazy require 避免把 node:fs / node:path 拉進 client bundle
-    // （Top-level import 會破 Next.js Turbopack client build）
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { readFileSync, existsSync } = require('node:fs') as typeof import('node:fs')
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { join } = require('node:path') as typeof import('node:path')
-    // 嘗試多個路徑（cwd 在不同 context 不一樣）
-    const candidates = [
-      join(process.cwd(), 'data/precedents/taipei-mental-distress.json'),
-      join(process.cwd(), '..', 'data/precedents/taipei-mental-distress.json'),
-    ]
-    for (const p of candidates) {
-      if (existsSync(p)) {
-        const raw = readFileSync(p, 'utf-8')
-        _cache = JSON.parse(raw) as ScrapedPrecedent[]
-        // v0.12.0+ 移除 dev console.log（生產環境不應輸出 debug）
-        return _cache
-      }
-    }
-    _cache = []
-    return _cache
-  } catch (e) {
-    console.warn(`[precedents] 載入失敗：${(e as Error).message}`)
-    _cache = []
-    return _cache
-  }
+  _cache = mentalDistressRows as ScrapedPrecedent[]
+  return _cache
 }
 
 /**
@@ -149,9 +123,8 @@ export function getPrecedentCount(): number {
 }
 
 // =================================================================
-// 通用型判例載入器（不限 taipei-mental-distress.json）
-// 載入 data/precedents/*.json 全部檔案
-// 給勞動能力減損、車損、除疤、特殊案型使用
+// 通用型判例載入器（前端實際需要的結構化判例）
+// 只載入 KNN 實務案例與失能規則資料，避免把整個 precedents 目錄打進前端 bundle。
 // =================================================================
 
 /** 通用判例結構（涵蓋勞減/除疤/車損/特殊案型/失能保典） */
@@ -172,45 +145,13 @@ export interface GeneralPrecedent {
 let _generalCache: GeneralPrecedent[] | null = null
 
 /**
- * 載入 data/precedents/ 全部 JSON 檔
- * 排除 taipei-mental-distress.json（既有專用 loader 處理）
+ * 載入前端實際使用的結構化資料。
+ * 精神慰撫金資料由專用 loadPrecedentsSync 處理，不在此重複加入。
  */
 export function loadAllPrecedents(): GeneralPrecedent[] {
   if (_generalCache !== null) return _generalCache
-  try {
-    // v0.20.2+：同上一段 lazy require，避免 client bundle error
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { readdirSync, readFileSync, existsSync } = require('node:fs') as typeof import('node:fs')
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { join } = require('node:path') as typeof import('node:path')
-    const dirs = [
-      join(process.cwd(), 'data', 'precedents'),
-      join(process.cwd(), '..', 'data', 'precedents'),
-    ]
-    for (const dir of dirs) {
-      if (!existsSync(dir)) continue
-      const files = readdirSync(dir).filter(
-        (f: string) => f.endsWith('.json') && f !== 'taipei-mental-distress.json',
-      )
-      const all: GeneralPrecedent[] = []
-      for (const f of files) {
-        const raw = readFileSync(join(dir, f), 'utf-8')
-        const arr = JSON.parse(raw) as GeneralPrecedent[]
-        if (Array.isArray(arr)) {
-          all.push(...arr)
-        }
-      }
-      _generalCache = all
-      // v0.12.0+ 移除 dev console.log（生產環境不應輸出 debug）
-      return _generalCache
-    }
-    _generalCache = []
-    return _generalCache
-  } catch (e) {
-    console.warn(`[precedents-general] 載入失敗：${(e as Error).message}`)
-    _generalCache = []
-    return _generalCache
-  }
+  _generalCache = [...practiceCaseRows, ...disabilityMergingRows] as GeneralPrecedent[]
+  return _generalCache
 }
 
 /**

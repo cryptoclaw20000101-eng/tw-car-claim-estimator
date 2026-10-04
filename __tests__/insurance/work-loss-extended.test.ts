@@ -89,14 +89,13 @@ describe('computeWorkLossExtended', () => {
     expect(r.amount).toBe(90_000)
   })
 
-  it('臺北地院（係數 1.10）→ 短期加成 10%', () => {
+  it('臺北地院不以慰撫金係數加成短期工作損失', () => {
     const r = computeWorkLossExtended({
       person: basePerson,
       courtName: '臺灣臺北地方法院',
     })
-    expect(r.regionalMultiplier).toBe(1.1)
-    // 80000 × 1.10 = 88,000
-    expect(r.amount).toBe(88_000)
+    expect(r.regionalMultiplier).toBe(1)
+    expect(r.amount).toBe(80_000)
   })
 
   it('65 歲 → 霍夫曼年數 0 → 提示退休', () => {

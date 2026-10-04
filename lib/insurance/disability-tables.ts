@@ -9,6 +9,7 @@
 // =====================================================================
 
 import type { DisabilityLevel } from './types'
+import { isNewLaw } from '../data-sources/regulation-cutoff'
 
 // 新制金額表（事故日期 2026-07-01 起）
 export const disabilityBenefitTableNew: Record<DisabilityLevel, number> = {
@@ -59,7 +60,7 @@ export const NEW_SYSTEM_CUTOFF = '2026-07-01'
  */
 export function pickDisabilityTable(accidentDate: string): Record<DisabilityLevel, number> {
   if (!accidentDate) return disabilityBenefitTableNew
-  return accidentDate >= NEW_SYSTEM_CUTOFF ? disabilityBenefitTableNew : disabilityBenefitTableOld
+  return isNewLaw(accidentDate) ? disabilityBenefitTableNew : disabilityBenefitTableOld
 }
 
 /**
@@ -70,4 +71,29 @@ export function lookupDisabilityAmount(
   table: Record<DisabilityLevel, number>,
 ): number {
   return table[level] ?? 0
+}
+
+/** 強制險給付標準第 4 條：同時符合二項以上時的升等與合計額上限。 */
+export function combineDisabilityBenefits(
+  levels: DisabilityLevel[],
+  table: Record<DisabilityLevel, number>,
+): { level: DisabilityLevel; amount: number; appliedUpgrade: number } {
+  const highest = Math.min(...levels) as DisabilityLevel
+  if (levels.length < 2) {
+    return { level: highest, amount: lookupDisabilityAmount(highest, table), appliedUpgrade: 0 }
+  }
+
+  // 第 4 條第 3 至 5 款：依最高失能等級決定升 1、2 或 3 等。
+  const appliedUpgrade = highest <= 5 ? 3 : highest <= 8 ? 2 : 1
+  const level = Math.max(1, highest - appliedUpgrade) as DisabilityLevel
+  const upgradedAmount = lookupDisabilityAmount(level, table)
+  const separateTotal = levels.reduce((sum, item) => sum + lookupDisabilityAmount(item, table), 0)
+
+  return {
+    level,
+    // 第 4 條第 6 款：升等後的金額若超過各項分別計算合計額，按合計額給與。
+    // 因此同一事故的合併給付取兩者較低者，不能把各項金額再無條件相加。
+    amount: Math.min(upgradedAmount, separateTotal),
+    appliedUpgrade,
+  }
 }

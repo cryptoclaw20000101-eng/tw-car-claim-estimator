@@ -4,10 +4,10 @@
 // 守護「換日期不會炸 rc-picker」這條 v0.6.4 修過的不變量。
 //
 // 兩條規則必須同時成立：
-//   1. 父層 NewClaimForm mount 時 useEffect 一次性注入 dayjs 到 3 個日期欄位
-//      （accidentDate / birthDate / emergencyDate）— 避免 conditional render
+//   1. 各日期步驟 mount 時 useEffect 一次性注入 dayjs 到 2 個日期欄位
+//      （accidentDate / emergencyDate）— 避免 conditional render
 //      時未 mount Step 的 useEffect 還沒跑，validateFields 就拿到字串炸掉
-//   2. 三個日期 Form.Item 都要帶 getValueProps（轉 form 字串 → dayjs）
+//   2. 兩個日期 Form.Item 都要帶 getValueProps（轉 form 字串 → dayjs）
 //      — 避免 onChange 寫字串回流後 DatePicker 拿到字串炸掉
 //
 // 這個檔是結構性斷言（grep _form.tsx 原始碼），不需要 jsdom 環境，
@@ -21,29 +21,23 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 // v0.15.x+ 重構後，Step 元件拆到 _steps/ 子目錄
-// 源碼分散：_form.tsx（主檔）+ _steps/Step1Basics.tsx + _steps/Step3Person.tsx + _steps/Step4Diagnosis.tsx
-// v0.15.x+ 抽 Step3 後，birthDate 從 Step1 搬到 Step3，PATHS 必須含 Step3Person
+// 源碼分散：_form.tsx（主檔）+ _steps/Step1Basics.tsx + _steps/Step4Diagnosis.tsx
 // v0.20.0+：Step4Medical 拆成 Step4Diagnosis（保留 medical.emergencyDate）+ Step5FeesAndProperty
 const PATHS = [
   resolve(process.cwd(), 'app/claims/new/_form.tsx'),
   resolve(process.cwd(), 'app/claims/new/_steps/Step1Basics.tsx'),
-  resolve(process.cwd(), 'app/claims/new/_steps/Step3PersonalWork.tsx'),
   resolve(process.cwd(), 'app/claims/new/_steps/Step4Diagnosis.tsx'),
 ]
 const source = PATHS.map((p) => readFileSync(p, 'utf-8')).join('\n')
 
 describe('DatePicker 不變量 (v0.6.5 regression)', () => {
   // -------------------------------------------------------------------
-  // 規則 1：父層 NewClaimForm useEffect 注入 3 個 dayjs 欄位
+  // 規則 1：各步驟 useEffect 注入 2 個 dayjs 欄位
   // -------------------------------------------------------------------
-  describe('父層 useEffect 注入 3 個日期欄位為 dayjs', () => {
+  describe('步驟 useEffect 注入 2 個日期欄位為 dayjs', () => {
     it('源碼內有 basics.accidentDate 用 dayjs() 注入', () => {
       // 找 setFieldsValue 區塊，確認含 accidentDate: dayjs(
       expect(source).toMatch(/setFieldsValue\(\s*\{[\s\S]*?basics:\s*\{\s*accidentDate:\s*dayjs\(/)
-    })
-
-    it('源碼內有 person.birthDate 用 dayjs() 注入', () => {
-      expect(source).toMatch(/person:\s*\{\s*birthDate:\s*dayjs\(/)
     })
 
     it('源碼內有 medical.emergencyDate 用 dayjs() 注入', () => {
@@ -52,19 +46,13 @@ describe('DatePicker 不變量 (v0.6.5 regression)', () => {
   })
 
   // -------------------------------------------------------------------
-  // 規則 2：三個日期 Form.Item 都要帶 getValueProps 轉字串→dayjs
+  // 規則 2：兩個日期 Form.Item 都要帶 getValueProps 轉字串→dayjs
   // -------------------------------------------------------------------
-  describe('三個日期 Form.Item 都有 getValueProps（守護 onChange 字串回流）', () => {
+  describe('兩個日期 Form.Item 都有 getValueProps（守護 onChange 字串回流）', () => {
     it('事故日期 Form.Item 有 getValueProps 把 value 轉 dayjs', () => {
       // 找 name={['basics', 'accidentDate']} 後面緊接 getValueProps
       const re =
         /name=\{\['basics',\s*'accidentDate'\]\}[\s\S]{0,200}getValueProps=\{[^}]*dayjs\(value\)/
-      expect(source).toMatch(re)
-    })
-
-    it('出生年月日 Form.Item 有 getValueProps 把 value 轉 dayjs', () => {
-      const re =
-        /name=\{\['person',\s*'birthDate'\]\}[\s\S]{0,200}getValueProps=\{[^}]*dayjs\(value\)/
       expect(source).toMatch(re)
     })
 
@@ -76,10 +64,10 @@ describe('DatePicker 不變量 (v0.6.5 regression)', () => {
   })
 
   // -------------------------------------------------------------------
-  // 規則 3：合計剛好 3 個 getValueProps（沒多沒少）
+  // 規則 3：合計剛好 2 個 getValueProps（沒多沒少）
   // -------------------------------------------------------------------
-  it('源碼內 getValueProps 共出現 3 次（剛好對應 3 個日期欄位）', () => {
+  it('源碼內 getValueProps 共出現 2 次（剛好對應 2 個日期欄位）', () => {
     const matches = source.match(/getValueProps=/g) ?? []
-    expect(matches.length).toBe(3)
+    expect(matches.length).toBe(2)
   })
 })

@@ -35,7 +35,7 @@ export default function PrivacyContent() {
         </Paragraph>
 
         <Card>
-          <Space direction="vertical" size="large" className="!w-full">
+          <Space orientation="vertical" size="large" className="!w-full">
             <Section
               title="概述"
               icon={<LockOutlined />}

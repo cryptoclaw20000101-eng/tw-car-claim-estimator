@@ -59,12 +59,12 @@ describe('PainEnsembleCard SSR HTML 結構', () => {
     expect(html).toContain('NT$ 250,000')
   })
 
-  it('三票展開 → HTML 含規則/ML/KNN 三票字眼', () => {
+  it('資料來源展開 → HTML 含規則、案例與相似案件字眼', () => {
     const html = renderToString(<PainEnsembleCard {...baseProps} />)
     // v0.6.7 UI 改用「規則算法 / 案例比對 / 歷史相似」三票標籤
     expect(html).toContain('規則算法')
     expect(html).toContain('案例比對')
-    expect(html).toContain('歷史相似')
+    expect(html).toContain('相似案件參考')
   })
 
   it('三票金額都渲染（規則 240K + ML 260K + KNN 250K）', () => {
@@ -108,7 +108,7 @@ describe('PainEnsembleCard SSR HTML 結構', () => {
     expect(html).toMatch(/規則算法[\s\S]*?outlier/)
   })
 
-  it('KNN null → 該票顯示「無相似案件」標籤且 dim', () => {
+  it('KNN null → 該票顯示缺少可比較慰撫金資料的標籤且 dim', () => {
     const props: PainEnsembleCardProps = {
       ...baseProps,
       painEnsemble: {
@@ -122,7 +122,7 @@ describe('PainEnsembleCard SSR HTML 結構', () => {
       },
     }
     const html = renderToString(<PainEnsembleCard {...props} />)
-    expect(html).toContain('無相似案件')
+    expect(html).toContain('缺可比較的單獨慰撫金資料')
     expect(html).toContain('票數不足')
   })
 

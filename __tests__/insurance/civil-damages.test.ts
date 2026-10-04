@@ -225,6 +225,16 @@ describe('computeCivilNursingFee — 民事看護費', () => {
     expect(result.mid).toBeGreaterThan(0)
   })
 
+  it('明確未確認看護必要性時，不因收據／日數直接列入主估算', () => {
+    const result = computeCivilNursingFee(
+      { ...EMPTY_RECEIPTS, nursingFee: 36_000, nursingDays: 30 },
+      { ...MINIMAL_MEDICAL, requiresNursingCare: false, nursingDays: 30 },
+      '臺灣臺北地方法院',
+    )
+    expect(result.mid).toBe(0)
+    expect(result.requiresMedicalProof).toBe(true)
+  })
+
   it('看護費 result 結構守護 low ≤ mid ≤ high', () => {
     const result = computeCivilNursingFee(
       { ...EMPTY_RECEIPTS, nursingDays: 30 },
@@ -296,6 +306,18 @@ describe('computeLaborCapacityLoss — 勞動能力減損', () => {
     })
     // 等級數字越小表示障害越嚴重 → 勞減越高
     expect(lvl7.estimate).toBeGreaterThan(lvl13.estimate)
+  })
+
+  it('個案鑑定勞減率優先於失能等級映射，且不標示為參考值', () => {
+    const result = computeLaborCapacityLoss({
+      medical: { ...MINIMAL_MEDICAL, hasDisabilityCertificate: true },
+      person: SAMPLE_PERSON,
+      courtName: '臺灣臺北地方法院',
+      disabilityLevel: 1,
+      assessedLossPercent: 0.2,
+    })
+    expect(result.lossPercent).toBe(0.2)
+    expect(result.isReferenceEstimate).toBe(false)
   })
 })
 

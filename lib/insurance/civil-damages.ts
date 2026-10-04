@@ -1,13 +1,13 @@
 // =====================================================================
 // 民事損害賠償計算
 // 涵蓋：民事醫療差額、看護費（地區行情）、工作損失、勞動能力減損、
-//       精神慰撫金（v0.18.x+ 15 級 + Personal Factors）
+//       精神慰撫金（50 級傷勢區間 + Personal Factors）
 //
 // 公式原則：
 //   1. 民事醫療 = 總收據 - 強制險已認列
 //   2. 民事看護 = 地區日額 × 醫囑日數 - 強制險已認列
 //   3. 工作損失 = 每日收入 × min(實際請假, 醫囑休養)
-//   4. 精神慰撫金 = 嚴重度分數 (0-200) → 15 級區間 → × 地區係數 × Personal Factors
+//   4. 精神慰撫金 = 嚴重度分數 (0-200) → 50 級傷勢區間 → 地區參考 × Personal Factors
 // =====================================================================
 
 import type {
@@ -31,14 +31,18 @@ interface SeverityScoreBreakdown {
   hasSurgery: boolean
   hasFracture: boolean
   hasNerveDamage: boolean
+  hasOrganDamage?: boolean
   hasAmputation: boolean
   treatmentDurationDays: number // 保留供 scoreSeverity 內部使用（測試可注入）
 }
 
-// 15 級區間表（v0.18.x+ 從 pas-table.ts 共用，原 8 級擴為 15 級）
+// 50 級傷勢區間表（從 pas-table.ts 共用）
 import {
   PAS_TABLE,
+  PAIN_AMOUNT_MAX,
+  PAIN_AMOUNT_MIN,
   type PasLevelRow,
+  pasLevelIndexFromScore,
   personalFactorMultiplier,
   DEFAULT_PERSONAL_FACTORS,
   type PersonalFactors,
@@ -74,48 +78,38 @@ export function scoreSeverity(b: SeverityScoreBreakdown): number {
   else if (b.rehabilitationCount >= 15) score += 8
   else if (b.rehabilitationCount >= 5) score += 4
 
-  // 疤痕 (0-30)
-  if (b.hasAmputation) score += 30
+  // 疤痕 / 截肢（截肢屬重度生活功能影響，不與一般疤痕同權重）
+  if (b.hasAmputation) score += 80
   else if (b.scarLengthCm >= 20) score += 20
   else if (b.scarLengthCm >= 10) score += 15
   else if (b.scarLengthCm >= 5) score += 10
   else if (b.scarLengthCm > 0) score += 5
 
-  // 開刀 (0-10)
-  if (b.hasSurgery) score += 10
+  // 開刀 (0-15)
+  if (b.hasSurgery) score += 15
 
-  // 骨折 (0-10)
-  if (b.hasFracture) score += 10
+  // 骨折 (0-18)
+  if (b.hasFracture) score += 18
 
-  // 神經損傷 (0-15)
-  if (b.hasNerveDamage) score += 15
+  // 神經 / 臟器傷害（均須專科診斷，僅供慰撫金傷勢分層）
+  if (b.hasNerveDamage) score += 30
+  if (b.hasOrganDamage) score += 35
 
-  // 永久障害 (0-12)
-  if (b.hasPermanentImpairment) score += 12
+  // 永久障害 (0-25)
+  if (b.hasPermanentImpairment) score += 25
 
-  // 失能/截肢 (0-25)
-  if (b.hasDisability || b.hasAmputation) score += 25
+  // 已具失能診斷 / 截肢 (0-30)
+  if (b.hasDisability || b.hasAmputation) score += 30
 
   return Math.min(score, 200)
 }
 
 function pickPasTableIndex(score: number): number {
-  // v0.18.x+ 15 等級 (0-14)
-  if (score >= 130) return 14
-  if (score >= 100) return 13
-  if (score >= 80) return 12
-  if (score >= 65) return 11
-  if (score >= 50) return 10
-  if (score >= 40) return 9
-  if (score >= 32) return 8
-  if (score >= 25) return 7
-  if (score >= 18) return 6
-  if (score >= 12) return 5
-  if (score >= 8) return 4
-  if (score >= 5) return 3
-  if (score >= 3) return 2
-  if (score >= 1) return 1
-  return 0
+  return pasLevelIndexFromScore(score)
+}
+
+function clampPainAmount(amount: number): number {
+  return Math.max(PAIN_AMOUNT_MIN, Math.min(PAIN_AMOUNT_MAX, Math.round(amount)))
 }
 
 /**
@@ -135,6 +129,7 @@ export function computePainAndSuffering(
     hasSurgery: medical.hasSurgery,
     hasFracture: medical.hasFracture,
     hasNerveDamage: medical.hasNerveDamage,
+    hasOrganDamage: medical.hasOrganDamage,
     hasAmputation: medical.hasAmputation,
     treatmentDurationDays: medical.hospitalizationDays * 2 + medical.rehabilitationCount * 3,
   }
@@ -148,19 +143,19 @@ export function computePainAndSuffering(
   const treatmentDays = medical.hospitalizationDays * 2 + medical.rehabilitationCount * 3
   const treatmentBoost = Math.min(treatmentDays / 180, 0.2)
 
-  const baseLow = Math.round(baseRow.low * (1 + treatmentBoost))
-  const baseMid = Math.round(baseRow.mid * (1 + treatmentBoost))
-  const baseHigh = Math.round(baseRow.high * (1 + treatmentBoost))
+  const baseLow = clampPainAmount(baseRow.low * (1 + treatmentBoost))
+  const baseMid = clampPainAmount(baseRow.mid * (1 + treatmentBoost))
+  const baseHigh = clampPainAmount(baseRow.high * (1 + treatmentBoost))
 
-  const regionalLow = Math.round(baseLow * region.painAndSufferingMultiplier)
-  const regionalMid = Math.round(baseMid * region.painAndSufferingMultiplier)
-  const regionalHigh = Math.round(baseHigh * region.painAndSufferingMultiplier)
+  const regionalLow = clampPainAmount(baseLow * region.painAndSufferingMultiplier)
+  const regionalMid = clampPainAmount(baseMid * region.painAndSufferingMultiplier)
+  const regionalHigh = clampPainAmount(baseHigh * region.painAndSufferingMultiplier)
 
-  // v0.18.x+ Personal Factors (民法 §195 酌定因子：年齡/職業/扶養人/勞減)
+  // 個人條件由人工依證據審酌，不以固定倍率自動加減慰撫金。
   const pf = personalFactorMultiplier(personal ?? DEFAULT_PERSONAL_FACTORS)
-  const adjustedLow = Math.round(regionalLow * pf.multiplier)
-  const adjustedMid = Math.round(regionalMid * pf.multiplier)
-  const adjustedHigh = Math.round(regionalHigh * pf.multiplier)
+  const adjustedLow = clampPainAmount(regionalLow * pf.multiplier)
+  const adjustedMid = clampPainAmount(regionalMid * pf.multiplier)
+  const adjustedHigh = clampPainAmount(regionalHigh * pf.multiplier)
 
   const notes: string[] = []
   if (pf.ageNote) notes.push(pf.ageNote)
@@ -209,6 +204,9 @@ export interface CivilNursingResult {
   low: number
   mid: number
   high: number
+  /** 未確認醫囑必要性時，金額不得列入主估算。 */
+  requiresMedicalProof: boolean
+  notes: string[]
   region: {
     low: number
     mid: number
@@ -221,14 +219,30 @@ export function computeCivilNursingFee(
   medical: MedicalRecord,
   courtName: string,
 ): CivilNursingResult {
+  const region = getRegionAdjustment(courtName)
+  // 看護費（尤其居家看護）需有醫師認定必要性；不能只因輸入收據／日數即主張。
+  // undefined 保留舊分享資料的向後相容，明確填 false 時才阻擋試算。
+  if (medical.requiresNursingCare === false) {
+    return {
+      low: 0,
+      mid: 0,
+      high: 0,
+      requiresMedicalProof: true,
+      notes: ['未確認醫師認定看護必要性，看護費暫不列入民事主估算'],
+      region: {
+        low: region.nursingDailyRateLow,
+        mid: region.nursingDailyRateMid,
+        high: region.nursingDailyRateHigh,
+      },
+    }
+  }
+
   // 強制險已認列的看護費
   const eligibleDays = Math.min(receipts.nursingDays, 30)
   const compulsoryNursingApproved = Math.min(receipts.nursingFee, 1_200 * eligibleDays)
 
   // 醫囑看護日數優先用 receipts.nursingDays，否則 medical.nursingDays
   const doctorOrderedDays = receipts.nursingDays > 0 ? receipts.nursingDays : medical.nursingDays
-
-  const region = getRegionAdjustment(courtName)
 
   const low = Math.max(
     region.nursingDailyRateLow * doctorOrderedDays - compulsoryNursingApproved,
@@ -247,6 +261,8 @@ export function computeCivilNursingFee(
     low,
     mid,
     high,
+    requiresMedicalProof: false,
+    notes: [],
     region: {
       low: region.nursingDailyRateLow,
       mid: region.nursingDailyRateMid,
@@ -326,17 +342,17 @@ export function computeWorkLoss(person: PersonalIncome, courtName: string): Work
   }
 }
 
-// --- 勞動能力減損（霍夫曼 × 失能等級 1-15 × 年收入 × 地區係數） --------
+// --- 勞動能力減損（霍夫曼 × 失能等級 1-15 × 年收入） --------------------
 // 法源：
 //   - 民法 §193 II（勞動能力減損之賠償）
 //   - 司法院 73.05.25 (73)廳民一字第 365 號函釋
 //   - 強制汽車責任保險給付標準 §4 附表「失能等級」1-15 等
 //
-// 公式：金額 = 年收入 × 霍夫曼係數（n=到退休年數）× 失能等級百分比 × 地區係數
+// 公式：金額 = 年收入 × 霍夫曼係數（n=到退休年數）× 失能等級百分比
 //   - 年收入：以 6 月平均薪資 × 12 推估（保守版）
 //   - 霍夫曼年數：min(65 - 事故年齡, 40)；不足 0 年回 0
 //   - 失能等級百分比：來自 DISABILITY_LABOR_LOSS_PCT（1 等=100%, 15 等=5%）
-//   - 地區係數：沿用 painAndSufferingMultiplier（反映物價 + 物資）
+//   - 地區差異僅影響證據提示，不以慰撫金係數調整已證明的收入損失。
 //
 // 重要：未輸入失能等級、年齡、收入任一項時回 estimate = 0 + 提示，不硬算
 
@@ -346,6 +362,8 @@ export interface LaborCapacityLossInput {
   courtName: string
   /** 失能等級 1-15（來自強制險失能診斷書）；未輸入時為 null */
   disabilityLevel: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | null
+  /** 醫療鑑定或職務分析認定的勞減率（0–1）；優先於強制險失能等級參考表。 */
+  assessedLossPercent?: number
   /**
    * 霍夫曼計算終點年齡（勞減算到幾歲）。
    * 預設 65（勞基法 §54 強制退休年齡）。
@@ -381,6 +399,8 @@ export interface LaborCapacityLossResult {
   retirementAge: number
   hint: string | null
   notes: string[]
+  /** 沒有個案鑑定／職務分析率時，等級映射只能作參考。 */
+  isReferenceEstimate?: boolean
 }
 
 export function computeLaborCapacityLoss(input: LaborCapacityLossInput): LaborCapacityLossResult {
@@ -406,7 +426,7 @@ export function computeLaborCapacityLoss(input: LaborCapacityLossInput): LaborCa
       hoffmannYears: 0,
       hoffmannCoefficient: 0,
       lossPercent: 0,
-      regionalMultiplier: region.painAndSufferingMultiplier,
+      regionalMultiplier: 1,
       disabilityLevel: null,
       retirementAge: input.retirementAge ?? 65,
       hint: null,
@@ -424,7 +444,7 @@ export function computeLaborCapacityLoss(input: LaborCapacityLossInput): LaborCa
       hoffmannYears: 0,
       hoffmannCoefficient: 0,
       lossPercent: 0,
-      regionalMultiplier: region.painAndSufferingMultiplier,
+      regionalMultiplier: 1,
       disabilityLevel: null,
       retirementAge: input.retirementAge ?? 65,
       hint: '有失能/神經/關節/截肢線索，但缺「失能等級」。請補：強制險失能診斷書 1-15 等，或勞工失能 1-15 等',
@@ -445,7 +465,7 @@ export function computeLaborCapacityLoss(input: LaborCapacityLossInput): LaborCa
       hoffmannYears: 0,
       hoffmannCoefficient: 0,
       lossPercent: 0,
-      regionalMultiplier: region.painAndSufferingMultiplier,
+      regionalMultiplier: 1,
       disabilityLevel,
       retirementAge: input.retirementAge ?? 65,
       hint: '缺年收入（六個月平均薪資或月薪），無法計算勞動能力減損',
@@ -468,7 +488,7 @@ export function computeLaborCapacityLoss(input: LaborCapacityLossInput): LaborCa
       hoffmannYears: 0,
       hoffmannCoefficient: 0,
       lossPercent: 0,
-      regionalMultiplier: region.painAndSufferingMultiplier,
+      regionalMultiplier: 1,
       disabilityLevel,
       retirementAge,
       hint: `受害人年齡已達/超過計算終點年齡（${retirementAge} 歲 = 退休年齡），霍夫曼年數為 0，不適用勞動能力減損（多以慰撫金取代）`,
@@ -477,29 +497,40 @@ export function computeLaborCapacityLoss(input: LaborCapacityLossInput): LaborCa
   }
 
   const coefficient = hoffmannCoefficient(hoffmannYears)
-  const lossPercent = laborLossPct(disabilityLevel)
-  const regionalMultiplier = region.painAndSufferingMultiplier
+  const assessedLossPercent = input.assessedLossPercent
+  const hasAssessedLossPercent =
+    assessedLossPercent !== undefined &&
+    Number.isFinite(assessedLossPercent) &&
+    assessedLossPercent >= 0 &&
+    assessedLossPercent <= 1
+  const lossPercent = hasAssessedLossPercent ? assessedLossPercent : laborLossPct(disabilityLevel)
+  // 收入損失應依實際收入、期間與勞減比例計算，不能套用慰撫金的地區係數。
+  const regionalMultiplier = 1
 
-  // 主估算（地區係數已含）
-  const estimate = Math.round(annualIncome * coefficient * lossPercent * regionalMultiplier)
+  const estimate = Math.round(annualIncome * coefficient * lossPercent)
 
-  // 低/高估算：低 = 不含地區加成、高 = 1.2 倍地區加成（容許 ±20% 區間）
-  const estimateLow = Math.round(annualIncome * coefficient * lossPercent * 1.0)
-  const estimateHigh = Math.round(
-    annualIncome * coefficient * lossPercent * regionalMultiplier * 1.2,
-  )
+  // 區間反映證據與失能比例仍待認定的風險，不以地區係數放大收入。
+  const estimateLow = Math.round(estimate * 0.8)
+  const estimateHigh = Math.round(estimate * 1.2)
 
   // 提示
   notes.push(
     `年齡 ${person.age} 歲 → 霍夫曼年數 ${hoffmannYears} 年（係數 ${coefficient.toFixed(4)}）`,
   )
-  notes.push(`失能等級 ${disabilityLevel} 等 → 勞減比例 ${(lossPercent * 100).toFixed(0)}%`)
+  notes.push(
+    hasAssessedLossPercent
+      ? `採醫療鑑定／職務分析勞減率 ${(lossPercent * 100).toFixed(0)}%`
+      : `失能等級 ${disabilityLevel} 等 → 參考勞減比例 ${(lossPercent * 100).toFixed(0)}%`,
+  )
   notes.push(
     `年收入 ${annualIncome.toLocaleString()} 元 → 勞減估算約 ${estimate.toLocaleString()} 元`,
   )
 
-  if (region.confidenceLevel === 'low') {
-    notes.push(`⚠️ ${region.courtName} 地區資料信心度低，實際判賠可能與估算有 ±20% 落差`)
+  if (region.workLossEvidenceStrictness === 'high') {
+    notes.push(`${region.courtName} 對收入與失能證據要求較嚴，建議補齊薪資、稅務與醫療資料`)
+  }
+  if (!hasAssessedLossPercent) {
+    notes.push('⚠️ 未提供個案鑑定或職務分析勞減率；本額以失能等級映射，僅供參考')
   }
 
   return {
@@ -515,5 +546,6 @@ export function computeLaborCapacityLoss(input: LaborCapacityLossInput): LaborCa
     retirementAge,
     hint: null,
     notes,
+    isReferenceEstimate: !hasAssessedLossPercent,
   }
 }

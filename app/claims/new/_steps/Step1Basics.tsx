@@ -6,13 +6,22 @@
 'use client'
 
 import { useEffect } from 'react'
-import { Col, DatePicker, Form, Input, Radio, Row, Select, Switch, Typography } from 'antd'
+import {
+  Collapse,
+  Col,
+  DatePicker,
+  Form,
+  Input,
+  InputNumber,
+  Radio,
+  Row,
+  Select,
+  Switch,
+} from 'antd'
 import { CarOutlined } from '@ant-design/icons'
 import dayjs, { Dayjs } from 'dayjs'
 import { StepShell } from '@/components/StepShell'
 import type { FormSchema } from '../_form'
-
-const { Title } = Typography
 
 export interface Step1BasicsProps {
   form: ReturnType<typeof Form.useForm<FormSchema>>[0]
@@ -63,13 +72,12 @@ export function Step1Basics({
           </Form.Item>
         </Col>
         <Col xs={24} md={12}>
-          <Form.Item label="事故地點" name={['basics', 'accidentLocation']}>
-            <Input
-              placeholder="例：臺中市西區美村路與五權路口（選填）"
-              autoComplete="street-address"
-              inputMode="text"
-              enterKeyHint="next"
-            />
+          <Form.Item
+            label="事故縣市 *"
+            name={['basics', 'accidentCity']}
+            rules={[{ required: true }]}
+          >
+            <Select options={cityOptions} onChange={onCityChange} />
           </Form.Item>
         </Col>
       </Row>
@@ -108,68 +116,103 @@ export function Step1Basics({
           </Form.Item>
         </Col>
       </Row>
-      <Row gutter={16}>
-        <Col xs={24} md={8}>
-          <Form.Item
-            // v0.28.3+：移除 * 必填 — 這是車禍理賠工具，永遠是汽車交通事故
-            label="是否為汽車交通事故"
-            name={['basics', 'isAutomobileAccident']}
-            valuePropName="checked"
-          >
-            <Switch checkedChildren="是" unCheckedChildren="否" />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={8}>
-          <Form.Item
-            label="警方初步研判表"
-            name={['basics', 'hasPolicePreliminaryReport']}
-            valuePropName="checked"
-          >
-            <Switch />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={8}>
-          <Form.Item
-            label="車輛事故鑑定"
-            name={['basics', 'hasAccidentAppraisal']}
-            valuePropName="checked"
-          >
-            <Switch />
-          </Form.Item>
-        </Col>
-      </Row>
-      <Row gutter={16}>
-        <Col xs={24} md={8}>
-          <Form.Item
-            label="有強制險 *"
-            name={['basics', 'hasCompulsoryInsurance']}
-            valuePropName="checked"
-          >
-            <Switch />
-          </Form.Item>
-        </Col>
-      </Row>
-
-      <Title level={5} className="!mt-4">
-        地區（自動帶入法院，可手改）
-      </Title>
-      <Row gutter={16}>
-        <Col xs={24} md={8}>
-          <Form.Item label="事故縣市" name={['basics', 'accidentCity']}>
-            <Select options={cityOptions} onChange={onCityChange} />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={8}>
-          <Form.Item label="事故鄉鎮市區" name={['basics', 'accidentDistrict']}>
-            <Input placeholder="例：西區" />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={8}>
-          <Form.Item label="管轄法院" name={['basics', 'courtJurisdiction']}>
-            <Input />
-          </Form.Item>
-        </Col>
-      </Row>
+      <Collapse
+        className="!mt-2"
+        items={[
+          {
+            key: 'supplement',
+            label: '補充事故地點、法院與文件狀態（選填）',
+            children: (
+              <>
+                <Row gutter={16}>
+                  <Col xs={24} md={12}>
+                    <Form.Item label="詳細事故地點" name={['basics', 'accidentLocation']}>
+                      <Input
+                        placeholder="例：西區美村路與五權路口"
+                        autoComplete="street-address"
+                        inputMode="text"
+                        enterKeyHint="next"
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Form.Item label="管轄法院" name={['basics', 'courtJurisdiction']}>
+                      <Input />
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Row gutter={16}>
+                  <Col xs={24} md={12}>
+                    <Form.Item
+                      label="已有警方初步研判表"
+                      name={['basics', 'hasPolicePreliminaryReport']}
+                      valuePropName="checked"
+                    >
+                      <Switch />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Form.Item
+                      label="已有車輛事故鑑定"
+                      name={['basics', 'hasAccidentAppraisal']}
+                      valuePropName="checked"
+                    >
+                      <Switch />
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Row gutter={16}>
+                  <Col xs={24} md={8}>
+                    <Form.Item
+                      label="對方第三人責任險"
+                      name={['basics', 'thirdPartyCoverageStatus']}
+                      tooltip="不確定時請選「尚未確認」；系統只會顯示可向對方主張的民事責任，不會把它當成保險可賠。"
+                    >
+                      <Select
+                        options={[
+                          { value: 'unknown', label: '尚未確認' },
+                          { value: 'insured', label: '已投保' },
+                          { value: 'uninsured', label: '未投保／不適用' },
+                        ]}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={8}>
+                    <Form.Item label="人傷保額（每人）" name={['basics', 'thirdPartyBodilyLimit']}>
+                      <InputNumber
+                        min={0}
+                        className="!w-full"
+                        addonBefore="NT$"
+                        placeholder="已確認保單再填"
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={8}>
+                    <Form.Item label="財損保額" name={['basics', 'thirdPartyPropertyLimit']}>
+                      <InputNumber
+                        min={0}
+                        className="!w-full"
+                        addonBefore="NT$"
+                        placeholder="已確認保單再填"
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Row gutter={16}>
+                  <Col xs={24} md={8}>
+                    <Form.Item
+                      label="超額責任險額度（選填）"
+                      name={['basics', 'excessLiabilityLimit']}
+                    >
+                      <InputNumber min={0} className="!w-full" addonBefore="NT$" />
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </>
+            ),
+          },
+        ]}
+      />
     </StepShell>
   )
 }

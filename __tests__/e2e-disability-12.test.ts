@@ -33,8 +33,8 @@ describe('12 大類失能保典 E2E：常數表', () => {
     expect(getDefaultLevel('01_mental')).toBe(13)
   })
 
-  it('isCompulsoryExclusion：胸腹部臟器 = 是 / 上肢 = 否', () => {
-    expect(isCompulsoryExclusion('07_thoracic_organ')).toBe(true)
+  it('isCompulsoryExclusion：胸腹部臟器與上肢都需依正式附表個別核對', () => {
+    expect(isCompulsoryExclusion('07_thoracic_organ')).toBe(false)
     expect(isCompulsoryExclusion('11_upper_limb')).toBe(false)
   })
 
@@ -45,8 +45,8 @@ describe('12 大類失能保典 E2E：常數表', () => {
   })
 })
 
-describe('12 大類 → 勞減引擎 E2E：吃 disabilityLevel', () => {
-  it('輸入 disabilityCategory=11_upper_limb + disabilityLevel=9 → 勞減 60%', () => {
+describe('12 大類 → 勞減引擎 E2E：依正式附表項次核對', () => {
+  it('輸入上肢 11-28（第 9 級）→ 勞減 60%', () => {
     const input = {
       basics: { ...defaultBasics },
       fault: {
@@ -67,6 +67,7 @@ describe('12 大類 → 勞減引擎 E2E：吃 disabilityLevel', () => {
         ...defaultMedical,
         disabilityCategory: '11_upper_limb',
         disabilityLevel: 9,
+        disabilityTableItemIds: ['11-28'],
         hasDisabilityCertificate: true,
         hasPermanentImpairment: true,
       },
@@ -81,7 +82,7 @@ describe('12 大類 → 勞減引擎 E2E：吃 disabilityLevel', () => {
     expect(r.laborCapacityLossNotes.join('|')).toContain('9')
   })
 
-  it('輸入 disabilityLevel=1（最重）→ 勞減金額遠大於 15 等（最輕）', () => {
+  it('輸入第 1 級與第 15 級的正式附表項次，前者勞減金額遠大於後者', () => {
     const baseInput = {
       basics: { ...defaultBasics },
       fault: {
@@ -104,12 +105,26 @@ describe('12 大類 → 勞減引擎 E2E：吃 disabilityLevel', () => {
     const r1 = estimateClaim({
       ...baseInput,
       person: baseInput.person,
-      medical: { ...defaultMedical, disabilityCategory: '11_upper_limb', disabilityLevel: 1 },
+      medical: {
+        ...defaultMedical,
+        disabilityCategory: '01_mental',
+        disabilityLevel: 1,
+        disabilityTableItemIds: ['1-1'],
+        isSymptomFixed: true,
+        hasDisabilityCertificate: true,
+      },
     } as unknown as ClaimInput)
     const r15 = estimateClaim({
       ...baseInput,
       person: baseInput.person,
-      medical: { ...defaultMedical, disabilityCategory: '11_upper_limb', disabilityLevel: 15 },
+      medical: {
+        ...defaultMedical,
+        disabilityCategory: '11_upper_limb',
+        disabilityLevel: 15,
+        disabilityTableItemIds: ['11-22'],
+        isSymptomFixed: true,
+        hasDisabilityCertificate: true,
+      },
     } as unknown as ClaimInput)
     // 1 等 (100%) 應遠大於 15 等 (5%)
     expect(r1.laborCapacityLossEstimate).toBeGreaterThan(r15.laborCapacityLossEstimate * 5)

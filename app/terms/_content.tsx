@@ -21,7 +21,7 @@ export default function TermsContent() {
         </Paragraph>
 
         <Card>
-          <Space direction="vertical" size="large" className="!w-full">
+          <Space orientation="vertical" size="large" className="!w-full">
             <Section
               title="工具定位"
               icon={<WarningOutlined />}
@@ -77,8 +77,8 @@ export default function TermsContent() {
                     <strong>6 大引擎</strong>：強制 / 失能 / 民事 / 第三人 / 補件 / 地區。
                   </Paragraph>
                   <Paragraph>
-                    <strong>Ensemble 三票</strong>：精神慰撫金用「規則公式 / ML 統計 / KNN
-                    相似案件」三票共識。
+                    <strong>交叉檢核</strong>：精神慰撫金以規則區間與同類判例統計交叉檢核；
+                    相似案件的總賠償額不會混入慰撫金公式。
                   </Paragraph>
                   <Paragraph>
                     <strong>資料來源</strong>：司法院判決、強制汽車責任保險法、6
