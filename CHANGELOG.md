@@ -2,7 +2,7 @@
 
 所有重要變更都會記錄於此檔。格式基於 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)。
 
-## [v0.28.8] - 2026-10-23（待正式部署）
+## [v0.28.8] - 2026-10-23
 
 ### Added
 
@@ -32,6 +32,12 @@
 - 27 項瀏覽器業務流程經修正重跑通過；手機 390px 無橫向溢出。
 - 隔離 PostgreSQL migration、去重、保留期及權限整合已通過；正式環境仍須核對 migration。
 - 正式發布進度以交付紀錄為準。
+
+### Deployment
+
+- 已部署至既有 Railway production，部署 `73b8bfb3-4f00-4a3a-9ae0-57eb42fcdfc4` 成功。
+- 正式站兩步／四步流程、待估與補車價重算、手機版面、未登入 API 權限驗收通過；五個 migrations 執行成功。
+- PR #1 已合併至 main；CI、Browser E2E 與 Lighthouse 均通過。
 
 ## [v0.19.0] - 2026-07-13
 
