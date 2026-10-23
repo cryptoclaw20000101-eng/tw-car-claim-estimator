@@ -71,6 +71,9 @@ export type EmploymentType =
   | 'student'
   | 'homemaker'
 
+/** 對方任意第三人責任險的確認狀態；未知時不得把民事責任當成保險可賠。 */
+export type ThirdPartyCoverageStatus = 'unknown' | 'insured' | 'uninsured'
+
 // --- 輸入資料：Step 1-6 表單彙整 -------------------------------------
 
 export interface AccidentBasics {
@@ -89,8 +92,14 @@ export interface AccidentBasics {
 
   hasPolicePreliminaryReport: boolean
   hasAccidentAppraisal: boolean
-  // v0.5.2: 拿掉 isSettled / hasThirdPartyInsurance / thirdPartyBodilyLimit /
-  // thirdPartyPropertyLimit / excessLiabilityLimit — 表單永遠當有第三人險、無保額上限
+  /** 對方任意第三人責任險狀態；未取得保單時保留 unknown。 */
+  thirdPartyCoverageStatus?: ThirdPartyCoverageStatus
+  /** 第三人責任險每一受害人之體傷保額；unknown 時不應推定。 */
+  thirdPartyBodilyLimit?: number | null
+  /** 第三人責任險財損保額。 */
+  thirdPartyPropertyLimit?: number | null
+  /** 已確認的超額責任險可用額度。 */
+  excessLiabilityLimit?: number | null
 
   hasCompulsoryInsurance: boolean
 
@@ -154,6 +163,14 @@ export interface MedicalRecord {
   disabilityCategory?: string // e.g. '01_mental' | '07_thoracic_organ' | '11_upper_limb' ...
   /** 失能等級 1-15（使用者自選；選大類時自動帶出該類常見等級，可手改） */
   disabilityLevel?: number // 1-15
+  /** 現行附表的正式項次（例如 12-29）；選定後由系統核對對應法定等級。 */
+  disabilityTableItemIds?: string[]
+  /** 同一事故、同時符合附表二項目以上時的其他診斷書載明等級（強制險給付標準第 4 條） */
+  additionalDisabilityLevels?: number[]
+  /** 同一障害部位於事故前已存在的失能等級（強制險給付標準第 5 條） */
+  preExistingDisabilityLevel?: number
+  /** 醫療鑑定或職務分析所載的民事勞動能力減損率（0–100）；未填時僅能使用等級參考值。 */
+  laborCapacityLossPercent?: number
 
   // 傷勢細節（失能規則引擎用）
   hasFracture: boolean
@@ -193,7 +210,10 @@ export interface CompulsoryMedicalInputs {
   nhiCopayment: number // 健保自付額
   registrationFee: number
   diagnosisCertificateFee: number
-  nonNhiNecessaryMedicalFee: number
+  /** 每次事故申請以一份為限；未填視為 0。 */
+  medicalRecordSummaryFee?: number
+  /** @deprecated 不屬強制險醫療費列舉項目，保留僅供讀取舊估算，不列入任何試算。 */
+  nonNhiNecessaryMedicalFee?: number
 
   wardFeeDifference: number
   wardFeeDays: number
@@ -208,7 +228,7 @@ export interface CompulsoryMedicalInputs {
 
   artificialEyeFee: number
 
-  medicalMaterialFee?: number // 一般醫材費（紗布、縫線、注射耗材等）— v0.2.5 起不再套 2 萬上限，改歸入「健保自付額」/「非健保必要醫療」；保留為向後相容舊資料
+  medicalMaterialFee?: number // 一般醫材費（紗布、縫線、注射耗材等）不另作「非健保必要醫療」給付；保留為向後相容舊資料
   specialMaterialFee?: number // 特殊材料費（骨材、鋼板、人工關節等特材；v0.2.5+ 新增，與輔具共套 2 萬上限）
   assistiveDeviceFee: number // 輔具費（拐杖、輪椅、支架等，與特殊材料共套 2 萬上限）
   transportationFee: number // 接送費
@@ -281,6 +301,10 @@ export interface DisabilityScreeningResult {
   signals: string[] // 觸發的關鍵字
   possibleLevel: DisabilityLevel | null // 規則引擎推估等級
   possibleAmount: number // 依等級推估金額
+  /** 是否已滿足症狀固定、失能診斷書與附表等級三項給付前提 */
+  isPayable: boolean
+  /** 可列入強制險給付試算的合併後等級；未滿足前提時為 null */
+  recognizedLevel: DisabilityLevel | null
   confidenceScore: number // 0-1
   romLossPercent: number | null // 關節活動度喪失比例
   jointName: JointName | null
@@ -297,16 +321,16 @@ export interface PainAndSufferingResult {
   regionalLow: number
   regionalMid: number
   regionalHigh: number
-  /** v0.18.x+ 套用 Personal Factors 後的金額（年齡/職業/扶養人/勞減） */
+  /** 為維持 API 相容保留，與 regional 金額相同，不以個人資料自動調整。 */
   adjustedLow?: number
   adjustedMid?: number
   adjustedHigh?: number
-  /** v0.18.x+ Personal Factors multiplier 拆解 */
-  personalFactorMultiplier?: number // 0.85-1.6 範圍
-  personalFactorNotes?: string[] // 給 UI 顯示「為什麼會加成」
+  /** 個人條件不使用固定倍率，固定為 1。 */
+  personalFactorMultiplier?: number
+  personalFactorNotes?: string[]
   severityLevel: string // 'minor' | 'moderate' | 'serious' | ...
   severityScore: number // 0-200 (v0.18.x+ 從 0-100 擴為 0-200)
-  severityLevelIndex?: number // 0-14 (v0.18.x+ 從 0-7 擴為 0-14)
+  severityLevelIndex?: number // 0-49（50 級傷勢分層）
   breakdown: {
     hospitalizationDays: number
     rehabilitationCount: number
@@ -330,8 +354,18 @@ export interface ThirdPartyEstimate {
   thirdPartyEstimateMid: number
   thirdPartyEstimateHigh: number
 
-  // v0.5.2: 拿掉 bodilyCap / propertyCap / usedBodilyCap / usedPropertyCap
-  // 無保額上限，永遠是 1：1 對方肇責比例
+  /** 對方保單狀態。unknown 時 only 顯示民事責任，不能宣稱保險會支付。 */
+  insuranceCoverageStatus: ThirdPartyCoverageStatus
+  /** 已確認保單下的保險預估給付；保額未知時為 null。 */
+  insurerPayableLow: number | null
+  insurerPayableMid: number | null
+  insurerPayableHigh: number | null
+  /** 有保單且保額不足時，仍可能由加害人負擔的民事差額。 */
+  uninsuredGapLow: number | null
+  uninsuredGapMid: number | null
+  uninsuredGapHigh: number | null
+  /** 肇責尚未由警方初判、鑑定、判決或雙方協議確認時，金額僅為情境試算。 */
+  isFaultProvisional: boolean
 
   notes: string[]
 }
@@ -354,6 +388,8 @@ export interface EstimationResult {
   civilNursingFeeLow: number
   civilNursingFeeMid: number
   civilNursingFeeHigh: number
+  civilNursingRequiresMedicalProof: boolean
+  civilNursingNotes: string[]
   civilTransportationFee: number
   workLoss: number
   workLossEvidenceStrength: 'low' | 'medium' | 'high'
@@ -382,6 +418,8 @@ export interface EstimationResult {
   }
   laborCapacityLossEstimate: number
   laborCapacityLossHint: string | null
+  /** true 表示尚無鑑定／職務分析勞減率，金額僅供參考，不能視為已認定請求額。 */
+  laborCapacityLossIsReference: boolean
   /**
    * 勞動能力減損計算終點年齡（預設 65；農業/自營/專業人士可調到 70-75）。
    * 雲林地院 110 簡 23 號判例支持。
@@ -424,8 +462,8 @@ export interface EstimationResult {
   }
 
   /**
-   * 精神慰撫金 Ensemble 三票共識（v0.6.2+）
-   * 三票：規則引擎 + ML 區間 + KNN 相似案件
+   * 精神慰撫金交叉檢核。
+   * KNN 僅可使用有「單獨慰撫金」欄位的案例，總賠償額不可混入。
    * 設計詳見 lib/insurance/pain-ensemble.ts
    */
   painEnsemble: {
@@ -500,7 +538,8 @@ export interface EstimationResult {
     hint: string | null
   }
 
-  vehicleDamage: number
+  /** null 表示有維修金額，但缺少事故前車價，尚未列入總額。 */
+  vehicleDamage: number | null
   propertyDamage: number
 
   // 第三人責任險

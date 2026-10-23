@@ -12,11 +12,10 @@ import NewClaimForm from './_form'
 export const metadata: Metadata = {
   title: '開始估算 — 5 步驟輸入資料 | 車禍理賠估算器',
   description:
-    '依序輸入事故基本、肇責、人身工作、傷勢診斷、費用財損等資料，自動產出 5 區估算結果。包含強制險 15 細項、失能等級、第三人責任險、補件清單與地區實務。',
+    '依序填寫事故基本、肇責、人身工作、傷勢診斷與費用財損資料，產出 8 項試算與補件資訊。',
   openGraph: {
     title: '開始估算 — 5 步驟輸入資料 | 車禍理賠估算器',
-    description:
-      '依序輸入事故基本、肇責、人身工作、傷勢診斷、費用財損等資料，自動產出 5 區估算結果。',
+    description: '依序填寫事故基本、肇責、人身工作、傷勢診斷與費用財損資料，產出試算與補件資訊。',
     type: 'website',
     locale: 'zh_TW',
     siteName: '車禍理賠估算器',

@@ -26,7 +26,7 @@ export function SupplementSection({ result }: { result: EstimationResult }) {
       ) : (
         <Paragraph type="success">
           <CheckCircleOutlined className="mr-2" />
-          目前資料充足，無需補件。
+          目前未列出待補項目，仍需核對實際文件。
         </Paragraph>
       )}
 

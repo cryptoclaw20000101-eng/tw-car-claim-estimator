@@ -139,14 +139,43 @@ describe('computeThirdParty — 第三人責任險（AGENTS §1 鐵律①② 守
       const r60 = computeThirdParty(makeThirdPartyInput(60, civil))
       expect(r60.thirdPartyEstimateMid).toBeGreaterThan(r30.thirdPartyEstimateMid)
     })
+
+    it('肇責來源未確認時保留情境金額，但標示為暫定', () => {
+      const result = computeThirdParty({
+        ...makeThirdPartyInput(70, makeCivil({ workLoss: 100_000 })),
+        faultIsProvisional: true,
+      })
+      expect(result.thirdPartyEstimateMid).toBeGreaterThan(0)
+      expect(result.isFaultProvisional).toBe(true)
+      expect(result.notes.join('')).toContain('肇責尚未確認')
+    })
   })
 
-  describe('v0.5.2+ 無保額上限（永遠 1：1 肇責比例）', () => {
-    it('民事總額極大（10 億）→ 第三人估計 = 民事總額 × 肇責（無上限）', () => {
+  describe('保單狀態與保額', () => {
+    it('未確認保單時只顯示民事責任，不宣稱保險可賠', () => {
       const civil = makeCivil({ workLoss: 1_000_000_000 }) // 10 億
       const result = computeThirdParty(makeThirdPartyInput(70, civil))
-      // 沒有 bodilyCap / propertyCap — 直接乘肇責
+      // legacy 欄位是對方民事有責金額，並非保險給付承諾
       expect(result.thirdPartyEstimateMid).toBeGreaterThan(700_000_000)
+      expect(result.insuranceCoverageStatus).toBe('unknown')
+      expect(result.insurerPayableMid).toBeNull()
+      expect(result.notes.join('')).toContain('未確認')
+    })
+
+    it('已確認人傷／財損保額時，保險支付額受各自上限限制', () => {
+      const civil = makeCivil({ workLoss: 1_000_000, vehicleDamage: 500_000 })
+      const result = computeThirdParty({
+        ...makeThirdPartyInput(100, civil),
+        basics: {
+          ...BASICS,
+          thirdPartyCoverageStatus: 'insured',
+          thirdPartyBodilyLimit: 300_000,
+          thirdPartyPropertyLimit: 100_000,
+          excessLiabilityLimit: 0,
+        },
+      })
+      expect(result.insurerPayableMid).toBe(400_000)
+      expect(result.uninsuredGapMid).toBe(result.liableAmountMid - 400_000)
     })
   })
 

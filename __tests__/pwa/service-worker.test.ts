@@ -30,12 +30,11 @@ describe('S1.5 PWA Service Worker', () => {
     expect(swSource).toMatch(/const CACHE_VERSION = ['"]tw-claim-v[\d.]+-/)
   })
 
-  it('APP_SHELL 包含所有 3 個 app routes', () => {
-    // 對齊 app/page.tsx + app/claims/new/page.tsx + app/claims/result/page.tsx
+  it('APP_SHELL 不預先快取 app routes，避免部署後混用舊 HTML 與新版 chunk', () => {
     expect(swSource).toMatch(/APP_SHELL = \[/)
-    expect(swSource).toMatch(/'\/'/)
-    expect(swSource).toMatch(/'\/claims\/new'/)
-    expect(swSource).toMatch(/'\/claims\/result'/)
+    expect(swSource).not.toMatch(/'\/'/)
+    expect(swSource).not.toMatch(/'\/claims\/new'/)
+    expect(swSource).not.toMatch(/'\/claims\/result'/)
   })
 
   it('APP_SHELL 包含 manifest + icons + favicon', () => {
@@ -77,9 +76,11 @@ describe('S1.5 PWA Service Worker', () => {
     expect(swSource).toMatch(/response\.type === ['"]basic['"]/)
   })
 
-  it('離線時 navigate 請求 fallback 回 /', () => {
+  it('頁面與 RSC 請求採 network-first，離線時不回傳舊首頁', () => {
     expect(swSource).toMatch(/request\.mode === ['"]navigate['"]/)
-    expect(swSource).toMatch(/(?:cache|caches)\.match\(['"]\/['"]\)/)
+    expect(swSource).toMatch(/const isRsc/)
+    expect(swSource).toMatch(/networkFirst\(request\)/)
+    expect(swSource).toMatch(/new Response\(['"]目前無法連線/)
   })
 
   it('只處理同源請求（不代理第三方 CDN）', () => {

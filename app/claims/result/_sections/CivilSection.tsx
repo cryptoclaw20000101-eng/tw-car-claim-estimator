@@ -20,7 +20,38 @@ const { Paragraph } = Typography
 
 const dollar = (n: number) => `NT$ ${(n ?? 0).toLocaleString('zh-TW')}`
 
-export function CivilSection({ result }: { result: EstimationResult }) {
+export function CivilSection({
+  result,
+  isInjured = true,
+}: {
+  result: EstimationResult
+  isInjured?: boolean
+}) {
+  if (!isInjured) {
+    return (
+      <Card title="車損與財物損失">
+        <Row gutter={16}>
+          <Col xs={12}>
+            <Statistic
+              title="車輛損失"
+              value={result.vehicleDamage ?? '待補車價'}
+              formatter={(v) => (result.vehicleDamage === null ? '待補車價' : dollar(Number(v)))}
+            />
+          </Col>
+          <Col xs={12}>
+            <Statistic
+              title="其他財物損失"
+              value={result.propertyDamage}
+              formatter={(v) => dollar(Number(v))}
+            />
+          </Col>
+        </Row>
+        <Paragraph type="secondary" className="!mt-3 !mb-0">
+          以上尚未分配肇責。對方應負擔的金額與保單狀態，請查看「第三人責任險」。
+        </Paragraph>
+      </Card>
+    )
+  }
   const pas = result.painAndSuffering
   return (
     <Card>
@@ -40,6 +71,15 @@ export function CivilSection({ result }: { result: EstimationResult }) {
           />
         </Col>
       </Row>
+      {result.civilNursingRequiresMedicalProof && (
+        <InfoAlert
+          type="warning"
+          showIcon
+          className="!mb-3"
+          title="看護費暫未列入主估算"
+          body={result.civilNursingNotes.join('；')}
+        />
+      )}
 
       <Divider>除疤 / 修疤費用（4 術式 · 北中南）</Divider>
       <Row gutter={16}>
@@ -112,7 +152,7 @@ export function CivilSection({ result }: { result: EstimationResult }) {
         </Paragraph>
       )}
 
-      <Divider>精神慰撫金（依 {result.region.courtName} 係數）</Divider>
+      <Divider>精神慰撫金（50 級傷勢分層，依 {result.region.courtName} 參考）</Divider>
       <Row gutter={16}>
         <Col xs={8}>
           <Statistic title="低標" value={pas.regionalLow} formatter={(v) => dollar(Number(v))} />
@@ -131,7 +171,7 @@ export function CivilSection({ result }: { result: EstimationResult }) {
       </Row>
       <Paragraph type="secondary" className="!mt-2 text-sm">
         基礎值 {dollar(pas.baseLow)} / {dollar(pas.baseMid)} / {dollar(pas.baseHigh)} × 地區係數{' '}
-        {pas.regionalMultiplier}· 嚴重度評分 {pas.severityScore} / 100（{pas.severityLevel}）
+        {pas.regionalMultiplier}· 傷勢評分 {pas.severityScore} / 200（{pas.severityLevel}）
       </Paragraph>
 
       {/* v0.6.7 精神慰撫金 Ensemble 三票共識 + LLM 顧問複核 */}
@@ -228,6 +268,15 @@ export function CivilSection({ result }: { result: EstimationResult }) {
           {result.laborCapacityLossHint}
         </Paragraph>
       )}
+      {result.laborCapacityLossIsReference && (
+        <InfoAlert
+          type="warning"
+          showIcon
+          className="!mt-2"
+          title="勞減金額目前是參考試算"
+          body="尚未填入醫療鑑定或職務分析的個案勞減率；失能等級不當然等於民事勞動能力減損比例。"
+        />
+      )}
       {result.laborCapacityLossNotes.length > 0 && (
         <Paragraph type="secondary" className="!mt-1 !text-xs">
           {result.laborCapacityLossNotes.join(' · ')}
@@ -239,8 +288,8 @@ export function CivilSection({ result }: { result: EstimationResult }) {
         <Col xs={12}>
           <Statistic
             title="車損"
-            value={result.vehicleDamage}
-            formatter={(v) => dollar(Number(v))}
+            value={result.vehicleDamage ?? '待補車價'}
+            formatter={(v) => (result.vehicleDamage === null ? '待補車價' : dollar(Number(v)))}
           />
         </Col>
         <Col xs={12}>

@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     // 註冊 (v0.19.x+ 含 email 驗證欄位；v0.21.0+ 自動 email_verified=true)
     // 取消 mock email verify：production 沒有真實 SMTP，user 永遠收不到信，
     // 改為註冊時直接 email_verified=true，讓 user 立即能用雲端存功能
-    // AGENTS §31「v0.14.x+ 業務員從 console log 抓 link 給客戶」在 production 是 broken UX
+    // AGENTS §9「v0.14.x+ 業務員從 console log 抓 link 給客戶」在 production 是 broken UX
     const hash = await hashPassword(password)
     const { rows } = await query<{ id: string; email: string }>(
       `insert into public.users (email, password_hash, display_name, email_verified)

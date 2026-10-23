@@ -10,7 +10,7 @@
  * - dev 模式額外提供「複製錯誤訊息」按鈕（給技術用戶貼 GitHub issue）
  *
  * v0.26.0b+：useEffect 串接 Sentry（init 由 sentry.client.config.ts 自動載入）
- * 參考：AGENTS.md §32 ErrorTracker → Sentry 整合
+ * 參考：AGENTS.md §10 監控（Sentry 整合）
  */
 import { useEffect, useState } from 'react'
 import Link from 'next/link'

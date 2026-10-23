@@ -3,7 +3,7 @@
 // 既有 computeWorkLoss 只算「短期（日薪 × 休養日數）」，本檔補：
 //   - 短期：≤ 6 月 → 沿用日薪 × 合理休養日數，額外補上霍夫曼加成
 //           （司法院實務：休養期 > 1 年者以霍夫曼係數計算一次性清償）
-//   - 長期：> 6 月 → 撫養費式霍夫曼：年損失 × 霍夫曼係數 × 地區係數
+//   - 長期：> 6 月 → 撫養費式霍夫曼：年損失 × 霍夫曼係數
 //
 // 法源：
 //   - 民法 §193 I（身體健康侵害之財產損害賠償）
@@ -52,7 +52,7 @@ export interface WorkLossExtendedResult {
   hoffmannFactor: number
   /** 年收入 */
   annualIncome: number
-  /** 地區係數 */
+  /** 固定為 1。地區僅影響證據提示，不調整已證明的收入損失。 */
   regionalMultiplier: number
   /** 計算明細 */
   breakdown: {
@@ -88,7 +88,7 @@ export function computeWorkLossExtended(input: WorkLossExtendedInput): WorkLossE
       hoffmannYears: 0,
       hoffmannFactor: 0,
       annualIncome: 0,
-      regionalMultiplier: region.painAndSufferingMultiplier,
+      regionalMultiplier: 1,
       breakdown: { dailyIncome: 0, reasonableRestDays: 0, coefficient: 0 },
       evidenceStrength: 'low',
       notes: ['未輸入請假或醫囑休養日數，無法估算工作損失'],
@@ -112,7 +112,8 @@ export function computeWorkLossExtended(input: WorkLossExtendedInput): WorkLossE
   const annualIncome =
     person.sixMonthAverageSalary > 0 ? person.sixMonthAverageSalary * 12 : person.monthlySalary * 12
 
-  const regionalMultiplier = region.painAndSufferingMultiplier
+  // 工作損失依實際收入與不能工作期間計算，不套用慰撫金地區係數。
+  const regionalMultiplier = 1
 
   // 證據強度評估
   const evidenceFlags = [
@@ -168,13 +169,13 @@ export function computeWorkLossExtended(input: WorkLossExtendedInput): WorkLossE
     const coefficient =
       restYears < 1 ? hoffmannFraction(restYears) : hoffmannCoefficient(Math.min(hoffmannYears, 40))
     const baseTotal = Math.round(annualIncome * coefficient)
-    const amount = Math.round(baseTotal * regionalMultiplier)
+    const amount = baseTotal
 
     notes.push(`休養 ${restMonths} 月（${restYears.toFixed(1)} 年）→ 採撫養費式霍夫曼`)
     notes.push(`年損失 = ${annualIncome.toLocaleString()} 元`)
     notes.push(`霍夫曼年數 = ${hoffmannYears} 年、係數 = ${coefficient.toFixed(4)}`)
     notes.push(`基礎總額 = ${baseTotal.toLocaleString()} 元`)
-    notes.push(`地區係數 ${regionalMultiplier} → 最終 ${amount.toLocaleString()} 元`)
+    notes.push(`依已證明收入與休養期間估算 = ${amount.toLocaleString()} 元`)
 
     if (region.workLossEvidenceStrictness === 'high') {
       notes.push(
@@ -208,12 +209,12 @@ export function computeWorkLossExtended(input: WorkLossExtendedInput): WorkLossE
   // 霍夫曼加成（> 30 日的休養期間，按月比例攤）
   const coefficient = hoffmannFraction(restYears)
   const baseAmount = Math.round(dailyIncome * reasonableRestDays)
-  const amount = Math.round(baseAmount * regionalMultiplier)
+  const amount = baseAmount
 
   notes.push(`休養 ${restMonths} 月（${reasonableRestDays} 日）→ 採日薪制`)
   notes.push(`每日收入 = ${Math.round(dailyIncome).toLocaleString()} 元`)
   notes.push(`基礎金額 = ${baseAmount.toLocaleString()} 元`)
-  notes.push(`地區係數 ${regionalMultiplier} → 最終 ${amount.toLocaleString()} 元`)
+  notes.push(`依已證明收入與休養期間估算 = ${amount.toLocaleString()} 元`)
 
   if (evidenceStrength === 'low') {
     notes.push('⚠️ 缺乏薪轉、扣薪、報稅、請假等佐證，證據強度不足')

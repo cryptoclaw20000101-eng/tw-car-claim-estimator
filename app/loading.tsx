@@ -70,7 +70,7 @@ export default function Loading() {
         </div>
       </section>
 
-      {/* 5 區 bento 骨架（2fr+1fr 上面 + 1fr/1fr/1fr 下面） */}
+      {/* 首頁內容骨架（2fr+1fr 上面 + 1fr/1fr/1fr 下面） */}
       <section className="bg-surface-subtle">
         <div className="mx-auto w-full max-w-6xl px-6 py-16 md:py-20">
           <Skeleton width="w-40" height="h-4" />

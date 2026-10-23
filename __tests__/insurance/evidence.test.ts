@@ -169,6 +169,8 @@ function makeDisability(
     signals: [],
     possibleLevel: null,
     possibleAmount: 0,
+    isPayable: false,
+    recognizedLevel: null,
     confidenceScore: 0,
     romLossPercent: null,
     jointName: null,
@@ -463,11 +465,11 @@ describe('generateEvidence — 保險狀態風險', () => {
 // =====================================================================
 
 describe('generateEvidence — 失能等級風險', () => {
-  it('screening B → 提示補診斷與關節量測', () => {
+  it('screening B、非關節案件 → 提示依附表補相應資料', () => {
     const disability = makeDisability({ screening: 'B' })
     const result = generateEvidence(makeInput(), disability, makeWorkLoss(), makePas())
     expect(result.riskNotes).toContain(
-      '失能初篩為 B 級（有線索但資料不足），建議補診斷書與關節量測',
+      '失能初篩為 B 級（有線索但資料不足），建議依附表項次補失能診斷書與相應專科檢查資料',
     )
   })
 

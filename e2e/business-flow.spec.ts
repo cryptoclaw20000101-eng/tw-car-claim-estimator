@@ -63,21 +63,17 @@ test.describe('業務流程', () => {
     await expect(toggle).toContainText(/展開技術細節/)
   })
 
-  test('表單：7 步驟進度條', async ({ page }) => {
+  test('表單：受傷四步、未受傷兩步進度條', async ({ page }) => {
     await page.goto('/claims/new')
-    await expect(page.getByTestId('form-progress')).toBeVisible()
-    // 7 個步驟標題都顯示
-    for (const title of [
-      '事故基本',
-      '肇責',
-      '人身 / 工作',
-      '診斷書',
-      '醫療收據',
-      '車損 / 財損',
-      '地區 / 法院',
-    ]) {
-      await expect(page.getByText(title, { exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: /下一步/ })).toBeEnabled()
+    const progress = page.getByRole('main').getByTestId('form-progress')
+    await page.getByRole('radio', { name: '有受傷', exact: true }).check()
+    for (const title of ['事故與肇責', '工作與收入', '傷勢與治療', '費用與核對']) {
+      await expect(progress.getByText(title, { exact: true })).toBeVisible()
     }
+    await page.getByRole('radio', { name: '未受傷' }).check()
+    await expect(progress.getByText('工作與收入', { exact: true })).not.toBeVisible()
+    await expect(progress.getByText('傷勢與治療', { exact: true })).not.toBeVisible()
   })
 
   test('表單：Tooltip 顯示', async ({ page }) => {

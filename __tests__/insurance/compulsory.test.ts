@@ -13,6 +13,7 @@ const zero: CompulsoryMedicalInputs = {
   nhiCopayment: 0,
   registrationFee: 0,
   diagnosisCertificateFee: 0,
+  medicalRecordSummaryFee: 0,
   nonNhiNecessaryMedicalFee: 0,
   wardFeeDifference: 0,
   wardFeeDays: 0,
@@ -34,7 +35,7 @@ describe('強制險傷害醫療細項 — 零輸入', () => {
     const r = computeCompulsoryMedical(zero)
     expect(r.approved).toBe(0)
     expect(r.subtotal).toBe(0)
-    expect(r.items).toHaveLength(14) // v0.28.5+：移除 otherNecessaryMedicalFee（15→14）
+    expect(r.items).toHaveLength(14)
   })
 })
 
@@ -102,6 +103,23 @@ describe('細項上限規則（spec §六 Step 5）', () => {
     expect(ward.reductionReason).toContain('1,500')
   })
 
+  it('非健保必要醫療費不列入強制險，診斷證明與病歷摘要各以一份收據計', () => {
+    const r = computeCompulsoryMedical({
+      ...zero,
+      nonNhiNecessaryMedicalFee: 9_000,
+      diagnosisCertificateFee: 300,
+      medicalRecordSummaryFee: 500,
+    })
+    expect(r.items.some((item) => item.key === 'nonNhiNecessaryMedicalFee')).toBe(false)
+    expect(r.approved).toBe(800)
+    expect(r.items.find((item) => item.key === 'diagnosisCertificateFee')?.label).toContain(
+      '限 1 份',
+    )
+    expect(r.items.find((item) => item.key === 'medicalRecordSummaryFee')?.label).toContain(
+      '限 1 份',
+    )
+  })
+
   it('膳食費單日超 180 → 刪減', () => {
     const input: CompulsoryMedicalInputs = {
       ...zero,
@@ -125,6 +143,19 @@ describe('細項上限規則（spec §六 Step 5）', () => {
     expect(dent.legalCap).toBe(50_000)
     expect(dent.approved).toBe(50_000)
     expect(dent.reductionReason).toBeTruthy()
+  })
+
+  it('看護費 → 每日 1,200、最多 30 日，總額上限 36,000', () => {
+    const input: CompulsoryMedicalInputs = {
+      ...zero,
+      nursingFee: 72_000,
+      nursingDays: 60,
+    }
+    const r = computeCompulsoryMedical(input)
+    const nursing = r.items.find((i) => i.key === 'nursingFee')!
+    expect(nursing.legalCap).toBe(36_000)
+    expect(nursing.approved).toBe(36_000)
+    expect(nursing.reductionReason).toContain('總額 36,000')
   })
 
   it('特殊材料 + 輔具 25,000 → 上限 20,000（pro-rata 分攤）', () => {

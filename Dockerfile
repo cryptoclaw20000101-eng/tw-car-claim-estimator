@@ -6,7 +6,7 @@ FROM node:24-alpine
 WORKDIR /app
 
 # 1. Install pnpm + dependencies
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.33.2 --activate
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 

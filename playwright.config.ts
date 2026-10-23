@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
+const localChromiumExecutable = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+
 /**
  * Playwright E2E 測試配置（v0.13.x 新增）
  *
@@ -26,7 +28,7 @@ export default defineConfig({
   fullyParallel: true,
   // CI 上跑 1 次就好，本地可以重試
   retries: process.env.CI ? 1 : 0,
-  // 不在 webServer 模式（因為 static export，直接連 file:// 或 dev server）
+  // 以 production server 驗證，避免 Turbopack dev 編譯與部署行為不同。
   reporter: process.env.CI ? 'github' : 'list',
   use: {
     baseURL: 'http://localhost:3000',
@@ -35,6 +37,9 @@ export default defineConfig({
     launchOptions: {
       // dev 模式也跑得起來
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      // CI 使用 Playwright 下載的 Chromium；本機可明確指定既有 Chrome，
+      // 避免套件升級後 browser cache 尚未下載就完全無法跑 E2E。
+      executablePath: localChromiumExecutable,
     },
   },
   projects: [
@@ -44,9 +49,12 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'pnpm dev',
+    command: 'pnpm build && pnpm start',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
-    timeout: 60 * 1000,
+    timeout: 120 * 1000,
+    env: {
+      SKIP_DB_MIGRATIONS: 'true',
+    },
   },
 })

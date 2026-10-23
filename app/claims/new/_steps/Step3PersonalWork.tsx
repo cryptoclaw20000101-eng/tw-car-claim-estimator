@@ -7,269 +7,168 @@
 
 'use client'
 
-import { useEffect } from 'react'
-import {
-  Card,
-  Col,
-  DatePicker,
-  Form,
-  Input,
-  InputNumber,
-  Row,
-  Select,
-  Switch,
-  Typography,
-} from 'antd'
-import { UserOutlined, InfoCircleOutlined, ReadOutlined } from '@ant-design/icons'
-import dayjs, { Dayjs } from 'dayjs'
+import { useState } from 'react'
+import { Col, Collapse, Form, Input, InputNumber, Row, Select, Switch } from 'antd'
+import { UserOutlined, InfoCircleOutlined } from '@ant-design/icons'
+import { StepShell } from '@/components/StepShell'
 import type { FormSchema } from '../_form'
 import type { EmploymentType } from '@/lib/insurance/types'
-
-const { Title } = Typography
 
 export interface Step3PersonalWorkProps {
   form: ReturnType<typeof Form.useForm<FormSchema>>[0]
   employmentOptions: { value: EmploymentType; label: string }[]
-  /** 從 Step 1 帶入（已自動從 accidentCity 推導） */
-  courtJurisdiction: string | undefined
 }
 
-export function Step3PersonalWork({
-  form,
-  employmentOptions,
-  courtJurisdiction,
-}: Step3PersonalWorkProps) {
-  // v0.5.3 bugfix: birthDate DatePicker 也會踩 rc-picker getUDayjs('') isValid 炸
-  // 跟 Step1 一樣：mount 時若不是 dayjs 物件就塞 dayjs()（空字串轉 dayjs()，user 選完 onChange 會再轉回字串）
-  useEffect(() => {
-    const cur = form.getFieldValue(['person', 'birthDate'])
-    if (!cur || typeof cur === 'string') {
-      form.setFieldsValue({ person: { birthDate: dayjs() } } as Record<string, unknown>)
-    }
-  }, [form])
+export function Step3PersonalWork({ form, employmentOptions }: Step3PersonalWorkProps) {
+  const [showWorkDetails, setShowWorkDetails] = useState(() => {
+    const person = form.getFieldValue('person')
+    return Boolean(
+      person &&
+      (person.sixMonthAverageSalary ||
+        person.monthlySalary ||
+        person.dailyWage ||
+        person.lastYearTaxableIncome ||
+        person.actualLeaveDays ||
+        person.doctorOrderedRestDays ||
+        person.hasSalaryTransferRecord ||
+        person.hasLeaveCertificate ||
+        person.hasSalaryDeductionProof),
+    )
+  })
+  const [showIncomeDetails, setShowIncomeDetails] = useState(false)
 
   return (
-    <>
-      <Card
-        title={
-          <>
-            <UserOutlined className="mr-2" />
-            受害人身分與工作
-          </>
-        }
-        className="!mb-4"
+    <StepShell
+      icon={<UserOutlined />}
+      title="工作與收入"
+      alertType="info"
+      alertTitle="沒有證明也可先填估算，之後再補資料。"
+    >
+      <Row gutter={16}>
+        <Col xs={24} md={12}>
+          <Form.Item
+            label="事故時年齡 *"
+            name={['person', 'age']}
+            rules={[{ required: true, message: '請填事故時的實際年齡' }]}
+          >
+            <InputNumber style={{ width: '100%' }} min={0} max={120} />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={12}>
+          <Form.Item label="職業" name={['person', 'occupation']}>
+            <Input placeholder="例：工程師" autoComplete="organization-title" enterKeyHint="next" />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Form.Item
+        label="受僱類型 *"
+        name={['person', 'employmentType']}
+        rules={[{ required: true }]}
       >
-        <Row gutter={16}>
-          <Col xs={24} md={8}>
-            <Form.Item
-              label="出生年月日"
-              name={['person', 'birthDate']}
-              getValueProps={(value) => ({ value: value ? dayjs(value) : null })}
-            >
-              <DatePicker
-                style={{ width: '100%' }}
-                format="YYYY-MM-DD"
-                onChange={(d: Dayjs | null) => {
-                  const iso = d?.format('YYYY-MM-DD') ?? ''
-                  form.setFieldValue(['person', 'birthDate'], iso)
-                  if (d) {
-                    const age = dayjs().diff(d, 'year')
-                    form.setFieldValue(['person', 'age'], age)
-                  }
-                }}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={8}>
-            <Form.Item label="年齡（自動）" name={['person', 'age']}>
-              <InputNumber style={{ width: '100%' }} min={0} max={120} disabled />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={8}>
-            <Form.Item label="職業" name={['person', 'occupation']}>
-              <Input
-                placeholder="例：工程師"
-                autoComplete="organization-title"
-                enterKeyHint="next"
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-        <Form.Item
-          label="受僱類型 *"
-          name={['person', 'employmentType']}
-          rules={[{ required: true }]}
-        >
-          <Select options={employmentOptions} />
-        </Form.Item>
-        <Row gutter={16}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="事故前 6 月平均月薪（元）"
-              name={['person', 'sixMonthAverageSalary']}
-              tooltip={{
-                title:
-                  '需附「事故前 6 個月薪資證明」（如薪轉單、扣繳憑單）。無證明者，工作損失改按基本工資估算（金額較低）。',
-                icon: <InfoCircleOutlined />,
-              }}
-            >
-              <InputNumber
-                style={{ width: '100%' }}
-                min={0}
-                step={1000}
-                formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item label="現職月薪（元）" name={['person', 'monthlySalary']}>
-              <InputNumber
-                style={{ width: '100%' }}
-                min={0}
-                step={1000}
-                formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-        <Row gutter={16}>
-          <Col xs={24} md={12}>
-            <Form.Item label="日薪（按件/日領者）" name={['person', 'dailyWage']}>
-              <InputNumber
-                style={{ width: '100%' }}
-                min={0}
-                step={500}
-                formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item label="去年報稅所得（元）" name={['person', 'lastYearTaxableIncome']}>
-              <InputNumber
-                style={{ width: '100%' }}
-                min={0}
-                step={10_000}
-                formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-        <Title level={5} className="!mt-4">
-          工作損失佐證
-        </Title>
-        <Row gutter={16}>
-          <Col xs={12} md={6}>
-            <Form.Item
-              label="財產清單"
-              name={['person', 'hasPropertyList']}
-              valuePropName="checked"
-            >
-              <Switch />
-            </Form.Item>
-          </Col>
-          <Col xs={12} md={6}>
-            <Form.Item
-              label="薪轉證明"
-              name={['person', 'hasSalaryTransferRecord']}
-              valuePropName="checked"
-            >
-              <Switch />
-            </Form.Item>
-          </Col>
-          <Col xs={12} md={6}>
-            <Form.Item
-              label="請假證明"
-              name={['person', 'hasLeaveCertificate']}
-              valuePropName="checked"
-            >
-              <Switch />
-            </Form.Item>
-          </Col>
-          <Col xs={12} md={6}>
-            <Form.Item
-              label="扣薪證明"
-              name={['person', 'hasSalaryDeductionProof']}
-              valuePropName="checked"
-            >
-              <Switch />
-            </Form.Item>
-          </Col>
-        </Row>
-        <Row gutter={16}>
-          <Col xs={24} md={12}>
-            <Form.Item label="實際請假日數" name={['person', 'actualLeaveDays']}>
-              <InputNumber style={{ width: '100%' }} min={0} />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item label="醫囑休養日數" name={['person', 'doctorOrderedRestDays']}>
-              <InputNumber style={{ width: '100%' }} min={0} />
-            </Form.Item>
-          </Col>
-        </Row>
-      </Card>
-
-      {/* v0.19.0+：從原 Step7 合併的「聲請人/對方居住地 + 管轄法院」 */}
-      <Card
-        title={
-          <>
-            <ReadOutlined className="mr-2" />
-            聲請人 / 對方居住地 + 管轄法院
-          </>
-        }
-      >
-        <Row gutter={16}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="聲請人居住地（縣市）"
-              name={['basics', 'claimantResidenceCity']}
-              tooltip="理賠申請時保險公司會以這個地址作為通訊地址。建議填實際居住地（不一定等於戶籍）。"
-            >
-              <Input placeholder="例：臺中市" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="聲請人居住地（鄉鎮市區）"
-              name={['basics', 'claimantResidenceDistrict']}
-            >
-              <Input placeholder="例：西區" />
-            </Form.Item>
-          </Col>
-        </Row>
-        <Row gutter={16}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="對方居住地（縣市）"
-              name={['basics', 'defendantResidenceCity']}
-              tooltip="民事訴訟的「管轄法院」依被告住所地為主。若雙方不在同一縣市，可能影響訴訟便利度。"
-            >
-              <Input placeholder="例：臺中市" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="對方居住地（鄉鎮市區）"
-              name={['basics', 'defendantResidenceDistrict']}
-            >
-              <Input placeholder="例：北區" />
-            </Form.Item>
-          </Col>
-        </Row>
-        <Row gutter={16}>
-          <Col xs={24} md={12}>
-            <Form.Item label="管轄法院">
-              <Input value={courtJurisdiction ?? ''} disabled prefix={<ReadOutlined />} />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item label="保險公司分公司區域" name={['basics', 'insuranceCompanyBranchRegion']}>
-              <Input placeholder="例：中部 / 北部" />
-            </Form.Item>
-          </Col>
-        </Row>
-      </Card>
-    </>
+        <Select options={employmentOptions} />
+      </Form.Item>
+      <Collapse
+        activeKey={showWorkDetails ? ['work'] : []}
+        onChange={(keys) => setShowWorkDetails(keys.includes('work'))}
+        items={[
+          {
+            key: 'work',
+            label: '收入與請假資料（估算工作損失時填）',
+            forceRender: true,
+            children: (
+              <>
+                <Form.Item
+                  label="事故前 6 個月平均月薪（元）"
+                  name={['person', 'sixMonthAverageSalary']}
+                  tooltip={{
+                    title: '填事故前 6 個月平均；按日計酬者可填進階欄位。',
+                    icon: <InfoCircleOutlined />,
+                  }}
+                >
+                  <InputNumber
+                    style={{ width: '100%' }}
+                    min={0}
+                    step={1000}
+                    formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  />
+                </Form.Item>
+                <Row gutter={16}>
+                  <Col xs={24} md={8}>
+                    <Form.Item
+                      label="有收入證明"
+                      name={['person', 'hasSalaryTransferRecord']}
+                      valuePropName="checked"
+                    >
+                      <Switch />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={8}>
+                    <Form.Item
+                      label="有請假證明"
+                      name={['person', 'hasLeaveCertificate']}
+                      valuePropName="checked"
+                    >
+                      <Switch />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={8}>
+                    <Form.Item
+                      label="有扣薪證明"
+                      name={['person', 'hasSalaryDeductionProof']}
+                      valuePropName="checked"
+                    >
+                      <Switch />
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Row gutter={16}>
+                  <Col xs={24} md={12}>
+                    <Form.Item label="實際請假日數" name={['person', 'actualLeaveDays']}>
+                      <InputNumber style={{ width: '100%' }} min={0} />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Form.Item label="醫囑休養日數" name={['person', 'doctorOrderedRestDays']}>
+                      <InputNumber style={{ width: '100%' }} min={0} />
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Collapse
+                  activeKey={showIncomeDetails ? ['details'] : []}
+                  onChange={(keys) => setShowIncomeDetails(keys.includes('details'))}
+                  items={[
+                    {
+                      key: 'details',
+                      label: '其他收入資料（選填）',
+                      children: (
+                        <Row gutter={16}>
+                          <Col xs={24} md={8}>
+                            <Form.Item label="日薪（按件／日領者）" name={['person', 'dailyWage']}>
+                              <InputNumber style={{ width: '100%' }} min={0} step={500} />
+                            </Form.Item>
+                          </Col>
+                          <Form.Item hidden name={['person', 'monthlySalary']}>
+                            <InputNumber />
+                          </Form.Item>
+                          <Col xs={24} md={8}>
+                            <Form.Item
+                              label="去年報稅所得"
+                              name={['person', 'lastYearTaxableIncome']}
+                            >
+                              <InputNumber style={{ width: '100%' }} min={0} step={10_000} />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                      ),
+                    },
+                  ]}
+                />
+              </>
+            ),
+          },
+        ]}
+      />
+    </StepShell>
   )
 }
 

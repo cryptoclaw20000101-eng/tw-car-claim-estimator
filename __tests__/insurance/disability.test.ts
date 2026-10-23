@@ -87,23 +87,32 @@ describe('失能引擎 — spec §六 案例：右踝關節活動角度喪失 20
   })
 })
 
-describe('失能引擎 — 截肢直接第 1 級', () => {
-  it('hasAmputation → level 1', () => {
+describe('失能引擎 — 截肢需依附表缺損項目認定', () => {
+  it('hasAmputation 不會自動推定第 1 級', () => {
     const m: MedicalRecord = {
       ...blankMedical,
       diagnosisText: '右下肢膝下截肢',
       hasAmputation: true,
     }
     const r = runDisabilityRuleEngine({ medical: m, accidentDate: '2026-08-01' })
-    expect(r.finalLevel).toBe(1)
-    // 截肢本身 confidence +0.3，未含其他佐證屬合理
+    expect(r.finalLevel).toBeNull()
     expect(r.confidenceScore).toBeGreaterThanOrEqual(0.3)
     expect(r.signals).toContain('截肢')
   })
+
+  it('非關節失能線索不要求 ROM，應依附表項次補相應資料', () => {
+    const r = computeDisability(
+      { ...blankMedical, diagnosisText: '右眼視力嚴重減退' },
+      '2026-08-01',
+    )
+    expect(r.needsSupplement.join('|')).not.toContain('活動度')
+    expect(r.needsSupplement.join('|')).not.toContain('ROM')
+    expect(r.needsSupplement.join('|')).toContain('失能診斷書')
+  })
 })
 
-describe('失能引擎 — 神經損傷等級加重', () => {
-  it('神經損傷 + ROM 喪失 → 等級加重', () => {
+describe('失能引擎 — 神經損傷需依附表認定', () => {
+  it('神經損傷 + ROM 喪失不以固定級距自動加重', () => {
     const m: MedicalRecord = {
       ...blankMedical,
       diagnosisText: '右腕神經損傷，關節活動受限 30 度',
@@ -114,9 +123,9 @@ describe('失能引擎 — 神經損傷等級加重', () => {
     }
     const r = runDisabilityRuleEngine({ medical: m, accidentDate: '2026-08-01' })
     // v0.6.6 真實附表：腕關節 ROM 30°/150° = 20% < 33% → 無明顯障害（severity=none, level=15）
-    // + 神經損傷 shift=-2 → 13 級
+    // 神經損傷須以受影響部位與客觀檢查依附表認定，ROM 初判不自動加重
     expect(r.baseLevel).toBe(15)
-    expect(r.finalLevel).toBe(13)
+    expect(r.finalLevel).toBe(15)
   })
 })
 
@@ -137,15 +146,82 @@ describe('失能引擎 — 角度喪失 < 5% 視為不明顯', () => {
 })
 
 describe('computeDisability — 金額表對應', () => {
-  it('新制第 1 級 300 萬', () => {
-    const m: MedicalRecord = { ...blankMedical, hasAmputation: true }
+  it('新制第 1 級 300 萬（症狀固定、診斷書與附表等級齊備）', () => {
+    const m: MedicalRecord = {
+      ...blankMedical,
+      hasAmputation: true,
+      isSymptomFixed: true,
+      hasDisabilityCertificate: true,
+      disabilityLevel: 1,
+      disabilityTableItemIds: ['1-1'],
+    }
     const r = computeDisability(m, '2026-08-01')
     expect(r.possibleAmount).toBe(3_000_000)
   })
 
-  it('舊制（2026-07-01 前）第 1 級 200 萬', () => {
-    const m: MedicalRecord = { ...blankMedical, hasAmputation: true }
+  it('舊制（2026-07-01 前）第 1 級 200 萬（症狀固定、診斷書與附表等級齊備）', () => {
+    const m: MedicalRecord = {
+      ...blankMedical,
+      hasAmputation: true,
+      isSymptomFixed: true,
+      hasDisabilityCertificate: true,
+      disabilityLevel: 1,
+      disabilityTableItemIds: ['1-1'],
+    }
     const r = computeDisability(m, '2026-01-01')
     expect(r.possibleAmount).toBe(2_000_000)
+  })
+
+  it('只有初篩線索時不列入強制險失能給付', () => {
+    const r = computeDisability({ ...blankMedical, hasAmputation: true }, '2026-08-01')
+    expect(r.possibleAmount).toBe(0)
+    expect(r.isPayable).toBe(false)
+    expect(r.needsSupplement.join('|')).toContain('失能診斷書')
+  })
+
+  it('同一障害部位已有第 9 級，僅給付本次加重至第 7 級的差額', () => {
+    const r = computeDisability(
+      {
+        ...blankMedical,
+        isSymptomFixed: true,
+        hasDisabilityCertificate: true,
+        disabilityLevel: 7,
+        disabilityTableItemIds: ['12-27'],
+        preExistingDisabilityLevel: 9,
+      },
+      '2026-08-01',
+    )
+    expect(r.recognizedLevel).toBe(7)
+    expect(r.possibleAmount).toBe(400_000)
+  })
+
+  it('選正式附表項次時，以附表等級核對並計算', () => {
+    const r = computeDisability(
+      {
+        ...blankMedical,
+        isSymptomFixed: true,
+        hasDisabilityCertificate: true,
+        disabilityTableItemIds: ['12-29'],
+      },
+      '2026-08-01',
+    )
+    expect(r.recognizedLevel).toBe(11)
+    expect(r.possibleAmount).toBe(400_000)
+  })
+
+  it('手填等級與正式附表項次不符時，不列入給付', () => {
+    const r = computeDisability(
+      {
+        ...blankMedical,
+        isSymptomFixed: true,
+        hasDisabilityCertificate: true,
+        disabilityLevel: 9,
+        disabilityTableItemIds: ['12-29'],
+      },
+      '2026-08-01',
+    )
+    expect(r.isPayable).toBe(false)
+    expect(r.possibleAmount).toBe(0)
+    expect(r.needsSupplement.join('|')).toContain('不一致')
   })
 })

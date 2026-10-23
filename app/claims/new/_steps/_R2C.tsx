@@ -8,19 +8,31 @@
 
 import { Col, Form, InputNumber } from 'antd'
 
+const FIELD_UNITS: Record<string, string> = {
+  wardFeeDays: '天',
+  nursingDays: '天',
+  mealDays: '天',
+  missingTeethCount: '顆',
+  vehicleManufactureYear: '年',
+  vehicleDepreciationYears: '年',
+}
+
 export function R2C({
   name,
   label,
   required,
+  hidden = false,
 }: {
   name: [string, string]
   label: string
   /** v0.26.0e+：標示必填 + Form rules。conditional required 由 caller 傳入 */
   required?: boolean
+  hidden?: boolean
 }) {
   return (
-    <Col xs={12} md={8}>
+    <Col xs={24} sm={12} md={8} style={hidden ? { display: 'none' } : undefined}>
       <Form.Item
+        hidden={hidden}
         label={required ? `${label} *` : label}
         name={name}
         rules={required ? [{ required: true, message: '此欄位必填' }] : undefined}
@@ -28,6 +40,7 @@ export function R2C({
         <InputNumber
           style={{ width: '100%' }}
           min={0}
+          addonAfter={FIELD_UNITS[name[1]] ?? '元'}
           formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
         />
       </Form.Item>

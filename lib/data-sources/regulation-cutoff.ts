@@ -49,6 +49,15 @@ export function isNewLaw(accidentDate: string | null | undefined): boolean {
   const normalized = String(accidentDate).slice(0, 10)
   // YYYY-MM-DD 格式驗證
   if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized)) return false
+  // 格式正確但不存在的日曆日期（如 2026-02-30）不得被字串比較誤判為新法。
+  const [year, month, day] = normalized.split('-').map(Number)
+  const parsed = new Date(Date.UTC(year, (month ?? 1) - 1, day))
+  if (
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== (month ?? 1) - 1 ||
+    parsed.getUTCDate() !== day
+  )
+    return false
   // 字串比較（YYYY-MM-DD 字典序 == 時間序）
   return normalized >= NEW_LAW_CUTOFF
 }

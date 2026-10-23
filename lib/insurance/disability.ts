@@ -3,9 +3,8 @@
 //
 // 規則：
 // 1. 關節角度喪失 → 失能等級（真實附表三分類，v0.6.6）
-// 2. 截肢 → 直接第 1 級
-// 3. 神經損傷 / 肌力 / 感覺喪失 → 等級加成
-// 4. 症狀固定 + 永久障害 → confidence 提升
+// 2. 截肢、神經損傷、肌力或感覺異常 → 初篩與補件提示，不自動指定等級
+// 3. 症狀固定 + 合格失能診斷書 + 附表項目，才可列入給付試算
 //
 // 4 級初篩分級：
 //   A. 無明顯失能線索
@@ -24,13 +23,19 @@ import type {
   DisabilityScreening,
 } from './types'
 import { jointLabelZh, resolveNormalRom, levelFromRomLoss } from './joint-rom'
-import { pickDisabilityTable, lookupDisabilityAmount } from './disability-tables'
 import {
+  combineDisabilityBenefits,
+  lookupDisabilityAmount,
+  pickDisabilityTable,
+} from './disability-tables'
+import {
+  lookupDisabilityLevelByDate,
   lookupUpperLimbLevel,
   lookupLowerLimbLevel,
   type JointDisorderSeverity,
   type LimbDisorderSummary,
 } from './disability-joint-mapping'
+import { getDisabilityStandardItem } from './disability-standard'
 
 // 失能給付初篩的觸發關鍵字（spec §六 Step 4）
 const DISABILITY_TRIGGER_KEYWORDS = [
@@ -77,12 +82,10 @@ function scanKeywords(text: string): string[] {
   return hits
 }
 
-// --- 等級加成規則 -----------------------------------------------------
+// --- 初篩訊號規則 -----------------------------------------------------
 
 interface LevelAdjustment {
   trigger: boolean
-  levelOverride?: DisabilityLevel
-  levelShift?: number // 負數 = 等級降低（更嚴重）；正數 = 減輕
   confidenceBoost: number
   note: string
 }
@@ -91,33 +94,28 @@ function computeAdjustments(medical: MedicalRecord): LevelAdjustment[] {
   return [
     {
       trigger: medical.hasAmputation,
-      levelOverride: 1,
       confidenceBoost: 0.3,
-      note: '已截肢，依強制險失能等級表直接列第 1 級（最重）',
+      note: '已截肢，但截肢部位與程度須依附表缺損障害項目認定，不能一律列第 1 級',
     },
     {
       trigger: medical.hasOrganDamage,
-      levelShift: -3,
       confidenceBoost: 0.2,
-      note: '器官缺損 → 等級加重 3 級',
+      note: '器官缺損需依附表臟器障害項目與專科診斷認定',
     },
     {
       trigger: medical.hasNerveDamage,
-      levelShift: -2,
       confidenceBoost: 0.15,
-      note: '神經損傷 → 等級加重 2 級',
+      note: '神經損傷需依受影響部位、檢查與專科診斷依附表認定',
     },
     {
       trigger: medical.hasMuscleWeakness,
-      levelShift: -1,
       confidenceBoost: 0.1,
-      note: '肌力下降 → 等級加重 1 級',
+      note: '肌力下降是初篩線索，須有客觀檢查與附表項目才可認定等級',
     },
     {
       trigger: medical.hasSensoryLoss,
-      levelShift: -1,
       confidenceBoost: 0.1,
-      note: '感覺喪失 → 等級加重 1 級',
+      note: '感覺喪失是初篩線索，須有客觀檢查與附表項目才可認定等級',
     },
     {
       trigger: medical.hasPermanentImpairment,
@@ -131,30 +129,14 @@ function applyAdjustments(
   baseLevel: DisabilityLevel,
   adjustments: LevelAdjustment[],
 ): { level: DisabilityLevel; confidenceBoost: number; notes: string[] } {
-  let level = baseLevel
+  const level = baseLevel
   let totalBoost = 0
   const notes: string[] = []
-  let overridden = false
 
   for (const adj of adjustments) {
     if (!adj.trigger) continue
     totalBoost += adj.confidenceBoost
     notes.push(adj.note)
-    if (adj.levelOverride !== undefined && !overridden) {
-      level = adj.levelOverride
-      overridden = true
-    }
-    if (adj.levelShift !== undefined) {
-      // 等級降低（數字變小 = 更嚴重）；override 與 shift 皆可累加
-      const shifted = (level + adj.levelShift) as DisabilityLevel
-      if (shifted >= 1 && shifted <= 15) {
-        level = shifted
-      } else if (shifted < 1) {
-        level = 1 // clamp 1（最重）
-      } else {
-        level = 15 // clamp 15（最輕）
-      }
-    }
   }
 
   return { level, confidenceBoost: totalBoost, notes }
@@ -213,7 +195,7 @@ export function runDisabilityRuleEngine(input: RuleEngineInput): RuleEngineOutpu
     const UPPER_LIMB_JOINTS: JointName[] = ['shoulder', 'elbow', 'wrist']
     const LOWER_LIMB_JOINTS: JointName[] = ['hip', 'knee', 'ankle']
 
-    if (UPPER_LIMB_JOINTS.includes(jointName)) {
+    if (UPPER_LIMB_JOINTS.includes(jointName) && accidentDate >= '2026-07-01') {
       // 簡化：只記錄單一關節障害，三大關節中 count='1'
       // （未來可擴充支援多關節輸入）
       const summary: LimbDisorderSummary = {
@@ -229,7 +211,7 @@ export function runDisabilityRuleEngine(input: RuleEngineInput): RuleEngineOutpu
           `強制險附表 ${matched.articleId}：第 ${matched.level} 級（單一關節 ${severity}）`,
         )
       }
-    } else if (LOWER_LIMB_JOINTS.includes(jointName)) {
+    } else if (LOWER_LIMB_JOINTS.includes(jointName) && accidentDate >= '2026-07-01') {
       const summary: LimbDisorderSummary = {
         count: '1',
         severity,
@@ -245,6 +227,10 @@ export function runDisabilityRuleEngine(input: RuleEngineInput): RuleEngineOutpu
           `強制險附表 ${matched.articleId}：第 ${matched.level} 級（單一關節 ${severity}）`,
         )
       }
+    } else if (UPPER_LIMB_JOINTS.includes(jointName) || LOWER_LIMB_JOINTS.includes(jointName)) {
+      const limb = UPPER_LIMB_JOINTS.includes(jointName) ? 'upper' : 'lower'
+      baseLevel = lookupDisabilityLevelByDate(limb, romLossPercent, accidentDate)
+      notes.push(`事故日適用 2026-07-01 前失能表：第 ${baseLevel} 級（單一關節 ROM 初篩）`)
     } else {
       // 中軸或手指/腳趾：用舊的 levelFromRomLoss 結果
       notes.push(`ROM 規則引擎初判：第 ${result.level} 級（中軸/手指/腳趾不適用三大關節對照）`)
@@ -263,7 +249,7 @@ export function runDisabilityRuleEngine(input: RuleEngineInput): RuleEngineOutpu
     }
   }
 
-  // 4) 套用加成（截肢/神經/肌力/感覺/器官）
+  // 4) 收集截肢、神經與感覺等初篩訊號。這些訊號不得自動推定附表等級。
   let finalLevel: DisabilityLevel | null = baseLevel
   let finalConfidence = baseConfidence
   const adjNotes: string[] = []
@@ -275,24 +261,12 @@ export function runDisabilityRuleEngine(input: RuleEngineInput): RuleEngineOutpu
     finalConfidence = Math.min(result.confidenceBoost + baseConfidence, 1.0)
     adjNotes.push(...result.notes)
   } else {
-    // 沒有 ROM 線索，純看其他標記
     const triggered = adjustments.filter((a) => a.trigger)
-    if (triggered.length > 0) {
-      // 取最嚴重者
-      const firstOverride = triggered.find((a) => a.levelOverride !== undefined)
-      if (firstOverride) {
-        finalLevel = firstOverride.levelOverride!
-      } else {
-        const totalShift = triggered.reduce((sum, a) => sum + (a.levelShift ?? 0), 0)
-        const inferred = Math.max(1, 10 + totalShift) as DisabilityLevel
-        finalLevel = inferred
-      }
-      finalConfidence = Math.min(
-        triggered.reduce((sum, a) => sum + a.confidenceBoost, 0),
-        0.6, // 沒 ROM 資料 confidence 上限 0.6
-      )
-      adjNotes.push(...triggered.map((a) => a.note))
-    }
+    finalConfidence = Math.min(
+      triggered.reduce((sum, a) => sum + a.confidenceBoost, 0),
+      0.6,
+    )
+    adjNotes.push(...triggered.map((a) => a.note))
   }
 
   notes.push(...adjNotes)
@@ -302,13 +276,16 @@ export function runDisabilityRuleEngine(input: RuleEngineInput): RuleEngineOutpu
   if (signals.length === 0 && !medical.hasAmputation && !medical.hasPermanentImpairment) {
     screening = 'A' // 無明顯失能線索
   } else if (
-    medical.hasAmputation ||
-    medical.hasPermanentImpairment ||
+    (medical.isSymptomFixed && medical.hasDisabilityCertificate && medical.hasAmputation) ||
     (medical.isSymptomFixed &&
+      medical.hasDisabilityCertificate &&
+      medical.hasPermanentImpairment) ||
+    (medical.isSymptomFixed &&
+      medical.hasDisabilityCertificate &&
       medical.hasRangeOfMotionLimitation &&
       romLossPercent !== null &&
       romLossPercent >= 30) ||
-    (medical.hasDisabilityCertificate && finalLevel !== null)
+    (medical.isSymptomFixed && medical.hasDisabilityCertificate && finalLevel !== null)
   ) {
     screening = 'D' // 已具失能申請基礎
   } else if (
@@ -328,7 +305,7 @@ export function runDisabilityRuleEngine(input: RuleEngineInput): RuleEngineOutpu
     if (!medical.isSymptomFixed)
       needsSupplement.push('補「症狀固定」證明（需 6 個月以上治療後由醫師評估）')
     if (!medical.hasDisabilityCertificate)
-      needsSupplement.push('補合格失能診斷書（由指定醫療機構開立）')
+      needsSupplement.push('補依附表項次規定之醫院層級或醫師開立的失能診斷書')
     if (romLossPercent !== null && romLossPercent >= 5) {
       needsSupplement.push(
         `補 ${jointLabelZh[medical.jointName!]} 關節活動度完整量測（被動 ROM、健側對比）`,
@@ -347,9 +324,6 @@ export function runDisabilityRuleEngine(input: RuleEngineInput): RuleEngineOutpu
     notes.push('⚠️ 關節角度喪失是失能初篩線索，但「角度喪失」≠「失能」')
     notes.push('需確認：① 哪個關節 ② 正常活動範圍 ③ 喪失比例 ④ 是否症狀固定 ⑤ 是否有合格失能診斷書')
   }
-
-  // 靜音未使用變數 warning 抑制
-  void accidentDate // 用於金額表選擇，由 caller 處理
 
   return {
     romLossPercent,
@@ -372,17 +346,83 @@ export function computeDisability(
 ): DisabilityScreeningResult {
   const engine = runDisabilityRuleEngine({ medical, accidentDate })
   const table = pickDisabilityTable(accidentDate)
-  const amount = engine.finalLevel ? lookupDisabilityAmount(engine.finalLevel, table) : 0
+  const manualLevels = [
+    medical.disabilityLevel,
+    ...(medical.additionalDisabilityLevels ?? []),
+  ].filter(
+    (level): level is DisabilityLevel =>
+      typeof level === 'number' && Number.isInteger(level) && level >= 1 && level <= 15,
+  )
+  const standardItems = (medical.disabilityTableItemIds ?? [])
+    .map((id) => getDisabilityStandardItem(id))
+    .filter((item): item is NonNullable<typeof item> => Boolean(item))
+  const listedLevels =
+    standardItems.length > 0 ? standardItems.map((item) => item.level) : manualLevels
+  const hasLevelMismatch =
+    standardItems.length > 0 &&
+    manualLevels.length > 0 &&
+    [...manualLevels].sort((a, b) => a - b).join(',') !==
+      [...listedLevels].sort((a, b) => a - b).join(',')
+  const isPayable =
+    medical.isSymptomFixed &&
+    medical.hasDisabilityCertificate &&
+    standardItems.length > 0 &&
+    listedLevels.length > 0 &&
+    !hasLevelMismatch
+  const combined = isPayable ? combineDisabilityBenefits(listedLevels, table) : null
+  const preExistingLevel = medical.preExistingDisabilityLevel
+  const preExistingAmount =
+    preExistingLevel &&
+    Number.isInteger(preExistingLevel) &&
+    preExistingLevel >= 1 &&
+    preExistingLevel <= 15
+      ? lookupDisabilityAmount(preExistingLevel as DisabilityLevel, table)
+      : 0
+  const amount = combined ? Math.max(0, combined.amount - preExistingAmount) : 0
+  const notes = [...engine.notes]
+  const needsSupplement = [...engine.needsSupplement]
+
+  if (!isPayable && engine.finalLevel !== null) {
+    notes.push('此等級僅為初篩線索，未滿足強制險失能給付前提，未列入失能給付金額。')
+  }
+  if (!medical.isSymptomFixed) needsSupplement.push('補醫師記載之症狀固定或永久障害診斷')
+  if (!medical.hasDisabilityCertificate)
+    needsSupplement.push('補符合附表項目、依項次規定開立的失能診斷書')
+  if (listedLevels.length === 0) needsSupplement.push('補失能診斷書載明的附表等級（第 1 至 15 等）')
+  if (standardItems.length === 0) {
+    needsSupplement.push('補選診斷書載明的正式失能給付標準表項次（204 項）')
+  }
+  if (standardItems.length > 0) {
+    notes.push(
+      `已依現行失能給付標準表核對：${standardItems
+        .map((item) => `${item.id}（第 ${item.level} 級）`)
+        .join('、')}。`,
+    )
+    needsSupplement.push(...standardItems.map((item) => `${item.id}：${item.requirement}`))
+  }
+  if (hasLevelMismatch) {
+    needsSupplement.push('診斷書填寫的失能等級與所選附表項次不一致，請依診斷書或附表條號更正')
+  }
+  if (combined && combined.appliedUpgrade > 0) {
+    notes.push(
+      `同一事故同時符合 ${listedLevels.length} 項失能，依第 4 條升 ${combined.appliedUpgrade} 等計算。`,
+    )
+  }
+  if (preExistingAmount > 0) {
+    notes.push('已依第 5 條扣除同一障害部位事故前既有失能給付標準。')
+  }
 
   return {
     screening: engine.screening,
     signals: engine.signals,
     possibleLevel: engine.finalLevel,
     possibleAmount: amount,
+    isPayable,
+    recognizedLevel: combined?.level ?? null,
     confidenceScore: engine.confidenceScore,
     romLossPercent: engine.romLossPercent,
     jointName: engine.jointName,
-    notes: engine.notes,
-    needsSupplement: engine.needsSupplement,
+    notes,
+    needsSupplement: [...new Set(needsSupplement)],
   }
 }

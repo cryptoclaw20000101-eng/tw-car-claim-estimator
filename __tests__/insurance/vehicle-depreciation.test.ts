@@ -140,6 +140,28 @@ describe('computeDepreciatedVehicleValue', () => {
 })
 
 describe('computeVehicleDamage — 折舊 + 維修成本交互', () => {
+  it('使用明確事故年份，不受重新試算當天年份影響', () => {
+    const input = {
+      vehicleRepairEstimate: 250000,
+      vehicleRepairInvoice: 0,
+      vehicleMarketValueBeforeAccident: 500000,
+      salvageValue: 0,
+      towingFee: 0,
+      rentalCarFee: 0,
+      phoneDamage: 0,
+      helmetDamage: 0,
+      clothingDamage: 0,
+      glassesDamage: 0,
+      otherPropertyDamage: 0,
+      vehicleManufactureYear: 2023,
+      vehicleDepreciationYears: 5,
+    }
+    // 2024 事故時僅使用一年：車價上限 40 萬，因此維修費全額可主張。
+    expect(computeVehicleDamage(input, 2024)).toBe(250000)
+    // 若誤用今日 2026，會把同一案件壓到 20 萬；入口必須傳事故日。
+    expect(computeVehicleDamage(input, 2026)).toBe(200000)
+  })
+
   it('沒填出廠年 → 用事故前車價（向後相容）', () => {
     const r = computeVehicleDamage({
       vehicleRepairEstimate: 60000,

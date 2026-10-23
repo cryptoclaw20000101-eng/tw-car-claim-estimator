@@ -24,11 +24,8 @@ const REFERENCES: LegalReference[] = [
     key: 'compulsory_payment_standard',
     title: '強制汽車責任保險給付標準',
     effectiveDate: '2026-07-01', // 新制生效日
-    // v0.6.6: pcode 待驗證（SPA 渲染，這環境無法直接抓到正確 pcode）
-    // 失能等級附表內容已對齊 doc_48f88159057e_附表-強制汽車責任保險失能給付標準表.pdf
-    sourceUrl: 'https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=G0390051',
-    sourceNote:
-      'pcode 待驗證；條文內容以 data/legal-sources/compulsory-disability-table-2026.pdf 為 ground truth',
+    sourceUrl: 'https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=G0390067',
+    sourceNote: '法務部全國法規資料庫現行條文與附表。',
     summary:
       '規範強制險醫療費用、失能給付、死亡給付之細項上限。新制 2026-07-01 生效，' +
       '失能等級 1 等由 200 萬調高為 300 萬，其餘等級依比例調升。',
@@ -47,7 +44,7 @@ const REFERENCES: LegalReference[] = [
     lastReviewed: '2026-06-07',
   },
   {
-    // v0.6.6 重大改動：原本是獨立的 `disability_level_table` key（pcode G0390051，錯的）
+    // `disability_level_table` 是給付標準的附表，保留這個 key 供既有 UI 使用。
     // 實際上「失能等級表」是「強制汽車責任保險給付標準」的附表，兩條文指向同一 PDF。
     // 已合併進上面的 `compulsory_payment_standard` 的 relevantArticles 與 PDF 引用。
     // 為了向後相容 UI 既有呼叫 `disability_level_table` 的程式，這裡保留 placeholder。
@@ -55,9 +52,8 @@ const REFERENCES: LegalReference[] = [
     key: 'disability_level_table',
     title: '強制汽車責任保險失能等級表（附表）— v0.6.6 與 compulsory_payment_standard 合併',
     effectiveDate: '2026-07-01',
-    sourceUrl: 'https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=G0390051',
-    sourceNote:
-      'pcode 待驗證；條文內容以 data/legal-sources/compulsory-disability-table-2026.pdf 為 ground truth',
+    sourceUrl: 'https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=G0390067',
+    sourceNote: '法務部全國法規資料庫現行給付標準附表。',
     summary:
       '失能等級 1-15 等對照給付金額 + 三大關節障害（喪失機能/顯著運動障害/運動障害）' +
       '對應條號（11-23 ~ 11-44 上肢，12-18 ~ 12-37 下肢）。' +

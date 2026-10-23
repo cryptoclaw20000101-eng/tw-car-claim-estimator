@@ -39,6 +39,7 @@ import { MultiFaultCompare } from '@/components/MultiFaultCompare'
 import { ContactCTA } from './_components/ContactCTA'
 // v0.20.0+：結果頁區間卡（user 反饋「不要只顯示單一金額」+ AGENTS §0 不保證金額精神）
 import { EstimationRangeCard } from './_sections/EstimationRangeCard'
+import { EstimateAssumptions } from './_sections/EstimateAssumptions'
 // v0.12.0+ Phase B5：分享連結
 import { encodeShareHash } from '@/lib/share-link'
 import {
@@ -63,6 +64,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import dynamic from 'next/dynamic'
 import type { ClaimInput, EstimationResult } from '@/lib/insurance/types'
 import { estimateClaim } from '@/lib/insurance'
+import { saveForLoad } from '@/lib/estimate-loader'
 import { SAMPLE_INPUT } from '@/lib/insurance/sample'
 // v0.14.x：雲端持久化（Supabase + localStorage fallback）
 import { saveEstimate } from '@/lib/estimate-storage'
@@ -111,6 +113,7 @@ const dollar = (n: number) => `NT$ ${(n ?? 0).toLocaleString('zh-TW')}`
 export default function ResultForm() {
   // v0.12.0+ Phase E3：客戶精簡模式（隱藏技術細節，給客戶看的精簡版）
   const [compactMode, setCompactMode] = useState(false)
+  const [activeTab, setActiveTab] = useState<string | null>(null)
   // v0.14.x：用戶登入狀態
   const { user } = useAuth()
 
@@ -172,6 +175,23 @@ export default function ResultForm() {
   const input = hydrated.input
   const result = hydrated.result
   const stale = hydrated.stale
+
+  const editCurrentEstimate = () => {
+    if (!input || !saveForLoad(input)) {
+      antdMessage.error('無法載入本次資料，請稍後重試')
+      return
+    }
+    window.location.assign('/claims/new?load=true')
+  }
+
+  const openSupplements = () => {
+    setActiveTab('supplement')
+    requestAnimationFrame(() => {
+      const section = document.getElementById('result-details')
+      section?.scrollIntoView({ block: 'start' })
+      section?.focus({ preventScroll: true })
+    })
+  }
 
   // 估算編號：表單 submit 時一次性產生並存進 sessionStorage，這裡讀取
   // 不在 render 時計算（避免切精簡模式 / 狀態變更導致 ID 變動）
@@ -300,7 +320,7 @@ export default function ResultForm() {
         <div className="!mt-2 !text-center !text-xs !text-black">製作 by 信安保經小鄭</div>
       </div>
 
-      <div className="w-full max-w-5xl">
+      <div className="w-full min-w-0 max-w-5xl">
         {/* v0.21.0+：雲端同步狀態提示（user 之前看不到雲端存有沒有跑） */}
         {syncStatus.state === 'pending' && (
           <InfoAlert
@@ -353,6 +373,13 @@ export default function ResultForm() {
           actions={[
             {
               kind: 'button',
+              onClick: editCurrentEstimate,
+              label: '修改本次資料',
+              icon: <EditOutlined />,
+              testId: 'edit-current-estimate',
+            },
+            {
+              kind: 'button',
               onClick: () => {
                 // v0.18.x 會員限定：未登入跳登入頁（估算本身開放所有訪客）
                 if (!user) {
@@ -392,8 +419,8 @@ export default function ResultForm() {
           估算結果
         </Title>
         <Paragraph type="secondary" className="!mb-4">
-          事故地點：{input.basics.accidentLocation || '（未填）'} · {input.basics.accidentDate} ·
-          管轄法院：{result.region.courtName}
+          事故地點：{input.basics.accidentLocation || '（未填）'} ·{' '}
+          {input.basics.accidentDate?.slice(0, 10)} · 管轄法院：{result.region.courtName}
         </Paragraph>
 
         {stale && (
@@ -414,76 +441,118 @@ export default function ResultForm() {
           body="本結果為依使用者輸入及公開法源/案例之初步估算，非最終理賠金額。實際理賠須依保險公司審核、醫療資料、肇事責任、保單條款、評議/判決結果及雙方和解結果為準。"
         />
 
+        <EstimateAssumptions input={input} result={result} onOpenSupplements={openSupplements} />
+
         {/* ============ Hero Stat — 4 大關鍵數字 (v0.11.0+ 主數字放大 2x + accent ring) ============ */}
-        <div className="!mb-6 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-border bg-border transition-all duration-200 hover:shadow-md md:grid-cols-4">
-          {/* 主格 2fr：強制險總估算 — 放大 2x + accent 左邊條 + accent text */}
-          <div className="relative bg-surface p-5 md:col-span-2 md:p-6">
-            {/* v0.11.0+：主格 accent 左邊條強調主視覺 */}
-            <span aria-hidden className="absolute left-0 top-0 h-full w-1 bg-accent" />
-            <div className="mb-2 flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-accent">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent" />
-              <span>強制險總估算（主視覺）</span>
+        {input.basics.isInjured === false ? (
+          <section
+            aria-label="車損試算摘要"
+            className="mb-6 grid gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-2"
+          >
+            <div className="bg-surface p-5">
+              <p className="text-sm text-muted">
+                {result.vehicleDamage === null
+                  ? '已知財損小計（車損待估）'
+                  : '車損與財物損失（未分配肇責）'}
+              </p>
+              <p className="mt-2 text-3xl font-bold tabular-nums text-accent">
+                {dollar((result.vehicleDamage ?? 0) + result.propertyDamage)}
+              </p>
+              <p className="mt-2 text-xs text-muted">未受傷案件不列入醫療、慰撫金或失能試算。</p>
             </div>
-            <div className="tabular-nums text-4xl font-bold tracking-tight text-accent md:text-5xl">
-              {dollar(result.compulsoryTotalEstimated)}
+            <div className="bg-surface p-5">
+              <p className="text-sm text-muted">
+                {result.vehicleDamage === null
+                  ? '已知項目之對方負擔（未含車損）'
+                  : '依目前肇責估算對方負擔'}
+              </p>
+              <p className="mt-2 text-3xl font-bold tabular-nums">
+                {dollar(result.thirdParty.liableAmountMid)}
+              </p>
+              <p className="mt-2 text-xs text-muted">保險給付另須核對投保狀態與保額。</p>
             </div>
-            <div className="mt-2 text-xs text-muted">
-              含醫療 {dollar(result.compulsoryItems.reduce((s, r) => s + r.approved, 0))} / 失能{' '}
-              {dollar(result.compulsoryDisabilityAmount)} / 死亡{' '}
-              {dollar(result.compulsoryDeathAmount)}
+          </section>
+        ) : (
+          <div className="!mb-6 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-border bg-border transition-all duration-200 hover:shadow-md md:grid-cols-4">
+            {/* 主格 2fr：強制險總估算 — 放大 2x + accent 左邊條 + accent text */}
+            <div className="relative bg-surface p-5 md:col-span-2 md:p-6">
+              {/* v0.11.0+：主格 accent 左邊條強調主視覺 */}
+              <span aria-hidden className="absolute left-0 top-0 h-full w-1 bg-accent" />
+              <div className="mb-2 flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-accent">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent" />
+                <span>強制險總估算（主視覺）</span>
+              </div>
+              <div className="tabular-nums text-4xl font-bold tracking-tight text-accent md:text-5xl">
+                {dollar(result.compulsoryTotalEstimated)}
+              </div>
+              <div className="mt-2 text-xs text-muted">
+                含醫療 {dollar(result.compulsoryItems.reduce((s, r) => s + r.approved, 0))} / 失能{' '}
+                {dollar(result.compulsoryDisabilityAmount)} / 死亡{' '}
+                {dollar(result.compulsoryDeathAmount)}
+              </div>
             </div>
-          </div>
-          {/* 副格 1：民事中標 — 縮小到 text-base */}
-          <div className="bg-surface p-5">
-            <div className="mb-2 text-xs uppercase tracking-[0.18em] text-muted">民事中標</div>
-            <div className="tabular-nums text-base font-semibold tracking-tight text-foreground">
-              {dollar(result.painAndSuffering.regionalMid)}
+            {/* 副格 1：民事中標 — 縮小到 text-base */}
+            <div className="bg-surface p-5">
+              <div className="mb-2 text-xs uppercase tracking-[0.18em] text-muted">
+                精神慰撫金參考值
+              </div>
+              <div className="tabular-nums text-base font-semibold tracking-tight text-foreground">
+                {dollar(result.painAndSuffering.regionalMid)}
+              </div>
+              <div className="mt-1 text-xs text-muted">
+                精神慰撫金 × {result.region.courtName} 係數
+              </div>
             </div>
-            <div className="mt-1 text-xs text-muted">
-              精神慰撫金 × {result.region.courtName} 係數
-            </div>
-          </div>
-          {/* 副格 2：失能初篩 — 縮小到 text-base
+            {/* 副格 2：失能初篩 — 縮小到 text-base
               v0.19.x+：當沒信號時顯示「資料不足」而非「分級 A」（避免誤導）*/}
-          <div className="bg-surface p-5">
-            <div className="mb-2 text-xs uppercase tracking-[0.18em] text-muted">失能初篩</div>
-            <div className="text-base font-semibold tracking-tight">
-              {result.disability.signals.length > 0 || result.disability.possibleLevel !== null ? (
-                <span
-                  style={{
-                    color: {
-                      A: 'var(--data-positive)',
-                      B: 'var(--accent)',
-                      C: 'var(--data-warning)',
-                      D: 'var(--data-negative)',
-                    }[result.disability.screening],
-                  }}
-                >
-                  分級 {result.disability.screening}
-                </span>
-              ) : (
-                <span className="text-muted">資料不足</span>
-              )}
-            </div>
-            <div className="mt-1 text-xs text-muted">
-              {result.disability.possibleLevel
-                ? `可能等級：第 ${result.disability.possibleLevel} 級`
-                : '需補失能診斷書 + ROM 才能評估'}
+            <div className="bg-surface p-5">
+              <div className="mb-2 text-xs uppercase tracking-[0.18em] text-muted">失能初篩</div>
+              <div className="text-base font-semibold tracking-tight">
+                {result.disability.signals.length > 0 ||
+                result.disability.possibleLevel !== null ? (
+                  <span
+                    style={{
+                      color: {
+                        A: 'var(--data-positive)',
+                        B: 'var(--accent)',
+                        C: 'var(--data-warning)',
+                        D: 'var(--data-negative)',
+                      }[result.disability.screening],
+                    }}
+                  >
+                    分級 {result.disability.screening}
+                  </span>
+                ) : (
+                  <span className="text-muted">資料不足</span>
+                )}
+              </div>
+              <div className="mt-1 text-xs text-muted">
+                {result.disability.isPayable && result.disability.recognizedLevel
+                  ? `給付試算：第 ${result.disability.recognizedLevel} 級`
+                  : result.disability.possibleLevel
+                    ? `初篩線索：第 ${result.disability.possibleLevel} 級（未列入給付）`
+                    : '需依附表項次補失能診斷與審核資料'}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* v0.12.0+ Phase B7：多肇責比例並排比較（v0.28.1+ 移除 civilMidBaseline prop）*/}
         <MultiFaultCompare
-          bodilyInjuryAmount={(result.civilMedicalExpense ?? 0) + (result.workLoss ?? 0)}
-          propertyDamageAmount={result.propertyDamage ?? 0}
+          bodilyInjuryAmount={Math.max(
+            0,
+            result.thirdParty.civilDamageTotalMid -
+              (result.vehicleDamage ?? 0) -
+              result.propertyDamage,
+          )}
+          propertyDamageAmount={(result.vehicleDamage ?? 0) + result.propertyDamage}
         />
 
-        {/* v0.24.0c+：ContactCTA — 留下 LINE / Threads 帳號讓業務員免費諮詢 */}
+        {/* v0.24.0c+：ContactCTA：留下 LINE / Threads 帳號取得一般流程說明 */}
         <ContactCTA estimateId={estimateId} />
 
         {/* v0.20.0+：合理求償區間卡（保守/一般/積極 + 完整度 + 缺件 + 人工判斷項）*/}
-        {result.painAndSuffering && (
+        {input.basics.isInjured !== false && result.painAndSuffering && (
           <EstimationRangeCard
             pas={{
               regionalLow: result.painAndSuffering.regionalLow,
@@ -506,11 +575,16 @@ export default function ResultForm() {
           />
         )}
 
-        <div className="sticky top-0 z-10 -mx-6 mb-6 bg-surface-subtle/95 px-6 py-3 backdrop-blur supports-[backdrop-filter]:bg-surface-subtle/80">
+        <div
+          id="result-details"
+          tabIndex={-1}
+          className="sticky top-0 z-10 mb-6 min-w-0 bg-surface-subtle/95 py-3 backdrop-blur supports-[backdrop-filter]:bg-surface-subtle/80"
+        >
           <Tabs
             type="card"
             destroyOnHidden
-            defaultActiveKey="compulsory"
+            activeKey={activeTab ?? (input.basics.isInjured === false ? 'civil' : 'compulsory')}
+            onChange={setActiveTab}
             items={[
               {
                 key: 'compulsory',
@@ -560,7 +634,7 @@ export default function ResultForm() {
                 ),
                 children: (
                   <TabContent>
-                    <CivilSection result={result} />
+                    <CivilSection result={result} isInjured={input.basics.isInjured !== false} />
                   </TabContent>
                 ),
               },
@@ -616,7 +690,11 @@ export default function ResultForm() {
                   </TabContent>
                 ),
               },
-            ]}
+            ].filter(
+              (item) =>
+                input.basics.isInjured !== false ||
+                !['compulsory', 'disability', 'practice', 'region'].includes(item.key),
+            )}
           />
         </div>
 

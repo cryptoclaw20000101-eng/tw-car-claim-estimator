@@ -30,7 +30,6 @@ import {
   CloseOutlined,
   HomeOutlined,
   CalculatorOutlined,
-  FileSearchOutlined,
   // v0.12.0+ Phase B6：dark mode toggle icons
   SunOutlined,
   MoonOutlined,
@@ -55,7 +54,6 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { href: '/', label: '首頁', icon: <HomeOutlined /> },
   { href: '/claims/new', label: '開始估算', icon: <CalculatorOutlined /> },
-  { href: '/claims/result', label: '結果頁', icon: <FileSearchOutlined /> },
 ]
 
 export function MobileNav() {
@@ -137,7 +135,7 @@ export function MobileNav() {
 
   return (
     <motion.header
-      className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+      className="sticky top-0 z-40 border-b border-border bg-background/95 shadow-[0_1px_0_rgba(24,24,27,0.04)] backdrop-blur supports-[backdrop-filter]:bg-background/80"
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
       data-testid="mobile-nav"
       // v0.10.0+：header 進場 fade-in-down
@@ -145,11 +143,14 @@ export function MobileNav() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
     >
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3 md:px-6 md:py-4">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-2.5 md:px-6 md:py-3">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2.5" aria-label="車禍理賠估算器首頁">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent text-base text-accent-foreground shadow-[0_4px_12px_rgba(30,64,175,0.22)]">
+            <CarOutlined />
+          </span>
           <Text strong className="!text-base !text-foreground md:!text-lg">
-            <CarOutlined /> 車禍理賠
+            車禍理賠估算器
           </Text>
         </Link>
 
@@ -218,7 +219,7 @@ export function MobileNav() {
             <Text type="secondary" className="!mb-2 !text-xs uppercase tracking-wider">
               更多
             </Text>
-            <Space direction="vertical" size="small" className="!w-full">
+            <Space orientation="vertical" size="small" className="!w-full">
               <Link href="/about" onClick={() => setOpen(false)} style={{ width: '100%' }}>
                 <Button type="text" block className="!justify-start" size="small">
                   關於我們
@@ -262,7 +263,7 @@ function UserMenu() {
   if (!user) {
     return (
       <Tooltip title="點擊登入">
-        <Link href="/login" passHref legacyBehavior>
+        <Link href="/login">
           <Button type="text" icon={<LoginOutlined />} data-testid="user-menu" aria-label="登入" />
         </Link>
       </Tooltip>

@@ -37,6 +37,7 @@ import {
   type PersonalFactors,
   type PersonalFactorResult,
   personalFactorMultiplier,
+  pasLevelIndexFromScore,
   DEFAULT_PERSONAL_FACTORS,
 } from './pas-table'
 
@@ -92,7 +93,7 @@ export interface ReconcileResult {
   warning?: string
 }
 
-// --- 15 級區間表（從 pas-table.ts 共用，v0.18.x+ 從 8 級擴為 15 級）-------------
+// --- 50 級傷勢區間表（從 pas-table.ts 共用）-----------------------------
 
 const BASE_PAS_TABLE: PasLevelRow[] = PAS_TABLE
 
@@ -107,6 +108,7 @@ interface SeverityBreakdown {
   hasSurgery: boolean
   hasFracture: boolean
   hasNerveDamage: boolean
+  hasOrganDamage: boolean
   hasAmputation: boolean
 }
 
@@ -126,43 +128,28 @@ function scoreSeverity(b: SeverityBreakdown): number {
   else if (b.rehabilitationCount >= 15) score += 8
   else if (b.rehabilitationCount >= 5) score += 4
 
-  // 疤痕 (0-20)
-  if (b.hasAmputation)
-    score += 30 // 截肢比疤嚴重
+  // 疤痕 / 截肢
+  if (b.hasAmputation) score += 80
   else if (b.scarLengthCm >= 20) score += 20
   else if (b.scarLengthCm >= 10) score += 15
   else if (b.scarLengthCm >= 5) score += 10
   else if (b.scarLengthCm > 0) score += 5
 
-  // 開刀/手術 (0-10)
-  if (b.hasSurgery) score += 10
+  // 開刀/手術 (0-15)
+  if (b.hasSurgery) score += 15
 
   // 受傷類型
-  if (b.hasFracture) score += 10
-  if (b.hasNerveDamage) score += 15
-  if (b.hasPermanentImpairment) score += 12
-  if (b.hasDisability || b.hasAmputation) score += 25 // 失能
+  if (b.hasFracture) score += 18
+  if (b.hasNerveDamage) score += 30
+  if (b.hasOrganDamage) score += 35
+  if (b.hasPermanentImpairment) score += 25
+  if (b.hasDisability || b.hasAmputation) score += 30
 
   return Math.min(score, 200)
 }
 
 function pickLevelIndex(score: number): number {
-  // v0.18.x+ 15 等級 (0-14)
-  if (score >= 130) return 14 // 失能重度
-  if (score >= 100) return 13 // 失能中度
-  if (score >= 80) return 12 // 失能輕度
-  if (score >= 65) return 11 // 脊椎/腦傷
-  if (score >= 50) return 10 // 神經/肌腱
-  if (score >= 40) return 9 // 韌帶/關節
-  if (score >= 32) return 8 // 簡單骨折
-  if (score >= 25) return 7 // 顏面疤
-  if (score >= 18) return 6 // 撕裂傷+明疤
-  if (score >= 12) return 5 // 撕裂傷+小疤
-  if (score >= 8) return 4 // 軟組織
-  if (score >= 5) return 3 // 中度擦挫
-  if (score >= 3) return 2 // 輕微擦挫
-  if (score >= 1) return 1 // 極輕微
-  return 0
+  return pasLevelIndexFromScore(score)
 }
 
 // --- 傷勢分類 (對應 historical bracket) ---------------------------------
@@ -171,8 +158,9 @@ type PainSeverity = 'death' | 'severe_injury' | 'minor_injury'
 
 /** 從 severity level 推對應的 historical bracket 分類（v0.18.x+ 15 等級映射到 3 bucket） */
 function severityFromLevel(level: number): PainSeverity {
-  if (level >= 12) return 'death' // 失能輕度及以上 → 對齊「死亡」分組（金額區間相近）
-  if (level >= 8) return 'severe_injury' // 簡單骨折/韌帶/神經/脊椎 → 對齊「重傷」分組
+  // 死亡案件與生存者的慰撫金請求權、事實基礎均不同，不能把失能案件併入死亡樣本。
+  // 本工具不處理死亡案件，因此最高只使用 severe_injury bucket。
+  if (level >= 8) return 'severe_injury'
   return 'minor_injury' // Lv 1-7 (擦挫/疤/軟組織) → 對齊「輕傷」分組
 }
 
@@ -350,6 +338,7 @@ export function predictPainRange(input: PainMLInput): PainMLOutput {
     hasSurgery: medical.hasSurgery,
     hasFracture: medical.hasFracture,
     hasNerveDamage: medical.hasNerveDamage,
+    hasOrganDamage: medical.hasOrganDamage,
     hasAmputation: medical.hasAmputation,
   }
   const severityScore = scoreSeverity(breakdown)
@@ -377,12 +366,12 @@ export function predictPainRange(input: PainMLInput): PainMLOutput {
   const heurMid = Math.round(baseMid * regionMultiplier)
   const heurHigh = Math.round(baseHigh * regionMultiplier)
 
-  // v0.18.x+ Personal Factors multiplier（年齡/職業/扶養人/勞減）
+  // 個人條件僅供人工審酌，不自動以倍率調整金額。
   const personalFactors = input.personal ?? DEFAULT_PERSONAL_FACTORS
   const pfResult = personalFactorMultiplier(personalFactors)
   const pfMult = pfResult.multiplier
 
-  // 套用 Personal Factors 後的金額（給業務員看的最終建議值）
+  // 保留 adjusted 欄位以維持 API 相容；其值與規則區間相同。
   const adjustedLow = Math.round(heurLow * pfMult)
   const adjustedMid = Math.round(heurMid * pfMult)
   const adjustedHigh = Math.round(heurHigh * pfMult)

@@ -1,7 +1,7 @@
 /**
  * ContactCTA — 結果頁聯絡 CTA（v0.24.0c+）
  *
- * 功能：讓用戶填 LINE 或 Threads 帳號，業務員免費提供諮詢。
+ * 功能：讓用戶留下 LINE 或 Threads 帳號，取得工具使用與一般流程說明。
  * - 不強制登入（未登入訪客也能留）
  * - 表單簡單（聯絡類型 + handle + 選填訊息 + 同意條款）
  * - AGENTS §6 脫敏：只存公開 ID，不存姓名/身分證/車牌
@@ -51,7 +51,7 @@ export function ContactCTA({ estimateId }: ContactCTAProps) {
         }),
       })
       if (res.ok) {
-        message.success('感謝！我們會在 1-2 個工作天透過 LINE / Threads 聯繫您')
+        message.success('已收到您的詢問，我們會在 1-2 個工作天透過 LINE / Threads 聯繫您')
         setSubmitted(true)
         setExpanded(false)
         form.resetFields()
@@ -72,7 +72,7 @@ export function ContactCTA({ estimateId }: ContactCTAProps) {
         type="success"
         showIcon
         message="已收到您的聯絡資訊"
-        description="業務員會在 1-2 個工作天透過您留下的 LINE / Threads 帳號聯繫您，提供免費諮詢。"
+        description="我們會在 1-2 個工作天透過您留下的 LINE / Threads 帳號聯繫您，說明工具使用與一般理賠流程。"
       />
     )
   }
@@ -84,11 +84,12 @@ export function ContactCTA({ estimateId }: ContactCTAProps) {
           type="dashed"
           block
           size="large"
+          className="!h-auto !whitespace-normal !py-3"
           icon={<MessageOutlined />}
           onClick={() => setExpanded(true)}
           data-testid="contact-cta-toggle"
         >
-          想要免費諮詢？留下 LINE 或 Threads 帳號，業務員 1-2 天內回覆
+          需要協助？留下聯絡方式
         </Button>
       </div>
     )
@@ -99,7 +100,7 @@ export function ContactCTA({ estimateId }: ContactCTAProps) {
       <div className="!mb-3 flex items-center gap-2">
         <WechatOutlined className="!text-lg text-accent" />
         <strong className="!text-base text-foreground">
-          留下 LINE 或 Threads 帳號，業務員提供免費諮詢
+          留下 LINE 或 Threads 帳號，取得一般流程說明
         </strong>
       </div>
       <Alert
@@ -107,7 +108,7 @@ export function ContactCTA({ estimateId }: ContactCTAProps) {
         showIcon
         className="!mb-4"
         message="我們會在 1-2 個工作天聯繫您"
-        description="只儲存您選擇的 LINE / Threads 公開帳號，不用於行銷推銷，可隨時要求刪除。"
+        description="只儲存您選擇的 LINE / Threads 公開帳號，用於回覆本次詢問；您可隨時要求刪除。個案理賠仍應諮詢合格專業人員。"
       />
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
         <Form.Item
@@ -158,7 +159,7 @@ export function ContactCTA({ estimateId }: ContactCTAProps) {
           ]}
         >
           <Checkbox>
-            我同意業務員透過上述 LINE / Threads 帳號聯繫我，並理解此帳號僅用於本次諮詢。
+            我同意服務人員透過上述 LINE / Threads 帳號聯繫我，並理解此帳號僅用於回覆本次詢問。
           </Checkbox>
         </Form.Item>
         <Form.Item>

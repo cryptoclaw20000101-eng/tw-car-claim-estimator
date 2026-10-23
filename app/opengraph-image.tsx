@@ -10,13 +10,13 @@ import { ACCENT, BACKGROUND, FOREGROUND, MUTED, SURFACE, BORDER } from '@/lib/de
  * 設計對齊首頁品牌：
  * - 背景 stone-50 (#fafaf9)
  * - 標題 zinc-900 + 強調 rose-700
- * - 系統字體棧（不依賴 Google Fonts 下載，AGENTS §15）
+ * - 系統字體棧（不依賴 Google Fonts 下載，AGENTS §8.10 設計 token 單一來源）
  *
  * 注意：next/og 內建，不需額外依賴
  */
 
 export const runtime = 'nodejs' // ImageResponse 預設
-export const alt = '台灣車禍理賠金額估算器 — 5 分鐘算給你看'
+export const alt = '台灣車禍理賠金額估算器，協助完成初步試算'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -34,7 +34,6 @@ export default async function OpengraphImage() {
           '-apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif',
       }}
     >
-      {/* 頂部 eyebrow */}
       <div
         style={{
           display: 'flex',
@@ -46,7 +45,7 @@ export default async function OpengraphImage() {
           marginBottom: 24,
         }}
       >
-        <span>v0.9.0 · TAIWAN CAR-CLAIM ESTIMATOR</span>
+        <span>台灣車禍理賠金額估算器</span>
       </div>
 
       {/* 主標題 */}
@@ -62,10 +61,9 @@ export default async function OpengraphImage() {
           marginBottom: 32,
         }}
       >
-        <span>車禍理賠金額，</span>
+        <span>車禍理賠，</span>
         <span style={{ display: 'flex' }}>
-          <span style={{ color: ACCENT }}>5 分鐘</span>
-          <span>&nbsp;算給你看。</span>
+          <span style={{ color: ACCENT }}>先完成初步試算。</span>
         </span>
       </div>
 
@@ -79,10 +77,9 @@ export default async function OpengraphImage() {
           maxWidth: 900,
         }}
       >
-        強制汽車責任保險法 · 民法侵權行為 · 6 直轄市地方法院實務
+        強制汽車責任保險法、民法侵權行為與地方法院實務
       </div>
 
-      {/* 底部 5 區塊 chips */}
       <div
         style={{
           display: 'flex',

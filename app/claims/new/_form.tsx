@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * 7 步驟估算表單（v0.14.x — 1518 lines）
+ * 5 步驟估算表單（v0.14.x — 1518 lines）
  *
  * ⚠️ 此檔案過大，建議 v0.15.x 拆 Step 元件到 _steps/ 子目錄：
  *   - _steps/Step1Basics.tsx
@@ -23,6 +23,8 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { trackJourney } from '@/lib/journey-client'
 import { Button, Form, message, Typography } from 'antd'
 import { MobileStickyCTA } from '@/components/MobileStickyCTA'
 // v0.12.0+ Phase B2：自製進度條
@@ -34,6 +36,8 @@ import { Step3PersonalWork } from './_steps/Step3PersonalWork'
 // v0.20.0+：4 → 5 步重構；原 Step4Medical 拆成 Step4Diagnosis + Step5FeesAndProperty
 import { Step4Diagnosis } from './_steps/Step4Diagnosis'
 import { Step5FeesAndProperty } from './_steps/Step5FeesAndProperty'
+import { ReviewSummary } from './_steps/ReviewSummary'
+import { getClaimSteps, type ClaimStep } from './_flow'
 import {
   LeftOutlined,
   RightOutlined,
@@ -62,7 +66,7 @@ import {} from '@/lib/insurance/disability-categories'
 
 // 表單頁必須在 client runtime render（AntD Form useWatch / validateFields 依賴 client context）
 
-const { Title, Paragraph, Text } = Typography
+const { Title, Paragraph } = Typography
 
 // ============== 預設值 ==============
 
@@ -75,10 +79,13 @@ const DEFAULT_BASICS: AccidentBasics = {
   injuredRole: 'driver_car',
   isInjured: true, // v0.26.0e+：預設有受傷（沿用既有行為），form 必填
   isAutomobileAccident: true,
-  hasPolicePreliminaryReport: true,
+  hasPolicePreliminaryReport: false,
   hasAccidentAppraisal: false,
   hasCompulsoryInsurance: true,
-  // v0.5.2: 拿掉 isSettled / hasThirdPartyInsurance / 3 個保額欄位（永遠有第三人險、無保額上限）
+  thirdPartyCoverageStatus: 'unknown',
+  thirdPartyBodilyLimit: null,
+  thirdPartyPropertyLimit: null,
+  excessLiabilityLimit: null,
   accidentCity: '臺中市',
   accidentDistrict: '',
   claimantResidenceCity: '臺中市',
@@ -92,7 +99,7 @@ const DEFAULT_BASICS: AccidentBasics = {
 const DEFAULT_FAULT: FaultInfo = {
   selfFaultRatio: 0,
   otherFaultRatio: 100,
-  faultSource: 'police_preliminary',
+  faultSource: 'unclear',
   isFaultDisputed: false,
 }
 
@@ -126,6 +133,9 @@ const DEFAULT_MEDICAL: MedicalRecord = {
   nursingDays: 0,
   isSymptomFixed: false,
   hasDisabilityCertificate: false,
+  additionalDisabilityLevels: [],
+  disabilityTableItemIds: [],
+  preExistingDisabilityLevel: undefined,
   // disabilityCategory / disabilityLevel 為 optional（不預設）
   hasFracture: false,
   hasDislocation: false,
@@ -151,6 +161,7 @@ const DEFAULT_RECEIPTS: CompulsoryMedicalInputs = {
   nhiCopayment: 0,
   registrationFee: 0,
   diagnosisCertificateFee: 0,
+  medicalRecordSummaryFee: 0,
   nonNhiNecessaryMedicalFee: 0,
   wardFeeDifference: 0,
   wardFeeDays: 0,
@@ -238,7 +249,7 @@ const FAULT_SOURCE_OPTIONS: { value: FaultSource; label: string }[] = [
   { value: 'accident_appraisal', label: '車輛行車事故鑑定' },
   { value: 'court_judgment', label: '法院判決' },
   { value: 'both_sides_agreed', label: '雙方和解' },
-  { value: 'unclear', label: '不明' },
+  { value: 'unclear', label: '尚未確認（先用假設比例試算）' },
 ]
 
 const EMPLOYMENT_OPTIONS: { value: EmploymentType; label: string }[] = [
@@ -270,13 +281,13 @@ export interface FormSchema {
 // - Step 3：人身 / 工作（合併原 Step3 人身 + Step7 聲請人/對方居住地 + 法院）
 // - Step 4：傷勢與診斷（原 Step4 失能保典 12 大類 + 傷勢細節）
 // - Step 5：費用與財損（原 Step5 醫療收據 + Step6 車損；可展開區塊）
-const STEPS = [
-  { title: '事故基本' },
-  { title: '肇責' },
-  { title: '人身 / 工作' },
-  { title: '傷勢與診斷' },
-  { title: '費用與財損' },
-]
+const STEPS = {
+  0: { title: '事故與肇責' },
+  2: { title: '工作與收入' },
+  3: { title: '傷勢與治療' },
+  4: { title: '費用與核對' },
+}
+const STEP_NAMES = ['basics', 'fault', 'person', 'diagnosis', 'expenses'] as const
 
 // ============== 主元件 ==============
 
@@ -284,56 +295,101 @@ const STEPS = [
 function getDefaultFormSchema(): FormSchema {
   return {
     basics: { ...DEFAULT_BASICS, accidentDate: '' as unknown as string },
-    fault: DEFAULT_FAULT,
-    person: DEFAULT_PERSON,
-    medical: DEFAULT_MEDICAL,
-    receipts: DEFAULT_RECEIPTS,
-    property: DEFAULT_PROPERTY,
+    fault: structuredClone(DEFAULT_FAULT),
+    person: structuredClone(DEFAULT_PERSON),
+    medical: structuredClone(DEFAULT_MEDICAL),
+    receipts: structuredClone(DEFAULT_RECEIPTS),
+    property: structuredClone(DEFAULT_PROPERTY),
+  }
+}
+
+/** Old drafts may lack sections introduced later. Never hydrate from untrusted storage. */
+export function restoreClaimDraft(raw: string | null, now = Date.now()): FormSchema {
+  const defaults = getDefaultFormSchema()
+  try {
+    const draft = raw ? JSON.parse(raw) : null
+    if (
+      !draft ||
+      !Number.isFinite(draft.ts) ||
+      draft.ts > now ||
+      now - draft.ts >= 7 * 86400000 ||
+      !draft.data ||
+      typeof draft.data !== 'object' ||
+      Array.isArray(draft.data)
+    )
+      return defaults
+    for (const key of Object.keys(defaults) as (keyof FormSchema)[]) {
+      const section = draft.data[key]
+      if (section && typeof section === 'object' && !Array.isArray(section)) {
+        Object.assign(defaults[key], section)
+      }
+    }
+    defaults.medical.nursingDays =
+      defaults.medical.nursingDays || defaults.receipts.nursingDays || 0
+    defaults.receipts.nursingDays = defaults.medical.nursingDays
+    return defaults
+  } catch {
+    return defaults
   }
 }
 
 export default function NewClaimForm() {
   const router = useRouter()
-  const [current, setCurrent] = useState(0)
-  const [form] = Form.useForm<FormSchema>()
+  const [current, setCurrent] = useState<ClaimStep>(0)
+  const [form] = Form.useForm<FormSchema & { _reviewConfirmed?: boolean }>()
   // v0.27.2+：Form.useWatch 必須在 component 頂層呼叫（React Rules of Hooks）
   // 用於 Step5FeesAndProperty 即時讀 isInjured 來切換 registrationFee 必填
-  const isInjured = Form.useWatch(['basics', 'isInjured'], form)
-  // v0.18.x+ 自動草稿：onChange debounce 500ms 存 localStorage（防誤關瀏覽器）
-  // mount 時若 1 小時內有 draft 自動還原
-  const DRAFT_KEY = 'tw-claim-form-draft'
-  const [data, setData] = useState<FormSchema>(() => {
-    // 嘗試讀取草稿
-    if (typeof window === 'undefined') return getDefaultFormSchema()
-    try {
-      const raw = localStorage.getItem(DRAFT_KEY)
-      if (!raw) return getDefaultFormSchema()
-      const parsed = JSON.parse(raw) as { ts: number; data: FormSchema }
-      // 1 小時過期
-      if (Date.now() - parsed.ts > 60 * 60 * 1000) {
-        localStorage.removeItem(DRAFT_KEY)
-        return getDefaultFormSchema()
-      }
-      // v0.20.0+：保留使用者之前填的日期（之前強制清空為 '' 會讓 dayjs 注入覆蓋成今天，
-      // 導致 draft 還原看起來像沒留住資料）
-      return parsed.data
-    } catch {
-      return getDefaultFormSchema()
-    }
-  })
-
-  // v0.18.x+ 草稿 debounce 自動存：data 變動 500ms 後寫 localStorage
+  // Step 1 會卸載；仍需保留此欄位，才能正確維持三步流程與費用欄位。
+  const isInjured = Form.useWatch(['basics', 'isInjured'], { form, preserve: true })
+  const activeSteps = getClaimSteps(isInjured)
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    trackJourney('form_started')
+    trackJourney('step_viewed', STEP_NAMES[current])
+  }, [current])
+  const DRAFT_KEY = 'tw-claim-form-draft'
+  const [data, setData] = useState<FormSchema>(getDefaultFormSchema)
+  const [draftReady, setDraftReady] = useState(false)
+  useEffect(() => {
+    // Restore after hydration, and before autosaving, so defaults never overwrite a draft.
+    const loadingHistory = new URLSearchParams(window.location.search).get('load') === 'true'
     const timer = setTimeout(() => {
+      const loaded = loadingHistory ? consumeForLoad() : null
+      let raw: string | null = null
       try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify({ ts: Date.now(), data }))
+        raw = localStorage.getItem(DRAFT_KEY)
       } catch {
-        // localStorage quota 超限 / 隱私模式 → 靜默 fail
+        /* optional storage */
       }
-    }, 500)
+      const restored = loaded
+        ? restoreClaimDraft(
+            JSON.stringify({
+              ts: Date.now(),
+              data: { ...loaded, receipts: loaded.medicalReceipts },
+            }),
+          )
+        : restoreClaimDraft(raw)
+      setData(restored)
+      form.setFieldsValue({
+        ...restored,
+        basics: { ...restored.basics, accidentDate: restored.basics.accidentDate || dayjs() },
+        medical: { ...restored.medical, emergencyDate: restored.medical.emergencyDate || dayjs() },
+      } as unknown as Record<string, unknown>)
+      setDraftReady(true)
+      if (loaded) message.success('已載入本次案件，請核對後重新試算')
+      if (loadingHistory) window.history.replaceState(window.history.state, '', '/claims/new')
+    }, 0)
     return () => clearTimeout(timer)
-  }, [data])
+  }, [form])
+
+  // 儲存小型草稿不延遲，避免輸入後立即重載／離開時遺失最後一次修改。
+  useEffect(() => {
+    if (!draftReady) return
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ ts: Date.now(), data }))
+    } catch {
+      // localStorage quota 超限 / 隱私模式 → 靜默 fail
+    }
+  }, [data, draftReady])
 
   // v0.6.4 bugfix: DatePicker 在 Form.Item 控制下，validateFields() 會跑所有 Step 的欄位
   // 即便當前 Step 沒 mount（conditional render），Form store 仍存字串/空字串 → rc-picker
@@ -346,9 +402,6 @@ export default function NewClaimForm() {
     if (!current.basics?.accidentDate) {
       patch.basics = { ...current.basics, accidentDate: dayjs() }
     }
-    if (!current.person?.birthDate) {
-      patch.person = { ...current.person, birthDate: dayjs('1990-01-01') }
-    }
     if (!current.medical?.emergencyDate) {
       patch.medical = { ...current.medical, emergencyDate: dayjs() }
     }
@@ -356,23 +409,6 @@ export default function NewClaimForm() {
       form.setFieldsValue(patch as Record<string, unknown>)
     }
   }, [form])
-
-  // v0.20.5+：手機返回鍵保護
-  // User 回報：手機按返回鍵 → history.back() → SPA 離開 /claims/new → 回首頁 /
-  // 修法：監聽 popstate → 立即 pushState 把 /claims/new 加回 history stack
-  //        → AntD message 警告 user「請完成表單」
-  // 行為：
-  // 1. user 在 /claims/new 按返回 → popstate 觸發 → pushState 回去 → user 仍在表單
-  // 2. draft 仍自動存 localStorage（既有），即使意外離開下次再進也還原
-  // 3. 顯示警告訊息提示 user 完成送出
-  useEffect(() => {
-    const handler = () => {
-      window.history.pushState(null, '', '/claims/new')
-      message.warning('請完成表單或按「送出並估算」後再離開')
-    }
-    window.addEventListener('popstate', handler)
-    return () => window.removeEventListener('popstate', handler)
-  }, [])
 
   // 監聽 basics.accidentCity 自動帶入 courtJurisdiction
   const handleCityChange = (v: string) => {
@@ -385,50 +421,35 @@ export default function NewClaimForm() {
     }
   }
 
-  // v0.14.x：從雲端歷史載入舊案件（?load=true → 讀 sessionStorage）
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    if (!window.location.search.includes('load=true')) return
-    void (async () => {
-      const loaded = await consumeForLoad()
-      if (!loaded) return
-      // 把 ClaimInput 拆到 form data
-      const next = {
-        basics: { ...DEFAULT_BASICS, ...loaded.basics },
-        fault: { ...DEFAULT_FAULT, ...loaded.fault },
-        person: { ...DEFAULT_PERSON, ...loaded.person },
-        medical: { ...DEFAULT_MEDICAL, ...loaded.medical },
-        receipts: { ...DEFAULT_RECEIPTS, ...(loaded.medicalReceipts ?? {}) },
-        property: { ...DEFAULT_PROPERTY, ...(loaded.property ?? {}) },
-      }
-      setData(next as FormSchema)
-      // AntD Form 也填入
-      form.setFieldsValue(next as unknown as Record<string, unknown>)
-      // 顯示成功提示
-      message.success('已從歷史載入，請確認或修改後送出')
-      // 移除 ?load=true 避免重複載入
-      window.history.replaceState({}, '', '/claims/new')
-    })()
-  }, [form])
-
   const next = async () => {
     try {
-      const values = await form.validateFields()
+      await form.validateFields()
+      const values = form.getFieldsValue(true) as FormSchema
       // 淺合併當下 step 對應區段
-      const merged = mergeStep(data, current, values)
+      const merged =
+        current === 0
+          ? mergeStep(mergeStep(data, 0, values), 1, values)
+          : mergeStep(data, current, values)
       setData(merged)
-      setCurrent((c) => c + 1)
+      trackJourney('step_completed', STEP_NAMES[current])
+      const steps = getClaimSteps(merged.basics.isInjured)
+      setCurrent(steps[steps.indexOf(current) + 1] ?? 4)
     } catch {
+      trackJourney('validation_failed', STEP_NAMES[current])
       message.error('請填寫必填欄位')
     }
   }
 
-  const prev = () => setCurrent((c) => c - 1)
+  const prev = () => setCurrent(activeSteps[Math.max(0, activeSteps.indexOf(current) - 1)])
 
   const submit = async () => {
     try {
-      const values = await form.validateFields()
-      const merged = mergeStep(data, current, values)
+      await form.validateFields()
+      const values = form.getFieldsValue(true) as FormSchema
+      const merged =
+        current === 0
+          ? mergeStep(mergeStep(data, 0, values), 1, values)
+          : mergeStep(data, current, values)
       setData(merged)
       // 計算結果
       const input: ClaimInput = {
@@ -455,8 +476,11 @@ export default function NewClaimForm() {
       sessionStorage.setItem('estimate-id', estimateId)
       sessionStorage.setItem('claim-storage-version', 'v2') // v0.18.x+ 防舊版殘留
       sessionStorage.setItem('claim-storage-ts', String(Date.now())) // 過期檢查用
+      trackJourney('step_completed', 'expenses')
+      trackJourney('estimate_completed')
       router.push('/claims/result')
     } catch {
+      trackJourney('validation_failed', STEP_NAMES[current])
       message.error('請填寫完整資料')
     }
   }
@@ -464,63 +488,69 @@ export default function NewClaimForm() {
   return (
     <main
       id="main-content"
-      className="flex flex-1 flex-col items-center px-6 py-8 bg-surface-subtle"
+      className="flex flex-1 flex-col items-center bg-surface-subtle px-4 py-6 sm:px-6 sm:py-8"
     >
-      <div className="w-full max-w-3xl">
+      <div className="w-full max-w-5xl">
         <Title level={2} className="!mb-2">
           <FileAddOutlined className="mr-2" />
           新增理賠估算
         </Title>
         <Paragraph type="secondary" className="!mb-6">
-          請逐步填寫，<Text strong>必填欄位</Text>以 <Text type="danger">*</Text> 標示；
-          資料不足會在結果頁自動列出補件清單。
+          填寫必填欄位即可開始試算；其他資料可稍後補。草稿會在本機保留 7 天。
         </Paragraph>
 
-        <FormProgress current={current} steps={STEPS} className="!mb-8" />
+        <FormProgress
+          current={activeSteps.indexOf(current)}
+          steps={activeSteps.map((step) => STEPS[step])}
+          className="!mb-8"
+        />
+        {isInjured === false && (
+          <div className="mb-5 rounded-lg border border-border bg-surface p-4">
+            <p className="mb-2 text-sm">
+              未受傷會略過收入、醫療與失能資料。只想知道修車費折舊多少？
+            </p>
+            <Link href="/claims/vehicle-damage" className="font-semibold text-accent underline">
+              直接試算維修費折舊
+            </Link>
+          </div>
+        )}
 
         <Form
           form={form}
+          disabled={!draftReady}
           layout="vertical"
           initialValues={data}
           // v0.18.x+ 即時驗證：onBlur 觸發 field-level validate，紅框提示不用等下一步
           // （DatePicker 用 onChange 已經會觸發）
           validateTrigger={['onBlur', 'onChange']}
-          onValuesChange={(_, all) => setData((d) => ({ ...d, ...all }))}
-          onKeyDown={(e) => {
-            // v0.18.x+ 鍵盤快捷鍵：Enter 進下一步（最後一步 = 送出並估算）
-            if (
-              e.key === 'Enter' &&
-              !e.shiftKey &&
-              (e.target as HTMLElement).tagName !== 'TEXTAREA'
-            ) {
-              e.preventDefault()
-              if (current < STEPS.length - 1) {
-                void next()
-              } else {
-                void submit()
-              }
+          onValuesChange={(changed, all) => {
+            if (!Object.hasOwn(changed, '_reviewConfirmed')) {
+              form.setFieldValue('_reviewConfirmed', false)
             }
+            setData((d) =>
+              [0, 1, 2, 3, 4].reduce((merged, step) => mergeStep(merged, step, all), d),
+            )
           }}
         >
           {/* ====== Step 1：事故基本 ====== */}
           {current === 0 && (
-            <Step1Basics
-              form={form}
-              onCityChange={handleCityChange}
-              cityOptions={CITY_OPTIONS.map((v) => ({ value: v, label: v }))}
-              accidentTypeOptions={ACCIDENT_TYPE_OPTIONS}
-              injuredRoleOptions={INJURED_ROLE_OPTIONS}
-            />
+            <>
+              <Step1Basics
+                form={form}
+                onCityChange={handleCityChange}
+                cityOptions={CITY_OPTIONS.map((v) => ({ value: v, label: v }))}
+                accidentTypeOptions={ACCIDENT_TYPE_OPTIONS}
+                injuredRoleOptions={INJURED_ROLE_OPTIONS}
+              />
+              <div className="mt-4">
+                <Step2Fault form={form} faultSourceOptions={FAULT_SOURCE_OPTIONS} />
+              </div>
+            </>
           )}
           {/* ====== Step 2：肇責 ====== */}
-          {current === 1 && <Step2Fault form={form} faultSourceOptions={FAULT_SOURCE_OPTIONS} />}
           {/* ====== Step 3：人身 / 工作（v0.19.0+：合併原 Step3 + Step7 居住地） ====== */}
           {current === 2 && (
-            <Step3PersonalWork
-              form={form}
-              employmentOptions={EMPLOYMENT_OPTIONS}
-              courtJurisdiction={data.basics.courtJurisdiction}
-            />
+            <Step3PersonalWork form={form} employmentOptions={EMPLOYMENT_OPTIONS} />
           )}
           {/* ====== Step 4：傷勢與診斷（v0.20.0+：從原 Step4Medical 上半段拆出） ====== */}
           {current === 3 && (
@@ -535,20 +565,37 @@ export default function NewClaimForm() {
               isInjured={isInjured ?? true}
             />
           )}
+          {current === 4 && (
+            <ReviewSummary
+              data={data}
+              onEdit={(step) => {
+                form.setFieldValue('_reviewConfirmed', false)
+                setCurrent((step === 1 ? 0 : step) as ClaimStep)
+              }}
+              roleOptions={INJURED_ROLE_OPTIONS}
+              faultSourceOptions={FAULT_SOURCE_OPTIONS}
+            />
+          )}
         </Form>
 
         {/* v0.8.1+：手機 sticky CTA（桌機保留原本 flex 排版） */}
         <MobileStickyCTA
           left={
-            <Button block disabled={current === 0} onClick={prev} icon={<LeftOutlined />}>
+            <Button
+              block
+              disabled={!draftReady || current === 0}
+              onClick={prev}
+              icon={<LeftOutlined />}
+            >
               上一步
             </Button>
           }
           right={
-            current < STEPS.length - 1 ? (
+            current < 4 ? (
               <Button
                 block
                 type="primary"
+                disabled={!draftReady}
                 onClick={next}
                 icon={<RightOutlined />}
                 iconPlacement="end"
@@ -556,7 +603,13 @@ export default function NewClaimForm() {
                 下一步
               </Button>
             ) : (
-              <Button block type="primary" onClick={submit} icon={<CheckCircleOutlined />}>
+              <Button
+                block
+                type="primary"
+                disabled={!draftReady}
+                onClick={submit}
+                icon={<CheckCircleOutlined />}
+              >
                 送出並估算
               </Button>
             )
@@ -577,7 +630,11 @@ export function mergeStep(prev: FormSchema, step: number, values: Partial<FormSc
   if (step === 4) {
     return {
       ...prev,
-      receipts: { ...prev.receipts, ...(values.receipts ?? {}) },
+      receipts: {
+        ...prev.receipts,
+        ...(values.receipts ?? {}),
+        nursingDays: prev.medical.nursingDays,
+      },
       property: { ...prev.property, ...(values.property ?? {}) },
     }
   }
@@ -585,11 +642,27 @@ export function mergeStep(prev: FormSchema, step: number, values: Partial<FormSc
   const stepKey = STEP_KEYS[step] ?? 'basics'
   const prevSection = prev[stepKey]
   const newSection = values[stepKey]
+  const normalizedSection = { ...(newSection as object) } as Record<string, unknown>
+  if (step === 3 && Object.hasOwn(normalizedSection, 'nursingDays')) {
+    normalizedSection.nursingDays = Math.max(0, Number(normalizedSection.nursingDays) || 0)
+  }
+  for (const key of ['accidentDate', 'emergencyDate', 'birthDate']) {
+    const value = normalizedSection[key]
+    if (value && dayjs.isDayjs(value)) normalizedSection[key] = value.format('YYYY-MM-DD')
+  }
   return {
     ...prev,
+    ...(step === 3
+      ? {
+          receipts: {
+            ...prev.receipts,
+            nursingDays: normalizedSection.nursingDays ?? prev.medical.nursingDays,
+          },
+        }
+      : {}),
     [stepKey]: {
       ...(prevSection as object),
-      ...(newSection as object),
+      ...normalizedSection,
     },
   } as FormSchema
 }

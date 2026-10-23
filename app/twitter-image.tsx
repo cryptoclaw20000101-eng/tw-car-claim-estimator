@@ -52,7 +52,7 @@ export default async function TwitterImage() {
           fontWeight: 600,
         }}
       >
-        5 分鐘算給你看
+        協助完成初步試算
       </div>
     </div>,
     { ...size },

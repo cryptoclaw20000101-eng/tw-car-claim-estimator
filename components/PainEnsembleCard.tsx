@@ -1,5 +1,5 @@
 /**
- * PainEnsembleCard — 精神慰撫金 Ensemble 三票共識呈現（v0.6.7+）
+ * PainEnsembleCard — 精神慰撫金交叉檢核呈現
  *
  * 設計目的：
  *   v0.6.0~v0.6.4 引擎端已算好 Ensemble 三票 + ML 信心度 + LLM Advisor，
@@ -7,7 +7,7 @@
  *
  *   本元件把引擎算好的 `result.painEnsemble` + `result.painAdvisor` 渲染成：
  *   - 上方：共識金額（大字 + 共識度 badge）
- *   - 中間：三票展開（規則 / ML / KNN）
+ *   - 中間：可比較的規則與歷史資料；KNN 僅在有單獨慰撫金欄位時啟用
  *   - 下方：LLM Advisor 風險面板（低/中/高 + 風險因子 + 建議 + 人工複核旗標）
  *
  * 不變量（測試守護）：
@@ -172,7 +172,7 @@ export function PainEnsembleCard({
 
       {/* 三票展開 */}
       <Divider plain className="!mt-3 !mb-2 !text-xs">
-        三票展開
+        資料來源展開
       </Divider>
       <Row gutter={12}>
         <Col xs={24} md={8}>
@@ -197,13 +197,13 @@ export function PainEnsembleCard({
         </Col>
         <Col xs={24} md={8}>
           <TicketTile
-            label="歷史相似"
+            label="相似案件參考"
             amount={painEnsemble.knnAmount ?? 0}
             weight={painEnsemble.knnWeight}
             outlier={painEnsemble.outlier === 'knn'}
             note={
               painEnsemble.knnAmount === null
-                ? '無相似案件'
+                ? '缺可比較的單獨慰撫金資料'
                 : painEnsemble.outlier === 'knn'
                   ? 'outlier'
                   : undefined
@@ -216,12 +216,12 @@ export function PainEnsembleCard({
 
       {/* v0.7.3+ KNN 推薦理由面板 — 顯示每個被推薦案例的 5 維距離拆解 */}
       {knnDebugCases && knnDebugCases.length > 0 && (
-        <KnnDebugPanel cases={knnDebugCases} title="KNN 票 · 推薦理由（debug）" />
+        <KnnDebugPanel cases={knnDebugCases} title="相似案件 · 推薦理由（debug）" />
       )}
 
       {/* LLM Advisor 風險面板 */}
       <Divider plain className="!mt-3 !mb-2 !text-xs">
-        LLM 理賠顧問複核（靜態 mock · 部署模式請見 AGENTS.md §13）
+        規則產生的風險提醒
       </Divider>
       <div className="!mb-2">
         <Tag color={riskMeta.color} className="!mr-2">

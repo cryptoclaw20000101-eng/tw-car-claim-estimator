@@ -1,7 +1,7 @@
 // api-security 測試 — CSRF (Origin) + rate limit
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import type { NextRequest } from 'next/server'
-import { checkRateLimit, checkSameOrigin, rateLimitStatus } from '@/lib/api-security'
+import { apiGuard, checkRateLimit, checkSameOrigin, rateLimitStatus } from '@/lib/api-security'
 
 /** Minimal NextRequest-like mock：只覆蓋測試用得到的欄位（method 可寫） */
 function makeReq(headers: Record<string, string> = {}, method = 'POST'): NextRequest {
@@ -19,6 +19,8 @@ describe('checkRateLimit', () => {
     // 測試隔離：重置所有 bucket（無公開 API）
     // 用不同 IP 規避 cross-test pollution
   })
+
+  afterEach(() => vi.useRealTimers())
 
   it('allows first request', () => {
     const req = makeReq({ 'x-forwarded-for': '1.2.3.4' })
@@ -44,6 +46,18 @@ describe('checkRateLimit', () => {
     for (let i = 0; i < 60; i++) checkRateLimit(reqA, 'test4')
     expect(checkRateLimit(reqA, 'test4')).toBe(false) // A 超限
     expect(checkRateLimit(reqB, 'test4')).toBe(true) // B 仍可
+  })
+
+  it('supports x-real-ip, unknown IP, and resets an expired window', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-08-10T00:00:00.000Z'))
+    expect(checkRateLimit(makeReq({ 'x-real-ip': '10.0.0.1' }), 'real-ip')).toBe(true)
+    expect(checkRateLimit(makeReq(), 'unknown-ip')).toBe(true)
+    const req = makeReq({ 'x-forwarded-for': '10.0.0.2, 10.0.0.3' })
+    expect(checkRateLimit(req, 'expiry')).toBe(true)
+    vi.advanceTimersByTime(60_001)
+    expect(checkRateLimit(req, 'expiry')).toBe(true)
+    expect(rateLimitStatus(req, 'expiry')).toEqual({ count: 1, remaining: 59 })
   })
 })
 
@@ -93,5 +107,33 @@ describe('checkSameOrigin', () => {
   it('allows OPTIONS (CORS preflight)', () => {
     const req = makeReq({ origin: 'http://evil.com' }, 'OPTIONS')
     expect(checkSameOrigin(req)).toBe(true)
+  })
+
+  it('ignores malformed configured origins', () => {
+    process.env.NEXT_PUBLIC_SITE_URL = 'not a url'
+    expect(checkSameOrigin(makeReq({ origin: 'https://not-allowed.example' }))).toBe(false)
+  })
+})
+
+describe('apiGuard', () => {
+  it('returns null for an allowed mutation', () => {
+    expect(
+      apiGuard(makeReq({ origin: 'http://localhost:3000', 'x-real-ip': 'guard-ok' })),
+    ).toBeNull()
+  })
+
+  it('returns 403 for a cross-origin mutation', () => {
+    const response = apiGuard(
+      makeReq({ origin: 'https://evil.example', 'x-real-ip': 'guard-csrf' }),
+    )
+    expect(response?.status).toBe(403)
+  })
+
+  it('returns 429 with Retry-After after the bucket is exhausted', () => {
+    const req = makeReq({ origin: 'http://localhost:3000', 'x-real-ip': 'guard-limit' })
+    for (let i = 0; i < 60; i++) checkRateLimit(req, 'guard-bucket')
+    const response = apiGuard(req, { bucket: 'guard-bucket' })
+    expect(response?.status).toBe(429)
+    expect(response?.headers.get('Retry-After')).toBe('60')
   })
 })

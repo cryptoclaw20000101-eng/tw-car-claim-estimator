@@ -30,10 +30,14 @@ export function DisabilitySection({ result }: { result: EstimationResult }) {
             資料不足，未判定
           </Tag>
         )}
-        {d.possibleLevel && <Tag color="purple">可能失能等級：第 {d.possibleLevel} 級</Tag>}
+        {d.isPayable && d.recognizedLevel ? (
+          <Tag color="purple">給付試算等級：第 {d.recognizedLevel} 級</Tag>
+        ) : d.possibleLevel ? (
+          <Tag color="gold">初篩線索：第 {d.possibleLevel} 級</Tag>
+        ) : null}
         {d.possibleAmount > 0 && (
           <Statistic
-            title="依等級推估金額"
+            title="強制險失能給付試算"
             value={d.possibleAmount}
             formatter={(v) => dollar(Number(v))}
           />

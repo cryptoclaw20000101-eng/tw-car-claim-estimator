@@ -103,7 +103,8 @@ export function decodeShareHash(
  */
 export function restoreFromHash(): boolean {
   if (typeof window === 'undefined') return false
-  const hash = window.location.hash
+  // location.hash 會包含前導「#」，decodeShareHash 的公開格式則是「r=...」。
+  const hash = window.location.hash.replace(/^#/, '')
   const decoded = decodeShareHash(hash)
   if (!decoded) return false
 

@@ -49,27 +49,22 @@ function emptyMedical(overrides: Partial<MedicalRecord> = {}): MedicalRecord {
   }
 }
 
-describe('runDisabilityRuleEngine — 沒 ROM 走 inferred 路徑（line 208-210）', () => {
-  it('沒 ROM 但有肌力減弱（levelShift 累加） → inferred = max(1, 10 + totalShift)', () => {
+describe('runDisabilityRuleEngine — 非 ROM 訊號只作補件提示', () => {
+  it('沒 ROM 但有肌力減弱，不自動推定等級', () => {
     const result = runDisabilityRuleEngine({
       medical: emptyMedical({ hasMuscleWeakness: true }),
       accidentDate: '2026-06-01',
     })
-    expect(result.finalLevel).not.toBeNull()
-    if (result.finalLevel !== null) {
-      expect(result.finalLevel).toBeGreaterThanOrEqual(1)
-      expect(result.finalLevel).toBeLessThanOrEqual(15)
-    }
-    // 肌力減弱不在 C 條件（line 233-238）→ 走 B（line 242）— 是 source 設計
+    expect(result.finalLevel).toBeNull()
     expect(result.screening).toBe('B')
   })
 
-  it('沒 ROM 但有感覺喪失（也走 inferred）', () => {
+  it('沒 ROM 但有感覺喪失，也不自動推定等級', () => {
     const result = runDisabilityRuleEngine({
       medical: emptyMedical({ hasSensoryLoss: true }),
       accidentDate: '2026-06-01',
     })
-    expect(result.finalLevel).not.toBeNull()
+    expect(result.finalLevel).toBeNull()
     expect(result.screening).toBe('B') // 同肌力減弱，不在 C 條件
   })
 
@@ -90,36 +85,35 @@ describe('runDisabilityRuleEngine — 沒 ROM 走 inferred 路徑（line 208-210
     expect(result.screening).toBe('C')
   })
 
-  it('沒 ROM 但有截肢 → levelOverride 觸發（line 206）finalLevel = 1', () => {
+  it('沒 ROM 但有截肢，需附表缺損項目才能認定等級', () => {
     const result = runDisabilityRuleEngine({
       medical: emptyMedical({ hasAmputation: true }),
       accidentDate: '2026-06-01',
     })
-    expect(result.finalLevel).toBe(1)
-    // 截肢直接進 D（line 227）
-    expect(result.screening).toBe('D')
+    expect(result.finalLevel).toBeNull()
+    expect(result.screening).toBe('C')
   })
 
-  it('沒 ROM 但有截肢 + 症狀固定 → 仍 D', () => {
+  it('沒 ROM 但有截肢 + 症狀固定，仍需診斷書與附表等級', () => {
     const result = runDisabilityRuleEngine({
       medical: emptyMedical({ hasAmputation: true, isSymptomFixed: true }),
       accidentDate: '2026-06-01',
     })
-    expect(result.finalLevel).toBe(1)
-    expect(result.screening).toBe('D')
+    expect(result.finalLevel).toBeNull()
+    expect(result.screening).toBe('C')
   })
 
-  it('永久失能（hasPermanentImpairment）→ D（line 228）', () => {
+  it('永久失能仍須症狀固定與失能診斷書，否則不進 D', () => {
     const result = runDisabilityRuleEngine({
       medical: emptyMedical({ hasPermanentImpairment: true }),
       accidentDate: '2026-06-01',
     })
-    expect(result.screening).toBe('D')
+    expect(result.screening).toBe('B')
   })
 })
 
-describe('runDisabilityRuleEngine — ROM 路徑（applyAdjustments 內部）', () => {
-  it('有 ROM + 截肢 → levelOverride 1（applyAdjustments 內 line 121-122）', () => {
+describe('runDisabilityRuleEngine — ROM 路徑', () => {
+  it('有 ROM + 截肢，以 ROM 初判保留補件提示，不覆寫為第 1 級', () => {
     const result = runDisabilityRuleEngine({
       medical: emptyMedical({
         jointName: 'knee',
@@ -129,8 +123,8 @@ describe('runDisabilityRuleEngine — ROM 路徑（applyAdjustments 內部）', 
       }),
       accidentDate: '2026-06-01',
     })
-    expect(result.finalLevel).toBe(1) // 截肢 override
-    expect(result.screening).toBe('D')
+    expect(result.finalLevel).toBe(7)
+    expect(result.screening).toBe('C')
   })
 
   it('有 ROM 但 < 5% → 不構成明顯失能（line 182-185 補件提示）', () => {
@@ -148,7 +142,7 @@ describe('runDisabilityRuleEngine — ROM 路徑（applyAdjustments 內部）', 
 })
 
 describe('runDisabilityRuleEngine — ROM + 症狀固定 進 D', () => {
-  it('有 ROM ≥ 30% + 症狀固定 → D（line 229 條件）', () => {
+  it('有 ROM + 症狀固定但未附失能診斷書，維持 C 級補件', () => {
     const result = runDisabilityRuleEngine({
       medical: emptyMedical({
         jointName: 'knee',
@@ -158,6 +152,6 @@ describe('runDisabilityRuleEngine — ROM + 症狀固定 進 D', () => {
       }),
       accidentDate: '2026-06-01',
     })
-    expect(result.screening).toBe('D')
+    expect(result.screening).toBe('C')
   })
 })

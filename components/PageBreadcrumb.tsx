@@ -71,7 +71,7 @@ export function PageBreadcrumb({
   ]
 
   return (
-    <Space className={className}>
+    <Space wrap className={className}>
       {allItems.map((item, i) => {
         const key = `${i}-${'href' in item ? item.href : item.label}`
         if (item.kind === 'button') {

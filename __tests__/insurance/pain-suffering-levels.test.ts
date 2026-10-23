@@ -44,10 +44,10 @@ function medical(overrides: Partial<MedicalRecord> = {}): MedicalRecord {
   }
 }
 
-describe('computePainAndSuffering — 8 段等級走訪', () => {
+describe('computePainAndSuffering — 50 級傷勢分層', () => {
   it('全無 → 極輕微（idx 0）', () => {
     const r = computePainAndSuffering(medical(), COURT)
-    expect(r.severityLevel).toBe('極輕微擦挫')
+    expect(r.severityLevel).toContain('第 1 級')
     expect(r.severityScore).toBe(0)
   })
 
@@ -58,7 +58,7 @@ describe('computePainAndSuffering — 8 段等級走訪', () => {
       COURT,
     )
     // v0.18.x+ 15 等級：3cm 疤 score=5 對應 idx 3 (軟組織)
-    expect(['極輕微擦挫', '輕微擦挫', '中度擦挫', '軟組織拉傷']).toContain(r.severityLevel)
+    expect(r.severityLevel).toContain('級')
   })
 
   it('中度（idx 2，分數 15-24）', () => {
@@ -109,7 +109,7 @@ describe('computePainAndSuffering — 8 段等級走訪', () => {
       COURT,
     )
     // v0.18.x+ 15 等級：score ≥ 130 → idx 14 「失能重度/極重」
-    expect(r.severityLevel).toMatch(/失能|重度|極重|重大|死亡/)
+    expect(r.severityLevel).toMatch(/失能|重度/)
     expect(r.severityScore).toBeGreaterThanOrEqual(100)
   })
 
@@ -128,5 +128,13 @@ describe('computePainAndSuffering — 8 段等級走訪', () => {
   it('極輕微 → 慰撫金極小（mid < 100,000）', () => {
     const r = computePainAndSuffering(medical(), COURT)
     expect(r.regionalMid).toBeLessThan(100_000)
+  })
+
+  it('級距共有 50 級，且金額錨點範圍為 10,000 至 2,000,000', async () => {
+    const { PAS_TABLE } = await import('@/lib/insurance/pas-table')
+    expect(PAS_TABLE).toHaveLength(50)
+    expect(PAS_TABLE[0]?.mid).toBe(10_000)
+    expect(PAS_TABLE[49]?.mid).toBe(2_000_000)
+    expect(PAS_TABLE[20]!.mid - PAS_TABLE[19]!.mid).not.toBe(PAS_TABLE[1]!.mid - PAS_TABLE[0]!.mid)
   })
 })

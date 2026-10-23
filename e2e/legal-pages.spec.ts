@@ -28,9 +28,11 @@ test.describe('法律頁面 E2E', () => {
 
   test('/about 載入正確', async ({ page }) => {
     await page.goto('/about')
-    await expect(page.getByRole('heading', { name: '關於我們' })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: '台灣車禍理賠估算器的計算方式與資料來源' }),
+    ).toBeVisible()
     await expect(page.getByRole('heading', { name: '技術棧' })).toBeVisible()
-    await expect(page.getByText(/Open Source/)).toBeVisible()
+    await expect(page.getByText(/Open source 個人專案/)).toBeVisible()
   })
 
   test('3 個頁面都有回首頁連結', async ({ page }) => {
@@ -44,8 +46,8 @@ test.describe('法律頁面 E2E', () => {
     await page.goto('/')
     // 滾到 footer
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-    await expect(page.getByRole('link', { name: '關於我們' })).toBeVisible()
-    await expect(page.getByRole('link', { name: '隱私權政策' })).toBeVisible()
-    await expect(page.getByRole('link', { name: '服務條款' })).toBeVisible()
+    await expect(page.getByRole('link', { name: '關於', exact: true })).toBeVisible()
+    await expect(page.getByRole('link', { name: '隱私', exact: true })).toBeVisible()
+    await expect(page.getByRole('link', { name: '條款', exact: true })).toBeVisible()
   })
 })

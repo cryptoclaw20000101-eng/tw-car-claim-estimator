@@ -121,7 +121,7 @@ export default function LoginForm() {
       className="flex flex-1 flex-col items-center justify-center bg-surface-subtle px-6 py-16"
     >
       <Card className="w-full max-w-md">
-        <Space direction="vertical" size="middle" className="!w-full">
+        <Space orientation="vertical" size="middle" className="!w-full">
           <div>
             <Title level={2} className="!mb-2">
               {isSignUp ? '註冊' : '登入'}
@@ -134,7 +134,7 @@ export default function LoginForm() {
           {error && <Alert type="error" showIcon message={error} />}
 
           <form onSubmit={handleSubmit}>
-            <Space direction="vertical" size="middle" className="!w-full">
+            <Space orientation="vertical" size="middle" className="!w-full">
               <Input
                 size="large"
                 // v0.27.3+：登入用 text（讓非 @ 帳號如 cryptoclaw20000101 能登入），

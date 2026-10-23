@@ -87,7 +87,7 @@ export default function AboutContent() {
     >
       <div className="w-full max-w-3xl">
         <Title level={1} className="!mb-2">
-          關於我們
+          台灣車禍理賠估算器的計算方式與資料來源
         </Title>
         <Paragraph type="secondary" className="!mb-6 !text-sm">
           臺灣車禍理賠估算工具 · Open source 個人專案
@@ -96,7 +96,7 @@ export default function AboutContent() {
         <EnsembleIllustration className="!mb-6 !w-full !max-w-md !mx-auto" />
 
         <Card>
-          <Space direction="vertical" size="large" className="!w-full">
+          <Space orientation="vertical" size="large" className="!w-full">
             <Section
               title="工具定位"
               content={
@@ -160,11 +160,11 @@ export default function AboutContent() {
             />
 
             <Section
-              title="精神慰撫金 Ensemble 三票"
+              title="精神慰撫金交叉檢核"
               content={
                 <>
                   <Paragraph>
-                    精神慰撫金沒有法定公式，所以用<strong>三票共識</strong>：
+                    精神慰撫金沒有法定公式，因此以<strong>規則區間與同類判例統計交叉檢核</strong>：
                   </Paragraph>
                   <Paragraph>
                     <strong>規則票</strong>：15 等級區間 × 治療加成 × 6 地院係數
@@ -173,11 +173,9 @@ export default function AboutContent() {
                     <strong>ML 票</strong>：153+ 件真實判決 anchor 中位數
                   </Paragraph>
                   <Paragraph>
-                    <strong>KNN 票</strong>：779+ 司法院案例最相似 K 件平均
+                    <strong>相似案件</strong>：僅作案情比對；總賠償額不會混入慰撫金公式
                   </Paragraph>
-                  <Paragraph>
-                    三票差距 ≤ 20% 視為共識 → 加權平均。差距大 → 警告「需人工複核」。
-                  </Paragraph>
+                  <Paragraph>兩種可比較資料落差過大時，系統只顯示區間並提醒人工複核。</Paragraph>
                 </>
               }
             />
@@ -248,7 +246,7 @@ export default function AboutContent() {
                   建議 / bug / 合作：請在 GitHub repo 開 issue。
                   <br />
                   <Text type="secondary" className="!text-xs">
-                    ※ 本工具不提供個案理賠諮詢，請洽保險經紀人或律師。
+                    ※ 本工具不提供個案理賠意見；重大或爭議案件請洽保險經紀人或律師。
                   </Text>
                   <br />
                   <Link href="/" className="text-accent hover:underline">

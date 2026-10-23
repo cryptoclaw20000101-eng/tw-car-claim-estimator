@@ -17,7 +17,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, Collapse, Form, Row, Typography } from 'antd'
+import { Button, Collapse, Form, Radio, Row, Typography } from 'antd'
 import { FileTextOutlined, PlusOutlined, ToolOutlined } from '@ant-design/icons'
 import { InfoAlert } from '@/components/InfoAlert'
 import { R2C } from './_R2C'
@@ -31,9 +31,31 @@ export interface Step5FeesAndPropertyProps {
   isInjured: boolean
 }
 
-export function Step5FeesAndProperty({ isInjured }: Step5FeesAndPropertyProps) {
+export function Step5FeesAndProperty({ form, isInjured }: Step5FeesAndPropertyProps) {
   const [showMedicalAdvanced, setShowMedicalAdvanced] = useState(false)
   const [showPropertyAdvanced, setShowPropertyAdvanced] = useState(false)
+  const [showWardCosts, setShowWardCosts] = useState(false)
+  const hospitalizationDays =
+    Form.useWatch(['medical', 'hospitalizationDays'], { form, preserve: true }) ?? 0
+  const requiresNursingCare = Form.useWatch(['medical', 'requiresNursingCare'], {
+    form,
+    preserve: true,
+  })
+  const nursingDays = Form.useWatch(['medical', 'nursingDays'], { form, preserve: true }) ?? 0
+  const nursingFee = Form.useWatch(['receipts', 'nursingFee'], { form, preserve: true }) ?? 0
+  const wardFee = Form.useWatch(['receipts', 'wardFeeDifference'], { form, preserve: true }) ?? 0
+  const wardDays = Form.useWatch(['receipts', 'wardFeeDays'], { form, preserve: true }) ?? 0
+  const repairEstimate =
+    Form.useWatch(['property', 'vehicleRepairEstimate'], { form, preserve: true }) ?? 0
+  const repairInvoice =
+    Form.useWatch(['property', 'vehicleRepairInvoice'], { form, preserve: true }) ?? 0
+  const marketValue =
+    Form.useWatch(['property', 'vehicleMarketValueBeforeAccident'], { form, preserve: true }) ?? 0
+  const showWard = showWardCosts || hospitalizationDays > 0 || wardFee > 0 || wardDays > 0
+  const showNursing = requiresNursingCare || nursingFee > 0 || nursingDays > 0
+  const [repairSource, setRepairSource] = useState<'estimate' | 'invoice'>(() =>
+    form.getFieldValue(['property', 'vehicleRepairInvoice']) > 0 ? 'invoice' : 'estimate',
+  )
 
   const medicalItems: { items: { key: string; label: string; name: string }[] }[] = [
     {
@@ -44,24 +66,27 @@ export function Step5FeesAndProperty({ isInjured }: Step5FeesAndPropertyProps) {
         { key: 'registrationFee', label: '掛號費', name: 'registrationFee' },
         { key: 'wardFeeDifference', label: '病房費差額', name: 'wardFeeDifference' },
         { key: 'wardFeeDays', label: '病房費天數', name: 'wardFeeDays' },
-        { key: 'nursingFee', label: '看護費', name: 'nursingFee' },
-        { key: 'nursingDays', label: '看護天數', name: 'nursingDays' },
+        { key: 'nursingFee', label: '看護費（強制險上限 36,000）', name: 'nursingFee' },
       ],
     },
   ]
 
   const medicalAdvancedItems: { key: string; label: string; name: string }[] = [
-    { key: 'diagnosisCertificateFee', label: '診斷書費', name: 'diagnosisCertificateFee' },
     {
-      key: 'nonNhiNecessaryMedicalFee',
-      label: '非健保必要醫療',
-      name: 'nonNhiNecessaryMedicalFee',
+      key: 'diagnosisCertificateFee',
+      label: '診斷證明書費（每次限 1 份）',
+      name: 'diagnosisCertificateFee',
+    },
+    {
+      key: 'medicalRecordSummaryFee',
+      label: '病歷摘要費（每次限 1 份）',
+      name: 'medicalRecordSummaryFee',
     },
     { key: 'mealFee', label: '膳食費', name: 'mealFee' },
     { key: 'mealDays', label: '膳食天數', name: 'mealDays' },
     { key: 'prosthesisFee', label: '義肢費', name: 'prosthesisFee' },
-    { key: 'dentureFee', label: '義齒費', name: 'dentureFee' },
-    { key: 'missingTeethCount', label: '缺牙數', name: 'missingTeethCount' },
+    { key: 'dentureFee', label: '義齒費（每顆 10,000）', name: 'dentureFee' },
+    { key: 'missingTeethCount', label: '缺牙數（最高採計 5 顆）', name: 'missingTeethCount' },
     { key: 'artificialEyeFee', label: '義眼費', name: 'artificialEyeFee' },
     {
       key: 'specialMaterialFee',
@@ -70,7 +95,7 @@ export function Step5FeesAndProperty({ isInjured }: Step5FeesAndPropertyProps) {
     },
     {
       key: 'medicalMaterialFee',
-      label: '一般醫材（v0.2.5+ 向後相容）',
+      label: '一般醫材費',
       name: 'medicalMaterialFee',
     },
     { key: 'assistiveDeviceFee', label: '輔具費（拐杖/輪椅/支架）', name: 'assistiveDeviceFee' },
@@ -78,17 +103,20 @@ export function Step5FeesAndProperty({ isInjured }: Step5FeesAndPropertyProps) {
   ]
 
   const propertyCommonItems: { key: string; label: string; name: string }[] = [
-    { key: 'vehicleRepairEstimate', label: '估價單金額', name: 'vehicleRepairEstimate' },
-    { key: 'vehicleRepairInvoice', label: '發票金額', name: 'vehicleRepairInvoice' },
+    {
+      key: 'repair',
+      label: '維修費（元）',
+      name: repairSource === 'invoice' ? 'vehicleRepairInvoice' : 'vehicleRepairEstimate',
+    },
     { key: 'towingFee', label: '拖吊費', name: 'towingFee' },
-  ]
-
-  const propertyAdvancedItems: { key: string; label: string; name: string }[] = [
     {
       key: 'vehicleMarketValueBeforeAccident',
       label: '事故前車價',
       name: 'vehicleMarketValueBeforeAccident',
     },
+  ]
+
+  const propertyAdvancedItems: { key: string; label: string; name: string }[] = [
     { key: 'salvageValue', label: '殘值', name: 'salvageValue' },
     // v0.24.2+：折舊計算欄位（選填；填了會代入平均法 / 直線折舊）
     {
@@ -111,15 +139,12 @@ export function Step5FeesAndProperty({ isInjured }: Step5FeesAndPropertyProps) {
 
   return (
     <div className="space-y-4">
-      <InfoAlert
-        type="info"
-        showIcon
-        title="依強制汽車責任保險給付標準 §2 細項填寫；看護費有 1,200 元/日、30 日硬上限（會自動套用）。"
-        body="本表單只收醫療相關；精神慰撫金 / 工作損失 / 車損請勿填入醫療區（法律強制不併入強制險）。"
-      />
+      {isInjured && (
+        <InfoAlert type="info" showIcon title="依收據填寫實際金額；系統會依強制險給付上限估算。" />
+      )}
 
       <Collapse
-        defaultActiveKey={['medical', 'property']}
+        defaultActiveKey={isInjured ? ['medical'] : ['property']}
         items={[
           {
             key: 'medical',
@@ -130,7 +155,7 @@ export function Step5FeesAndProperty({ isInjured }: Step5FeesAndPropertyProps) {
             label: (
               <span className="font-medium">
                 <FileTextOutlined className="mr-2" />
-                醫療收據（強制險 §2 列舉）
+                醫療費用
               </span>
             ),
             children: (
@@ -144,11 +169,26 @@ export function Step5FeesAndProperty({ isInjured }: Step5FeesAndPropertyProps) {
                       key={f.key}
                       name={['receipts', f.name]}
                       label={f.label}
+                      hidden={
+                        (f.key === 'nursingFee' && !showNursing) ||
+                        (['wardFeeDifference', 'wardFeeDays'].includes(f.key) && !showWard)
+                      }
                       // v0.26.0e+：受傷時掛號費必填（未受傷就沒掛號問題）
                       required={f.key === 'registrationFee' ? isInjured : false}
                     />
                   ))}
                 </Row>
+
+                {!showWard && (
+                  <Button type="link" className="!px-0" onClick={() => setShowWardCosts(true)}>
+                    補填住院／病房費用
+                  </Button>
+                )}
+                {showNursing && (
+                  <p className="mb-3 text-sm text-muted">
+                    看護 {nursingDays} 天，日數沿用「傷勢與治療」；需修改時請返回前一步。
+                  </p>
+                )}
 
                 {!showMedicalAdvanced && (
                   <Button
@@ -158,14 +198,14 @@ export function Step5FeesAndProperty({ isInjured }: Step5FeesAndPropertyProps) {
                     onClick={() => setShowMedicalAdvanced(true)}
                     data-testid="show-medical-advanced"
                   >
-                    新增其他費用（{medicalAdvancedItems.length} 項進階欄位）
+                    ＋ 其他醫療費用
                   </Button>
                 )}
 
                 {showMedicalAdvanced && (
                   <>
                     <Title level={5} className="!mb-2 !mt-4">
-                      進階
+                      其他醫療費用
                     </Title>
                     <Row gutter={16}>
                       {medicalAdvancedItems.map((f) => (
@@ -192,11 +232,53 @@ export function Step5FeesAndProperty({ isInjured }: Step5FeesAndPropertyProps) {
                 <Title level={5} className="!mb-2">
                   車輛（常用）
                 </Title>
+                <fieldset className="mb-4">
+                  <legend className="mb-2 text-sm">維修金額來源（填一份即可）</legend>
+                  <Radio.Group
+                    value={repairSource}
+                    options={[
+                      { value: 'estimate', label: '估價單' },
+                      { value: 'invoice', label: '已修車發票' },
+                    ]}
+                    onChange={(e) => {
+                      const source = e.target.value as 'estimate' | 'invoice'
+                      const oldKey =
+                        repairSource === 'invoice'
+                          ? 'vehicleRepairInvoice'
+                          : 'vehicleRepairEstimate'
+                      const newKey =
+                        source === 'invoice' ? 'vehicleRepairInvoice' : 'vehicleRepairEstimate'
+                      if (newKey !== oldKey) {
+                        const value = form.getFieldValue(['property', oldKey]) ?? 0
+                        form.setFieldsValue({ property: { [oldKey]: 0, [newKey]: value } })
+                        setRepairSource(source)
+                      }
+                    }}
+                  />
+                </fieldset>
                 <Row gutter={16} className="!mb-3">
                   {propertyCommonItems.map((f) => (
-                    <R2C key={f.key} name={['property', f.name]} label={f.label} />
+                    <R2C
+                      key={f.key}
+                      name={['property', f.name]}
+                      label={f.label}
+                      hidden={
+                        f.key === 'vehicleMarketValueBeforeAccident' &&
+                        !(repairEstimate > 0 || repairInvoice > 0 || marketValue > 0)
+                      }
+                    />
                   ))}
                 </Row>
+
+                {(repairEstimate > 0 || repairInvoice > 0) && !(marketValue > 0) && (
+                  <InfoAlert
+                    type="warning"
+                    showIcon
+                    className="!mb-3"
+                    title="車損待補事故前車價"
+                    body="可先填市場行情參考價；不知道可先留白，車輛維修損失會標示待估，暫不列入總額。"
+                  />
+                )}
 
                 {!showPropertyAdvanced && (
                   <Button
@@ -206,7 +288,7 @@ export function Step5FeesAndProperty({ isInjured }: Step5FeesAndPropertyProps) {
                     onClick={() => setShowPropertyAdvanced(true)}
                     data-testid="show-property-advanced"
                   >
-                    新增其他費用（{propertyAdvancedItems.length} 項進階欄位）
+                    ＋ 其他財物損失
                   </Button>
                 )}
 
@@ -225,7 +307,7 @@ export function Step5FeesAndProperty({ isInjured }: Step5FeesAndPropertyProps) {
               </>
             ),
           },
-        ]}
+        ].filter((item) => isInjured || item.key !== 'medical')}
       />
 
       {/* 隱藏 Form：保留 Form context 讓 R2C 的 name={['receipts', x]} 仍能註冊欄位，

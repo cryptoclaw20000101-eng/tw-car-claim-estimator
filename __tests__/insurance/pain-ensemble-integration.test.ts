@@ -102,12 +102,12 @@ describe('estimateClaim — painEnsemble 整合（v0.6.2）', () => {
     expect(['strong', 'partial', 'weak', 'insufficient']).toContain(result.painEnsemble.consensus)
   })
 
-  it('三票金額獨立回傳（給 UI 顯示）', () => {
+  it('僅有總賠償資料時，不把 KNN 混入慰撫金', () => {
     const result = estimateClaim(buildInput())
     expect(result.painEnsemble.rulesAmount).toBeGreaterThan(0)
     expect(result.painEnsemble.mlAmount).toBeGreaterThan(0)
-    // knnAmount 可能是 null（practiceCase 無金額）或數字
-    expect(result.painEnsemble.knnAmount === null || result.painEnsemble.knnAmount > 0).toBe(true)
+    expect(result.painEnsemble.knnAmount).toBeNull()
+    expect(result.painEnsemble.knnWeight).toBe(0)
   })
 
   it('共識度為 strong / partial / weak（給臺中案件）', () => {
@@ -117,14 +117,10 @@ describe('estimateClaim — painEnsemble 整合（v0.6.2）', () => {
     expect(['strong', 'partial', 'weak']).toContain(result.painEnsemble.consensus)
   })
 
-  it('共識金額為正數且 ≤ 三票最大值', () => {
+  it('共識金額為正數且落在可比較的規則與歷史資料範圍內', () => {
     const result = estimateClaim(buildInput())
     if (result.painEnsemble.consensusAmount !== null) {
-      const maxTicket = Math.max(
-        result.painEnsemble.rulesAmount,
-        result.painEnsemble.mlAmount,
-        result.painEnsemble.knnAmount ?? 0,
-      )
+      const maxTicket = Math.max(result.painEnsemble.rulesAmount, result.painEnsemble.mlAmount)
       expect(result.painEnsemble.consensusAmount).toBeLessThanOrEqual(maxTicket)
       expect(result.painEnsemble.consensusAmount).toBeGreaterThan(0)
     }
@@ -136,9 +132,7 @@ describe('estimateClaim — painEnsemble 整合（v0.6.2）', () => {
     expect(result.painEnsemble.mlWeight).toBe(1.0)
   })
 
-  it('重度案件 + KNN outlier 可能觸發 partial 共識', () => {
-    // 重大案件（永久障害 + 神經損傷）→ 規則 mid 接近 ML P50（因為都是用 BASE_PAS_TABLE）
-    // KNN 可能給不同金額 → 觸發 partial
+  it('重度案件仍不以總賠償 KNN 金額作為慰撫金票', () => {
     const result = estimateClaim(
       buildInput({
         basics: {
@@ -184,6 +178,7 @@ describe('estimateClaim — painEnsemble 整合（v0.6.2）', () => {
         } as ClaimInput['medical'],
       }),
     )
+    expect(result.painEnsemble.knnAmount).toBeNull()
     // 不具體斷定 consensus，但必須是合法值
     expect(['strong', 'partial', 'weak']).toContain(result.painEnsemble.consensus)
   })

@@ -18,6 +18,15 @@ const axeConfig: readonly string[] = [
   // 'color-contrast',
 ]
 
+// jsdom 沒有 CanvasRenderingContext2D；axe 的 color-contrast 規則會因此輸出
+// 「HTMLCanvasElement.getContext not implemented」雜訊。色彩對比交由真實瀏覽器
+// 的 E2E / Lighthouse 檢查，這裡仍守護其餘 WCAG A、AA 規則。
+const jsdomAxeOptions = {
+  rules: {
+    'color-contrast': { enabled: false },
+  },
+} as const
+
 // v0.20.0+：vitest-axe upstream type bug — `globalOptions` 宣告成 `AxeCore.Spec`
 // 但 `runOnly` 實際在 `RunOptions` 而非 `Spec`，TS 永遠不過。
 // 整段 `as any` 放棄 type check（runtime 行為正確，4 it 都綠）
@@ -48,7 +57,7 @@ describe('key pages a11y (axe-core)', () => {
       </body>
       </html>
     `
-    const results = await axe(html)
+    const results = await axe(html, jsdomAxeOptions)
     // critical/serious 違規必須為 0
     const critical = results.violations.filter(
       (v: AxeResultLite) => v.impact === 'critical' || v.impact === 'serious',
@@ -81,7 +90,7 @@ describe('key pages a11y (axe-core)', () => {
       </body>
       </html>
     `
-    const results = await axe(html)
+    const results = await axe(html, jsdomAxeOptions)
     const critical = results.violations.filter(
       (v: AxeResultLite) => v.impact === 'critical' || v.impact === 'serious',
     )
@@ -107,7 +116,7 @@ describe('key pages a11y (axe-core)', () => {
       </body>
       </html>
     `
-    const results = await axe(html)
+    const results = await axe(html, jsdomAxeOptions)
     const critical = results.violations.filter(
       (v: AxeResultLite) => v.impact === 'critical' || v.impact === 'serious',
     )

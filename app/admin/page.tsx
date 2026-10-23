@@ -43,6 +43,7 @@ import {
   DeleteOutlined,
 } from '@ant-design/icons'
 import { useAuth } from '@/components/AuthProvider'
+import { JourneyDashboard } from '@/components/JourneyDashboard'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -436,6 +437,15 @@ export default function AdminPage() {
                     },
                   ]}
                 />
+              </Card>
+            ),
+          },
+          {
+            key: 'journey',
+            label: '填表完成情況',
+            children: (
+              <Card>
+                <JourneyDashboard />
               </Card>
             ),
           },

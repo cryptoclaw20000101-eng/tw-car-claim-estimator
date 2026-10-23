@@ -2,7 +2,7 @@
 // v0.26.0b+：/api/errors route Sentry 整合守護
 // 對應：app/api/errors/route.ts
 // 用 vi.mock 替換 @sentry/nextjs，驗證 captureMessage / captureException 被正確呼叫
-// 參考：AGENTS.md §32 ErrorTracker → Sentry 整合
+// 參考：AGENTS.md §10 監控（Sentry 整合）
 // =====================================================================
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -72,7 +72,7 @@ describe('POST /api/errors — v0.26.0b sentry 整合', () => {
     expect(Sentry.captureException).toHaveBeenCalledWith(expect.any(SyntaxError))
   })
 
-  it('不傳 stack 到 Sentry（個資保護，AGENTS §32 紅線）', async () => {
+  it('不傳 stack 到 Sentry（個資保護，AGENTS §10 紅線）', async () => {
     await POST(
       fakeReq({
         type: 'X',

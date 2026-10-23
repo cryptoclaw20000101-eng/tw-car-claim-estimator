@@ -1,5 +1,5 @@
 // Sentry 客戶端設定（v0.26.0b+）
-// 對應 AGENTS §13 ErrorTracker 整合
+// 對應 AGENTS §10 監控（Sentry 整合）
 // 從環境變數 SENTRY_DSN 讀 DSN（沒設則關閉 Sentry）
 
 import * as Sentry from '@sentry/nextjs'

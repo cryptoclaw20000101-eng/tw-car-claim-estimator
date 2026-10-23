@@ -19,7 +19,9 @@ export const metadata: Metadata = {
     description: '估算結果僅供參考，不構成法律意見。',
     type: 'website',
     locale: 'zh_TW',
+    url: '/terms',
   },
+  alternates: { canonical: '/terms' },
   robots: {
     index: true,
     follow: true,

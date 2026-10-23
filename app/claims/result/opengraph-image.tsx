@@ -5,10 +5,10 @@ import { ACCENT, BACKGROUND } from '@/lib/design/tokens'
 
 /**
  * /claims/result 專用 OG image（v0.12.0+ Phase C4）
- * 強調「5 區估算結果」與「精神慰撫金三票共識」
+ * 強調「8 項試算與依據」
  */
 
-export const alt = '估算結果 — 5 區明細 | 車禍理賠估算器'
+export const alt = '估算結果，8 項試算與依據 | 車禍理賠估算器'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -52,8 +52,8 @@ export default async function OpengraphImage() {
           marginBottom: 24,
         }}
       >
-        <span>5 區明細</span>
-        <span style={{ color: ACCENT }}>三票共識 + 200+ 判例</span>
+        <span>8 項試算與依據</span>
+        <span style={{ color: ACCENT }}>整理資料，再做下一步</span>
       </div>
 
       <div
@@ -65,10 +65,9 @@ export default async function OpengraphImage() {
           maxWidth: 900,
         }}
       >
-        強制險、失能、第三人責任險、補件、地區實務 — 含 Ensemble 三票 + 歷史判例比對。
+        強制險、失能、民事損害、第三人責任險、補件、地區實務與法源資訊。
       </div>
 
-      {/* 5 區塊 chips */}
       <div
         style={{
           display: 'flex',

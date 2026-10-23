@@ -8,7 +8,7 @@
 //   - 純函式，SSR-safe，不打 API（AGENTS §2.2 零套件紅線）
 //   - 是「建議層」非「取代層」：業務員可手動覆寫（v0.11.0 Ensemble 哲學）
 //   - 永遠給 reasoning trace + confidence，UI 必顯示
-//   - 不處理 PII（AGENTS §11）：診斷書本身可能有姓名，但 parser 只輸出結構化傷勢
+//   - 不處理 PII（AGENTS §8.4）：診斷書本身可能有姓名，但 parser 只輸出結構化傷勢
 //
 // v0.19.0 範圍（rule-based，無 LLM）：
 //   1. Keyword extraction（regex）：骨折家族 / 截肢 / 神經損傷 / ROM% / 視力 / 聽力
@@ -19,7 +19,7 @@
 //
 // v0.20.0+ 規劃（LLM optional）：
 //   - 用 Claude API 處理更複雜中文診斷書（多發性傷害、罕見病名）
-//   - 鏡 AGENTS §11 三階段交付：mock → API → UI
+//   - 鏡 AGENTS §8.4 三階段交付：mock → API → UI
 // =====================================================================
 
 import type { DisabilityLevel, JointName } from './types'

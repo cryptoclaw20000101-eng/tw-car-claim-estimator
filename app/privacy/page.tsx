@@ -21,7 +21,9 @@ export const metadata: Metadata = {
     description: '估算資料脫敏、雲端加密、可隨時刪除。不蒐集姓名、身分證、車牌。',
     type: 'website',
     locale: 'zh_TW',
+    url: '/privacy',
   },
+  alternates: { canonical: '/privacy' },
   robots: {
     index: true,
     follow: true,

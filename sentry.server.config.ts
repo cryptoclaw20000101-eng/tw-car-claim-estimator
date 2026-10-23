@@ -1,5 +1,5 @@
 // Sentry server 端設定（v0.26.0b+）
-// 對應 AGENTS §13 ErrorTracker 整合 + /api/errors route 整合
+// 對應 AGENTS §10 監控（Sentry 整合）+ /api/errors route 整合
 
 import * as Sentry from '@sentry/nextjs'
 

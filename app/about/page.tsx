@@ -11,15 +11,17 @@ import AboutContent from './_content'
  * - Open source 連結
  */
 export const metadata: Metadata = {
-  title: '關於我們 | 車禍理賠估算器',
+  title: '計算方式與資料來源 | 台灣車禍理賠估算器',
   description:
-    '臺灣車禍理賠估算工具：6 大計算引擎 + Ensemble 三票共識 + 司法院真實判例。open source 個人專案。',
+    '了解台灣車禍理賠估算器如何區分強制險、民事損害與第三人責任險，以及失能、精神慰撫金、司法院公開裁判資料的計算方式、更新頻率與使用限制。',
   openGraph: {
-    title: '關於我們 | 車禍理賠估算器',
-    description: '6 大計算引擎 + Ensemble 三票共識 + 司法院真實判例。',
+    title: '計算方式與資料來源 | 台灣車禍理賠估算器',
+    description: '查看理賠試算的計算方式、官方資料來源、更新頻率與使用限制。',
     type: 'website',
     locale: 'zh_TW',
+    url: '/about',
   },
+  alternates: { canonical: '/about' },
   robots: {
     index: true,
     follow: true,

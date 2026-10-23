@@ -1,36 +1,11 @@
-// =====================================================================
-// v0.20.5+ 手機返回鍵保護守護
-//
-// User 回報：手機按返回鍵 → history.back() → SPA 離開 /claims/new → 回首頁 /
-// 修法：_form.tsx 監聽 popstate → pushState 把 /claims/new 加回 history stack
-//        + AntD message 警告
-//
-// 守護：
-// 1. _form.tsx 必須有 popstate handler + pushState
-// 2. popstate handler 必須呼叫 message.warning 提示 user
-// 3. popstate handler 必須 pushState 保持 user 在表單
-//
-// 不做 runtime test：jsdom 對 history API 支援有限，source grep 守護足夠
-// =====================================================================
-
+// 使用者可離開並回來繼續；不可藉填表完成率限制瀏覽器返回。
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
-describe('mobile back button guard', () => {
-  it('_form.tsx 必須註冊 popstate handler', () => {
+describe('mobile back navigation', () => {
+  it('不攔截 popstate 把使用者困在表單', () => {
     const src = readFileSync('app/claims/new/_form.tsx', 'utf-8')
-    expect(src).toMatch(/addEventListener\(\s*['"]popstate['"]/)
-    expect(src).toMatch(/window\.history\.pushState/)
-  })
-
-  it('popstate handler 必須呼叫 message.warning 提示', () => {
-    const src = readFileSync('app/claims/new/_form.tsx', 'utf-8')
-    expect(src).toMatch(/message\.warning/)
-    expect(src).toContain('請完成表單')
-  })
-
-  it('popstate handler 必須把 history 推回 /claims/new', () => {
-    const src = readFileSync('app/claims/new/_form.tsx', 'utf-8')
-    expect(src).toContain("window.history.pushState(null, '', '/claims/new')")
+    expect(src).not.toMatch(/addEventListener\(\s*['"]popstate['"]/)
+    expect(src).not.toContain("window.history.pushState(null, '', '/claims/new')")
   })
 })
