@@ -56,7 +56,7 @@ const nextConfig: NextConfig = {
 // - 沒設 SENTRY_DSN → 跳過（dev / 本地 build 不觸發 source map upload）
 // - 有設 SENTRY_AUTH_TOKEN → 上傳 source map + 顯示 build log
 // - 只有 SENTRY_DSN → silent=true + 跳過 source map（runtime-only）
-// 參考：AGENTS.md §32 ErrorTracker → Sentry 整合
+// 參考：AGENTS.md §10 監控（Sentry 整合）
 const sentryEnabled = Boolean(process.env.SENTRY_DSN)
 
 export default withBundleAnalyzer(

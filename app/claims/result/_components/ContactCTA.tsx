@@ -84,11 +84,12 @@ export function ContactCTA({ estimateId }: ContactCTAProps) {
           type="dashed"
           block
           size="large"
+          className="!h-auto !whitespace-normal !py-3"
           icon={<MessageOutlined />}
           onClick={() => setExpanded(true)}
           data-testid="contact-cta-toggle"
         >
-          有問題？留下 LINE 或 Threads 帳號，我們會在 1-2 個工作天回覆
+          需要協助？留下聯絡方式
         </Button>
       </div>
     )

@@ -20,7 +20,38 @@ const { Paragraph } = Typography
 
 const dollar = (n: number) => `NT$ ${(n ?? 0).toLocaleString('zh-TW')}`
 
-export function CivilSection({ result }: { result: EstimationResult }) {
+export function CivilSection({
+  result,
+  isInjured = true,
+}: {
+  result: EstimationResult
+  isInjured?: boolean
+}) {
+  if (!isInjured) {
+    return (
+      <Card title="車損與財物損失">
+        <Row gutter={16}>
+          <Col xs={12}>
+            <Statistic
+              title="車輛損失"
+              value={result.vehicleDamage ?? '待補車價'}
+              formatter={(v) => (result.vehicleDamage === null ? '待補車價' : dollar(Number(v)))}
+            />
+          </Col>
+          <Col xs={12}>
+            <Statistic
+              title="其他財物損失"
+              value={result.propertyDamage}
+              formatter={(v) => dollar(Number(v))}
+            />
+          </Col>
+        </Row>
+        <Paragraph type="secondary" className="!mt-3 !mb-0">
+          以上尚未分配肇責。對方應負擔的金額與保單狀態，請查看「第三人責任險」。
+        </Paragraph>
+      </Card>
+    )
+  }
   const pas = result.painAndSuffering
   return (
     <Card>
@@ -257,8 +288,8 @@ export function CivilSection({ result }: { result: EstimationResult }) {
         <Col xs={12}>
           <Statistic
             title="車損"
-            value={result.vehicleDamage}
-            formatter={(v) => dollar(Number(v))}
+            value={result.vehicleDamage ?? '待補車價'}
+            formatter={(v) => (result.vehicleDamage === null ? '待補車價' : dollar(Number(v)))}
           />
         </Col>
         <Col xs={12}>

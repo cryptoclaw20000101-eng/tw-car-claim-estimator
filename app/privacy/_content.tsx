@@ -31,7 +31,7 @@ export default function PrivacyContent() {
           隱私權政策
         </Title>
         <Paragraph type="secondary" className="!mb-6 !text-sm">
-          最後更新：2026-07-17
+          最後更新：2026-10-21
         </Paragraph>
 
         <Card>
@@ -42,7 +42,7 @@ export default function PrivacyContent() {
               content={
                 <>
                   <Paragraph>
-                    本工具（車禍理賠估算器）是一個<strong>技術透明</strong>的純前端應用。
+                    本工具（車禍理賠估算器）提供瀏覽器內的試算與選用的雲端儲存。
                     我們遵循「最少資料蒐集」原則：您不需註冊即可使用核心功能。
                   </Paragraph>
                   <Paragraph>
@@ -64,12 +64,20 @@ export default function PrivacyContent() {
                     <strong>不含姓名、身分證字號、車牌號碼</strong>。
                   </Paragraph>
                   <Paragraph>
-                    <strong>技術資料</strong>：瀏覽器類型、IP（Web Vitals 上報時，會自動匿名化）。
-                    我們<strong>不追蹤您的身分</strong>。
+                    <strong>填表統計</strong>
+                    ：使用隨機工作階段代碼記錄開始、步驟完成、驗證提示與試算完成。
+                    不含表單內容、姓名、診斷、收入、聯絡資料或帳號，不在統計資料中保存 IP。
+                    代碼僅存於 sessionStorage，24 小時後重新產生；事件保留最多 30
+                    天，在接收新事件時清理。 尊重瀏覽器 Do Not Track 與 Global Privacy
+                    Control；停用統計不影響使用。
+                  </Paragraph>
+                  <Paragraph>
+                    完整表單及維修折舊草稿保留在本機 7 天。伺服器基礎存取紀錄可能含 IP
+                    與瀏覽器資訊， 與填表統計分開；本機 Web Vitals 目前只用於瀏覽器效能檢查。
                   </Paragraph>
                   <Paragraph>
                     <strong>登入 email（選用）</strong>：用 email + password 登入時使用 (v0.19.x+ 從
-                    Supabase magic link 切換)。 Email 只用於寄送登入連結，
+                    Supabase magic link 切換)。Email 用於帳號登入與驗證，
                     <strong>不會用於行銷或第三方分享</strong>。
                   </Paragraph>
                 </>
@@ -86,11 +94,11 @@ export default function PrivacyContent() {
                   </Paragraph>
                   <Paragraph>
                     <strong>雲端（登入時）</strong>：存在 Railway Postgres DB (v0.17.x+)。 啟用
-                    App-Level Security（RLS），只有您自己能讀寫自己的估算。
+                    應用程式存取權限檢查，只有您自己能讀寫自己的估算。
                   </Paragraph>
                   <Paragraph>
-                    <strong>用途</strong>：純粹跨裝置同步您的估算記錄。<strong>不</strong>用於：
-                    廣告投放 · 用戶分析 · 第三方資料分享 · AI 訓練。
+                    <strong>用途</strong>：估算記錄用於跨裝置同步；匿名填表統計用於改善填寫流程。
+                    估算內容不提供給填表統計，也不用於廣告投放或 AI 訓練。
                   </Paragraph>
                 </>
               }

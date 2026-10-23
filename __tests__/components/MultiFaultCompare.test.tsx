@@ -4,6 +4,14 @@ import { renderToString } from 'react-dom/server'
 import { MultiFaultCompare } from '@/components/MultiFaultCompare'
 
 describe('MultiFaultCompare', () => {
+  it('以總損害乘比例後四捨五入，與主估算使用同一基礎', () => {
+    const html = renderToString(
+      <MultiFaultCompare bodilyInjuryAmount={1} propertyDamageAmount={1} />,
+    )
+    expect(html).toContain('不同肇責下的民事責任試算')
+    expect(html).toContain('$<!-- -->1')
+    expect(html).not.toContain('$<!-- -->2')
+  })
   it('renders 3 scenarios (30/70, 50/50, 70/30)', () => {
     const html = renderToString(
       <MultiFaultCompare bodilyInjuryAmount={60000} propertyDamageAmount={40000} />,

@@ -4,7 +4,7 @@
  * v0.26.0b+：串接 Sentry（init 由 sentry.server.config.ts 自動載入）
  * - 沒設 SENTRY_DSN → Sentry 為 no-op，只 server console
  * - 有設 SENTRY_DSN → Sentry.captureMessage 上報到 Sentry project
- * 參考：AGENTS.md §32 ErrorTracker → Sentry 整合
+ * 參考：AGENTS.md §10 監控（Sentry 整合）
  *
  * 設計：
  * - POST 收 ErrorPayload JSON

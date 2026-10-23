@@ -52,7 +52,7 @@ export function Step1Basics({
       icon={<CarOutlined />}
       title="事故基本資料"
       alertType="info"
-      alertTitle="強制險採無過失主義，肇責比例只會影響第三人責任險的估算。"
+      alertTitle="先填基本資料，其他資料可展開補充。"
     >
       <Row gutter={16}>
         <Col xs={24} md={12}>
@@ -121,7 +121,7 @@ export function Step1Basics({
         items={[
           {
             key: 'supplement',
-            label: '補充事故地點、法院與文件狀態（選填）',
+            label: '其他事故資料（選填）',
             children: (
               <>
                 <Row gutter={16}>

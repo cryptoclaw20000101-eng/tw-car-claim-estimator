@@ -38,6 +38,9 @@ export function PracticeCasesSection({ result }: { result: EstimationResult }) {
         items={refs.map((r) => {
           const ls = r.laborLoss
           const sm = r.settlement
+          // 部分歷史案例未收錄這些欄位；保留案例，不把缺值當成空白資料崩潰。
+          const disabilities = r.disabilities ?? []
+          const keyHoldings = r.keyHoldings ?? []
           return {
             key: r.id,
             label: (
@@ -68,12 +71,12 @@ export function PracticeCasesSection({ result }: { result: EstimationResult }) {
                   </Text>
                   <Paragraph className="!mt-1 !mb-1 !text-sm">{r.injuries}</Paragraph>
                 </div>
-                {r.disabilities.length > 0 && (
+                {disabilities.length > 0 && (
                   <div>
                     <Text type="secondary" className="!text-xs">
                       失能等級：
                     </Text>
-                    {r.disabilities.map((d, i) => (
+                    {disabilities.map((d, i) => (
                       <Tag
                         key={i}
                         color={
@@ -115,13 +118,13 @@ export function PracticeCasesSection({ result }: { result: EstimationResult }) {
                     </Paragraph>
                   </div>
                 )}
-                {r.keyHoldings.length > 0 && (
+                {keyHoldings.length > 0 && (
                   <div>
                     <Text type="secondary" className="!text-xs">
                       勝訴要點：
                     </Text>
                     <ul className="!mt-1">
-                      {r.keyHoldings.map((h, i) => (
+                      {keyHoldings.map((h, i) => (
                         <li key={i} className="!text-sm">
                           {h}
                         </li>
@@ -130,7 +133,7 @@ export function PracticeCasesSection({ result }: { result: EstimationResult }) {
                   </div>
                 )}
                 <Text type="secondary" className="!text-xs !mt-2">
-                  來源：{r.source} · 收錄 {r.scrapedAt.split('T')[0]}
+                  來源：{r.source || '未提供'} · 收錄 {r.scrapedAt?.split('T')[0] || '日期未提供'}
                 </Text>
               </Space>
             ),

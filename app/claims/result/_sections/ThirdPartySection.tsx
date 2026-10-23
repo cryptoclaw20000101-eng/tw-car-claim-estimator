@@ -24,6 +24,15 @@ export function ThirdPartySection({
   return (
     <Card>
       <Divider>對方民事責任與第三人責任險</Divider>
+      {result.vehicleDamage === null && (
+        <InfoAlert
+          type="warning"
+          showIcon
+          className="!mb-3"
+          title="以下僅為已知項目小計，尚未包含車輛維修損失"
+          body="補事故前車價後，請重新試算完整金額。"
+        />
+      )}
       <Row gutter={16}>
         <Col xs={8}>
           <Statistic
@@ -50,7 +59,7 @@ export function ThirdPartySection({
       </Row>
       <Paragraph type="secondary" className="!mt-2 text-sm">
         民事總損害 {dollar(t.civilDamageTotalLow)} / {dollar(t.civilDamageTotalMid)} /{' '}
-        {dollar(t.civilDamageTotalHigh)}· 乘己方肇責 {input.fault.selfFaultRatio}% 後有責金額{' '}
+        {dollar(t.civilDamageTotalHigh)}· 乘對方肇責 {input.fault.otherFaultRatio}% 後有責金額{' '}
         {dollar(t.liableAmountLow)} / {dollar(t.liableAmountMid)} / {dollar(t.liableAmountHigh)}
       </Paragraph>
       {t.isFaultProvisional && (

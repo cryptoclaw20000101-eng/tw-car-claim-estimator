@@ -162,6 +162,9 @@ describe('PainEnsembleCard SSR HTML 結構', () => {
     expect(html).not.toContain('prompt')
     expect(html).not.toContain('180')
     expect(html).not.toContain('completion')
+    expect(html).toContain('規則產生的風險提醒')
+    expect(html).not.toContain('靜態 mock')
+    expect(html).not.toContain('AGENTS.md')
   })
 
   it('disclaimer 永遠渲染（個資法 + 法律邊界）', () => {

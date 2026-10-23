@@ -57,6 +57,9 @@ export default function HomeClient() {
                   開始估算
                 </Button>
               </Link>
+              <Link href="/claims/vehicle-damage">
+                <Button size="large">只有車損？試算維修費折舊</Button>
+              </Link>
               {user ? (
                 <Text className="!text-sm text-muted">已登入：{user.email ?? '用戶'}</Text>
               ) : (

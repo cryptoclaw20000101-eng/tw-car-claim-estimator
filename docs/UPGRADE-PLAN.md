@@ -315,7 +315,7 @@ components/
 
 ## 給未來 agent 的「已知地圖」
 
-接手時必讀 AGENTS.md §1-§13 規則 + 記憶體的「CLAUDE.md 鐵律 8 條」。
+接手時必讀 AGENTS.md §0-§10 現行規則（+ `docs/AGENTS-HISTORY.md` 查決策理由）。
 
 **已完成不要重做**：
 
@@ -353,9 +353,10 @@ components/
 2. **`AGENTS.md`**：
    - 生效版本（line 10）
    - §3 測試期待值（檔數/it 數）
-   - 對應章節（§8/§9/§10/§11/§12/§13）的「v0.X.Y+ 已完成」+「規劃中」
-   - §13 後續候選 + 已完成清單
-3. **`docs/UPGRADE-PLAN.md`**（本檔）：
+   - §8 架構速查（新增/刪除引擎時同步該節）
+   - §9 / §10 的部署與監控契約（改 Railway / Sentry 相關時）
+3. **`docs/AGENTS-HISTORY.md`**：新增版本敘事時 append 到對應章節（不要改 AGENTS.md 現況段）
+4. **`docs/UPGRADE-PLAN.md`**（本檔）：
    - 現況快照版本 + 日期
    - 13 鏈 precedent 分布表
    - 計算引擎檔案清單
@@ -364,3 +365,7 @@ components/
    - 歷史已發佈版本表
 
 不更新會讓未來 agent 接手時做白工（v0.2.17 復活 AGENTS.md 教訓）。
+
+> **2026-10-21 精簡後的維護重點**：AGENTS.md 從 81 KB 降到 25 KB，歷史版本敘事搬到
+> `docs/AGENTS-HISTORY.md`。之後**新增功能時不要再往 AGENTS.md 堆版本敘事** ——
+> 現況事實寫進 §8 架構速查，決策理由寫進 `docs/AGENTS-HISTORY.md` 對應章節。

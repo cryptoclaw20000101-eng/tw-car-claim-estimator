@@ -79,6 +79,7 @@ export function CompulsorySection({ result }: { result: EstimationResult }) {
         body="含醫療、失能、死亡。精神慰撫金、工作損失、車損不計入強制險（法律強制）。"
       />
       <Table
+        scroll={{ x: 650 }}
         size="small"
         rowKey="key"
         dataSource={rows}

@@ -49,7 +49,7 @@ describe('estimate loader', () => {
   afterEach(() => vi.unstubAllGlobals())
 
   it('saves, consumes once, and cancels session data', () => {
-    saveForLoad(input)
+    expect(saveForLoad(input)).toBe(true)
     expect(consumeForLoad()).toEqual(input)
     expect(consumeForLoad()).toBeNull()
     saveForLoad(input)
@@ -61,6 +61,7 @@ describe('estimate loader', () => {
     vi.unstubAllGlobals()
     expect(consumeForLoad()).toBeNull()
     expect(() => saveForLoad(input)).not.toThrow()
+    expect(saveForLoad(input)).toBe(false)
     expect(() => cancelLoad()).not.toThrow()
 
     const broken = storageMock()
@@ -72,6 +73,7 @@ describe('estimate loader', () => {
     })
     vi.stubGlobal('window', { sessionStorage: broken })
     expect(() => saveForLoad(input)).not.toThrow()
+    expect(saveForLoad(input)).toBe(false)
     expect(consumeForLoad()).toBeNull()
   })
 })

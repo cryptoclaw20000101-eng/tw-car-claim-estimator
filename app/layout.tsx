@@ -5,6 +5,7 @@ import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar'
 import { ThemeProvider } from '@/components/ThemeProvider'
 // v0.13.x：Web Vitals 上報
 import { WebVitalsReporter } from '@/components/WebVitalsReporter'
+import { JourneyReporter } from '@/components/JourneyReporter'
 // v0.13.x：Sentry-style 錯誤追蹤 scaffold
 import { ErrorTracker } from '@/components/ErrorTracker'
 // v0.14.x：Supabase 認證 context
@@ -104,6 +105,7 @@ export default function RootLayout({
             <ThemeProvider>
               {/* v0.13.x：Web Vitals 上報（LCP/CLS/INP/FCP/TTFB）*/}
               <WebVitalsReporter />
+              <JourneyReporter />
               {/* v0.13.x：Sentry-style 錯誤追蹤 scaffold */}
               <ErrorTracker />
               <div className="flex flex-1 flex-col">

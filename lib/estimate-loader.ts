@@ -27,12 +27,13 @@ const STORAGE_KEY = 'claim-load-from-history'
 /**
  * 儲存舊案件到 sessionStorage
  */
-export function saveForLoad(claimInput: ClaimInput): void {
-  if (typeof window === 'undefined') return
+export function saveForLoad(claimInput: ClaimInput): boolean {
+  if (typeof window === 'undefined') return false
   try {
     window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(claimInput))
+    return true
   } catch {
-    // quota 超限等
+    return false
   }
 }
 

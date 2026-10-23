@@ -10,7 +10,7 @@ import { ACCENT, BACKGROUND, FOREGROUND, MUTED, SURFACE, BORDER } from '@/lib/de
  * 設計對齊首頁品牌：
  * - 背景 stone-50 (#fafaf9)
  * - 標題 zinc-900 + 強調 rose-700
- * - 系統字體棧（不依賴 Google Fonts 下載，AGENTS §15）
+ * - 系統字體棧（不依賴 Google Fonts 下載，AGENTS §8.10 設計 token 單一來源）
  *
  * 注意：next/og 內建，不需額外依賴
  */

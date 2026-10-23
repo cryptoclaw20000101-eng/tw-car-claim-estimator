@@ -538,7 +538,8 @@ export interface EstimationResult {
     hint: string | null
   }
 
-  vehicleDamage: number
+  /** null 表示有維修金額，但缺少事故前車價，尚未列入總額。 */
+  vehicleDamage: number | null
   propertyDamage: number
 
   // 第三人責任險

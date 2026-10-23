@@ -58,26 +58,27 @@ export function MultiFaultCompare({
 
   return (
     <Card
+      role="region"
+      aria-label="肇責情境比較"
       className="!mt-6"
       title={
         <Space size={6}>
           <FieldTimeOutlined />
-          <span>不同肇責下第三人責任險試算</span>
+          <span>不同肇責下的民事責任試算</span>
         </Space>
       }
     >
       <Paragraph type="secondary" className="!mb-4 !text-sm">
-        強制險不受肇責影響（依傷害程度計算）。以下為第三人責任險的「有責金額」（民事損害 ×
-        對方肇責比例）。
+        以本次民事損害中值乘不同的對方肇責比例比較；強制險不受影響。這些金額尚未核對保單給付。
       </Paragraph>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         {scenarios.map((s) => {
           const otherRatio = s.other / 100
-          // 體傷 / 財損分別乘肇責比例，加總
-          const bodilyClaim = Math.round(bodilyInjuryAmount * otherRatio)
+          // 先依總損害四捨五入，再分配尾差，避免分項與總額相差一元。
           const propertyClaim = Math.round(propertyDamageAmount * otherRatio)
-          const totalClaim = bodilyClaim + propertyClaim
+          const totalClaim = Math.round((bodilyInjuryAmount + propertyDamageAmount) * otherRatio)
+          const bodilyClaim = totalClaim - propertyClaim
 
           return (
             <div key={s.self} className="rounded-lg border border-border bg-surface p-4">

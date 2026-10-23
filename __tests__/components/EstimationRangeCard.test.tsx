@@ -2,7 +2,7 @@
 // v0.20.0+ 結果頁區間卡 — UI 元件測試
 //
 // 對應 user 反饋「結果頁不要只強調單一金額」：
-// - 顯示合理求償區間（保守/一般/積極）
+// - 顯示精神慰撫金參考區間（保守/一般/積極）
 // - 顯示資料完整度（UI 推導）
 // - 顯示缺件清單
 // - 顯示需人工判斷項
@@ -43,11 +43,11 @@ describe('EstimationRangeCard — SSR-safe 結果頁區間卡（v0.20.0+）', ()
   // -----------------------------------------------------------------
   // 區間呈現（保守/一般/積極）
   // -----------------------------------------------------------------
-  it('顯示三個區間：保守估算 / 一般估算 / 積極求償區間', () => {
+  it('顯示三個區間：參考下限 / 參考中值 / 參考上限', () => {
     const html = renderToString(<EstimationRangeCard {...minimalProps} />)
-    expect(strip(html)).toContain('保守估算')
-    expect(strip(html)).toContain('一般估算')
-    expect(strip(html)).toContain('積極求償區間')
+    expect(strip(html)).toContain('參考下限')
+    expect(strip(html)).toContain('參考中值')
+    expect(strip(html)).toContain('參考上限')
   })
 
   it('三個區間都有 data-testid 方便 e2e 抓取', () => {
@@ -57,42 +57,36 @@ describe('EstimationRangeCard — SSR-safe 結果頁區間卡（v0.20.0+）', ()
     expect(html).toContain('data-testid="range-aggressive"')
   })
 
-  it('顯示合理求償區間摘要（low ~ high）', () => {
+  it('顯示精神慰撫金參考區間摘要（low ~ high）', () => {
     const html = renderToString(<EstimationRangeCard {...minimalProps} />)
     expect(strip(html)).toContain('NT$200,000')
     expect(strip(html)).toContain('NT$480,000')
-    expect(strip(html)).toContain('目前合理求償區間')
+    expect(strip(html)).toContain('目前精神慰撫金參考區間')
   })
 
   // -----------------------------------------------------------------
   // 資料完整度
   // -----------------------------------------------------------------
-  it('完整度 100%（無缺件、high confidence）→ 顯示 100% + 綠色 + 成功 icon', () => {
-    const html = renderToString(<EstimationRangeCard {...minimalProps} />)
-    expect(strip(html)).toContain('資料完整度 100%')
-    expect(html).toContain('ant-tag-green')
+  it('無缺件不等於資料完整或沒有風險', () => {
+    const html = strip(renderToString(<EstimationRangeCard {...minimalProps} />))
+    expect(html).not.toContain('資料完整度')
+    expect(html).not.toContain('無重大不確定因素')
+    expect(html).toContain('目前未列出待補項目')
+    expect(html).toContain('不含醫療費、工作損失與財損')
   })
 
-  it('完整度 < 80%（有缺件）→ 顯示較低百分比 + 黃 tag', () => {
-    const props = {
-      ...minimalProps,
-      missingDocuments: ['診斷書', '薪資扣減證明', '車損發票'],
-    }
-    const html = renderToString(<EstimationRangeCard {...props} />)
-    // 100 - 3*12 = 64
-    expect(strip(html)).toContain('資料完整度 64%')
-    expect(html).toContain('ant-tag-gold')
-  })
-
-  it('完整度 < 60%（大量缺件）→ 紅色 tag', () => {
-    const props = {
-      ...minimalProps,
-      missingDocuments: Array.from({ length: 6 }, (_, i) => `缺件 ${i + 1}`),
-    }
-    const html = renderToString(<EstimationRangeCard {...props} />)
-    // 100 - 6*12 = 28
-    expect(strip(html)).toContain('資料完整度 28%')
-    expect(html).toContain('ant-tag-red')
+  it('顯示實際缺件數，不從模型信心度推導百分比', () => {
+    const html = strip(
+      renderToString(
+        <EstimationRangeCard
+          {...minimalProps}
+          missingDocuments={['診斷書', '薪資證明']}
+          painEnsemble={{ ...minimalProps.painEnsemble, mlConfidence: 'low' }}
+        />,
+      ),
+    )
+    expect(html).toContain('待補 2 項')
+    expect(html).not.toContain('資料完整度')
   })
 
   // -----------------------------------------------------------------
@@ -135,7 +129,7 @@ describe('EstimationRangeCard — SSR-safe 結果頁區間卡（v0.20.0+）', ()
 
   it('requiresHumanReview=false + 無缺件 → 顯示「資料充足」綠色提示', () => {
     const html = renderToString(<EstimationRangeCard {...minimalProps} />)
-    expect(strip(html)).toContain('資料充足')
+    expect(strip(html)).toContain('目前未列出待補項目')
   })
 
   // -----------------------------------------------------------------
@@ -147,29 +141,6 @@ describe('EstimationRangeCard — SSR-safe 結果頁區間卡（v0.20.0+）', ()
       painEnsemble: { ...minimalProps.painEnsemble, consensus: 'weak' as const },
     }
     const html = renderToString(<EstimationRangeCard {...props} />)
-    expect(strip(html)).toContain('共識度：weak')
-  })
-
-  // -----------------------------------------------------------------
-  // mlConfidence 影響完整度
-  // -----------------------------------------------------------------
-  it('painML confidence=low → 完整度額外扣 15%', () => {
-    const props = {
-      ...minimalProps,
-      painEnsemble: { ...minimalProps.painEnsemble, mlConfidence: 'low' as const },
-    }
-    const html = renderToString(<EstimationRangeCard {...props} />)
-    // 100 - 0*12 - 15 = 85
-    expect(strip(html)).toContain('資料完整度 85%')
-  })
-
-  it('painML confidence=medium → 完整度額外扣 5%', () => {
-    const props = {
-      ...minimalProps,
-      painEnsemble: { ...minimalProps.painEnsemble, mlConfidence: 'medium' as const },
-    }
-    const html = renderToString(<EstimationRangeCard {...props} />)
-    // 100 - 0*12 - 5 = 95
-    expect(strip(html)).toContain('資料完整度 95%')
+    expect(strip(html)).toContain('各方法結果差異較大')
   })
 })

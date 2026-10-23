@@ -32,6 +32,7 @@ describe('SEO foundation', () => {
     expect(entries.map((entry) => new URL(entry.url).pathname)).toEqual([
       '/',
       '/guides',
+      '/claims/vehicle-damage',
       '/guides/compulsory-insurance',
       '/guides/pain-and-suffering',
       '/guides/work-loss',
@@ -40,10 +41,15 @@ describe('SEO foundation', () => {
       '/terms',
     ])
     expect(
-      entries.every(
-        (entry) => entry.lastModified?.toString() === new Date('2026-08-10').toString(),
-      ),
+      entries
+        .filter((entry) => new URL(entry.url).pathname !== '/claims/vehicle-damage')
+        .every((entry) => entry.lastModified?.toString() === new Date('2026-08-10').toString()),
     ).toBe(true)
+    expect(
+      entries
+        .find((entry) => new URL(entry.url).pathname === '/claims/vehicle-damage')
+        ?.lastModified?.toString(),
+    ).toBe(new Date('2026-10-21').toString())
   })
 
   it('uses Article and BreadcrumbList schema for sourced guides without FAQ markup', () => {

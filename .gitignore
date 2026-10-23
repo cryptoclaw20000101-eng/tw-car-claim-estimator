@@ -25,6 +25,8 @@
 # playwright
 /test-results/
 /playwright-report/
+/.playwright-cli/
+/output/playwright/
 
 # next.js
 /.next/
@@ -87,3 +89,6 @@ next-env.d.ts
 
 # Local SEO audit evidence (screenshots, browser dumps, generated reports)
 /reports/seo-baseline-2026-08-10/
+
+# Local agent context learning artifacts
+/.trail/learnings/

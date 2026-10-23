@@ -248,16 +248,20 @@ export function estimateClaim(input: ClaimInput): EstimationResult {
   const thirdParty = computeThirdParty({
     basics,
     civil: {
-      civilMedicalExpense,
-      civilNursingFeeLow: nursing.low,
-      civilNursingFeeMid: nursing.mid,
-      civilNursingFeeHigh: nursing.high,
-      civilTransportationFee: medicalReceipts.transportationFee,
+      // 歷史案件改為「未受傷」時，總額也必須排除仍保留的人傷欄位。
+      civilMedicalExpense: basics.isInjured === false ? 0 : civilMedicalExpense,
+      civilNursingFeeLow: basics.isInjured === false ? 0 : nursing.low,
+      civilNursingFeeMid: basics.isInjured === false ? 0 : nursing.mid,
+      civilNursingFeeHigh: basics.isInjured === false ? 0 : nursing.high,
+      civilTransportationFee: basics.isInjured === false ? 0 : medicalReceipts.transportationFee,
       // 第三人責任總額採實際選用的短期／長期工作損失，避免結果頁與總額不同。
-      workLoss: workLossExtended.amount,
-      laborCapacityLossEstimate: labor.estimate,
-      painAndSuffering: pas,
-      vehicleDamage,
+      workLoss: basics.isInjured === false ? 0 : workLossExtended.amount,
+      laborCapacityLossEstimate: basics.isInjured === false ? 0 : labor.estimate,
+      painAndSuffering:
+        basics.isInjured === false
+          ? { ...pas, regionalLow: 0, regionalMid: 0, regionalHigh: 0 }
+          : pas,
+      vehicleDamage: vehicleDamage ?? 0,
       propertyDamage,
     },
     compulsoryTotalApproved: compulsory.approved,

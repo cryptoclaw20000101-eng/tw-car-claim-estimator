@@ -28,9 +28,11 @@ test.describe('法律頁面 E2E', () => {
 
   test('/about 載入正確', async ({ page }) => {
     await page.goto('/about')
-    await expect(page.getByRole('heading', { name: '關於我們' })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: '台灣車禍理賠估算器的計算方式與資料來源' }),
+    ).toBeVisible()
     await expect(page.getByRole('heading', { name: '技術棧' })).toBeVisible()
-    await expect(page.getByText(/Open Source/)).toBeVisible()
+    await expect(page.getByText(/Open source 個人專案/)).toBeVisible()
   })
 
   test('3 個頁面都有回首頁連結', async ({ page }) => {

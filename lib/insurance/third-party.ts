@@ -231,9 +231,17 @@ export function computeDepreciatedVehicleValue(
   return { value, depreciationRate, yearsOld, depreciationYears: years }
 }
 
-export function computeVehicleDamage(input: PropertyDamageInputs, accidentYear?: number): number {
+export function computeVehicleDamage(
+  input: PropertyDamageInputs,
+  accidentYear?: number,
+): number | null {
   const repairCost = input.vehicleRepairInvoice || input.vehicleRepairEstimate
   if (repairCost === 0) return 0
+  if (
+    !Number.isFinite(input.vehicleMarketValueBeforeAccident) ||
+    input.vehicleMarketValueBeforeAccident <= 0
+  )
+    return null
   // 歷史案件必須依事故日，而非使用者重算當天的年份決定折舊。
   // 未提供時保留舊 API 行為，供單獨使用的元件向後相容。
   const effectiveAccidentYear = accidentYear ?? new Date().getFullYear()

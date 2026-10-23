@@ -29,6 +29,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.9,
     },
+    {
+      url: `${SITE_URL}/claims/vehicle-damage`,
+      lastModified: new Date('2026-10-21'),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
     ...GUIDES.map((guide) => ({
       url: `${SITE_URL}${guide.href}`,
       lastModified,
